@@ -1,0 +1,8 @@
+*~
+debug/
+release/
+Makefile*
+*.pro.*
+object_script*
+*.autosave
+ui_*
