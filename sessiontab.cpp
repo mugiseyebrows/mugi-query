@@ -22,3 +22,8 @@ QString SessionTab::name() const
 {
     return mName;
 }
+
+void SessionTab::on_execute_clicked()
+{
+    emit query(ui->query->toPlainText());
+}

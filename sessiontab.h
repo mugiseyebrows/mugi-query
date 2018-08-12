@@ -17,6 +17,12 @@ public:
 
     QString database() const;
     QString name() const;
+
+public slots:
+    void on_execute_clicked();
+
+signals:
+    void query(QString);
     
 protected:
 

@@ -7,6 +7,8 @@
 class SessionModel;
 class SessionTab;
 
+#include <QSqlDatabase>
+
 namespace Ui {
 class MainWindow;
 }
@@ -25,6 +27,14 @@ public:
     void selectTab(QTabWidget *widget, const QString &name);
 
     SessionTab* tab(int index);
+    SessionTab* currentTab();
+
+    void initHistory();
+
+    void addToHistory(const QString &database, const QString &query);
+
+protected:
+    QSqlDatabase mHistory;
 
 public slots:
     void onTreeCurrentChanged(QModelIndex, QModelIndex);
@@ -32,6 +42,7 @@ public slots:
     void onSessionRemoved(QString name);
     void onAdjustSplitter();
     void onTabsCurrentChanged(int);
+    void onQuery(QString query);
 private:
     Ui::MainWindow *ui;
 };

@@ -1,9 +1,18 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "sessionmodel.h"
 #include <QDebug>
 #include <QTimer>
+#include <algorithm>
+#include <numeric>
+#include <QDesktopServices>
+#include <QDir>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QMessageBox>
+#include <QSqlQuery>
+
+#include "sessionmodel.h"
 #include "sessiontab.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -15,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent) :
     while (ui->sessionTabs->count() > 0) {
         ui->sessionTabs->removeTab(0);
     }
+
+    initHistory();
 
     SessionModel* m = new SessionModel(ui->sessionTree);
     ui->sessionTree->setModel(m);
@@ -41,8 +52,23 @@ MainWindow::MainWindow(QWidget *parent) :
     QTimer::singleShot(0,this,SLOT(onAdjustSplitter()));
 }
 
-#include <algorithm>
-#include <numeric>
+
+
+void MainWindow::initHistory() {
+
+    QString home = QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
+    QDir d(QDir(home).filePath(".mugi-query"));
+    if (!d.exists()) {
+        d.mkdir(".");
+    }
+    mHistory = QSqlDatabase::addDatabase("QSQLITE","_history");
+    mHistory.setDatabaseName(d.filePath("history.sqlite"));
+    if (!mHistory.open()) {
+        QMessageBox::critical(this,"error",mHistory.lastError().text());
+        return;
+    }
+    mHistory.exec("create table if not exists query(database varchar(64),date datetime,value text)");
+}
 
 void MainWindow::onAdjustSplitter() {
     QList<int> sizes = ui->splitter->sizes();
@@ -98,6 +124,11 @@ SessionTab *MainWindow::tab(int index)
     return qobject_cast<SessionTab*>(ui->sessionTabs->widget(index));
 }
 
+SessionTab *MainWindow::currentTab()
+{
+    return tab(ui->sessionTabs->currentIndex());
+}
+
 int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
     int count = widget->count();
     for(int i=0;i<count;i++) {
@@ -127,19 +158,29 @@ void MainWindow::onSessionAdded(QString database, QString name, QString namePrev
     if (namePrev.isEmpty()) {
         index = -1;
     } else {
-        /*int count = ui->sessionTabs->count();
-        for(int i=0;i<count;i++) {
-            if (ui->sessionTabs->tabText(i) == namePrev) {
-                index = i;
-                break;
-            }
-        }*/
-
         index = tabIndex(ui->sessionTabs,namePrev);
     }
 
     SessionTab* tab = new SessionTab(database, name, ui->sessionTabs);
     ui->sessionTabs->insertTab(index+1,tab,name);
+    connect(tab,SIGNAL(query(QString)),this,SLOT(onQuery(QString)));
+}
+
+void MainWindow::onQuery(QString query) {
+
+    qDebug() << query;
+    addToHistory(currentTab()->database(),query);
+}
+
+
+
+void MainWindow::addToHistory(const QString& database, const QString& query) {
+
+    QSqlQuery q(mHistory);
+    q.prepare("insert into query(database,date,value) values(?,datetime('now'),?)");
+    q.addBindValue(database);
+    q.addBindValue(query);
+    q.exec();
 }
 
 void MainWindow::onSessionRemoved(QString name) {
