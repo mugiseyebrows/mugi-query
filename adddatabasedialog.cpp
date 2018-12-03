@@ -22,6 +22,43 @@ QString AddDatabaseDialog::connectionName() {
     return ui->connectionName->text();
 }
 
+QString AddDatabaseDialog::driver() {
+    return ui->driver->currentText();
+}
+
+QString AddDatabaseDialog::host()
+{
+    return ui->host->text();
+}
+
+QString AddDatabaseDialog::user()
+{
+    return ui->user->text();
+}
+
+QString AddDatabaseDialog::password()
+{
+    return ui->password->text();
+}
+
+QString AddDatabaseDialog::database()
+{
+    return ui->database->text();
+}
+
+int AddDatabaseDialog::port()
+{
+    QString port = ui->port->text();
+    if (!port.isEmpty()) {
+        bool ok;
+        int port_ = port.toInt(&ok);
+        if (ok) {
+            return port_;
+        }
+    }
+    return -1;
+}
+
 void AddDatabaseDialog::accept()
 {
     QString connectionName = ui->connectionName->text();
@@ -40,19 +77,12 @@ void AddDatabaseDialog::accept()
 
     QSqlDatabase db = QSqlDatabase::addDatabase(driver,connectionName);
 
-    db.setHostName(ui->host->text());
-    db.setUserName(ui->user->text());
-    db.setPassword(ui->password->text());
-    db.setDatabaseName(ui->database->text());
-
-    QString port = ui->port->text();
-
-    if (!port.isEmpty()) {
-        bool ok;
-        int port_ = port.toInt(&ok);
-        if (ok) {
-            db.setPort(port_);
-        }
+    db.setHostName(host());
+    db.setUserName(user());
+    db.setPassword(password());
+    db.setDatabaseName(database());
+    if (port() > -1) {
+        db.setPort(port());
     }
 
     if (!db.open()) {
@@ -64,4 +94,25 @@ void AddDatabaseDialog::accept()
     QDialog::accept();
 }
 
+#include <QTableView>
+#include <QSqlTableModel>
+#include "databasehistorydialog.h"
+#include <QDebug>
 
+void AddDatabaseDialog::on_history_clicked()
+{
+    DatabaseHistoryDialog dialog;
+    if (dialog.exec() == QDialog::Accepted) {
+
+        ui->connectionName->setText(dialog.connectionName());
+
+        ui->driver->setCurrentIndex(ui->driver->findText(dialog.driver()));
+        ui->host->setText(dialog.host());
+        ui->user->setText(dialog.user());
+        ui->password->setText(dialog.password());
+        ui->database->setText(dialog.database());
+        ui->port->setText(dialog.port() > -1 ? QString::number(dialog.port()) : QString());
+
+    }
+
+}

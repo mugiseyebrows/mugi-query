@@ -16,6 +16,7 @@
 #include "sessiontab.h"
 #include "adddatabasedialog.h"
 #include "removedatabasedialog.h"
+#include "history.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -27,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->sessionTabs->removeTab(0);
     }
 
-    initHistory();
+    mHistory = new History(this);
 
     SessionModel* m = new SessionModel(ui->sessionTree);
     ui->sessionTree->setModel(m);
@@ -40,11 +41,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //connect(m,SIGNAL(database))
 
+    /*
     m->addDatabase("foo");
     m->addSession(m->index(0,0));
     m->addDatabase("bar");
     m->addSession(m->index(1,0));
     m->addSession(m->index(1,0));
+    */
 
     /*m->addDatabase("foo");
     m->addSession(m->index(0,0));
@@ -67,6 +70,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
+    Q_UNUSED(pos);
+
     QModelIndex index = ui->sessionTree->currentIndex();
 
     QMenu menu(this);
@@ -76,7 +81,7 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
     QAction* addSession = new QAction("add session",&menu);
     QAction* removeSession = new QAction("remove session",&menu);
 
-    SessionModel* m =  model();
+    SessionModel* m = model();
 
     if (!index.isValid()) {
 
@@ -98,16 +103,13 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
     }
 
-    qDebug() << pos << ui->sessionTabs->mapToParent(pos);
+    //qDebug() << pos << ui->sessionTabs->mapToParent(pos);
 
     QAction* action = menu.exec(QCursor::pos());
 
     if (action == addDatabase) {
 
-        AddDatabaseDialog dialog(this);
-        if (dialog.exec() == QDialog::Accepted) {
-            m->addDatabase(dialog.connectionName());
-        }
+        on_addDatabase_triggered();
 
     } else if (action == removeDatabase) {
 
@@ -132,33 +134,6 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 }
 
 #include <QStandardPaths>
-
-void MainWindow::initHistory() {
-
-    #if QT_VERSION >= 0x050000
-        QString home = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-    #else
-        QString home = QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
-    #endif
-
-    QString name = ".mugi-query";
-
-    QDir d(QDir(home).filePath(name));
-    if (!d.exists()) {
-        d.cdUp();
-        d.mkdir(name);
-        d.cd(name);
-    }
-    mHistory = QSqlDatabase::addDatabase("QSQLITE","_history");
-    mHistory.setDatabaseName(d.filePath("history.sqlite"));
-    if (!mHistory.open()) {
-        QMessageBox::critical(this,"error",mHistory.lastError().text());
-        return;
-    }
-
-    mHistory.exec("create table if not exists database(name text,driver text,host text,user text,password text,database text,port int)");
-    mHistory.exec("create table if not exists query(database varchar(64),date datetime,value text)");
-}
 
 void MainWindow::onAdjustSplitter() {
     QList<int> sizes = ui->splitter->sizes();
@@ -236,15 +211,15 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
         return;
     }
 
+    QString connectionName = tab(tabIndex)->connectionName();
     QString name = tab(tabIndex)->name();
-    QString database = tab(tabIndex)->database();
-    QModelIndex index = model()->indexOf(database,name);
+    QModelIndex index = model()->indexOf(connectionName,name);
     if (ui->sessionTree->currentIndex() != index) {
         ui->sessionTree->setCurrentIndex(index);
     }
 }
 
-void MainWindow::onSessionAdded(QString database, QString name, QString namePrev) {
+void MainWindow::onSessionAdded(QString connectionName, QString name, QString namePrev) {
 
     int index;
     if (namePrev.isEmpty()) {
@@ -253,34 +228,34 @@ void MainWindow::onSessionAdded(QString database, QString name, QString namePrev
         index = tabIndex(ui->sessionTabs,namePrev);
     }
 
-    qDebug() << "onSessionAdded" << database << name << namePrev << index;
+    qDebug() << "onSessionAdded" << connectionName << name << namePrev << index;
 
-    SessionTab* tab = new SessionTab(database, name, ui->sessionTabs);
+    SessionTab* tab = new SessionTab(connectionName, name, ui->sessionTabs);
     ui->sessionTabs->insertTab(index+1,tab,name);
     connect(tab,SIGNAL(query(QString)),this,SLOT(onQuery(QString)));
 }
 
 void MainWindow::onQuery(QString query) {
-
     qDebug() << query;
-    addToHistory(currentTab()->database(),query);
+    mHistory->addQuery(currentTab()->connectionName(),query);
 }
 
-void MainWindow::addToHistory(const QString& database, const QString& query) {
-
-    QSqlQuery q(mHistory);
-    q.prepare("insert into query(database,date,value) values(?,datetime('now'),?)");
-    q.addBindValue(database);
-    q.addBindValue(query);
-    q.exec();
+void MainWindow::on_addDatabase_triggered()
+{
+    SessionModel* m = model();
+    AddDatabaseDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        m->addDatabase(dialog.connectionName());
+    }
+    mHistory->addDatabase(dialog.connectionName(),dialog.driver(),dialog.host(),dialog.user(),dialog.password(),dialog.database(),dialog.port());
 }
 
-void MainWindow::onSessionRemoved(QString database, QString name) {
+void MainWindow::onSessionRemoved(QString connectionName, QString name) {
     //qDebug() << "onSessionRemoved" << name;
 
     for(int i=0;i<ui->sessionTabs->count();i++) {
         SessionTab* tab = this->tab(i);
-        if (tab->database() == database && tab->name() == name) {
+        if (tab->connectionName() == connectionName && tab->name() == name) {
             ui->sessionTabs->removeTab(i);
             return;
         }

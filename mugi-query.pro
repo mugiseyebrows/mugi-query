@@ -18,16 +18,21 @@ SOURCES += main.cpp\
     sessionitem.cpp \
     sessiontab.cpp \
     adddatabasedialog.cpp \
-    removedatabasedialog.cpp
+    removedatabasedialog.cpp \
+    databasehistorydialog.cpp \
+    history.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
     sessionitem.h \
     sessiontab.h \
     adddatabasedialog.h \
-    removedatabasedialog.h
+    removedatabasedialog.h \
+    databasehistorydialog.h \
+    history.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \
     adddatabasedialog.ui \
-    removedatabasedialog.ui
+    removedatabasedialog.ui \
+    databasehistorydialog.ui

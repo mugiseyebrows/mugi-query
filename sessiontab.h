@@ -12,10 +12,10 @@ class SessionTab : public QWidget
     Q_OBJECT
     
 public:
-    explicit SessionTab(const QString& database, const QString name, QWidget *parent = 0);
+    explicit SessionTab(const QString& connectionName, const QString name, QWidget *parent = 0);
     ~SessionTab();
 
-    QString database() const;
+    QString connectionName() const;
     QString name() const;
 
 public slots:
@@ -26,7 +26,7 @@ signals:
     
 protected:
 
-    QString mDatabase;
+    QString mConnectionName;
     QString mName;
 
     Ui::SessionTab *ui;

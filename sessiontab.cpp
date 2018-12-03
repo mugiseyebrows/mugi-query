@@ -1,9 +1,9 @@
 #include "sessiontab.h"
 #include "ui_sessiontab.h"
 
-SessionTab::SessionTab(const QString &database, const QString name, QWidget *parent) :
+SessionTab::SessionTab(const QString &connectionName, const QString name, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::SessionTab), mDatabase(database), mName(name)
+    ui(new Ui::SessionTab), mConnectionName(connectionName), mName(name)
 {
     ui->setupUi(this);
 
@@ -18,9 +18,9 @@ SessionTab::~SessionTab()
     delete ui;
 }
 
-QString SessionTab::database() const
+QString SessionTab::connectionName() const
 {
-    return mDatabase;
+    return mConnectionName;
 }
 
 QString SessionTab::name() const

@@ -6,6 +6,7 @@
 
 class SessionModel;
 class SessionTab;
+class History;
 
 #include <QSqlDatabase>
 
@@ -29,19 +30,15 @@ public:
     SessionTab* tab(int index);
     SessionTab* currentTab();
 
-    void initHistory();
-
-    void addToHistory(const QString &database, const QString &query);
-
-
 protected:
-    QSqlDatabase mHistory;
+    History* mHistory;
 
 public slots:
+    void on_addDatabase_triggered();
     void on_sessionTree_customContextMenuRequested(QPoint pos);
     void onTreeCurrentChanged(QModelIndex, QModelIndex);
-    void onSessionAdded(QString db, QString name, QString namePrev);
-    void onSessionRemoved(QString database, QString name);
+    void onSessionAdded(QString connectionName, QString name, QString namePrev);
+    void onSessionRemoved(QString connectionName, QString name);
     void onAdjustSplitter();
     void onTabsCurrentChanged(int);
     void onQuery(QString query);

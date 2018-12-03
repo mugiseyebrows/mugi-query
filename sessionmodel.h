@@ -40,7 +40,7 @@ public:
     QString databaseName(const QModelIndex& index);
     QString sessionName(const QModelIndex& index);
 
-    QModelIndex indexOf(const QString& database, const QString& name) const;
+    QModelIndex indexOf(const QString& connectionName, const QString& name) const;
 
 signals:
 

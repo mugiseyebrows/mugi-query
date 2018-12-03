@@ -180,10 +180,10 @@ QString SessionModel::sessionName(const QModelIndex &index)
     return item->name();
 }
 
-QModelIndex SessionModel::indexOf(const QString &database, const QString &name) const
+QModelIndex SessionModel::indexOf(const QString &connectionName, const QString &name) const
 {
     for(int i=0;i<rootItem->childCount();i++) {
-        if (rootItem->child(i)->name() == database) {
+        if (rootItem->child(i)->name() == connectionName) {
             SessionItem* database_ = rootItem->child(i);
             for(int j=0;j<database_->childCount();j++) {
                 if (database_->child(j)->name() == name) {
