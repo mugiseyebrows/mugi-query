@@ -16,12 +16,18 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     sessionmodel.cpp \
     sessionitem.cpp \
-    sessiontab.cpp
+    sessiontab.cpp \
+    adddatabasedialog.cpp \
+    removedatabasedialog.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
     sessionitem.h \
-    sessiontab.h
+    sessiontab.h \
+    adddatabasedialog.h \
+    removedatabasedialog.h
 
 FORMS    += mainwindow.ui \
-    sessiontab.ui
+    sessiontab.ui \
+    adddatabasedialog.ui \
+    removedatabasedialog.ui

@@ -44,6 +44,41 @@ bool SessionModel::insertRows(int row, int count, const QModelIndex &parent)
 
 bool SessionModel::removeRows(int row, int count, const QModelIndex &parent)
 {
+//    if (parent.isValid()) {
+        // remove sessions
+        QList<SessionItem*> sessions;
+        QStringList names;
+
+        for(int i=0;i<count;i++) {
+            SessionItem* session = static_cast<SessionItem*>(index(row + i,0,parent).internalPointer());
+            sessions << session;
+            names << session->name();
+        }
+
+        if (parent.isValid()) {
+            // sessions
+            QString database = sessions[0]->parent()->name();
+            foreach(const QString& name, names) {
+                emit sessionRemoved(database,name);
+            }
+        }
+
+        beginRemoveRows(parent, row, row + count - 1);
+        qDeleteAll(sessions);
+        endRemoveRows();
+
+#if 0
+
+    } else {
+        // remove databases
+
+        beginRemoveRows(parent, row, row + count - 1);
+
+        endRemoveRows();
+    }
+#endif
+
+
 }
 
 void SessionModel::addDatabase(const QString &name)
@@ -55,7 +90,7 @@ void SessionModel::addDatabase(const QString &name)
 void SessionModel::addSession(const QModelIndex &parent)
 {
     int row = this->rowCount(parent);
-    insertRows(row,1,parent);
+    insertRow(row,parent);
 
     QString db = data(parent).toString();
 
@@ -76,10 +111,18 @@ void SessionModel::addSession(const QModelIndex &parent)
 
 void SessionModel::removeDatabase(const QModelIndex &index)
 {
+    int rowCount = this->rowCount(index);
+    if (rowCount > 0) {
+        removeRows(0,rowCount,index);
+    }
+    removeRow(index.row());
 }
 
 void SessionModel::removeSession(const QModelIndex &index)
 {
+    //SessionItem* item = static_cast<SessionItem*>(index.internalPointer());
+    //emit sessionRemoved(item->parent()->name(),item->name());
+    removeRow(index.row(),index.parent());
 }
 
 bool SessionModel::isSession(const QModelIndex &index)
@@ -98,6 +141,30 @@ bool SessionModel::isDatabase(const QModelIndex &index)
     }
     SessionItem* item = static_cast<SessionItem*>(index.internalPointer());
     return !item->isSession();
+}
+
+QString SessionModel::databaseName(const QModelIndex &index)
+{
+    if (!index.isValid()) {
+        return QString();
+    }
+    SessionItem* item = static_cast<SessionItem*>(index.internalPointer());
+    if (item->isSession()) {
+        return item->parent()->name();
+    }
+    return item->name();
+}
+
+QString SessionModel::sessionName(const QModelIndex &index)
+{
+    if (!index.isValid()) {
+        return QString();
+    }
+    SessionItem* item = static_cast<SessionItem*>(index.internalPointer());
+    if (!item->isSession()) {
+        return QString();
+    }
+    return item->name();
 }
 
 QModelIndex SessionModel::indexOf(const QString &database, const QString &name) const

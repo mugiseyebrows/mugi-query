@@ -6,3 +6,7 @@ Makefile*
 object_script*
 *.autosave
 ui_*
+*.o
+.qmake.stash
+moc_*
+mugi-query

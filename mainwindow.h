@@ -33,13 +33,15 @@ public:
 
     void addToHistory(const QString &database, const QString &query);
 
+
 protected:
     QSqlDatabase mHistory;
 
 public slots:
+    void on_sessionTree_customContextMenuRequested(QPoint pos);
     void onTreeCurrentChanged(QModelIndex, QModelIndex);
     void onSessionAdded(QString db, QString name, QString namePrev);
-    void onSessionRemoved(QString name);
+    void onSessionRemoved(QString database, QString name);
     void onAdjustSplitter();
     void onTabsCurrentChanged(int);
     void onQuery(QString query);

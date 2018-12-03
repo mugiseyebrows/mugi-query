@@ -37,6 +37,9 @@ public:
     bool isSession(const QModelIndex& index);
     bool isDatabase(const QModelIndex& index);
 
+    QString databaseName(const QModelIndex& index);
+    QString sessionName(const QModelIndex& index);
+
     QModelIndex indexOf(const QString& database, const QString& name) const;
 
 signals:
@@ -44,7 +47,7 @@ signals:
     //void databaseAdded(QString,QString);
     void sessionAdded(QString,QString,QString);
     //void databaseRemoved(QString);
-    void sessionRemoved(QString);
+    void sessionRemoved(QString,QString);
 
 protected:
 

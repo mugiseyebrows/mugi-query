@@ -20,7 +20,11 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QTreeView" name="sessionTree"/>
+      <widget class="QTreeView" name="sessionTree">
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
+      </widget>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
@@ -59,7 +63,7 @@
      <x>0</x>
      <y>0</y>
      <width>789</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>
