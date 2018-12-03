@@ -4,6 +4,10 @@
 #include <QSqlDatabase>
 #include <QMessageBox>
 #include <QSqlError>
+#include <QTableView>
+#include <QSqlTableModel>
+#include "databasehistorydialog.h"
+#include <QDebug>
 
 AddDatabaseDialog::AddDatabaseDialog(QWidget *parent) :
     QDialog(parent),
@@ -94,25 +98,20 @@ void AddDatabaseDialog::accept()
     QDialog::accept();
 }
 
-#include <QTableView>
-#include <QSqlTableModel>
-#include "databasehistorydialog.h"
-#include <QDebug>
 
 void AddDatabaseDialog::on_history_clicked()
 {
     DatabaseHistoryDialog dialog;
-    if (dialog.exec() == QDialog::Accepted) {
-
-        ui->connectionName->setText(dialog.connectionName());
-
-        ui->driver->setCurrentIndex(ui->driver->findText(dialog.driver()));
-        ui->host->setText(dialog.host());
-        ui->user->setText(dialog.user());
-        ui->password->setText(dialog.password());
-        ui->database->setText(dialog.database());
-        ui->port->setText(dialog.port() > -1 ? QString::number(dialog.port()) : QString());
-
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
     }
+
+    ui->connectionName->setText(dialog.connectionName());
+    ui->driver->setCurrentIndex(ui->driver->findText(dialog.driver()));
+    ui->host->setText(dialog.host());
+    ui->user->setText(dialog.user());
+    ui->password->setText(dialog.password());
+    ui->database->setText(dialog.database());
+    ui->port->setText(dialog.port() > -1 ? QString::number(dialog.port()) : QString());
 
 }

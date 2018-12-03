@@ -7,6 +7,8 @@ namespace Ui {
 class SessionTab;
 }
 
+class QSqlQueryModel;
+
 class SessionTab : public QWidget
 {
     Q_OBJECT
@@ -18,11 +20,22 @@ public:
     QString connectionName() const;
     QString name() const;
 
+    void setResult(const QStringList &queries, const QStringList errors, const QList<QSqlQueryModel*> models, const QList<int>& perf, const QList<int>& rowsAffected);
+
+    void cleanTabs();
+
+    void setQuery(const QString& query);
+
+protected:
+
+
+
 public slots:
     void on_execute_clicked();
 
 signals:
     void query(QString);
+    void showQueryHistory();
     
 protected:
 
@@ -30,6 +43,9 @@ protected:
     QString mName;
 
     Ui::SessionTab *ui;
+private slots:
+    void on_history_clicked();
+    void on_save_clicked();
 };
 
 #endif // SESSIONTAB_H

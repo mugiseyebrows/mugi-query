@@ -17,10 +17,15 @@
 #include "adddatabasedialog.h"
 #include "removedatabasedialog.h"
 #include "history.h"
+#include "queryparser.h"
+#include <QTime>
+#include <QSqlQueryModel>
+#include "queryhistorywidget.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    mQueryHistory(0)
 {
     ui->setupUi(this);
 
@@ -191,7 +196,11 @@ SessionTab *MainWindow::tab(int index)
 
 SessionTab *MainWindow::currentTab()
 {
-    return tab(ui->sessionTabs->currentIndex());
+    int index = ui->sessionTabs->currentIndex();
+    if (index < 0) {
+        return 0;
+    }
+    return tab(index);
 }
 
 int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
@@ -231,13 +240,74 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
     qDebug() << "onSessionAdded" << connectionName << name << namePrev << index;
 
     SessionTab* tab = new SessionTab(connectionName, name, ui->sessionTabs);
+
+    connect(tab,SIGNAL(showQueryHistory()),this,SLOT(onShowQueryHistory()));
+
     ui->sessionTabs->insertTab(index+1,tab,name);
     connect(tab,SIGNAL(query(QString)),this,SLOT(onQuery(QString)));
 }
 
-void MainWindow::onQuery(QString query) {
-    qDebug() << query;
-    mHistory->addQuery(currentTab()->connectionName(),query);
+void MainWindow::onCopyQuery(QString query) {
+    SessionTab* tab = currentTab();
+    if (!tab) {
+        return;
+    }
+    tab->setQuery(query);
+}
+
+void MainWindow::onShowQueryHistory() {
+    if (!mQueryHistory) {
+        mQueryHistory = new QueryHistoryWidget();
+        connect(mQueryHistory,SIGNAL(copyQuery(QString)),this,SLOT(onCopyQuery(QString)));
+    }
+    mQueryHistory->refresh();
+    mQueryHistory->show();
+    mQueryHistory->raise();
+}
+
+void MainWindow::onQuery(QString queries) {
+
+    SessionTab* tab = currentTab();
+
+    QString connectionName = tab->connectionName();
+
+    QStringList queries_ = QueryParser::split(queries);
+
+    QStringList errors;
+    QList<QSqlQueryModel*> models;
+    QList<int> perf;
+    QList<int> rowsAffected;
+
+    QSqlDatabase db = QSqlDatabase::database(connectionName);
+
+    QTime time;
+    time.start();
+
+    foreach(QString query, queries_) {
+
+        mHistory->addQuery(connectionName,query.trimmed());
+
+        QSqlQuery q(db);
+        QSqlQueryModel* model = 0;
+        QString error;
+        int rowsAffected_ = -1;
+        if (!q.exec(query)) {
+            error = q.lastError().text();
+        } else {
+            if (q.isSelect()) {
+                model = new QSqlQueryModel();
+                model->setQuery(q);
+            }
+            rowsAffected_ = q.numRowsAffected();
+        }
+        perf << time.restart();
+        models << model;
+        errors << error;
+        rowsAffected << rowsAffected_;
+    }
+
+    tab->setResult(queries_,errors,models,perf,rowsAffected);
+
 }
 
 void MainWindow::on_addDatabase_triggered()
