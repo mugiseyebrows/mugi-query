@@ -12,6 +12,7 @@ public:
     ~SessionItem();
 
     void appendChild(SessionItem *child);
+    void removeChild(SessionItem *item);
 
     SessionItem *child(int row);
     int childCount() const;
@@ -24,11 +25,17 @@ public:
 
     bool isSession() const;
 
+    QString prevName();
+    QString nextName();
+
+    SessionItem *lastChild();
+
 private:
     QList<SessionItem*> childItems;
     QString mName;
     SessionItem *parentItem;
     bool mIsSession;
+    int mNumber;
 };
 
 #endif

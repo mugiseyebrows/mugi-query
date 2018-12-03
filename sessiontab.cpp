@@ -6,6 +6,11 @@ SessionTab::SessionTab(const QString &database, const QString name, QWidget *par
     ui(new Ui::SessionTab), mDatabase(database), mName(name)
 {
     ui->setupUi(this);
+
+    while(ui->resultTabs->count() > 0) {
+        ui->resultTabs->removeTab(0);
+    }
+
 }
 
 SessionTab::~SessionTab()

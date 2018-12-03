@@ -29,9 +29,11 @@ bool SessionModel::insertRows(int row, int count, const QModelIndex &parent)
         // add session
 
         SessionItem* parentItem = static_cast<SessionItem*>(parent.internalPointer());
-        QString name = QString("%1 %2").arg(parentItem->name()).arg(parentItem->childCount() + 1);
+        QString name = parentItem->nextName();
         SessionItem* child = new SessionItem(name,true,parentItem);
+        QString prevName = parentItem->prevName();
         parentItem->appendChild(child);
+        emit sessionAdded(parentItem->name(),child->name(),prevName);
 
     } else {
         // add database
@@ -55,7 +57,7 @@ bool SessionModel::removeRows(int row, int count, const QModelIndex &parent)
             names << session->name();
         }
 
-        if (parent.isValid()) {
+        if (sessions[0]->isSession()) {
             // sessions
             QString database = sessions[0]->parent()->name();
             foreach(const QString& name, names) {
@@ -89,10 +91,20 @@ void SessionModel::addDatabase(const QString &name)
 
 void SessionModel::addSession(const QModelIndex &parent)
 {
-    int row = this->rowCount(parent);
-    insertRow(row,parent);
 
+    QModelIndex index = parent;
+
+    SessionItem* item = static_cast<SessionItem*>(index.internalPointer());
+
+    if (item->isSession()) {
+        index = index.parent();
+    }
+
+    int row = this->rowCount(index);
+    insertRow(row,index);
+#if 0
     QString db = data(parent).toString();
+
 
     QString name = data(index(row,0,parent)).toString();
     QString namePrev;
@@ -107,6 +119,7 @@ void SessionModel::addSession(const QModelIndex &parent)
     }
 
     emit sessionAdded(db,name,namePrev);
+#endif
 }
 
 void SessionModel::removeDatabase(const QModelIndex &index)

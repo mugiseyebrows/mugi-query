@@ -40,11 +40,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //connect(m,SIGNAL(database))
 
-    /*m->addDatabase("foo");
+    m->addDatabase("foo");
     m->addSession(m->index(0,0));
     m->addDatabase("bar");
     m->addSession(m->index(1,0));
-    m->addSession(m->index(1,0));*/
+    m->addSession(m->index(1,0));
+
+    /*m->addDatabase("foo");
+    m->addSession(m->index(0,0));
+    m->addSession(m->index(0,0));
+    m->removeRow(0,m->index(0,0));*/
 
     connect(ui->sessionTree->selectionModel(),
             SIGNAL(currentChanged(QModelIndex,QModelIndex)),
@@ -227,6 +232,10 @@ int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
 void MainWindow::onTabsCurrentChanged(int tabIndex) {
     //qDebug() << "onTabsCurrentChanged" << index;
 
+    if (tabIndex < 0) {
+        return;
+    }
+
     QString name = tab(tabIndex)->name();
     QString database = tab(tabIndex)->database();
     QModelIndex index = model()->indexOf(database,name);
@@ -235,9 +244,7 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
     }
 }
 
-
 void MainWindow::onSessionAdded(QString database, QString name, QString namePrev) {
-    qDebug() << "onSessionAdded" << database << name << namePrev;
 
     int index;
     if (namePrev.isEmpty()) {
@@ -245,6 +252,8 @@ void MainWindow::onSessionAdded(QString database, QString name, QString namePrev
     } else {
         index = tabIndex(ui->sessionTabs,namePrev);
     }
+
+    qDebug() << "onSessionAdded" << database << name << namePrev << index;
 
     SessionTab* tab = new SessionTab(database, name, ui->sessionTabs);
     ui->sessionTabs->insertTab(index+1,tab,name);
@@ -256,8 +265,6 @@ void MainWindow::onQuery(QString query) {
     qDebug() << query;
     addToHistory(currentTab()->database(),query);
 }
-
-
 
 void MainWindow::addToHistory(const QString& database, const QString& query) {
 
@@ -271,7 +278,13 @@ void MainWindow::addToHistory(const QString& database, const QString& query) {
 void MainWindow::onSessionRemoved(QString database, QString name) {
     //qDebug() << "onSessionRemoved" << name;
 
-
+    for(int i=0;i<ui->sessionTabs->count();i++) {
+        SessionTab* tab = this->tab(i);
+        if (tab->database() == database && tab->name() == name) {
+            ui->sessionTabs->removeTab(i);
+            return;
+        }
+    }
 
 }
 

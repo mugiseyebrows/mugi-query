@@ -9,6 +9,7 @@ RemoveDatabaseDialog::RemoveDatabaseDialog(const QString& name,QWidget *parent) 
     mName(name)
 {
     ui->setupUi(this);
+    ui->label->setText(QString("Are you sure you want to disconnect from %1?").arg(name));
 }
 
 RemoveDatabaseDialog::~RemoveDatabaseDialog()
