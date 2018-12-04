@@ -37,7 +37,7 @@ public:
     bool isSession(const QModelIndex& index);
     bool isDatabase(const QModelIndex& index);
 
-    QString databaseName(const QModelIndex& index);
+    QString connectionName(const QModelIndex& index);
     QString sessionName(const QModelIndex& index);
 
     QModelIndex indexOf(const QString& connectionName, const QString& name) const;

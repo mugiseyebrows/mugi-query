@@ -9,6 +9,8 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QVariant>
+#include <QSqlRecord>
+#include <QDebug>
 
 #define PARENT_WIDGET qobject_cast<QWidget*>(this->parent())
 

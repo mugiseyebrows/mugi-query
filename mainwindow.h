@@ -8,6 +8,7 @@ class SessionModel;
 class SessionTab;
 class History;
 class QueryHistoryWidget;
+class QCompleter;
 
 #include <QSqlDatabase>
 
@@ -28,9 +29,11 @@ public:
     SessionTab* tab(int index);
     SessionTab* currentTab();
 
+    void updateCompleter(const QString &connectionName);
 protected:
     History* mHistory;
     QueryHistoryWidget* mQueryHistory;
+    QMap<QString,QCompleter*> mCompleters;
 
 public slots:
     void on_addDatabase_triggered();

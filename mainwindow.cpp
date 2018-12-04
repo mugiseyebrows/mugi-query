@@ -11,6 +11,11 @@
 #include <QSqlError>
 #include <QMessageBox>
 #include <QSqlQuery>
+#include <QCompleter>
+#include <QTime>
+#include <QSqlQueryModel>
+#include <QStringListModel>
+#include <QCursor>
 
 #include "sessionmodel.h"
 #include "sessiontab.h"
@@ -18,9 +23,8 @@
 #include "removedatabasedialog.h"
 #include "history.h"
 #include "queryparser.h"
-#include <QTime>
-#include <QSqlQueryModel>
 #include "queryhistorywidget.h"
+#include "schemafetcher.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -71,7 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //connect(ui->sessionTree,SIGNAL()
 }
 
-#include <QCursor>
+
 
 void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
@@ -83,10 +87,17 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
     QAction* addDatabase = new QAction("add database",&menu);
     QAction* removeDatabase = new QAction("remove database",&menu);
+    QAction* reconnect = new QAction("reconnect",&menu);
     QAction* addSession = new QAction("add session",&menu);
     QAction* removeSession = new QAction("remove session",&menu);
 
+    QString connectionName;
+
     SessionModel* m = model();
+
+    if (index.isValid()) {
+        connectionName = m->connectionName(index);
+    }
 
     if (!index.isValid()) {
 
@@ -98,6 +109,7 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
         menu.addSeparator();
         menu.addAction(addDatabase);
         menu.addAction(removeDatabase);
+        menu.addAction(reconnect);
 
     } else if (m->isSession(index)) {
 
@@ -108,8 +120,6 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
     }
 
-    //qDebug() << pos << ui->sessionTabs->mapToParent(pos);
-
     QAction* action = menu.exec(QCursor::pos());
 
     if (action == addDatabase) {
@@ -118,13 +128,10 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
     } else if (action == removeDatabase) {
 
-        QString name = m->databaseName(index);
-
-        RemoveDatabaseDialog dialog(name,this);
+        RemoveDatabaseDialog dialog(connectionName,this);
         if (dialog.exec() == QDialog::Accepted) {
             m->removeDatabase(index);
         }
-
 
     } else if (action == addSession) {
 
@@ -134,11 +141,19 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
         m->removeSession(index);
 
+    } else if (action == reconnect) {
+
+        QSqlDatabase db = QSqlDatabase::database(connectionName);
+        db.close();
+        if (!db.open()) {
+            QMessageBox::critical(this,"Error",db.lastError().text());
+        }
+
     }
 
 }
 
-#include <QStandardPaths>
+
 
 void MainWindow::onAdjustSplitter() {
     QList<int> sizes = ui->splitter->sizes();
@@ -213,10 +228,25 @@ int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
     return -1;
 }
 
+namespace {
+
+QStringList filterEmpty(const QStringList& items) {
+    QStringList res;
+    foreach(const QString& item, items) {
+        if (!item.isEmpty()) {
+            res << item;
+        }
+    }
+    return res;
+}
+
+}
+
 void MainWindow::onTabsCurrentChanged(int tabIndex) {
     //qDebug() << "onTabsCurrentChanged" << index;
 
     if (tabIndex < 0) {
+        setWindowTitle("mugi-query");
         return;
     }
 
@@ -226,6 +256,14 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
     if (ui->sessionTree->currentIndex() != index) {
         ui->sessionTree->setCurrentIndex(index);
     }
+
+    QSqlDatabase db = QSqlDatabase::database(connectionName);
+
+    QStringList title;
+    title << db.driverName() << db.hostName() << db.userName() << db.databaseName();
+    title = filterEmpty(title);
+    setWindowTitle(title.join(" "));
+
 }
 
 void MainWindow::onSessionAdded(QString connectionName, QString name, QString namePrev) {
@@ -245,6 +283,8 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
 
     ui->sessionTabs->insertTab(index+1,tab,name);
     connect(tab,SIGNAL(query(QString)),this,SLOT(onQuery(QString)));
+
+    tab->setCompleter(mCompleters.value(connectionName));
 }
 
 void MainWindow::onCopyQuery(QString query) {
@@ -283,9 +323,13 @@ void MainWindow::onQuery(QString queries) {
     QTime time;
     time.start();
 
+    bool schemaChanged = false;
+
     foreach(QString query, queries_) {
 
         mHistory->addQuery(connectionName,query.trimmed());
+
+        schemaChanged = schemaChanged | QueryParser::isAlterSchemaQuery(query);
 
         QSqlQuery q(db);
         QSqlQueryModel* model = 0;
@@ -310,14 +354,45 @@ void MainWindow::onQuery(QString queries) {
 
 }
 
+void MainWindow::updateCompleter(const QString& connectionName) {
+    //ConnectionsModel* model = static_cast<ConnectionsModel*>(ui->connections->model());
+    qDebug() << "updateCompleter";
+    QCompleter* completer = mCompleters.value(connectionName);
+
+    if (!completer) {
+        completer = new QCompleter();
+        completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+        completer->setCaseSensitivity(Qt::CaseInsensitive);
+        completer->setWrapAround(true);
+    }
+
+    //qDebug() << "updateCompleter for connection" << connectionName;
+    QStringList schema = SchemaFetcher::fetch(QSqlDatabase::database(connectionName));
+    QStringListModel* stringListModel = new QStringListModel(schema,completer);
+
+    completer->setModel(stringListModel);
+
+    mCompleters[connectionName] = completer;
+}
+
 void MainWindow::on_addDatabase_triggered()
 {
     SessionModel* m = model();
     AddDatabaseDialog dialog(this);
+    QString connectionName;
+
     if (dialog.exec() == QDialog::Accepted) {
-        m->addDatabase(dialog.connectionName());
+        connectionName = dialog.connectionName();
+        m->addDatabase(connectionName);
     }
-    mHistory->addDatabase(dialog.connectionName(),dialog.driver(),dialog.host(),dialog.user(),dialog.password(),dialog.database(),dialog.port());
+    mHistory->addDatabase(connectionName,dialog.driver(),dialog.host(),dialog.user(),dialog.password(),dialog.database(),dialog.port());
+
+    if (mCompleters.contains(connectionName)) {
+        mCompleters[connectionName]->deleteLater();
+        mCompleters[connectionName] = 0;
+    }
+
+    updateCompleter(connectionName);
 }
 
 void MainWindow::onSessionRemoved(QString connectionName, QString name) {

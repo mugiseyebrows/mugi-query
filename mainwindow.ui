@@ -28,13 +28,6 @@
       <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QLabel" name="current">
-          <property name="text">
-           <string>TextLabel</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QTabWidget" name="sessionTabs">
           <property name="currentIndex">
            <number>0</number>

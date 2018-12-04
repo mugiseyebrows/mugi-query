@@ -156,7 +156,7 @@ bool SessionModel::isDatabase(const QModelIndex &index)
     return !item->isSession();
 }
 
-QString SessionModel::databaseName(const QModelIndex &index)
+QString SessionModel::connectionName(const QModelIndex &index)
 {
     if (!index.isValid()) {
         return QString();

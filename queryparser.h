@@ -12,6 +12,7 @@ public:
 
     static void testSplit();
     static void testSplitCompare(const QStringList a, const QStringList b);
+    static bool isAlterSchemaQuery(const QString &query);
 };
 
 #endif // QUERYPARSER_H

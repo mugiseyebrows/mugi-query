@@ -3,13 +3,13 @@
 
 #include <QSqlDatabase>
 
-RemoveDatabaseDialog::RemoveDatabaseDialog(const QString& name,QWidget *parent) :
+RemoveDatabaseDialog::RemoveDatabaseDialog(const QString& connectionName,QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RemoveDatabaseDialog),
-    mName(name)
+    mConnectionName(connectionName)
 {
     ui->setupUi(this);
-    ui->label->setText(QString("Are you sure you want to disconnect from %1?").arg(name));
+    ui->label->setText(QString("Are you sure you want to disconnect from %1?").arg(connectionName));
 }
 
 RemoveDatabaseDialog::~RemoveDatabaseDialog()
@@ -19,8 +19,8 @@ RemoveDatabaseDialog::~RemoveDatabaseDialog()
 
 void RemoveDatabaseDialog::accept()
 {
-    QSqlDatabase db = QSqlDatabase::database(mName);
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
     db.close();
-    QSqlDatabase::removeDatabase(mName);
+    QSqlDatabase::removeDatabase(mConnectionName);
     QDialog::accept();
 }

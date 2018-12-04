@@ -8,6 +8,8 @@ class SessionTab;
 }
 
 class QSqlQueryModel;
+class QCompleter;
+class QAbstractItemModel;
 
 class SessionTab : public QWidget
 {
@@ -22,9 +24,13 @@ public:
 
     void setResult(const QStringList &queries, const QStringList errors, const QList<QSqlQueryModel*> models, const QList<int>& perf, const QList<int>& rowsAffected);
 
+    void setCompleter(QCompleter* completer);
+
     void cleanTabs();
 
     void setQuery(const QString& query);
+
+    QSqlQueryModel *currentModel();
 
 protected:
 

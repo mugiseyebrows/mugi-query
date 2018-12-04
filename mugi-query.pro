@@ -25,7 +25,11 @@ SOURCES += main.cpp\
     sl.cpp \
     rowvaluegetter.cpp \
     rowvaluesetter.cpp \
-    queryhistorywidget.cpp
+    queryhistorywidget.cpp \
+    schemafetcher.cpp \
+    plaintextedit.cpp \
+    savedatadialog.cpp \
+    checkablestringlistmodel.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -39,11 +43,16 @@ HEADERS  += mainwindow.h \
     sl.h \
     rowvaluegetter.h \
     rowvaluesetter.h \
-    queryhistorywidget.h
+    queryhistorywidget.h \
+    schemafetcher.h \
+    plaintextedit.h \
+    savedatadialog.h \
+    checkablestringlistmodel.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \
     adddatabasedialog.ui \
     removedatabasedialog.ui \
     databasehistorydialog.ui \
-    queryhistorywidget.ui
+    queryhistorywidget.ui \
+    savedatadialog.ui

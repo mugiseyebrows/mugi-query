@@ -8,6 +8,12 @@ QueryParser::QueryParser()
 
 }
 
+
+bool QueryParser::isAlterSchemaQuery(const QString& query) {
+    return query.indexOf(QRegExp("(create|drop|alter)\\s+table",Qt::CaseInsensitive)) > -1;
+}
+
+
 void QueryParser::testSplitCompare(const QStringList e, const QStringList a) {
 
     QString e_ = "{" + e.join("|") + "}";

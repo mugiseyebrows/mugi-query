@@ -12,7 +12,7 @@ class RemoveDatabaseDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit RemoveDatabaseDialog(const QString &name, QWidget *parent = 0);
+    explicit RemoveDatabaseDialog(const QString &connectionName, QWidget *parent = 0);
     ~RemoveDatabaseDialog();
 
 public slots:
@@ -20,7 +20,7 @@ public slots:
 
 private:
     Ui::RemoveDatabaseDialog *ui;
-    QString mName;
+    QString mConnectionName;
 };
 
 #endif // REMOVEDATABASEDIALOG_H

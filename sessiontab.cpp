@@ -4,7 +4,9 @@
 #include <QSqlQueryModel>
 #include <QTableView>
 #include <QStandardItemModel>
+#include <QDebug>
 #include "rowvaluesetter.h"
+#include "savedatadialog.h"
 
 SessionTab::SessionTab(const QString &connectionName, const QString name, QWidget *parent) :
     QWidget(parent),
@@ -28,7 +30,6 @@ QString SessionTab::name() const
 {
     return mName;
 }
-
 
 void SessionTab::setResult(const QStringList& queries, const QStringList errors, const QList<QSqlQueryModel *> models, const QList<int> &perf, const QList<int> &rowsAffected)
 {
@@ -79,7 +80,12 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
 
     QString title = "stat";
     ui->resultTabs->insertTab(ui->resultTabs->count(),view,title);
+}
 
+void SessionTab::setCompleter(QCompleter *completer)
+{
+    qDebug() << "SessionTab::setCompleter";
+    ui->query->setCompleter(completer);
 }
 
 void SessionTab::cleanTabs()
@@ -95,6 +101,15 @@ void SessionTab::setQuery(const QString &query)
     ui->query->setPlainText(query);
 }
 
+QSqlQueryModel *SessionTab::currentModel()
+{
+    QTableView* view = qobject_cast<QTableView*>(ui->resultTabs->currentWidget());
+    if (!view) {
+        return 0;
+    }
+    return qobject_cast<QSqlQueryModel*>(view->model());
+}
+
 void SessionTab::on_execute_clicked()
 {
     emit query(ui->query->toPlainText());
@@ -107,5 +122,17 @@ void SessionTab::on_history_clicked()
 
 void SessionTab::on_save_clicked()
 {
+    QSqlQueryModel* model = currentModel();
+    if (!model) {
+        return;
+    }
+    QStringList fields;
+    for(int c=0;c<model->columnCount();c++) {
+        fields << model->headerData(c,Qt::Horizontal).toString();
+    }
 
+    SaveDataDialog dialog(fields,this);
+    if (dialog.exec() == QDialog::Accepted) {
+
+    }
 }

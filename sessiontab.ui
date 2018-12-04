@@ -19,10 +19,10 @@
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QPlainTextEdit" name="query"/>
+        <widget class="PlainTextEdit" name="query"/>
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -76,6 +76,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlainTextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>plaintextedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
