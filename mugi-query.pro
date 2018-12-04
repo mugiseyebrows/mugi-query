@@ -29,7 +29,9 @@ SOURCES += main.cpp\
     schemafetcher.cpp \
     plaintextedit.cpp \
     savedatadialog.cpp \
-    checkablestringlistmodel.cpp
+    checkablestringlistmodel.cpp \
+    datastreamer.cpp \
+    dataformat.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -47,7 +49,9 @@ HEADERS  += mainwindow.h \
     schemafetcher.h \
     plaintextedit.h \
     savedatadialog.h \
-    checkablestringlistmodel.h
+    checkablestringlistmodel.h \
+    datastreamer.h \
+    dataformat.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

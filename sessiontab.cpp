@@ -7,6 +7,9 @@
 #include <QDebug>
 #include "rowvaluesetter.h"
 #include "savedatadialog.h"
+#include <QFileDialog>
+#include "datastreamer.h"
+#include <QMessageBox>
 
 SessionTab::SessionTab(const QString &connectionName, const QString name, QWidget *parent) :
     QWidget(parent),
@@ -126,13 +129,31 @@ void SessionTab::on_save_clicked()
     if (!model) {
         return;
     }
-    QStringList fields;
-    for(int c=0;c<model->columnCount();c++) {
-        fields << model->headerData(c,Qt::Horizontal).toString();
+
+    SaveDataDialog dialog(model,this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
     }
 
-    SaveDataDialog dialog(fields,this);
-    if (dialog.exec() == QDialog::Accepted) {
-
+    QString filter;
+    if (dialog.format() == DataFormat::Csv) {
+        filter = "csv files (*.csv)";
+    } else {
+        filter = "sql files (*.sql)";
     }
+
+    QString name = QFileDialog::getSaveFileName(this,QString(),QString(),filter);
+    if (name.isEmpty()) {
+        return;
+    }
+
+    QFile file(name);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this,"Error",QString("Can not open file %1").arg(name));
+        return;
+    }
+    QTextStream stream(&file);
+
+    DataStreamer::stream(stream,model,dialog.format(),dialog.table(),dialog.dataChecked(),dialog.keysChecked());
+
 }

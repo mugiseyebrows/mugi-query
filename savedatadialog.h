@@ -7,13 +7,25 @@ namespace Ui {
 class SaveDataDialog;
 }
 
+class QSqlQueryModel;
+
+#include "dataformat.h"
+
 class SaveDataDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit SaveDataDialog(const QStringList& columns, QWidget *parent = 0);
+
+    explicit SaveDataDialog(QSqlQueryModel *model, QWidget *parent = 0);
     ~SaveDataDialog();
+
+    DataFormat::Format format() const;
+
+    QList<bool> keysChecked() const;
+    QList<bool> dataChecked() const;
+
+    QString table() const;
 
 private slots:
     void on_allData_clicked();
@@ -26,6 +38,7 @@ private slots:
 
 private:
     Ui::SaveDataDialog *ui;
+    QSqlQueryModel* mModel;
 };
 
 #endif // SAVEDATADIALOG_H
