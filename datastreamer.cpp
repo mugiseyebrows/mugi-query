@@ -51,7 +51,7 @@ QString DataStreamer::variantToString(const QVariant& value, DataFormat::Format 
         case QVariant::ByteArray:
             return "0x" + value.toByteArray().toHex();
         default:
-            qDebug() << QString("DataStreamer::variantToString(dumpFormat == CSV || dumpFormat == CSVRUS) is not defined for value.type() == %1").arg(value.type());
+            qDebug() << QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
             return value.toString();
         }
     } else if (format == DataFormat::SqlInsert || format == DataFormat::SqlUpdate) {
@@ -76,11 +76,11 @@ QString DataStreamer::variantToString(const QVariant& value, DataFormat::Format 
         case QVariant::DateTime:
             return "'" + value.toDateTime().toString("yyyy-MM-dd hh:mm:ss") + "'";
         case QVariant::String:
-            return "'" + value.toString().replace("'","\\'") + "'";
+            return "'" + value.toString().replace("'","''") + "'";
         case QVariant::ByteArray:
             return "0x" + value.toByteArray().toHex();
         default:
-            qDebug() << QString("DataStreamer::variantToString(dumpFormat == SQL) is not defined for value.type() == %1").arg(value.type());
+            qDebug() << QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
             return value.toString();
         }
     } else {

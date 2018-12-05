@@ -8,8 +8,10 @@ class SaveDataDialog;
 }
 
 class QSqlQueryModel;
+class CheckableStringListModel;
 
 #include "dataformat.h"
+#include "outputtype.h"
 
 class SaveDataDialog : public QDialog
 {
@@ -27,6 +29,17 @@ public:
 
     QString table() const;
 
+    OutputType::Type output() const;
+
+    CheckableStringListModel *dataModel() const;
+    CheckableStringListModel *keysModel() const;
+protected:
+    void updateLabels();
+
+public slots:
+
+    void accept();
+
 private slots:
     void on_allData_clicked();
 
@@ -35,6 +48,10 @@ private slots:
     void on_allKeys_clicked();
 
     void on_noneKeys_clicked();
+
+    void on_statement_currentIndexChanged(int index);
+
+    void on_table_textChanged(const QString &arg1);
 
 private:
     Ui::SaveDataDialog *ui;

@@ -1,7 +1,7 @@
 #include "queryhistorywidget.h"
 #include "ui_queryhistorywidget.h"
 
-#include <QSqlTableModel>
+#include <QSqlQueryModel>
 
 QueryHistoryWidget::QueryHistoryWidget(QWidget *parent) :
     QWidget(parent),
@@ -9,11 +9,9 @@ QueryHistoryWidget::QueryHistoryWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QSqlTableModel* model = new QSqlTableModel(this,QSqlDatabase::database("_history"));
-    model->setTable("query");
-    model->select();
+    QSqlQueryModel* model = new QSqlQueryModel(this);
     ui->tableView->setModel(model);
-
+    refresh();
 }
 
 QueryHistoryWidget::~QueryHistoryWidget()
@@ -29,8 +27,9 @@ void QueryHistoryWidget::on_tableView_doubleClicked(QModelIndex index) {
 
 void QueryHistoryWidget::refresh()
 {
-    QSqlTableModel* model = qobject_cast<QSqlTableModel*>(ui->tableView->model());
-    model->select();
+    QSqlQueryModel* model = qobject_cast<QSqlQueryModel*>(ui->tableView->model());
+    QSqlQuery q("select * from query order by date desc",QSqlDatabase::database("_history"));
+    model->setQuery(q);
 }
 
 void QueryHistoryWidget::on_refresh_clicked()

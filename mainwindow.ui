@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>789</width>
-    <height>526</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -55,17 +55,36 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>789</width>
+     <width>800</width>
      <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatabase">
     <property name="title">
-     <string>Database</string>
+     <string>&amp;Database</string>
     </property>
     <addaction name="addDatabase"/>
+    <addaction name="reconnect"/>
+    <addaction name="removeDatabase"/>
+    <addaction name="databaseHistory"/>
+   </widget>
+   <widget class="QMenu" name="menuData">
+    <property name="title">
+     <string>&amp;Query</string>
+    </property>
+    <addaction name="queryHistory"/>
+    <addaction name="saveData"/>
+   </widget>
+   <widget class="QMenu" name="menu_Session">
+    <property name="title">
+     <string>&amp;Session</string>
+    </property>
+    <addaction name="addSession"/>
+    <addaction name="removeSession"/>
    </widget>
    <addaction name="menuDatabase"/>
+   <addaction name="menuData"/>
+   <addaction name="menu_Session"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -78,7 +97,57 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="addDatabase">
    <property name="text">
-    <string>add</string>
+    <string>&amp;Add</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="saveData">
+   <property name="text">
+    <string>&amp;Save data</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="databaseHistory">
+   <property name="text">
+    <string>&amp;HIstory</string>
+   </property>
+  </action>
+  <action name="queryHistory">
+   <property name="text">
+    <string>&amp;HIstory</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+H</string>
+   </property>
+  </action>
+  <action name="addSession">
+   <property name="text">
+    <string>&amp;Add</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="removeSession">
+   <property name="text">
+    <string>&amp;Remove</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="removeDatabase">
+   <property name="text">
+    <string>&amp;Remove</string>
+   </property>
+  </action>
+  <action name="reconnect">
+   <property name="text">
+    <string>Re&amp;connect</string>
    </property>
   </action>
  </widget>

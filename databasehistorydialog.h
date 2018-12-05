@@ -12,8 +12,23 @@ class DatabaseHistoryDialog : public QDialog
     Q_OBJECT
 
 public:
+    enum cols {
+        col_date,
+        col_connectionName,
+        col_driver,
+        col_host,
+        col_user,
+        col_password,
+        col_database,
+        col_port
+    };
+
     explicit DatabaseHistoryDialog(QWidget *parent = 0);
     ~DatabaseHistoryDialog();
+
+    QVariant data(int column) const;
+    QString dataToString(int column) const;
+    int dataToInt(int column) const;
 
     QString connectionName() const;
     QString driver() const;

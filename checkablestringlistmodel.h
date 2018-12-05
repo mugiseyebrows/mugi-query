@@ -21,6 +21,10 @@ public:
     QStringList unchecked() const;
     QStringList checkState(Qt::CheckState state) const;
 
+    bool hasAnyChecked() const;
+    bool hasAnyUnchecked() const;
+    bool hasAnyCheckState(Qt::CheckState state) const;
+
     void setAllChecked();
     void setAllUnchecked();
     void setAllCheckState(Qt::CheckState state);

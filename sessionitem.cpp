@@ -1,6 +1,7 @@
 
 #include <QStringList>
 #include "sessionitem.h"
+#include <QDebug>
 
 SessionItem::SessionItem(const QString &name, bool isSession, SessionItem *parent)
     : mName(name), parentItem(parent), mIsSession(isSession), mNumber(0)
@@ -71,10 +72,15 @@ QString SessionItem::prevName() {
     if (!childItems.isEmpty()) {
         return lastChild()->name();
     }
-    for(int row = this->row() - 1; row >= 0; row++) {
-        SessionItem* child = parentItem->child(row)->lastChild();
-        if (child) {
-            return child->name();
+    if (!parentItem) {
+        qDebug() << "prevName is not valid on database";
+        return QString();
+    }
+    for(int row = this->row() - 1; row >= 0; row--) {
+        SessionItem* sibling = parentItem->child(row);
+        SessionItem* siblingChild = sibling->lastChild();
+        if (siblingChild) {
+            return siblingChild->name();
         }
     }
     return QString();

@@ -60,6 +60,26 @@ QStringList CheckableStringListModel::checkState(Qt::CheckState state) const
     return res;
 }
 
+bool CheckableStringListModel::hasAnyChecked() const
+{
+    return hasAnyCheckState(Qt::Checked);
+}
+
+bool CheckableStringListModel::hasAnyUnchecked() const
+{
+    return hasAnyCheckState(Qt::Unchecked);
+}
+
+bool CheckableStringListModel::hasAnyCheckState(Qt::CheckState state) const
+{
+    for(int r=0;r<rowCount();r++) {
+        if (data(index(r,0),Qt::CheckStateRole).toInt() == state) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void CheckableStringListModel::setAllChecked()
 {
     setAllCheckState(Qt::Checked);

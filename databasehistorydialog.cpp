@@ -4,10 +4,6 @@
 #include <QSqlTableModel>
 #include <QVariant>
 
-#define MODEL (ui->tableView->model())
-#define MODEL_DATA_STRING(col) MODEL->data(MODEL->index(ui->tableView->currentIndex().row(),col)).toString()
-#define MODEL_DATA_INT(col) MODEL->data(MODEL->index(ui->tableView->currentIndex().row(),col)).toInt()
-
 DatabaseHistoryDialog::DatabaseHistoryDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DatabaseHistoryDialog)
@@ -28,6 +24,22 @@ DatabaseHistoryDialog::~DatabaseHistoryDialog()
     delete ui;
 }
 
+QVariant DatabaseHistoryDialog::data(int column) const
+{
+    QAbstractItemModel* m = ui->tableView->model();
+    return m->data(m->index(ui->tableView->currentIndex().row(),column));
+}
+
+QString DatabaseHistoryDialog::dataToString(int column) const
+{
+    return data(column).toString();
+}
+
+int DatabaseHistoryDialog::dataToInt(int column) const
+{
+    return data(column).toInt();
+}
+
 void DatabaseHistoryDialog::on_tableView_doubleClicked(const QModelIndex &index)
 {
     Q_UNUSED(index);
@@ -35,35 +47,35 @@ void DatabaseHistoryDialog::on_tableView_doubleClicked(const QModelIndex &index)
 }
 
 QString DatabaseHistoryDialog::connectionName() const {
-    return MODEL_DATA_STRING(1);
+    return dataToString(col_connectionName);
 }
 
 QString DatabaseHistoryDialog::driver() const {
-    return MODEL_DATA_STRING(2);
+    return dataToString(col_driver);
 }
 
 QString DatabaseHistoryDialog::host() const
 {
-    return MODEL_DATA_STRING(3);
+    return dataToString(col_host);
 }
 
 QString DatabaseHistoryDialog::user() const
 {
-    return MODEL_DATA_STRING(4);
+    return dataToString(col_user);
 }
 
 QString DatabaseHistoryDialog::password() const
 {
-    return MODEL_DATA_STRING(5);
+    return dataToString(col_password);
 }
 
 QString DatabaseHistoryDialog::database() const
 {
-    return MODEL_DATA_STRING(6);
+    return dataToString(col_database);
 }
 
 int DatabaseHistoryDialog::port() const
 {
-    return MODEL_DATA_INT(7);
+    return dataToInt(col_port);
 }
 

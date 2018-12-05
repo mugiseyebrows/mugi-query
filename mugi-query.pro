@@ -31,7 +31,10 @@ SOURCES += main.cpp\
     savedatadialog.cpp \
     checkablestringlistmodel.cpp \
     datastreamer.cpp \
-    dataformat.cpp
+    dataformat.cpp \
+    queriesstatmodel.cpp \
+    setsplitersizesratio.cpp \
+    outputtype.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -51,7 +54,10 @@ HEADERS  += mainwindow.h \
     savedatadialog.h \
     checkablestringlistmodel.h \
     datastreamer.h \
-    dataformat.h
+    dataformat.h \
+    queriesstatmodel.h \
+    setsplitersizesratio.h \
+    outputtype.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

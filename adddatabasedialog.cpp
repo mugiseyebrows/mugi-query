@@ -8,13 +8,18 @@
 #include <QSqlTableModel>
 #include "databasehistorydialog.h"
 #include <QDebug>
+#include <QTimer>
 
-AddDatabaseDialog::AddDatabaseDialog(QWidget *parent) :
+AddDatabaseDialog::AddDatabaseDialog(bool showHistory, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddDatabaseDialog)
 {
     ui->setupUi(this);
     ui->driver->addItems(QSqlDatabase::drivers());
+
+    if (showHistory) {
+        QTimer::singleShot(0,this,SLOT(on_history_clicked()));
+    }
 }
 
 AddDatabaseDialog::~AddDatabaseDialog()

@@ -32,26 +32,24 @@ public:
 
     QSqlQueryModel *currentModel();
 
-protected:
-
-
-
-public slots:
-    void on_execute_clicked();
+    void saveData();
 
 signals:
     void query(QString);
     void showQueryHistory();
+    void addSessionWithQuery(QString);
     
 protected:
 
     QString mConnectionName;
     QString mName;
+    bool mFirstQuery;
 
     Ui::SessionTab *ui;
 private slots:
     void on_history_clicked();
     void on_save_clicked();
+    void on_execute_clicked();
 };
 
 #endif // SESSIONTAB_H

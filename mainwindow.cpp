@@ -26,6 +26,8 @@
 #include "queryhistorywidget.h"
 #include "schemafetcher.h"
 
+#include <QShortcut>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -63,6 +65,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m->addSession(m->index(0,0));
     m->removeRow(0,m->index(0,0));*/
 
+    //m->addDatabase("_history");
+    //updateCompleter("_history");
+
     connect(ui->sessionTree->selectionModel(),
             SIGNAL(currentChanged(QModelIndex,QModelIndex)),
             this,
@@ -71,11 +76,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->sessionTabs,SIGNAL(currentChanged(int)),this,SLOT(onTabsCurrentChanged(int)));
 
     QTimer::singleShot(0,this,SLOT(onAdjustSplitter()));
-
-    //connect(ui->sessionTree,SIGNAL()
 }
 
-
+QAction* cloneAction(QAction* src, const QString& text, QObject* parent) {
+    QAction* action = new QAction(text,parent);
+    QObject::connect(action,SIGNAL(triggered()),src,SIGNAL(triggered()));
+    return action;
+}
 
 void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
@@ -85,19 +92,13 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
     QMenu menu(this);
 
-    QAction* addDatabase = new QAction("add database",&menu);
-    QAction* removeDatabase = new QAction("remove database",&menu);
-    QAction* reconnect = new QAction("reconnect",&menu);
-    QAction* addSession = new QAction("add session",&menu);
-    QAction* removeSession = new QAction("remove session",&menu);
+    QAction* addDatabase = cloneAction(ui->addDatabase,"&Add database",&menu);
+    QAction* removeDatabase = cloneAction(ui->removeDatabase,"&Remove database",&menu);
+    QAction* reconnect = ui->reconnect;
+    QAction* addSession = cloneAction(ui->addSession,"Add &session",&menu);
+    QAction* removeSession = cloneAction(ui->removeSession,"&Remove session",&menu);
 
-    QString connectionName;
-
-    SessionModel* m = model();
-
-    if (index.isValid()) {
-        connectionName = m->connectionName(index);
-    }
+    SessionModel* m = this->model();
 
     if (!index.isValid()) {
 
@@ -120,48 +121,22 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
     }
 
-    QAction* action = menu.exec(QCursor::pos());
-
-    if (action == addDatabase) {
-
-        on_addDatabase_triggered();
-
-    } else if (action == removeDatabase) {
-
-        RemoveDatabaseDialog dialog(connectionName,this);
-        if (dialog.exec() == QDialog::Accepted) {
-            m->removeDatabase(index);
-        }
-
-    } else if (action == addSession) {
-
-        m->addSession(index);
-
-    } else if (action == removeSession) {
-
-        m->removeSession(index);
-
-    } else if (action == reconnect) {
-
-        QSqlDatabase db = QSqlDatabase::database(connectionName);
-        db.close();
-        if (!db.open()) {
-            QMessageBox::critical(this,"Error",db.lastError().text());
-        }
-
-    }
+    menu.exec(QCursor::pos());
 
 }
 
-
+#include "setsplitersizesratio.h"
 
 void MainWindow::onAdjustSplitter() {
-    QList<int> sizes = ui->splitter->sizes();
+    /*QList<int> sizes = ui->splitter->sizes();
     QList<int> sizes_;
-    sizes_ << 200 << std::accumulate(sizes.begin(),sizes.end(),0) - 200;
+    int paneSize = 200;
+    sizes_ << paneSize << std::accumulate(sizes.begin(),sizes.end(),0) - paneSize;
     ui->splitter->setSizes(sizes_);
+    //ui->sessionTree->expandAll();*/
 
-    ui->sessionTree->expandAll();
+    setSpliterSizesRatio(ui->splitter,1,6);
+
 
 }
 
@@ -280,11 +255,25 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
     SessionTab* tab = new SessionTab(connectionName, name, ui->sessionTabs);
 
     connect(tab,SIGNAL(showQueryHistory()),this,SLOT(onShowQueryHistory()));
+    connect(tab,SIGNAL(addSessionWithQuery(QString)),this,SLOT(onAddSessionWithQuery(QString)));
 
     ui->sessionTabs->insertTab(index+1,tab,name);
     connect(tab,SIGNAL(query(QString)),this,SLOT(onQuery(QString)));
 
     tab->setCompleter(mCompleters.value(connectionName));
+
+    ui->sessionTabs->setCurrentIndex(ui->sessionTabs->indexOf(tab));
+
+    if (!mQuery.isEmpty()) {
+        tab->setQuery(mQuery);
+        mQuery = QString();
+    }
+
+}
+
+void MainWindow::onAddSessionWithQuery(QString query) {
+    mQuery = query;
+    on_addSession_triggered();
 }
 
 void MainWindow::onCopyQuery(QString query) {
@@ -375,10 +364,10 @@ void MainWindow::updateCompleter(const QString& connectionName) {
     mCompleters[connectionName] = completer;
 }
 
-void MainWindow::on_addDatabase_triggered()
+void MainWindow::addDatabase(bool showHistory)
 {
     SessionModel* m = model();
-    AddDatabaseDialog dialog(this);
+    AddDatabaseDialog dialog(showHistory, this);
     QString connectionName;
 
     if (dialog.exec() == QDialog::Accepted) {
@@ -393,6 +382,14 @@ void MainWindow::on_addDatabase_triggered()
     }
 
     updateCompleter(connectionName);
+
+    ui->sessionTree->setCurrentIndex(m->index(m->rowCount()-1,0));
+    on_addSession_triggered();
+}
+
+void MainWindow::on_addDatabase_triggered()
+{
+    addDatabase(false);
 }
 
 void MainWindow::onSessionRemoved(QString connectionName, QString name) {
@@ -413,7 +410,85 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-SessionModel *MainWindow::model()
+SessionModel *MainWindow::model() const
 {
     return qobject_cast<SessionModel*>(ui->sessionTree->model());
+}
+
+void MainWindow::on_saveData_triggered()
+{
+    SessionTab* tab = currentTab();
+    if (!tab) {
+        return;
+    }
+    tab->saveData();
+}
+
+void MainWindow::on_databaseHistory_triggered()
+{
+    addDatabase(true);
+}
+
+void MainWindow::on_queryHistory_triggered()
+{
+    onShowQueryHistory();
+}
+
+void MainWindow::on_addSession_triggered()
+{
+    SessionModel* m = model();
+    QModelIndex index = ui->sessionTree->currentIndex();
+    if (!index.isValid()) {
+        return;
+    }
+    m->addSession(index);
+    ui->sessionTree->expandAll();
+}
+
+void MainWindow::on_removeSession_triggered()
+{
+    SessionModel* m = model();
+    QModelIndex index = ui->sessionTree->currentIndex();
+    if (!m->isSession(index)) {
+        return;
+    }
+    m->removeSession(index);
+}
+
+void MainWindow::on_removeDatabase_triggered()
+{
+    QModelIndex index = ui->sessionTree->currentIndex();
+    if (!index.isValid()) {
+        return;
+    }
+
+    SessionModel* m = model();
+    QString connectionName = m->connectionName(index);
+    RemoveDatabaseDialog dialog(connectionName,this);
+    if (dialog.exec() == QDialog::Accepted) {
+        m->removeDatabase(index);
+    }
+}
+
+QString MainWindow::connectionName() const {
+    QModelIndex index = ui->sessionTree->currentIndex();
+    if (!index.isValid()) {
+        return QString();
+    }
+    SessionModel* m = model();
+    return m->connectionName(index);
+}
+
+void MainWindow::on_reconnect_triggered()
+{
+    QString connectionName = this->connectionName();
+    if (connectionName.isEmpty()) {
+        return;
+    }
+
+    QSqlDatabase db = QSqlDatabase::database(connectionName);
+    db.close();
+    if (!db.open()) {
+        QMessageBox::critical(this,"Error",db.lastError().text());
+    }
 }

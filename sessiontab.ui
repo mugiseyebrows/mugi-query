@@ -22,9 +22,6 @@
      <widget class="QWidget" name="layoutWidget">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="PlainTextEdit" name="query"/>
-       </item>
-       <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
           <widget class="QPushButton" name="execute">
@@ -54,6 +51,9 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="PlainTextEdit" name="query"/>
        </item>
       </layout>
      </widget>

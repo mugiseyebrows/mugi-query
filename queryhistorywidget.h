@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QModelIndex>
+#include <QSqlQuery>
 
 namespace Ui {
 class QueryHistoryWidget;
@@ -32,6 +33,7 @@ private slots:
 
 private:
     Ui::QueryHistoryWidget *ui;
+    QSqlQuery mQuery;
 };
 
 #endif // QUERYHISTORYWIDGET_H

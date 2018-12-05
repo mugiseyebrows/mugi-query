@@ -87,6 +87,10 @@ void PlainTextEdit::focusInEvent(QFocusEvent *e)
 
 void PlainTextEdit::keyPressEvent(QKeyEvent *e)
 {
+    if (!mCompleter) {
+        return QPlainTextEdit::keyPressEvent(e);
+    }
+
     if (mCompleter && mCompleter->popup()->isVisible()) {
         // The following keys are forwarded by the completer to the widget
        switch (e->key()) {

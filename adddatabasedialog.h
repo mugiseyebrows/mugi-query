@@ -12,7 +12,7 @@ class AddDatabaseDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AddDatabaseDialog(QWidget *parent = 0);
+    explicit AddDatabaseDialog(bool showHistory, QWidget *parent = 0);
     ~AddDatabaseDialog();
 
     QString connectionName();
