@@ -37,6 +37,7 @@ public:
     QString password() const;
     QString database() const;
     int port() const;
+    void refresh();
 
 private slots:
     void on_tableView_doubleClicked(const QModelIndex &index);

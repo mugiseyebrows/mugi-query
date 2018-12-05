@@ -107,7 +107,7 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
 
 void SessionTab::setCompleter(QCompleter *completer)
 {
-    qDebug() << "SessionTab::setCompleter";
+    //qDebug() << "SessionTab::setCompleter";
     ui->query->setCompleter(completer);
 }
 

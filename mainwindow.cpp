@@ -345,7 +345,7 @@ void MainWindow::onQuery(QString queries) {
 
 void MainWindow::updateCompleter(const QString& connectionName) {
     //ConnectionsModel* model = static_cast<ConnectionsModel*>(ui->connections->model());
-    qDebug() << "updateCompleter";
+    //qDebug() << "updateCompleter";
     QCompleter* completer = mCompleters.value(connectionName);
 
     if (!completer) {

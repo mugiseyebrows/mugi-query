@@ -1,8 +1,9 @@
 #include "databasehistorydialog.h"
 #include "ui_databasehistorydialog.h"
 
-#include <QSqlTableModel>
+#include <QSqlQueryModel>
 #include <QVariant>
+#include <QSqlQuery>
 
 DatabaseHistoryDialog::DatabaseHistoryDialog(QWidget *parent) :
     QDialog(parent),
@@ -10,18 +11,21 @@ DatabaseHistoryDialog::DatabaseHistoryDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QSqlTableModel* model = new QSqlTableModel(this,QSqlDatabase::database("_history"));
-    model->setTable("database");
-    model->select();
+    QSqlQueryModel* model = new QSqlQueryModel(this);
     ui->tableView->setModel(model);
-
-    ui->tableView->setColumnWidth(0,160);
-
+    refresh();
 }
 
 DatabaseHistoryDialog::~DatabaseHistoryDialog()
 {
     delete ui;
+}
+
+void DatabaseHistoryDialog::refresh() {
+
+    QSqlQuery query("select * from database order by date desc", QSqlDatabase::database("_history"));
+    qobject_cast<QSqlQueryModel*>(ui->tableView->model())->setQuery(query);
+    ui->tableView->setColumnWidth(0,160);
 }
 
 QVariant DatabaseHistoryDialog::data(int column) const
