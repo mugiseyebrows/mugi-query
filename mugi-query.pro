@@ -34,7 +34,8 @@ SOURCES += main.cpp\
     dataformat.cpp \
     queriesstatmodel.cpp \
     setsplitersizesratio.cpp \
-    outputtype.cpp
+    outputtype.cpp \
+    copyeventfilter.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -57,7 +58,8 @@ HEADERS  += mainwindow.h \
     dataformat.h \
     queriesstatmodel.h \
     setsplitersizesratio.h \
-    outputtype.h
+    outputtype.h \
+    copyeventfilter.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

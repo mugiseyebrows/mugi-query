@@ -16,6 +16,7 @@
 #include <QSqlQueryModel>
 #include <QStringListModel>
 #include <QCursor>
+#include <QCloseEvent>
 
 #include "sessionmodel.h"
 #include "sessiontab.h"
@@ -25,8 +26,7 @@
 #include "queryparser.h"
 #include "queryhistorywidget.h"
 #include "schemafetcher.h"
-
-#include <QShortcut>
+#include "setsplitersizesratio.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -125,23 +125,11 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
 }
 
-#include "setsplitersizesratio.h"
-
 void MainWindow::onAdjustSplitter() {
-    /*QList<int> sizes = ui->splitter->sizes();
-    QList<int> sizes_;
-    int paneSize = 200;
-    sizes_ << paneSize << std::accumulate(sizes.begin(),sizes.end(),0) - paneSize;
-    ui->splitter->setSizes(sizes_);
-    //ui->sessionTree->expandAll();*/
-
-    setSpliterSizesRatio(ui->splitter,1,6);
-
-
+    setSpliterSizesRatio(ui->splitter,1,4);
 }
 
 void MainWindow::onTreeCurrentChanged(QModelIndex index,QModelIndex) {
-    //qDebug() << "onTreeCurrentChanged" << index;
 
     if (!index.isValid()) {
         return;
@@ -150,17 +138,6 @@ void MainWindow::onTreeCurrentChanged(QModelIndex index,QModelIndex) {
     SessionModel* m = model();
 
     QString name;
-
-    /*
-    if (m->isSession(index)) {
-        name = m->data(index).toString();
-    } else if (m->isDatabase(index)) {
-        if (m->rowCount(index) < 1) {
-            return;
-        }
-        name = m->data(m->index(m->rowCount(index)-1,0,index)).toString();
-    }
-    */
 
     if (!m->isSession(index)) {
         return;
@@ -479,6 +456,14 @@ QString MainWindow::connectionName() const {
     return m->connectionName(index);
 }
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (mQueryHistory) {
+        mQueryHistory->close();
+    }
+    event->accept();
+}
+
 void MainWindow::on_reconnect_triggered()
 {
     QString connectionName = this->connectionName();
@@ -491,4 +476,42 @@ void MainWindow::on_reconnect_triggered()
     if (!db.open()) {
         QMessageBox::critical(this,"Error",db.lastError().text());
     }
+}
+
+void MainWindow::on_queryHelp_triggered()
+{
+    QString connectionName = this->connectionName();
+    if (connectionName.isEmpty()) {
+        return;
+    }
+    QSqlDatabase db = QSqlDatabase::database(connectionName);
+    QString driverName = db.driverName();
+
+    QMap<QString,QString> urls;
+    urls["QMYSQL"] = "https://dev.mysql.com/doc/refman/8.0/en/sql-syntax-data-manipulation.html";
+    urls["QODBC"] = "https://docs.microsoft.com/en-us/previous-versions/office/developer/office-2007/bb208930(v%3doffice.12)";
+    urls["QSQLITE"] = "https://www.sqlite.org/lang.html";
+    urls["QPSQL"] = "https://www.postgresql.org/docs/current/queries.html";
+    if (urls.contains(driverName)) {
+        QDesktopServices::openUrl(QUrl(urls[driverName]));
+    }
+
+}
+
+void MainWindow::on_dataCopy_triggered()
+{
+    SessionTab* tab = currentTab();
+    if (!tab) {
+        return;
+    }
+    tab->copySelected();
+}
+
+void MainWindow::on_dataSave_triggered()
+{
+    SessionTab* tab = currentTab();
+    if (!tab) {
+        return;
+    }
+    tab->saveData();
 }

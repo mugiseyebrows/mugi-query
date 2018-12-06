@@ -10,6 +10,7 @@
 #include <QFileDialog>
 #include "datastreamer.h"
 #include "setsplitersizesratio.h"
+#include "copyeventfilter.h"
 #include <QMessageBox>
 #include <QHeaderView>
 
@@ -38,24 +39,6 @@ QString SessionTab::name() const
     return mName;
 }
 
-/*
-        mTableView->resizeColumnsToContents();
-
-        if (!mModels.at(index))
-            return;
-
-        QDesktopWidget* desktop = qApp->desktop();
-        int w = desktop->screenGeometry(desktop->primaryScreen()).width();
-        //qDebug() << desktop->screenGeometry(desktop->primaryScreen());
-        int columnCount = mModels.at(index)->columnCount();
-        for (int i=0;i<columnCount;i++) {
-            if (mTableView->columnWidth(i) > w/2)
-                mTableView->setColumnWidth(i,w/2);
-        }
-
-
-*/
-
 void resizeColumnsToContents(QTableView* view, int maxWidth) {
     QAbstractItemModel* model = view->model();
     if (!model) {
@@ -83,6 +66,8 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
             QString title = QString("res %1").arg(++i);
             ui->resultTabs->insertTab(ui->resultTabs->count(),view,title);
             resizeColumnsToContents(view,this->width()/2);
+            CopyEventFilter* filter = new CopyEventFilter(view);
+            filter->setView(view);
         }
     }
 
@@ -124,10 +109,13 @@ void SessionTab::setQuery(const QString &query)
 {
     ui->query->setPlainText(query);
 }
+QTableView* SessionTab::currentView() {
+    return qobject_cast<QTableView*>(ui->resultTabs->currentWidget());
+}
 
 QSqlQueryModel *SessionTab::currentModel()
 {
-    QTableView* view = qobject_cast<QTableView*>(ui->resultTabs->currentWidget());
+    QTableView* view = currentView();
     if (!view) {
         return 0;
     }
@@ -185,6 +173,16 @@ void SessionTab::saveData()
     }
 
     delete stream;
+}
+
+void SessionTab::copySelected()
+{
+    QSqlQueryModel* model = currentModel();
+    if (!model) {
+        return;
+    }
+    QItemSelection selection = currentView()->selectionModel()->selection();
+    CopyEventFilter::copySelected(model,selection);
 }
 
 void SessionTab::on_execute_clicked()

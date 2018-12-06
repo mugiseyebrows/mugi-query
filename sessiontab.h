@@ -10,6 +10,7 @@ class SessionTab;
 class QSqlQueryModel;
 class QCompleter;
 class QAbstractItemModel;
+class QTableView;
 
 class SessionTab : public QWidget
 {
@@ -34,6 +35,8 @@ public:
 
     void saveData();
 
+    void copySelected();
+    QTableView *currentView();
 signals:
     void query(QString);
     void showQueryHistory();

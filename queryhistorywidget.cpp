@@ -12,6 +12,7 @@ QueryHistoryWidget::QueryHistoryWidget(QWidget *parent) :
     QSqlQueryModel* model = new QSqlQueryModel(this);
     ui->tableView->setModel(model);
     refresh();
+    ui->tableView->setColumnWidth(0,160);
 }
 
 QueryHistoryWidget::~QueryHistoryWidget()

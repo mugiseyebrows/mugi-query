@@ -17,8 +17,11 @@ public:
 
     static QStringList common();
 
+    static QStringList functions(const QString& driver);
+
     static void test();
 
+    static QStringList specific(const QString &driver);
 };
 
 

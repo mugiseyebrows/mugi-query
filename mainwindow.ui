@@ -74,6 +74,7 @@
     </property>
     <addaction name="queryHistory"/>
     <addaction name="saveData"/>
+    <addaction name="queryHelp"/>
    </widget>
    <widget class="QMenu" name="menu_Session">
     <property name="title">
@@ -82,9 +83,17 @@
     <addaction name="addSession"/>
     <addaction name="removeSession"/>
    </widget>
+   <widget class="QMenu" name="menuData_2">
+    <property name="title">
+     <string>Data</string>
+    </property>
+    <addaction name="dataSave"/>
+    <addaction name="dataCopy"/>
+   </widget>
    <addaction name="menuDatabase"/>
    <addaction name="menuData"/>
    <addaction name="menu_Session"/>
+   <addaction name="menuData_2"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -114,6 +123,9 @@
   <action name="databaseHistory">
    <property name="text">
     <string>&amp;HIstory</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="queryHistory">
@@ -148,6 +160,21 @@
   <action name="reconnect">
    <property name="text">
     <string>Re&amp;connect</string>
+   </property>
+  </action>
+  <action name="dataSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="dataCopy">
+   <property name="text">
+    <string>Copy</string>
+   </property>
+  </action>
+  <action name="queryHelp">
+   <property name="text">
+    <string>H&amp;elp</string>
    </property>
   </action>
  </widget>
