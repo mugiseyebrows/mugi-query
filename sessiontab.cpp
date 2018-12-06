@@ -11,6 +11,7 @@
 #include "datastreamer.h"
 #include "setsplitersizesratio.h"
 #include <QMessageBox>
+#include <QHeaderView>
 
 SessionTab::SessionTab(const QString &connectionName, const QString name, QWidget *parent) :
     QWidget(parent),

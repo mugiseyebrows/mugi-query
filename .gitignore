@@ -10,3 +10,4 @@ ui_*
 .qmake.stash
 moc_*
 mugi-query
+mugi-query/
