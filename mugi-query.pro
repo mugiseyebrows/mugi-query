@@ -11,7 +11,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = mugi-query
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
         mainwindow.cpp \
     sessionmodel.cpp \
@@ -68,3 +67,9 @@ FORMS    += mainwindow.ui \
     databasehistorydialog.ui \
     queryhistorywidget.ui \
     savedatadialog.ui
+
+RC_ICONS += mugi-query.ico
+
+DISTFILES += \
+    todo.txt
+

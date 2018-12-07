@@ -50,6 +50,9 @@
      <attribute name="horizontalHeaderStretchLastSection">
       <bool>true</bool>
      </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>40</number>
+     </attribute>
     </widget>
    </item>
   </layout>

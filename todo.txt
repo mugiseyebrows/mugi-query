@@ -1,0 +1,21 @@
+datetime delegate
+binary delegate
+edit schema dialog
+relations helper
+users helper
+query history context menu copy to new session
+query history right double click
+save data values(),(),()
+focus queryEdit on tabchanged
+do not store passwords (optionaly)
+editable shortcuts
+syntax highlighting
+beautify query
+quote query
+upcase keywords
+save not executed on close session
+append or replace options query history tab (save to history on replace)
+query history exec, error columns
+fix fetch on schema changed
+pop-includes.py
+find-static-functions.py
