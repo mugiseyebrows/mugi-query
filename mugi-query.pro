@@ -25,7 +25,6 @@ SOURCES += main.cpp\
     rowvaluegetter.cpp \
     rowvaluesetter.cpp \
     queryhistorywidget.cpp \
-    schemafetcher.cpp \
     savedatadialog.cpp \
     checkablestringlistmodel.cpp \
     datastreamer.cpp \
@@ -38,8 +37,7 @@ SOURCES += main.cpp\
     settings.cpp \
     tokens.cpp \
     textedit.cpp \
-    highlighter.cpp \
-    highlighters.cpp
+    highlighter.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -54,7 +52,6 @@ HEADERS  += mainwindow.h \
     rowvaluegetter.h \
     rowvaluesetter.h \
     queryhistorywidget.h \
-    schemafetcher.h \
     savedatadialog.h \
     checkablestringlistmodel.h \
     datastreamer.h \
@@ -67,8 +64,7 @@ HEADERS  += mainwindow.h \
     settings.h \
     tokens.h \
     textedit.h \
-    highlighter.h \
-    highlighters.h
+    highlighter.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

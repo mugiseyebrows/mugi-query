@@ -1,5 +1,0 @@
-#ifndef HIGHLIGHTERS_H
-#define HIGHLIGHTERS_H
-
-
-#endif // HIGHLIGHTERS_H

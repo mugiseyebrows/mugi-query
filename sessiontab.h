@@ -13,6 +13,7 @@ class QAbstractItemModel;
 class QTableView;
 class Highlighter;
 class QTextDocument;
+class Tokens;
 
 class SessionTab : public QWidget
 {
@@ -27,13 +28,13 @@ public:
 
     void setResult(const QStringList &queries, const QStringList errors, const QList<QSqlQueryModel*> models, const QList<int>& perf, const QList<int>& rowsAffected);
 
-    void setCompleter(QCompleter* completer);
-
-    void setHighlighter(Highlighter* highlighter);
+    void setTokens(const Tokens& token);
 
     void cleanTabs();
 
     void setQuery(const QString& query);
+
+    void focusQuery();
 
     QSqlQueryModel *currentModel();
 

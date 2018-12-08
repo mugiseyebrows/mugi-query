@@ -31,6 +31,8 @@ protected:
     QTextCharFormat quotationFormat;
     QTextCharFormat singleLineCommentFormat;
     QTextCharFormat multiLineCommentFormat;
+    QTextCharFormat specialCharsFormat;
+    QTextCharFormat typesFormat;
 
 };
 

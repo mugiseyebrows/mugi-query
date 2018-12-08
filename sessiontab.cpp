@@ -14,6 +14,10 @@
 #include "itemdelegate.h"
 #include <QMessageBox>
 #include <QHeaderView>
+#include <QStringListModel>
+#include <QCompleter>
+#include "tokens.h"
+#include "highlighter.h"
 
 SessionTab::SessionTab(const QString &connectionName, const QString name, QWidget *parent) :
     QWidget(parent),
@@ -51,8 +55,6 @@ void resizeColumnsToContents(QTableView* view, int maxWidth) {
             view->setColumnWidth(c,maxWidth);
     }
 }
-
-
 
 void SessionTab::setResult(const QStringList& queries, const QStringList errors, const QList<QSqlQueryModel *> models, const QList<int> &perf, const QList<int> &rowsAffected)
 {
@@ -96,19 +98,22 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
     mFirstQuery = false;
 }
 
-void SessionTab::setCompleter(QCompleter *completer)
-{
-    ui->query->setCompleter(completer);
-}
 
-void SessionTab::setHighlighter(Highlighter *highlighter)
+void SessionTab::setTokens(const Tokens &tokens)
 {
+    QCompleter* completer = new QCompleter();
+    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+
+    QStringListModel* stringListModel = new QStringListModel(tokens.autocompletion(),completer);
+    completer->setModel(stringListModel);
+
+    ui->query->setCompleter(completer);
+
+    Highlighter* highlighter = new Highlighter(tokens,0);
     ui->query->setHighlighter(highlighter);
 }
 
-QTextDocument* SessionTab::document() const {
-    return ui->query->document();
-}
 
 void SessionTab::cleanTabs()
 {
@@ -122,6 +127,12 @@ void SessionTab::setQuery(const QString &query)
 {
     ui->query->setPlainText(query);
 }
+
+void SessionTab::focusQuery()
+{
+    ui->query->setFocus();
+}
+
 QTableView* SessionTab::currentView() {
     return qobject_cast<QTableView*>(ui->resultTabs->currentWidget());
 }

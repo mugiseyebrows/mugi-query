@@ -33,19 +33,17 @@ public:
     SessionTab* currentTab();
 
     void updateTokens(const QString &connectionName);
-
-    void replaceHighlighters(const QString &connectionName);
-    void updateCompleters(const QString &connectionName);
+    void pushTokens(const QString &connectionName);
 
     void addDatabase(bool showHistory = false);
 
     QString connectionName() const;
 
+
 protected:
     void closeEvent(QCloseEvent *event);
     History* mHistory;
     QueryHistoryWidget* mQueryHistory;
-    QMap<QString,QCompleter*> mCompleters;
     QMap<QString,Tokens> mTokens;
 
     QString mQuery;

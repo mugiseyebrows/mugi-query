@@ -25,7 +25,6 @@
 #include "history.h"
 #include "queryparser.h"
 #include "queryhistorywidget.h"
-#include "schemafetcher.h"
 #include "setsplitersizesratio.h"
 #include "settings.h"
 #include "highlighter.h"
@@ -225,6 +224,8 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
     title = filterEmpty(title);
     setWindowTitle(title.join(" "));
 
+    tab(tabIndex)->focusQuery();
+
 }
 
 void MainWindow::onSessionAdded(QString connectionName, QString name, QString namePrev) {
@@ -246,9 +247,7 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
     ui->sessionTabs->insertTab(index+1,tab,name);
     connect(tab,SIGNAL(query(QString)),this,SLOT(onQuery(QString)));
 
-    tab->setCompleter(mCompleters.value(connectionName));
-
-    tab->setHighlighter(new Highlighter(mTokens[connectionName],tab->document()));
+    tab->setTokens(mTokens[connectionName]);
 
     ui->sessionTabs->setCurrentIndex(ui->sessionTabs->indexOf(tab));
 
@@ -282,13 +281,23 @@ void MainWindow::onShowQueryHistory() {
     mQueryHistory->raise();
 }
 
+QStringList filterBlank(const QStringList items) {
+    QStringList res;
+    foreach(QString item,items) {
+        if (!item.trimmed().isEmpty()) {
+            res << item;
+        }
+    }
+    return res;
+}
+
 void MainWindow::onQuery(QString queries) {
 
     SessionTab* tab = currentTab();
 
     QString connectionName = tab->connectionName();
 
-    QStringList queries_ = QueryParser::split(queries);
+    QStringList queries_ = filterBlank(QueryParser::split(queries));
 
     QStringList errors;
     QList<QSqlQueryModel*> models;
@@ -331,40 +340,20 @@ void MainWindow::onQuery(QString queries) {
 
     if (schemaChanged) {
         updateTokens(connectionName);
-        updateCompleters(connectionName);
-        replaceHighlighters(connectionName);
+        pushTokens(connectionName);
     }
 
 }
 
-void MainWindow::replaceHighlighters(const QString &connectionName)
+void MainWindow::pushTokens(const QString &connectionName)
 {
+    const Tokens& tokens = mTokens[connectionName];
     for(int i=0;i<ui->sessionTabs->count();i++) {
         SessionTab* tab = this->tab(i);
         if (tab->connectionName() == connectionName) {
-            tab->setHighlighter(new Highlighter(mTokens[connectionName],tab->document()));
+            tab->setTokens(tokens);
         }
     }
-}
-
-void MainWindow::updateCompleters(const QString &connectionName)
-{
-    QCompleter* completer = mCompleters.value(connectionName);
-
-    if (!completer) {
-        completer = new QCompleter();
-        completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
-        completer->setCaseSensitivity(Qt::CaseInsensitive);
-        completer->setWrapAround(true);
-    }
-
-    const Tokens& tokens = mTokens[connectionName];
-
-    QStringListModel* stringListModel = new QStringListModel(tokens.autocompletion(),completer);
-
-    completer->setModel(stringListModel);
-
-    mCompleters[connectionName] = completer;
 }
 
 void MainWindow::addDatabase(bool showHistory)
@@ -379,13 +368,7 @@ void MainWindow::addDatabase(bool showHistory)
     }
     mHistory->addDatabase(connectionName,dialog.driver(),dialog.host(),dialog.user(),dialog.password(),dialog.database(),dialog.port());
 
-    if (mCompleters.contains(connectionName)) {
-        mCompleters[connectionName]->deleteLater();
-        mCompleters[connectionName] = 0;
-    }
-
     updateTokens(connectionName);
-    updateCompleters(connectionName);
 
     ui->sessionTree->setCurrentIndex(m->index(m->rowCount()-1,0));
     on_addSession_triggered();

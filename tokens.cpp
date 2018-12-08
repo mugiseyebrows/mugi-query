@@ -136,7 +136,7 @@ QStringList Tokens::keywords() const
 {
     QStringList res;
     res << commonKeywords();
-    res << driverKeywords(mDriverName);
+    res << driverKeywords();
     return res;
 }
 
@@ -160,12 +160,26 @@ QStringList Tokens::autocompletion() const
     res << keywords();
     res << tablesAndFields(true);
     res << functions();
+    res << types();
     res = res.toSet().toList();
     qSort(res);
     return res;
 }
 
-QStringList Tokens::driverKeywords(const QString& driverName) const
+QStringList Tokens::types() const
+{
+    QStringList res;
+    if (mDriverName == "QMYSQL") {
+        res << "integer" << "smallint" << "decimal" << "numeric" << "float"
+            << "real" << "double" << "int" << "dec" << "fixed"
+            << "double precision" << "date" << "datetime" << "time"
+            << "timestamp" << "year" << "char" << "varchar" << "binary"
+            << "varbinary" << "blob" << "text" << "enum";
+    }
+    return res;
+}
+
+QStringList Tokens::driverKeywords() const
 {
     QStringList res;
     if (mDriverName == "QMYSQL") {
@@ -175,6 +189,7 @@ QStringList Tokens::driverKeywords(const QString& driverName) const
             https://dev.mysql.com/doc/refman/8.0/en/join.html
             https://dev.mysql.com/doc/refman/8.0/en/alter-table.html
             https://dev.mysql.com/doc/refman/8.0/en/insert.html
+            https://dev.mysql.com/doc/refman/8.0/en/show.html
 
             let lists = [],
                 list = [],
@@ -239,7 +254,22 @@ QStringList Tokens::driverKeywords(const QString& driverName) const
              << "insert" << "low_priority" << "delayed" << "high_priority" << "ignore" << "into" << "partition" << "values"
              << "value" << "on duplicate key update" << "insert" << "low_priority" << "delayed" << "high_priority" << "ignore" << "into"
              << "partition" << "set" << "on duplicate key update" << "insert" << "low_priority" << "high_priority" << "ignore" << "into"
-             << "partition" << "select" << "on duplicate key update" << "value" << "default" << "value" << "value" << "value";
+             << "partition" << "select" << "on duplicate key update" << "value" << "default" << "value" << "value" << "value"
+
+             << "show binary logs" << "show binlog events" << "show character set"
+             << "show collation" << "show columns" << "show create database"
+             << "show create event" << "show create function"
+             << "show create procedure" << "show create table"
+             << "show create trigger" << "show create user" << "show create view"
+             << "show databases" << "show engine" << "show engines" << "show errors"
+             << "show events" << "show function code" << "show function status"
+             << "show grants" << "show index" << "show master status"
+             << "show open tables" << "show plugins" << "show privileges"
+             << "show procedure code" << "show procedure status"
+             << "show processlist" << "show profile" << "show profiles"
+             << "show relaylog events" << "show slave hosts" << "show slave status"
+             << "show status" << "show table status" << "show tables"
+             << "show triggers" << "show variables" << "show warnings";
     }
 
     return res;
@@ -251,6 +281,7 @@ QStringList Tokens::commonKeywords() const{
           << "insert" << "into" << "values" << "delete" << "update" << "set" << "truncate"
           << "union" << "create table" << "create view" << "create" << "where" << "having"
           << "not" << "and" << "group by" << "order by" << "asc" << "desc" << "top"
-          << "limit" << "offset" << "on";
+          << "limit" << "offset" << "on" << "like" << "or" << "case" << "else" << "in"
+          << "is" << "null";
     return res;
 }

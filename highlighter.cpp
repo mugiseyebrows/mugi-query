@@ -20,6 +20,21 @@ QStringList wordBounded(const QStringList& items) {
     return res;
 }
 
+QStringList wordBoundedWithBracket(const QStringList& items) {
+    QStringList res;
+    foreach (const QString& item, items) {
+        res << "\\b" + item + "\\s*(?=\\()";
+    }
+    return res;
+}
+QStringList wordBoundedWithoutBracket(const QStringList& items) {
+    QStringList res;
+    foreach (const QString& item, items) {
+        res << "\\b" + item + "\\s*(?![(_a-z])";
+    }
+    return res;
+}
+
 Highlighter::Highlighter(const Tokens &tokens, QTextDocument *parent) : QSyntaxHighlighter(parent)
 {
     HighlightingRule rule;
@@ -28,7 +43,7 @@ Highlighter::Highlighter(const Tokens &tokens, QTextDocument *parent) : QSyntaxH
     keywordFormat.setFontWeight(QFont::Bold);
     QStringList keywordPatterns = wordBounded(spaceSplit(tokens.keywords()));
     foreach (const QString &pattern, keywordPatterns) {
-        rule.pattern = QRegularExpression(pattern);
+        rule.pattern = QRegularExpression(pattern,QRegularExpression::CaseInsensitiveOption);
         rule.format = keywordFormat;
         highlightingRules.append(rule);
     }
@@ -37,19 +52,36 @@ Highlighter::Highlighter(const Tokens &tokens, QTextDocument *parent) : QSyntaxH
     tableFormat.setForeground(Qt::darkMagenta);
     QStringList tablePatterns = wordBounded(tokens.tablesAndFields(false));
     foreach (const QString &pattern, tablePatterns) {
-        rule.pattern = QRegularExpression(pattern);
+        rule.pattern = QRegularExpression(pattern,QRegularExpression::CaseInsensitiveOption);
         rule.format = tableFormat;
         highlightingRules.append(rule);
     }
 
     functionFormat.setFontWeight(QFont::Bold);
     functionFormat.setForeground(Qt::red);
-    QStringList functionPatterns = wordBounded(tokens.functions());
+    QStringList functionPatterns = wordBoundedWithBracket(tokens.functions());
     foreach (const QString &pattern, functionPatterns) {
-        rule.pattern = QRegularExpression(pattern);
+        rule.pattern = QRegularExpression(pattern,QRegularExpression::CaseInsensitiveOption);
         rule.format = functionFormat;
         highlightingRules.append(rule);
     }
+
+    typesFormat.setFontWeight(QFont::Bold);
+    QStringList typePatterns = wordBoundedWithoutBracket(tokens.types());
+    foreach (const QString &pattern, typePatterns) {
+        rule.pattern = QRegularExpression(pattern,QRegularExpression::CaseInsensitiveOption);
+        rule.format = typesFormat;
+        highlightingRules.append(rule);
+    }
+
+    specialCharsFormat.setForeground(Qt::darkRed);
+    rule.pattern = QRegularExpression(";");
+    rule.format = specialCharsFormat;
+    highlightingRules.append(rule);
+
+    rule.pattern = QRegularExpression("(?<!/)[*]");
+    rule.format = specialCharsFormat;
+    highlightingRules.append(rule);
 
     singleLineCommentFormat.setForeground(Qt::gray);
     rule.pattern = QRegularExpression("--[^\n]*");
@@ -62,6 +94,9 @@ Highlighter::Highlighter(const Tokens &tokens, QTextDocument *parent) : QSyntaxH
     rule.pattern = QRegularExpression("'[^']*'");
     rule.format = quotationFormat;
     highlightingRules.append(rule);
+
+
+
 
     commentStartExpression = QRegularExpression("/\\*");
     commentEndExpression = QRegularExpression("\\*/");

@@ -23,8 +23,10 @@ TextEdit::~TextEdit()
 
 void TextEdit::setCompleter(QCompleter *completer)
 {
-    if (mCompleter)
+    if (mCompleter) {
         QObject::disconnect(mCompleter, 0, this, 0);
+        mCompleter->deleteLater();
+    }
 
     mCompleter = completer;
 

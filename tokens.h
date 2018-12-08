@@ -17,6 +17,8 @@ public:
 
     QStringList autocompletion() const;
 
+    QStringList types() const;
+
     QStringList tablesAndFields(bool doted) const;
 
 protected:
@@ -26,7 +28,7 @@ protected:
     };
 
     QStringList commonKeywords() const;
-    QStringList driverKeywords(const QString &driverName) const;
+    QStringList driverKeywords() const;
 
     QList<Table> mTables;
     QString mDriverName;
