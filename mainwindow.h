@@ -9,6 +9,9 @@ class SessionTab;
 class History;
 class QueryHistoryWidget;
 class QCompleter;
+class Highlighter;
+
+#include "tokens.h"
 
 #include <QSqlDatabase>
 
@@ -21,7 +24,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     SessionModel* model() const;
     int tabIndex(QTabWidget *widget, const QString &name);
@@ -29,7 +32,10 @@ public:
     SessionTab* tab(int index);
     SessionTab* currentTab();
 
-    void updateCompleter(const QString &connectionName);
+    void updateTokens(const QString &connectionName);
+
+    void replaceHighlighters(const QString &connectionName);
+    void updateCompleters(const QString &connectionName);
 
     void addDatabase(bool showHistory = false);
 
@@ -40,6 +46,8 @@ protected:
     History* mHistory;
     QueryHistoryWidget* mQueryHistory;
     QMap<QString,QCompleter*> mCompleters;
+    QMap<QString,Tokens> mTokens;
+
     QString mQuery;
 
 public slots:

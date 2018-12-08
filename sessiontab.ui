@@ -71,7 +71,7 @@
         </layout>
        </item>
        <item>
-        <widget class="PlainTextEdit" name="query"/>
+        <widget class="TextEdit" name="query"/>
        </item>
       </layout>
      </widget>
@@ -96,9 +96,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PlainTextEdit</class>
-   <extends>QPlainTextEdit</extends>
-   <header>plaintextedit.h</header>
+   <class>TextEdit</class>
+   <extends>QTextEdit</extends>
+   <header>textedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -26,7 +26,6 @@ SOURCES += main.cpp\
     rowvaluesetter.cpp \
     queryhistorywidget.cpp \
     schemafetcher.cpp \
-    plaintextedit.cpp \
     savedatadialog.cpp \
     checkablestringlistmodel.cpp \
     datastreamer.cpp \
@@ -34,7 +33,13 @@ SOURCES += main.cpp\
     queriesstatmodel.cpp \
     setsplitersizesratio.cpp \
     outputtype.cpp \
-    copyeventfilter.cpp
+    copyeventfilter.cpp \
+    itemdelegate.cpp \
+    settings.cpp \
+    tokens.cpp \
+    textedit.cpp \
+    highlighter.cpp \
+    highlighters.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -50,7 +55,6 @@ HEADERS  += mainwindow.h \
     rowvaluesetter.h \
     queryhistorywidget.h \
     schemafetcher.h \
-    plaintextedit.h \
     savedatadialog.h \
     checkablestringlistmodel.h \
     datastreamer.h \
@@ -58,7 +62,13 @@ HEADERS  += mainwindow.h \
     queriesstatmodel.h \
     setsplitersizesratio.h \
     outputtype.h \
-    copyeventfilter.h
+    copyeventfilter.h \
+    itemdelegate.h \
+    settings.h \
+    tokens.h \
+    textedit.h \
+    highlighter.h \
+    highlighters.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

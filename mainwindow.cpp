@@ -27,11 +27,13 @@
 #include "queryhistorywidget.h"
 #include "schemafetcher.h"
 #include "setsplitersizesratio.h"
+#include "settings.h"
+#include "highlighter.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    mQueryHistory(0)
+    mQueryHistory(nullptr)
 {
     ui->setupUi(this);
 
@@ -40,6 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     mHistory = new History(this);
+
+    Settings::instance()->setDateTimeFormat(Settings::DateTimeFormatWithSeconds);
 
     SessionModel* m = new SessionModel(ui->sessionTree);
     ui->sessionTree->setModel(m);
@@ -170,6 +174,11 @@ SessionTab *MainWindow::currentTab()
     return tab(index);
 }
 
+void MainWindow::updateTokens(const QString &connectionName)
+{
+    mTokens[connectionName] = Tokens(QSqlDatabase::database(connectionName));
+}
+
 int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
     int count = widget->count();
     for(int i=0;i<count;i++) {
@@ -238,6 +247,8 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
     connect(tab,SIGNAL(query(QString)),this,SLOT(onQuery(QString)));
 
     tab->setCompleter(mCompleters.value(connectionName));
+
+    tab->setHighlighter(new Highlighter(mTokens[connectionName],tab->document()));
 
     ui->sessionTabs->setCurrentIndex(ui->sessionTabs->indexOf(tab));
 
@@ -318,11 +329,26 @@ void MainWindow::onQuery(QString queries) {
 
     tab->setResult(queries_,errors,models,perf,rowsAffected);
 
+    if (schemaChanged) {
+        updateTokens(connectionName);
+        updateCompleters(connectionName);
+        replaceHighlighters(connectionName);
+    }
+
 }
 
-void MainWindow::updateCompleter(const QString& connectionName) {
-    //ConnectionsModel* model = static_cast<ConnectionsModel*>(ui->connections->model());
-    //qDebug() << "updateCompleter";
+void MainWindow::replaceHighlighters(const QString &connectionName)
+{
+    for(int i=0;i<ui->sessionTabs->count();i++) {
+        SessionTab* tab = this->tab(i);
+        if (tab->connectionName() == connectionName) {
+            tab->setHighlighter(new Highlighter(mTokens[connectionName],tab->document()));
+        }
+    }
+}
+
+void MainWindow::updateCompleters(const QString &connectionName)
+{
     QCompleter* completer = mCompleters.value(connectionName);
 
     if (!completer) {
@@ -332,9 +358,9 @@ void MainWindow::updateCompleter(const QString& connectionName) {
         completer->setWrapAround(true);
     }
 
-    //qDebug() << "updateCompleter for connection" << connectionName;
-    QStringList schema = SchemaFetcher::fetch(QSqlDatabase::database(connectionName));
-    QStringListModel* stringListModel = new QStringListModel(schema,completer);
+    const Tokens& tokens = mTokens[connectionName];
+
+    QStringListModel* stringListModel = new QStringListModel(tokens.autocompletion(),completer);
 
     completer->setModel(stringListModel);
 
@@ -358,7 +384,8 @@ void MainWindow::addDatabase(bool showHistory)
         mCompleters[connectionName] = 0;
     }
 
-    updateCompleter(connectionName);
+    updateTokens(connectionName);
+    updateCompleters(connectionName);
 
     ui->sessionTree->setCurrentIndex(m->index(m->rowCount()-1,0));
     on_addSession_triggered();

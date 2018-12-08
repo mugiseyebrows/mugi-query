@@ -1,25 +1,27 @@
-#include "plaintextedit.h"
+#include "textedit.h"
 #include <QCompleter>
 #include <QKeyEvent>
 #include <QAbstractItemView>
-#include <QtDebug>
+#include <QDebug>
 #include <QApplication>
 #include <QModelIndex>
 #include <QAbstractItemModel>
 #include <QScrollBar>
 #include <QFocusEvent>
 
-PlainTextEdit::PlainTextEdit(QWidget *parent)
-: QPlainTextEdit(parent), mCompleter(0)
+#include "highlighter.h"
+
+TextEdit::TextEdit(QWidget *parent)
+: QTextEdit(parent), mCompleter(0), mHighlighter(0)
 {
 
 }
 
-PlainTextEdit::~PlainTextEdit()
+TextEdit::~TextEdit()
 {
 }
 
-void PlainTextEdit::setCompleter(QCompleter *completer)
+void TextEdit::setCompleter(QCompleter *completer)
 {
     if (mCompleter)
         QObject::disconnect(mCompleter, 0, this, 0);
@@ -36,12 +38,28 @@ void PlainTextEdit::setCompleter(QCompleter *completer)
                      this, SLOT(insertCompletion(QString)));
 }
 
-QCompleter *PlainTextEdit::completer() const
+QCompleter *TextEdit::completer() const
 {
     return mCompleter;
 }
 
-void PlainTextEdit::insertCompletion(const QString& completion)
+void TextEdit::setHighlighter(Highlighter *highlighter)
+{
+    if (mHighlighter) {
+        mHighlighter->setDocument(0);
+        mHighlighter->deleteLater();
+    }
+
+    mHighlighter = highlighter;
+    mHighlighter->setDocument(document());
+}
+
+Highlighter *TextEdit::highlighter() const
+{
+    return mHighlighter;
+}
+
+void TextEdit::insertCompletion(const QString& completion)
 {
     if (mCompleter->widget() != this)
         return;
@@ -53,7 +71,7 @@ void PlainTextEdit::insertCompletion(const QString& completion)
     setTextCursor(tc);
 }
 
-QString PlainTextEdit::textUnderCursor() const
+QString TextEdit::textUnderCursor() const
 {
     QTextCursor tc = textCursor();
 
@@ -78,17 +96,17 @@ QString PlainTextEdit::textUnderCursor() const
     return tc.selectedText();
 }
 
-void PlainTextEdit::focusInEvent(QFocusEvent *e)
+void TextEdit::focusInEvent(QFocusEvent *e)
 {
     if (mCompleter)
         mCompleter->setWidget(this);
-    QPlainTextEdit::focusInEvent(e);
+    QTextEdit::focusInEvent(e);
 }
 
-void PlainTextEdit::keyPressEvent(QKeyEvent *e)
+void TextEdit::keyPressEvent(QKeyEvent *e)
 {
     if (!mCompleter) {
-        return QPlainTextEdit::keyPressEvent(e);
+        return QTextEdit::keyPressEvent(e);
     }
 
     if (mCompleter && mCompleter->popup()->isVisible()) {
@@ -115,7 +133,7 @@ void PlainTextEdit::keyPressEvent(QKeyEvent *e)
 
     bool isShortcut = ((e->modifiers() & Qt::ControlModifier) && e->key() == Qt::Key_E); // CTRL+E
     if (!mCompleter || !isShortcut) // do not process the shortcut when we have a completer
-        QPlainTextEdit::keyPressEvent(e);
+        QTextEdit::keyPressEvent(e);
 
     const bool ctrlOrShift = e->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier);
     if (!mCompleter || (ctrlOrShift && e->text().isEmpty()))

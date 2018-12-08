@@ -11,6 +11,7 @@
 #include "datastreamer.h"
 #include "setsplitersizesratio.h"
 #include "copyeventfilter.h"
+#include "itemdelegate.h"
 #include <QMessageBox>
 #include <QHeaderView>
 
@@ -68,6 +69,10 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
             resizeColumnsToContents(view,this->width()/2);
             CopyEventFilter* filter = new CopyEventFilter(view);
             filter->setView(view);
+
+            ItemDelegate* delegate = new ItemDelegate(view);
+            view->setItemDelegate(delegate);
+
         }
     }
 
@@ -93,8 +98,16 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
 
 void SessionTab::setCompleter(QCompleter *completer)
 {
-    //qDebug() << "SessionTab::setCompleter";
     ui->query->setCompleter(completer);
+}
+
+void SessionTab::setHighlighter(Highlighter *highlighter)
+{
+    ui->query->setHighlighter(highlighter);
+}
+
+QTextDocument* SessionTab::document() const {
+    return ui->query->document();
 }
 
 void SessionTab::cleanTabs()

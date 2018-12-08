@@ -11,6 +11,8 @@ class QSqlQueryModel;
 class QCompleter;
 class QAbstractItemModel;
 class QTableView;
+class Highlighter;
+class QTextDocument;
 
 class SessionTab : public QWidget
 {
@@ -27,6 +29,8 @@ public:
 
     void setCompleter(QCompleter* completer);
 
+    void setHighlighter(Highlighter* highlighter);
+
     void cleanTabs();
 
     void setQuery(const QString& query);
@@ -37,6 +41,7 @@ public:
 
     void copySelected();
     QTableView *currentView();
+    QTextDocument *document() const;
 signals:
     void query(QString);
     void showQueryHistory();

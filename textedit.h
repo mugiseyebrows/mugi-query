@@ -4,17 +4,21 @@
 #include <QPlainTextEdit>
 
 class QCompleter;
+class Highlighter;
 
-class PlainTextEdit : public QPlainTextEdit
+class TextEdit : public QTextEdit
 {
     Q_OBJECT
 
 public:
-    PlainTextEdit(QWidget *parent = 0);
-    ~PlainTextEdit();
+    TextEdit(QWidget *parent = 0);
+    ~TextEdit();
 
-    void setCompleter(QCompleter *mCompleter);
+    void setCompleter(QCompleter *completer);
     QCompleter *completer() const;
+
+    void setHighlighter(Highlighter* highlighter);
+    Highlighter* highlighter() const;
 
 signals:
     void submit();
@@ -22,7 +26,6 @@ signals:
 protected:
     void keyPressEvent(QKeyEvent *e);
     void focusInEvent(QFocusEvent *e);
-
 
 private slots:
     void insertCompletion(const QString &completion);
@@ -32,6 +35,8 @@ private:
 
 private:
     QCompleter *mCompleter;
+    Highlighter* mHighlighter;
+
 };
 
 #endif // TEXTEDIT_H
