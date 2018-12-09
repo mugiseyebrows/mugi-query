@@ -41,7 +41,9 @@ SOURCES += main.cpp\
     joinhelperdialog.cpp \
     userhelperdialog.cpp \
     modelappender.cpp \
-    itemdelegatewithcompleter.cpp
+    itemdelegatewithcompleter.cpp \
+    relation.cpp \
+    relations.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -73,7 +75,9 @@ HEADERS  += mainwindow.h \
     userhelperdialog.h \
     version.h \
     modelappender.h \
-    itemdelegatewithcompleter.h
+    itemdelegatewithcompleter.h \
+    relation.h \
+    relations.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

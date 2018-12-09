@@ -2,6 +2,7 @@
 #define JOINHELPERDIALOG_H
 
 #include <QDialog>
+#include <QModelIndex>
 
 namespace Ui {
 class JoinHelperDialog;
@@ -17,6 +18,11 @@ public:
     ~JoinHelperDialog();
 
     QString filePath() const;
+
+    void findPath();
+
+private slots:
+    void onTableModelDataChanged(QModelIndex, QModelIndex, QVector<int>);
 
 public slots:
     void accept();

@@ -11,6 +11,10 @@
 #include "modelappender.h"
 #include "itemdelegatewithcompleter.h"
 #include "checkablestringlistmodel.h"
+#include "rowvaluegetter.h"
+#include <vector>
+#include <QDebug>
+#include "relation.h"
 
 JoinHelperDialog::JoinHelperDialog(const QString& connectionName,
                                    const Tokens& tokens, QWidget *parent) :
@@ -59,6 +63,9 @@ JoinHelperDialog::JoinHelperDialog(const QString& connectionName,
 
     CheckableStringListModel* tablesModel = new CheckableStringListModel(tokens.tables(),this);
     ui->tables->setModel(tablesModel);
+
+    connect(tablesModel,SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)),
+            this,SLOT(onTableModelDataChanged(QModelIndex,QModelIndex,QVector<int>)));
 }
 
 JoinHelperDialog::~JoinHelperDialog()
@@ -79,6 +86,199 @@ QString JoinHelperDialog::filePath() const
             .replace(QRegExp("[ ]+")," ") + ".txt";
 
     return QDir(Settings::instance()->dir()).filePath(name);
+}
+
+
+
+void JoinHelperDialog::findPath()
+{
+
+    CheckableStringListModel* tablesModel = qobject_cast<CheckableStringListModel*>(ui->tables->model());
+
+    QAbstractItemModel* model = ui->relations->model();
+
+    if (!tablesModel || !model) {
+        return;
+    }
+
+    QStringList checked = tablesModel->checked();
+    if (checked.size() < 2) {
+        ui->query->setText("check two or more tables");
+        return;
+    }
+
+    QList<Relation> relations;
+    for(int row=0;row<model->rowCount();row++) {
+        RowValueGetter g(model,row);
+        Relation relation(g(0).toString(),g(1).toString());
+        if (!relation.isEmpty()) {
+            relations.append(relation);
+        }
+    }
+    QStringList tables;
+    foreach(const Relation& relation, relations) {
+        tables << relation.primaryTable() << relation.foreignTable();
+    }
+    tables = tables.toSet().toList();
+    QStringList errors;
+    foreach(const QString& table, checked) {
+        if (!tables.contains(table)) {
+            errors << QString("no relations specified for %1").arg(table);
+        }
+    }
+    for(int i=0;i<relations.size();i++) {
+        Relation& relation = relations[i];
+        relation.setPrimary(tables.indexOf(relation.primaryTable()));
+        relation.setForeign(tables.indexOf(relation.foreignTable()));
+    }
+
+    if (errors.size() > 0) {
+        ui->query->setText(errors.join("\n"));
+        return;
+    }
+
+    QMap<int, QList<int> > links;
+    foreach(const Relation& relation, relations) {
+        int primary = tables.indexOf(relation.primaryTable());
+        int foreign = tables.indexOf(relation.foreignTable());
+        if (!links.contains(primary)) {
+            links[primary] = QList<int>();
+        }
+        if (!links.contains(foreign)) {
+            links[foreign] = QList<int>();
+        }
+        if (primary == foreign) {
+            errors << QString("recursive relations are not supported %1.%2 %3.%4")
+                      .arg(relation.primaryTable())
+                      .arg(relation.primaryKey())
+                      .arg(relation.foreignTable())
+                      .arg(relation.foreignKey());
+        } else {
+            links[primary].append(foreign);
+            links[foreign].append(primary);
+        }
+    }
+
+    if (!errors.isEmpty()) {
+        ui->query->setText(errors.join("\n"));
+    }
+
+    int origin = tables.indexOf(checked[0]);
+    QList<QList<int> > paths;
+    QList<QList<int> > paths_;
+    QList<int> initial;
+    initial << origin;
+    paths.append(initial);
+    QList<QList<int> > complete;
+    int iter = 0;
+    while(!paths.isEmpty()) {
+        iter++;
+        for(int i=0;i<paths.size();i++) {
+            QList<int> path = paths[i];
+            int head = path[path.size()-1];
+            QList<int> possibilities = links[head];
+            bool stuck = true;
+            foreach(int possibility, possibilities) {
+                if (!path.contains(possibility)) {
+                    QList<int> newPath = path;
+                    newPath << possibility;
+                    paths_ << newPath;
+                    stuck = false;
+                }
+            }
+            if (stuck) {
+                complete << path;
+            }
+        }
+        if (iter > 100) {
+            qDebug() << "";
+        }
+
+        paths = paths_;
+        paths_ = QList<QList<int> >();
+    }
+
+    QList<int> checked_;
+    foreach(const QString& table, checked) {
+        checked_ << tables.indexOf(table);
+    }
+
+    qDebug() << checked_;
+
+    QList<QList<int> > results;
+
+    foreach(const QList<int>& path, complete) {
+        QList<int> indexes;
+        foreach(int table, checked_) {
+            int index = path.indexOf(table);
+            if (index < 0) {
+                break;
+            }
+            indexes << index;
+        }
+
+        if (checked_.size() > indexes.size()) {
+            continue;
+        }
+
+        int begin = *std::min_element(indexes.begin(),indexes.end());
+        int end = *std::max_element(indexes.begin(),indexes.end());
+        //std::vector<int> res;
+        //std::copy(begin,end+1,std::back_inserter(res));
+        //results << QList<int>::fromVector(QVector<int>::fromStdVector(res));
+
+        results << path.mid(begin,end-begin+1);
+    }
+
+    if (results.isEmpty()) {
+        ui->query->setText("no path found");
+        return;
+    }
+
+    bool leftJoin = false;
+
+    QList<int> result = results[0];
+
+    if (!leftJoin) {
+        QStringList tables__;
+        QStringList relations__;
+        foreach(int table, result) {
+            tables__ << tables[table];
+        }
+        for(int i=1;i<result.size();i++) {
+            int table1 = result[i-1];
+            int table2 = result[i];
+            foreach(const Relation& relation, relations) {
+                bool t1 = (relation.primary() == table1 &&
+                           relation.foreign() == table2);
+                bool t2 = (relation.primary() == table2 &&
+                           relation.foreign() == table1);
+                if (t1 || t2) {
+                    if (t1) {
+                        relations__ << QString("%1.%2=%3.%4")
+                                       .arg(tables[table1])
+                                       .arg(relation.primaryKey())
+                                       .arg(tables[table2])
+                                       .arg(relation.foreignKey());
+                    } else if (t2) {
+                        relations__ << QString("%1.%2=%3.%4")
+                                       .arg(tables[table2])
+                                       .arg(relation.primaryKey())
+                                       .arg(tables[table1])
+                                       .arg(relation.foreignKey());
+                    }
+                }
+            }
+        }
+
+        QString query = QString("select * from %1\nwhere %2")
+                .arg(tables__.join(", "))
+                .arg(relations__.join("\nand "));
+
+        ui->query->setText(query);
+    }
+
+
 }
 
 
@@ -107,4 +307,8 @@ void JoinHelperDialog::accept()
     file.close();
 
     QDialog::accept();
+}
+
+void JoinHelperDialog::onTableModelDataChanged(QModelIndex,QModelIndex,QVector<int>) {
+    findPath();
 }

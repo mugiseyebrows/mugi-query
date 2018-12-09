@@ -7,6 +7,7 @@ class QAbstractItemModel;
 class RowValueGetter {
 public:
     RowValueGetter(QAbstractItemModel* model, int row);
+    virtual ~RowValueGetter();
     virtual QVariant operator()(int col) ;
 protected:
     QAbstractItemModel* mModel;
