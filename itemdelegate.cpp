@@ -23,10 +23,3 @@ QString ItemDelegate::displayText(const QVariant &value, const QLocale &locale) 
     return QStyledItemDelegate::displayText(value,locale);
 }
 
-QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-    if (index.model()->data(index).type() == QVariant::DateTime) {
-        qDebug() << "1";
-    }
-    return QStyledItemDelegate::sizeHint(option,index);
-}

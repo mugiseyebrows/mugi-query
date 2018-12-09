@@ -124,7 +124,7 @@ QStringList Tokens::functions() const
              << "trim" << "truncate" << "ucase" << "uncompress" << "uncompressed_length"
              << "unhex" << "unix_timestamp" << "updatexml" << "upper" << "user"
              << "utc_date" << "utc_time" << "utc_timestamp" << "uuid" << "uuid_short"
-             << "uuid_to_bin" << "validate_password_strength" << "values" << "var_pop" << "var_samp"
+             << "uuid_to_bin" << "validate_password_strength" << "var_pop" << "var_samp"
              << "variance" << "version" << "wait_for_executed_gtid_set" << "wait_until_sql_thread_after_gtids" << "week"
              << "weekday" << "weekofyear" << "weight_string" << "year" << "yearweek";
     }
@@ -150,6 +150,30 @@ QStringList Tokens::tablesAndFields(bool doted) const {
                 res << (table.table + "." + field);
             }
         }
+    }
+    return res;
+}
+
+QStringList Tokens::fields(bool doted) const
+{
+    QStringList res;
+    foreach(const Table& table, mTables) {
+        foreach(const QString& field, table.fields) {
+            if (doted) {
+                res << (table.table + "." + field);
+            } else {
+                res << field;
+            }
+        }
+    }
+    return res;
+}
+
+QStringList Tokens::tables() const
+{
+    QStringList res;
+    foreach(const Table& table, mTables) {
+        res << table.table;
     }
     return res;
 }
@@ -251,7 +275,7 @@ QStringList Tokens::driverKeywords() const
              << "stats_persistent" << "default" << "stats_sample_pages" << "value" << "tablespace" << "storage" << "disk" << "memory"
              << "default" << "union" << "create table"
 
-             << "insert" << "low_priority" << "delayed" << "high_priority" << "ignore" << "into" << "partition" << "values"
+             << "insert" << "low_priority" << "delayed" << "high_priority" << "ignore" << "into" << "partition"
              << "value" << "on duplicate key update" << "insert" << "low_priority" << "delayed" << "high_priority" << "ignore" << "into"
              << "partition" << "set" << "on duplicate key update" << "insert" << "low_priority" << "high_priority" << "ignore" << "into"
              << "partition" << "select" << "on duplicate key update" << "value" << "default" << "value" << "value" << "value"

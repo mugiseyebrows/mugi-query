@@ -61,13 +61,6 @@
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QPushButton" name="save">
-           <property name="text">
-            <string>save</string>
-           </property>
-          </widget>
-         </item>
         </layout>
        </item>
        <item>

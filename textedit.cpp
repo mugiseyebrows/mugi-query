@@ -8,6 +8,8 @@
 #include <QAbstractItemModel>
 #include <QScrollBar>
 #include <QFocusEvent>
+#include <QStringListModel>
+#include "tokens.h"
 
 #include "highlighter.h"
 
@@ -19,19 +21,44 @@ TextEdit::TextEdit(QWidget *parent)
 
 TextEdit::~TextEdit()
 {
+    if (mCompleter) {
+        mCompleter->deleteLater();
+        mCompleter = 0;
+    }
+    if (mHighlighter) {
+        mHighlighter->deleteLater();
+        mHighlighter = 0;
+    }
+}
+
+
+void TextEdit::setTokens(const Tokens& tokens) {
+
+    QCompleter* completer = new QCompleter();
+    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+
+    QStringListModel* stringListModel = new QStringListModel(tokens.autocompletion(),completer);
+    completer->setModel(stringListModel);
+
+    setCompleter(completer);
+
+    Highlighter* highlighter = new Highlighter(tokens,0);
+    setHighlighter(highlighter);
 }
 
 void TextEdit::setCompleter(QCompleter *completer)
 {
     if (mCompleter) {
-        QObject::disconnect(mCompleter, 0, this, 0);
+        //QObject::disconnect(mCompleter, 0, this, 0);
         mCompleter->deleteLater();
     }
 
     mCompleter = completer;
 
-    if (!mCompleter)
+    if (!mCompleter) {
         return;
+    }
 
     mCompleter->setWidget(this);
     mCompleter->setCompletionMode(QCompleter::PopupCompletion);

@@ -5,6 +5,7 @@
 
 class QCompleter;
 class Highlighter;
+class Tokens;
 
 class TextEdit : public QTextEdit
 {
@@ -14,18 +15,20 @@ public:
     TextEdit(QWidget *parent = 0);
     ~TextEdit();
 
-    void setCompleter(QCompleter *completer);
-    QCompleter *completer() const;
-
-    void setHighlighter(Highlighter* highlighter);
-    Highlighter* highlighter() const;
-
+    void setTokens(const Tokens &tokens);
 signals:
     void submit();
 
 protected:
     void keyPressEvent(QKeyEvent *e);
     void focusInEvent(QFocusEvent *e);
+
+    void setCompleter(QCompleter *completer);
+    QCompleter *completer() const;
+
+    void setHighlighter(Highlighter* highlighter);
+    Highlighter* highlighter() const;
+
 
 private slots:
     void insertCompletion(const QString &completion);

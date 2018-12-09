@@ -21,6 +21,10 @@ public:
 
     QStringList tablesAndFields(bool doted) const;
 
+    QStringList fields(bool doted) const;
+
+    QStringList tables() const;
+
 protected:
     struct Table {
         QString table;

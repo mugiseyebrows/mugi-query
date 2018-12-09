@@ -28,6 +28,7 @@
 #include "setsplitersizesratio.h"
 #include "settings.h"
 #include "highlighter.h"
+#include "joinhelperdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -362,14 +363,14 @@ void MainWindow::addDatabase(bool showHistory)
     AddDatabaseDialog dialog(showHistory, this);
     QString connectionName;
 
-    if (dialog.exec() == QDialog::Accepted) {
-        connectionName = dialog.connectionName();
-        m->addDatabase(connectionName);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
     }
+
+    connectionName = dialog.connectionName();
+    m->addDatabase(connectionName);
     mHistory->addDatabase(connectionName,dialog.driver(),dialog.host(),dialog.user(),dialog.password(),dialog.database(),dialog.port());
-
     updateTokens(connectionName);
-
     ui->sessionTree->setCurrentIndex(m->index(m->rowCount()-1,0));
     on_addSession_triggered();
 }
@@ -389,7 +390,6 @@ void MainWindow::onSessionRemoved(QString connectionName, QString name) {
             return;
         }
     }
-
 }
 
 MainWindow::~MainWindow()
@@ -400,15 +400,6 @@ MainWindow::~MainWindow()
 SessionModel *MainWindow::model() const
 {
     return qobject_cast<SessionModel*>(ui->sessionTree->model());
-}
-
-void MainWindow::on_saveData_triggered()
-{
-    SessionTab* tab = currentTab();
-    if (!tab) {
-        return;
-    }
-    tab->saveData();
 }
 
 void MainWindow::on_databaseHistory_triggered()
@@ -508,13 +499,24 @@ void MainWindow::on_queryHelp_triggered()
 
 }
 
-void MainWindow::on_dataCopy_triggered()
+void MainWindow::on_selectionCopy_triggered()
+{
+    copySelected(false);
+}
+
+void MainWindow::on_selectionCopyAsList_triggered()
+{
+    copySelected(true);
+}
+
+
+void MainWindow::copySelected(bool asList)
 {
     SessionTab* tab = currentTab();
     if (!tab) {
         return;
     }
-    tab->copySelected();
+    tab->copySelected(asList);
 }
 
 void MainWindow::on_dataSave_triggered()
@@ -524,4 +526,23 @@ void MainWindow::on_dataSave_triggered()
         return;
     }
     tab->saveData();
+}
+
+void MainWindow::on_queryCreateUser_triggered()
+{
+
+}
+
+void MainWindow::on_queryJoin_triggered()
+{
+    QString connectionName = this->connectionName();
+    if (connectionName.isEmpty()) {
+        return;
+    }
+
+    JoinHelperDialog dialog(connectionName,mTokens[connectionName],this);
+
+    if (dialog.exec() == QDialog::Accepted) {
+
+    }
 }

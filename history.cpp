@@ -4,13 +4,14 @@
 
 #include <QSqlDatabase>
 #include <QDir>
-#include <QStandardPaths>
+
 #include <QMessageBox>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QVariant>
 #include <QSqlRecord>
 #include <QDebug>
+#include "settings.h"
 
 #define PARENT_WIDGET qobject_cast<QWidget*>(this->parent())
 
@@ -18,20 +19,8 @@
 
 History::History(QObject* parent) : QObject(parent)
 {
-#if QT_VERSION >= 0x050000
-    QString home = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-#else
-    QString home = QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
-#endif
 
-    QString name = ".mugi-query";
-
-    QDir d(QDir(home).filePath(name));
-    if (!d.exists()) {
-        d.cdUp();
-        d.mkdir(name);
-        d.cd(name);
-    }
+    QDir d(Settings::instance()->dir());
 
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE","_history");
     db.setDatabaseName(d.filePath("history.sqlite"));
@@ -47,7 +36,7 @@ History::History(QObject* parent) : QObject(parent)
 void History::addQuery(const QString& connectionName, const QString& query) {
 
     QSqlQuery q(QSqlDatabase::database("_history"));
-    q.prepare("insert into query(date,connectionName,query) values(datetime('now'),?,?)");
+    q.prepare("insert into query(date,connectionName,query) values(datetime('now','localtime'),?,?)");
     q.addBindValue(connectionName);
     q.addBindValue(query);
     QUERY_EXEC(q);
@@ -58,7 +47,7 @@ void History::addQuery(const QString& connectionName, const QString& query) {
 void History::addDatabase(const QString &connectionName,const QString &driver, const QString &host, const QString &user, const QString &password, const QString &database, int port)
 {
     QSqlQuery q(QSqlDatabase::database("_history"));
-    q.prepare("insert into database(date,connectionName,driver,host,user,password,database,port) values(datetime('now'),?,?,?,?,?,?,?)");
+    q.prepare("insert into database(date,connectionName,driver,host,user,password,database,port) values(datetime('now','localtime'),?,?,?,?,?,?,?)");
     q.addBindValue(connectionName);
     q.addBindValue(driver);
     q.addBindValue(host);

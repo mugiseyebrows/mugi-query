@@ -68,7 +68,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatabase">
@@ -80,32 +80,41 @@
     <addaction name="removeDatabase"/>
     <addaction name="databaseHistory"/>
    </widget>
-   <widget class="QMenu" name="menuData">
+   <widget class="QMenu" name="menuQuery">
     <property name="title">
      <string>&amp;Query</string>
     </property>
     <addaction name="queryHistory"/>
-    <addaction name="saveData"/>
     <addaction name="queryHelp"/>
+    <addaction name="separator"/>
+    <addaction name="queryCreateUser"/>
+    <addaction name="queryJoin"/>
    </widget>
-   <widget class="QMenu" name="menu_Session">
+   <widget class="QMenu" name="menuSession">
     <property name="title">
      <string>&amp;Session</string>
     </property>
     <addaction name="addSession"/>
     <addaction name="removeSession"/>
    </widget>
-   <widget class="QMenu" name="menuData_2">
+   <widget class="QMenu" name="menuData">
     <property name="title">
-     <string>Data</string>
+     <string>&amp;Data</string>
     </property>
     <addaction name="dataSave"/>
-    <addaction name="dataCopy"/>
+   </widget>
+   <widget class="QMenu" name="menuS_election">
+    <property name="title">
+     <string>S&amp;election</string>
+    </property>
+    <addaction name="selectionCopy"/>
+    <addaction name="selectionCopyAsList"/>
    </widget>
    <addaction name="menuDatabase"/>
+   <addaction name="menuQuery"/>
+   <addaction name="menuSession"/>
    <addaction name="menuData"/>
-   <addaction name="menu_Session"/>
-   <addaction name="menuData_2"/>
+   <addaction name="menuS_election"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -176,7 +185,10 @@
   </action>
   <action name="dataSave">
    <property name="text">
-    <string>Save</string>
+    <string>&amp;Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="dataCopy">
@@ -187,6 +199,34 @@
   <action name="queryHelp">
    <property name="text">
     <string>H&amp;elp</string>
+   </property>
+  </action>
+  <action name="queryCreateUser">
+   <property name="text">
+    <string>Create user</string>
+   </property>
+  </action>
+  <action name="queryJoin">
+   <property name="text">
+    <string>Join</string>
+   </property>
+  </action>
+  <action name="dataCopyAsList">
+   <property name="text">
+    <string>Copy as list</string>
+   </property>
+  </action>
+  <action name="selectionCopy">
+   <property name="text">
+    <string>&amp;Copy</string>
+   </property>
+  </action>
+  <action name="selectionCopyAsList">
+   <property name="text">
+    <string>Copy as &amp;list</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
    </property>
   </action>
  </widget>

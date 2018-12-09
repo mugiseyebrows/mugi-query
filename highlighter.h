@@ -13,7 +13,7 @@ public:
     Highlighter(const Tokens& tokens, QTextDocument *parent);
 
 protected:
-    void highlightBlock(const QString &text) override;
+    void highlightBlock(const QString &text) Q_DECL_OVERRIDE;
 
     struct HighlightingRule
     {

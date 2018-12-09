@@ -37,7 +37,11 @@ SOURCES += main.cpp\
     settings.cpp \
     tokens.cpp \
     textedit.cpp \
-    highlighter.cpp
+    highlighter.cpp \
+    joinhelperdialog.cpp \
+    userhelperdialog.cpp \
+    modelappender.cpp \
+    itemdelegatewithcompleter.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -64,7 +68,12 @@ HEADERS  += mainwindow.h \
     settings.h \
     tokens.h \
     textedit.h \
-    highlighter.h
+    highlighter.h \
+    joinhelperdialog.h \
+    userhelperdialog.h \
+    version.h \
+    modelappender.h \
+    itemdelegatewithcompleter.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \
@@ -72,7 +81,9 @@ FORMS    += mainwindow.ui \
     removedatabasedialog.ui \
     databasehistorydialog.ui \
     queryhistorywidget.ui \
-    savedatadialog.ui
+    savedatadialog.ui \
+    joinhelperdialog.ui \
+    userhelperdialog.ui
 
 RC_ICONS += mugi-query.ico
 

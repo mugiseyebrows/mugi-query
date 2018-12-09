@@ -48,6 +48,8 @@ protected:
 
     QString mQuery;
 
+    void copySelected(bool asList);
+
 public slots:
     void on_addDatabase_triggered();
     void on_sessionTree_customContextMenuRequested(QPoint pos);
@@ -63,7 +65,6 @@ public slots:
 
 
 private slots:
-    void on_saveData_triggered();
 
     void on_databaseHistory_triggered();
 
@@ -79,9 +80,16 @@ private slots:
 
     void on_queryHelp_triggered();
 
-    void on_dataCopy_triggered();
-
     void on_dataSave_triggered();
+
+    void on_queryCreateUser_triggered();
+
+    void on_queryJoin_triggered();
+
+
+    void on_selectionCopy_triggered();
+
+    void on_selectionCopyAsList_triggered();
 
 private:
     Ui::MainWindow *ui;

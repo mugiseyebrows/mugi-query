@@ -9,6 +9,8 @@ class QItemSelectionRange;
 class QAbstractItemModel;
 class QItemSelection;
 
+#include "dataformat.h"
+
 class CopyEventFilter : public QObject
 {
     Q_OBJECT
@@ -21,11 +23,18 @@ public:
      */
     void setView(QTableView* view);
     
-    static void streamRange(QTextStream &stream, const QItemSelectionRange& rng);
+    static void streamRange(QTextStream &stream, const QItemSelectionRange& rng,
+                            DataFormat::Format format = DataFormat::Csv,
+                            const QString& separator = "\t");
 
     static void copyAll(QAbstractItemModel *model);
 
-    static void copySelected(QAbstractItemModel *model, const QItemSelection& selection);
+    static void copySelected(QAbstractItemModel *model, const QItemSelection& selection,
+                             DataFormat::Format format = DataFormat::Csv,
+                             const QString& separator = "\t");
+
+    static void copySelectedAsList(QAbstractItemModel *model, const QItemSelection& selection);
+
 protected:
 
     bool eventFilter(QObject* object, QEvent *event);

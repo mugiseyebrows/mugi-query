@@ -9,7 +9,7 @@
 
 #include "datastreamer.h"
 
-#include "dataformat.h"
+
 #include "rowvaluegetter.h"
 
 
@@ -40,15 +40,17 @@ bool CopyEventFilter::eventFilter(QObject * object, QEvent * event) {
     return false;
 }
 
-void CopyEventFilter::streamRange(QTextStream& stream, const QItemSelectionRange &rng) {
-    DataFormat::Format format = DataFormat::Csv;
+void CopyEventFilter::streamRange(QTextStream& stream, const QItemSelectionRange &rng,
+                                  DataFormat::Format format,
+                                  const QString &separator) {
+
     QAbstractItemModel* model = const_cast<QAbstractItemModel*>(rng.model());
     for(int row = rng.topLeft().row(); row <= rng.bottomRight().row(); row++) {
         RowValueGetter g(model,row);
         int column = rng.topLeft().column();
         stream << DataStreamer::variantToString(g(column++),format);
         for(;column <= rng.bottomRight().column(); column++) {
-            stream << "\t" << DataStreamer::variantToString(g(column),format);
+            stream << separator << DataStreamer::variantToString(g(column),format);
         }
         stream << "\n";
     }
@@ -78,9 +80,8 @@ void CopyEventFilter::copyAll(QAbstractItemModel* model) {
     clipboard->setText(data);
 }
 
-void CopyEventFilter::copySelected(QAbstractItemModel *model, const QItemSelection& selection) {
-
-    DataFormat::Format format = DataFormat::Csv;
+void CopyEventFilter::copySelected(QAbstractItemModel *model, const QItemSelection& selection,
+                                   DataFormat::Format format, const QString &separator) {
 
     // one range of one index
     if (selection.size() == 1 && selection[0].topLeft() == selection[0].bottomRight()) {
@@ -94,10 +95,26 @@ void CopyEventFilter::copySelected(QAbstractItemModel *model, const QItemSelecti
     QString data;
     QTextStream stream(&data);
     foreach(const QItemSelectionRange& rng, selection) {
-        streamRange(stream,rng);
+        streamRange(stream, rng, format, separator);
     }
     stream.flush();
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(data);
 
+}
+
+void CopyEventFilter::copySelectedAsList(QAbstractItemModel *model, const QItemSelection &selection)
+{
+    QVariantList vs;
+    foreach(const QItemSelectionRange& rng, selection) {
+        for(int row = rng.topLeft().row(); row <= rng.bottomRight().row(); row++) {
+            for (int column = rng.topLeft().column(); column <= rng.bottomRight().column(); column++) {
+                vs << model->data(model->index(row,column));
+            }
+        }
+    }
+    QStringList ss = DataStreamer::variantListToStringList(vs,DataFormat::SqlInsert);
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText("(" + ss.join(",") + ")");
+    return;
 }

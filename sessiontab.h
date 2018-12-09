@@ -40,7 +40,7 @@ public:
 
     void saveData();
 
-    void copySelected();
+    void copySelected(bool asList);
     QTableView *currentView();
     QTextDocument *document() const;
 signals:
@@ -56,9 +56,8 @@ protected:
 
     Ui::SessionTab *ui;
 private slots:
-    void on_history_clicked();
-    void on_save_clicked();
     void on_execute_clicked();
+    void on_history_clicked();
 };
 
 #endif // SESSIONTAB_H

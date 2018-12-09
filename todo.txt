@@ -5,7 +5,6 @@ users helper
 query history context menu copy to new session
 query history right double click
 save data values(),(),()
-focus queryEdit on tabchanged
 do not store passwords (optionaly)
 editable shortcuts
 beautify query
@@ -16,5 +15,6 @@ append or replace options query history tab (save to history on replace)
 query history exec, error columns
 pop-includes.py
 find-static-functions.py
-highlighter: postgres functions and types
-highlighter: ms access functions and types
+tokens: postgres functions and types
+tokens: ms access functions and types
+tokens: store in file

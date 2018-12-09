@@ -101,17 +101,7 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
 
 void SessionTab::setTokens(const Tokens &tokens)
 {
-    QCompleter* completer = new QCompleter();
-    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
-    completer->setCaseSensitivity(Qt::CaseInsensitive);
-
-    QStringListModel* stringListModel = new QStringListModel(tokens.autocompletion(),completer);
-    completer->setModel(stringListModel);
-
-    ui->query->setCompleter(completer);
-
-    Highlighter* highlighter = new Highlighter(tokens,0);
-    ui->query->setHighlighter(highlighter);
+    ui->query->setTokens(tokens);
 }
 
 
@@ -199,14 +189,20 @@ void SessionTab::saveData()
     delete stream;
 }
 
-void SessionTab::copySelected()
+void SessionTab::copySelected(bool asList)
 {
     QSqlQueryModel* model = currentModel();
     if (!model) {
         return;
     }
     QItemSelection selection = currentView()->selectionModel()->selection();
-    CopyEventFilter::copySelected(model,selection);
+    if (asList) {
+        CopyEventFilter::copySelectedAsList(model, selection);
+    } else {
+        QString separator = "\t";
+        DataFormat::Format format = DataFormat::Csv;
+        CopyEventFilter::copySelected(model, selection, format, separator);
+    }
 }
 
 void SessionTab::on_execute_clicked()
@@ -219,7 +215,3 @@ void SessionTab::on_history_clicked()
     emit showQueryHistory();
 }
 
-void SessionTab::on_save_clicked()
-{
-    saveData();
-}

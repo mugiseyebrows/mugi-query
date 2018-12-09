@@ -1,6 +1,7 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include <QString>
 
 class Settings
 {
@@ -16,6 +17,8 @@ public:
 
     void setDateTimeFormat(DateTimeFormat format);
 
+    QString dir() const;
+
 private:
 
     Settings();
@@ -23,6 +26,7 @@ private:
     static Settings* mInstance;
 
     DateTimeFormat mDateTimeFormat;
+    QString mDir;
 
 };
 
