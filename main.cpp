@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    a.setApplicationName("mugi-query");
+    a.setApplicationName(APP_NAME);
     a.setApplicationVersion(APP_VERSION);
 
     MainWindow w;

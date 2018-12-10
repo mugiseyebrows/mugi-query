@@ -38,7 +38,6 @@ SOURCES += main.cpp\
     tokens.cpp \
     textedit.cpp \
     highlighter.cpp \
-    joinhelperdialog.cpp \
     userhelperdialog.cpp \
     modelappender.cpp \
     itemdelegatewithcompleter.cpp \
@@ -73,7 +72,6 @@ HEADERS  += mainwindow.h \
     tokens.h \
     textedit.h \
     highlighter.h \
-    joinhelperdialog.h \
     userhelperdialog.h \
     version.h \
     modelappender.h \
@@ -90,7 +88,6 @@ FORMS    += mainwindow.ui \
     databasehistorydialog.ui \
     queryhistorywidget.ui \
     savedatadialog.ui \
-    joinhelperdialog.ui \
     userhelperdialog.ui \
     joinhelperwidget.ui
 

@@ -7,8 +7,11 @@ conf = {
 
     'BuildDir' : 'D:\\dev\\mugi-query',
     
+    'Arch': 'win32',
+    'VersionUpdater': 'QtVersionUpdater',
     'Packer': 'SimplePacker',
-    'OutputDir': 'D:\\dev\\mugi-query\\mugi-query',
+    'Packer': 'SimplePacker',
+    
     'Data': [],
     
     'QtPlugins': ['qwindows','qwindowsvistastyle',"qsqlite","qsqlmysql","qsqlodbc","qsqlpsql"],
@@ -19,6 +22,6 @@ conf = {
 
 m = Manager(conf)
 m.updateVersion()
-m.build()
+#m.build()
 m.pack()
 #m.release()

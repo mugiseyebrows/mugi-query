@@ -38,6 +38,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    setWindowTitle(QString("%1 %2").arg(qApp->applicationName()).arg(qApp->applicationVersion()));
+
     while (ui->sessionTabs->count() > 0) {
         ui->sessionTabs->removeTab(0);
     }
@@ -208,7 +210,7 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
     //qDebug() << "onTabsCurrentChanged" << index;
 
     if (tabIndex < 0) {
-        setWindowTitle("mugi-query");
+        setWindowTitle(QString("%1 %2").arg(qApp->applicationName()).arg(qApp->applicationVersion()));
         return;
     }
 
