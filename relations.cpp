@@ -83,35 +83,65 @@ QList<Relations::PathList> Relations::filterDoubleJoin(const QList<Relations::Pa
     return res;
 }
 
+
+int Relations::indexOfShortestNotEmpty(const PathList& paths) {
+
+    std::vector<int> length;
+    std::transform(paths.begin(),paths.end(),
+                   std::back_inserter(length),
+                   [](const Path& path){return path.size() == 0 ? INT_MAX : path.size();});
+    int index = std::min_element(std::begin(length),std::end(length)) - std::begin(length);
+    return index;
+}
+
+
+int Relations::indexOfShortest(const PathList& paths) {
+
+    std::vector<int> length;
+    std::transform(paths.begin(),paths.end(),
+                   std::back_inserter(length),
+                   [](const Path& path){return path.size();});
+    int index = std::min_element(std::begin(length),std::end(length)) - std::begin(length);
+    return index;
+}
+
+
 Relations::PathList Relations::findPath(const QStringList &tables)
 {
     QList<int> indexes = tablesToIndexes(tables);
-    int head = indexes[0];
-    std::vector<int> tail = indexes.mid(1).toVector().toStdVector();
-    std::sort(tail.begin(),tail.end());
+    QList<int> head = indexes.mid(0,1);
+    QList<int> tail = indexes.mid(1);
 
-    QList<PathList> possible;
+    PathList result;
 
-    do {
-        Path nodes = concat(head, tail);
-        qDebug() << nodes;
-        PathList current;
-        bool ok = true;
-        for(int i=1;i<nodes.size();i++) {
-            Path p = shortest(nodes[i-1],nodes[i]);
-            if (p.isEmpty()) {
-                ok = false;
-                break;
-            } else {
-                current << p;
+    typedef QPair<int,int> IntPair;
+
+    while (tail.size() > 0) {
+
+        QList<IntPair> keys;
+        PathList paths;
+
+        foreach(int table1, head) {
+            foreach(int table2, tail) {
+                Path path = shortest(table1,table2);
+                if (!path.isEmpty()) {
+                    keys << IntPair(table1,table2);
+                    paths << path;
+                }
             }
         }
-        if (ok) {
-            possible << current;
-        }
-    } while (std::next_permutation(tail.begin(),tail.end()));
 
-    return shortest(filterDoubleJoin(possible));
+        if (paths.isEmpty()) {
+            return PathList();
+        }
+        int index = indexOfShortest(paths);
+        result << paths[index];
+        IntPair key = keys[index];
+        head << key.second;
+        tail.removeAll(key.second);
+    }
+
+    return result;
 }
 
 const Relation& Relations::findRelation(int table1, int table2, bool* reverse) {
@@ -143,9 +173,9 @@ const QString Relations::joinExpression(const Relation &relation, bool reverse)
     }
     return  QString("%1.%2=%3.%4")
             .arg(mTables[relation.foreign()])
-            .arg(relation.primaryKey())
+            .arg(relation.foreignKey())
             .arg(mTables[relation.primary()])
-            .arg(relation.foreignKey());
+            .arg(relation.primaryKey());
 }
 
 QString Relations::expression(const Relations::PathList &path, bool join, bool mssql)

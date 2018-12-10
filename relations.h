@@ -35,6 +35,8 @@ public:
     Relations::PathList shortest(const QList<PathList> &pathList);
     int length(const PathList &pathList);
     QList<Relations::PathList> filterDoubleJoin(const QList<Relations::PathList> &pathLists);
+    int indexOfShortestNotEmpty(const PathList &paths);
+    int indexOfShortest(const PathList &paths);
 protected:
     QList<Relation> mRelations;
     QMap<int, QList<int> > links;

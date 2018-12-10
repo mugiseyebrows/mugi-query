@@ -44,7 +44,8 @@ SOURCES += main.cpp\
     itemdelegatewithcompleter.cpp \
     relation.cpp \
     relations.cpp \
-    relationsmodel.cpp
+    relationsmodel.cpp \
+    joinhelperwidget.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -79,7 +80,8 @@ HEADERS  += mainwindow.h \
     itemdelegatewithcompleter.h \
     relation.h \
     relations.h \
-    relationsmodel.h
+    relationsmodel.h \
+    joinhelperwidget.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \
@@ -89,7 +91,8 @@ FORMS    += mainwindow.ui \
     queryhistorywidget.ui \
     savedatadialog.ui \
     joinhelperdialog.ui \
-    userhelperdialog.ui
+    userhelperdialog.ui \
+    joinhelperwidget.ui
 
 RC_ICONS += mugi-query.ico
 

@@ -33,6 +33,7 @@ public:
     void cleanTabs();
 
     void setQuery(const QString& query);
+    void appendQuery(const QString &query);
 
     void focusQuery();
 
@@ -43,6 +44,7 @@ public:
     void copySelected(bool asList);
     QTableView *currentView();
     QTextDocument *document() const;
+
 signals:
     void query(QString);
     void showQueryHistory();

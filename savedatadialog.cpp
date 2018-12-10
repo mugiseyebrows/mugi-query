@@ -30,6 +30,7 @@ SaveDataDialog::SaveDataDialog(QSqlQueryModel* model, QWidget *parent) :
     ui->data->setModel(m1);
     ui->keys->setModel(m2);
 
+    OutputType::initComboBox(ui->output);
 }
 
 SaveDataDialog::~SaveDataDialog()
@@ -83,10 +84,8 @@ QString SaveDataDialog::table() const
 
 OutputType::Type SaveDataDialog::output() const
 {
-    return (OutputType::Type) ui->output->currentIndex();
+    return OutputType::value(ui->output);
 }
-
-
 
 void SaveDataDialog::accept()
 {

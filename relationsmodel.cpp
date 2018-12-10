@@ -6,8 +6,9 @@
 #include <QRegularExpression>
 #include <QApplication>
 #include <QMessageBox>
+#include <QDebug>
 
-RelationsModel::RelationsModel(QObject *parent) : QStandardItemModel(0,2,parent)
+RelationsModel::RelationsModel(QObject *parent) : QStandardItemModel(0,2,parent), mChanged(false)
 {
     setHeaderData(0,Qt::Horizontal,"Foreign key");
     setHeaderData(1,Qt::Horizontal,"Primary key");
@@ -18,8 +19,18 @@ RelationsModel::~RelationsModel()
 
 }
 
+bool RelationsModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    mChanged = true;
+    return QStandardItemModel::setData(index,value,role);
+}
+
 void RelationsModel::load(const QString &path)
 {
+    if (rowCount() > 0) {
+        removeRows(0,rowCount());
+    }
+
     QFile file(path);
     if (file.exists()) {
         if (file.open(QIODevice::ReadOnly)) {
@@ -40,11 +51,19 @@ void RelationsModel::load(const QString &path)
         }
     }
 
+    mChanged = false;
+
 }
 
 void RelationsModel::save(const QString &path)
 {
-    // todo isChanged
+
+    if (!mChanged) {
+        return;
+    }
+
+    qDebug() << "RelationsModel::save" << path;
+
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly)) {
         QMessageBox::critical(qApp->activeWindow(),"Error",QString("Cannot open file %1").arg(path));
@@ -52,8 +71,6 @@ void RelationsModel::save(const QString &path)
     }
     QTextStream stream(&file);
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
-
-
     for(int row=0;row<rowCount();row++) {
         QString col1 = data(index(row,0)).toString().trimmed();
         QString col2 = data(index(row,1)).toString().trimmed();
@@ -63,4 +80,6 @@ void RelationsModel::save(const QString &path)
     }
     stream.flush();
     file.close();
+
+    mChanged = false;
 }

@@ -38,7 +38,12 @@ void ItemDelegateWithCompleter::setModelData(QWidget *editor, QAbstractItemModel
         QCompleter* completer = lineEdit->completer();
         QString value = lineEdit->text();
         if (completer && completer->popup() && completer->popup()->isVisible()) {
-            value = completer->currentCompletion();
+            QModelIndex index = completer->popup()->currentIndex();
+            if (index.isValid()) {
+                value = completer->popup()->model()->data(index).toString();
+            } else {
+                value = completer->currentCompletion();
+            }
         }
         model->setData(index,value);
         return;

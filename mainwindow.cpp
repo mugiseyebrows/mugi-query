@@ -28,12 +28,13 @@
 #include "setsplitersizesratio.h"
 #include "settings.h"
 #include "highlighter.h"
-#include "joinhelperdialog.h"
+#include "joinhelperwidget.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    mQueryHistory(nullptr)
+    mQueryHistory(nullptr),
+    mJoinHelperWidget(nullptr),
+    ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
@@ -264,6 +265,16 @@ void MainWindow::onAddSessionWithQuery(QString query) {
     on_addSession_triggered();
 }
 
+void MainWindow::onAppendQuery(QString query)
+{
+    SessionTab* tab = currentTab();
+    if (!tab) {
+        return;
+    }
+    tab->appendQuery(query);
+}
+
+/*
 void MainWindow::onCopyQuery(QString query) {
     SessionTab* tab = currentTab();
     if (!tab) {
@@ -271,11 +282,11 @@ void MainWindow::onCopyQuery(QString query) {
     }
     tab->setQuery(query);
 }
-
+*/
 void MainWindow::onShowQueryHistory() {
     if (!mQueryHistory) {
         mQueryHistory = new QueryHistoryWidget();
-        connect(mQueryHistory,SIGNAL(copyQuery(QString)),this,SLOT(onCopyQuery(QString)));
+        connect(mQueryHistory,SIGNAL(copyQuery(QString)),this,SLOT(onAppendQuery(QString)));
     }
     mQueryHistory->refresh();
     mQueryHistory->show();
@@ -540,9 +551,16 @@ void MainWindow::on_queryJoin_triggered()
         return;
     }
 
-    JoinHelperDialog dialog(connectionName,mTokens[connectionName],this);
-
-    if (dialog.exec() == QDialog::Accepted) {
-
+    if (!mJoinHelperWidget) {
+        mJoinHelperWidget = new JoinHelperWidget();
+        connect(mJoinHelperWidget,SIGNAL(appendQuery(QString)),
+                this,SLOT(onAppendQuery(QString)));
     }
+
+    mJoinHelperWidget->init(connectionName);
+    mJoinHelperWidget->init(mTokens[connectionName]);
+
+    mJoinHelperWidget->show();
+    mJoinHelperWidget->raise();
+
 }

@@ -118,6 +118,21 @@ void SessionTab::setQuery(const QString &query)
     ui->query->setPlainText(query);
 }
 
+void SessionTab::appendQuery(const QString &query) {
+    QString prev = ui->query->toPlainText();
+    if (prev.trimmed().isEmpty()) {
+        setQuery(query);
+        return;
+    }
+
+    QRegularExpression exp(";\\s+$",QRegularExpression::MultilineOption | QRegularExpression::CaseInsensitiveOption);
+    if (exp.match(prev).hasMatch()) {
+        setQuery(prev + "\n" + query);
+    } else {
+        setQuery(prev + ";\n" + query);
+    }
+}
+
 void SessionTab::focusQuery()
 {
     ui->query->setFocus();
@@ -179,7 +194,7 @@ void SessionTab::saveData()
     if (dialog.output() == OutputType::NewSession) {
         emit addSessionWithQuery(output);
     } else if (dialog.output() == OutputType::CurrentSession) {
-        setQuery(output);
+        appendQuery(output);
     }
 
     if (file) {

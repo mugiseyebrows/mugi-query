@@ -10,6 +10,7 @@ class History;
 class QueryHistoryWidget;
 class QCompleter;
 class Highlighter;
+class JoinHelperWidget;
 
 #include "tokens.h"
 
@@ -44,6 +45,7 @@ protected:
     void closeEvent(QCloseEvent *event);
     History* mHistory;
     QueryHistoryWidget* mQueryHistory;
+    JoinHelperWidget* mJoinHelperWidget;
     QMap<QString,Tokens> mTokens;
 
     QString mQuery;
@@ -60,8 +62,9 @@ public slots:
     void onTabsCurrentChanged(int);
     void onQuery(QString query);
     void onShowQueryHistory();
-    void onCopyQuery(QString query);
+    //void onCopyQuery(QString query);
     void onAddSessionWithQuery(QString);
+    void onAppendQuery(QString);
 
 
 private slots:

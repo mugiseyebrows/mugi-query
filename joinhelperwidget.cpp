@@ -1,5 +1,6 @@
-#include "joinhelperdialog.h"
-#include "ui_joinhelperdialog.h"
+
+#include "ui_joinhelperwidget.h"
+#include "joinhelperwidget.h"
 
 #include <QDir>
 #include "settings.h"
@@ -22,27 +23,29 @@
 #include <QSortFilterProxyModel>
 #include <QTimer>
 
-JoinHelperDialog::JoinHelperDialog(const QString& connectionName,
-                                   const Tokens& tokens, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::JoinHelperDialog),
-    mConnectionName(connectionName)
+JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::JoinHelperWidget)
 {
     ui->setupUi(this);
-    ui->query->setTokens(tokens);
 
     RelationsModel* model = new RelationsModel(this);
 
-    QString path = filePath();
-    model->load(path);
-    model->insertRow(model->rowCount());
     ui->relations->setModel(model);
+
+    mAppender = new ModelAppender(this);
+    mAppender->setModel(model);
+
+    QStandardItemModel* selectedTables = new QStandardItemModel(0,1,this);
+    ui->selectedTables->setModel(selectedTables);
+
+    QTimer::singleShot(0,this,SLOT(onAdjustSplitters()));
+}
+
+void JoinHelperWidget::init(const Tokens& tokens) {
 
     ItemDelegateWithCompleter* itemDelegate = new ItemDelegateWithCompleter(tokens.fields(true),this);
     ui->relations->setItemDelegate(itemDelegate);
-
-    ModelAppender* appender = new ModelAppender(this);
-    appender->setModel(model);
 
     QStringListModel* allTables = new QStringListModel(tokens.tables(),this);
 
@@ -50,24 +53,43 @@ JoinHelperDialog::JoinHelperDialog(const QString& connectionName,
     proxyModel->setSourceModel(allTables);
     ui->allTables->setModel(proxyModel);
 
-    QStandardItemModel* selectedTables = new QStandardItemModel(0,1,this);
-
-    ui->selectedTables->setModel(selectedTables);
-
-    QTimer::singleShot(0,this,SLOT(onAdjustSplitters()));
+    ui->query->setTokens(tokens);
 }
 
-void JoinHelperDialog::onAdjustSplitters() {
-    /*setSpliterSizesRatio(ui->horizontalSplitter,1,1);
-    setSpliterSizesRatio(ui->verticalSplitter,3,1);*/
+void JoinHelperWidget::closeEvent(QCloseEvent *event)
+{
+    saveRelationsModel();
+    QWidget::closeEvent(event);
 }
 
-JoinHelperDialog::~JoinHelperDialog()
+void JoinHelperWidget::init(const QString& connectionName) {
+
+    if (mConnectionName == connectionName) {
+        return;
+    }
+
+    saveRelationsModel();
+    mConnectionName = connectionName;
+    loadRelationsModel();
+
+    QAbstractItemModel* selectedTables = ui->selectedTables->model();
+    if (selectedTables->rowCount() > 0) {
+        selectedTables->removeRows(0,selectedTables->rowCount());
+    }
+
+}
+
+void JoinHelperWidget::onAdjustSplitters() {
+    setSpliterSizesRatio(ui->horizontalSplitter,1,1);
+    setSpliterSizesRatio(ui->verticalSplitter,3,1);
+}
+
+JoinHelperWidget::~JoinHelperWidget()
 {
     delete ui;
 }
 
-QString JoinHelperDialog::filePath() const
+QString JoinHelperWidget::filePath() const
 {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
@@ -84,7 +106,7 @@ QString JoinHelperDialog::filePath() const
 
 
 
-void JoinHelperDialog::findPath()
+void JoinHelperWidget::findPath()
 {
     Relations relations(ui->relations->model());
 
@@ -108,13 +130,7 @@ void JoinHelperDialog::findPath()
 
 }
 
-void JoinHelperDialog::accept()
-{
-    qobject_cast<RelationsModel*>(ui->relations->model())->save(filePath());
-    QDialog::accept();
-}
-
-void JoinHelperDialog::on_add_clicked()
+void JoinHelperWidget::on_add_clicked()
 {
     QModelIndexList indexes = ui->allTables->selectionModel()->selectedIndexes();
     QAbstractItemModel* model = ui->selectedTables->model();
@@ -126,7 +142,7 @@ void JoinHelperDialog::on_add_clicked()
     findPath();
 }
 
-void JoinHelperDialog::on_remove_clicked()
+void JoinHelperWidget::on_remove_clicked()
 {
     QModelIndexList indexes = ui->selectedTables->selectionModel()->selectedIndexes();
     qSort(indexes);
@@ -138,13 +154,13 @@ void JoinHelperDialog::on_remove_clicked()
     findPath();
 }
 
-void JoinHelperDialog::on_filter_textChanged(const QString &text)
+void JoinHelperWidget::on_filter_textChanged(const QString &text)
 {
     QSortFilterProxyModel* proxyModel = qobject_cast<QSortFilterProxyModel*>(ui->allTables->model());
     proxyModel->setFilterRegExp(QRegExp(text,Qt::CaseInsensitive));
 }
 
-void JoinHelperDialog::on_allTables_doubleClicked(const QModelIndex &index)
+void JoinHelperWidget::on_allTables_doubleClicked(const QModelIndex &index)
 {
     QAbstractItemModel* model = ui->selectedTables->model();
     int row = model->rowCount();
@@ -153,9 +169,29 @@ void JoinHelperDialog::on_allTables_doubleClicked(const QModelIndex &index)
     findPath();
 }
 
-void JoinHelperDialog::on_selectedTables_doubleClicked(const QModelIndex &index)
+void JoinHelperWidget::on_selectedTables_doubleClicked(const QModelIndex &index)
 {
     QAbstractItemModel* model = ui->selectedTables->model();
     model->removeRow(index.row());
     findPath();
+}
+
+void JoinHelperWidget::saveRelationsModel() {
+    RelationsModel* model = qobject_cast<RelationsModel*>(ui->relations->model());
+    model->save(filePath());
+}
+
+void JoinHelperWidget::loadRelationsModel()
+{
+    RelationsModel* model = qobject_cast<RelationsModel*>(ui->relations->model());
+    mAppender->setActive(false);
+    model->load(filePath());
+    model->insertRow(model->rowCount());
+    mAppender->setActive(true);
+}
+
+void JoinHelperWidget::on_copy_clicked()
+{
+    saveRelationsModel();
+    emit appendQuery(ui->query->toPlainText());
 }

@@ -18,14 +18,16 @@ public:
     ~JoinHelperDialog();
 
     QString filePath() const;
-
     void findPath();
 
 private slots:
 
+    void onAdjustSplitters();
     void on_add_clicked();
-
     void on_remove_clicked();
+    void on_filter_textChanged(const QString &arg1);
+    void on_allTables_doubleClicked(const QModelIndex &index);
+    void on_selectedTables_doubleClicked(const QModelIndex &index);
 
 public slots:
     void accept();

@@ -91,23 +91,7 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QComboBox" name="output">
-         <item>
-          <property name="text">
-           <string>file</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>new session</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>current session</string>
-          </property>
-         </item>
-        </widget>
+        <widget class="QComboBox" name="output"/>
        </item>
       </layout>
      </item>

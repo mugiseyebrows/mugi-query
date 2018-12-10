@@ -1,6 +1,6 @@
 #include "modelappender.h"
 
-ModelAppender::ModelAppender(QObject *parent) : QObject(parent)
+ModelAppender::ModelAppender(QObject *parent) : QObject(parent), mActive(true)
 {
 
 }
@@ -11,9 +11,16 @@ void ModelAppender::setModel(QAbstractItemModel *model)
             this,SLOT(onDataChanged(QModelIndex,QModelIndex,QVector<int>)));
 }
 
+void ModelAppender::setActive(bool active)
+{
+    mActive = active;
+}
 
 void ModelAppender::onDataChanged(QModelIndex tl,QModelIndex br,QVector<int> roles) {
 
+    if (!mActive) {
+        return;
+    }
 
     QAbstractItemModel* model = const_cast<QAbstractItemModel*>(br.model());
     if (br.row() == model->rowCount() - 1 && !model->data(br).toString().isEmpty()) {

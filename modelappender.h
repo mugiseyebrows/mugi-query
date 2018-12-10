@@ -12,6 +12,11 @@ public:
 
     void setModel(QAbstractItemModel* model);
 
+    void setActive(bool active);
+
+protected:
+    bool mActive;
+
 signals:
 
 private slots:
