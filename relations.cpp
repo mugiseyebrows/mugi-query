@@ -3,11 +3,175 @@
 #include "rowvaluegetter.h"
 #include <QAbstractItemModel>
 #include <QSet>
+#include <QDebug>
 
 Relations::Relations(QAbstractItemModel* model)
 {
     initRelations(model);
     initLinks();
+}
+
+QList<int> concat(int head, const std::vector<int>& tail) {
+    QList<int> res;
+    res << head;
+    for(int i: tail) {
+        res << i;
+    }
+    return res;
+}
+
+QList<int> Relations::tablesToIndexes(const QStringList &tables) {
+    Path indexes;
+    foreach(const QString& table, tables) {
+        int index = mTables.indexOf(table);
+        if (index < 0) {
+            return QList<int>();
+        }
+        indexes << index;
+    }
+    return indexes;
+}
+
+int Relations::length(const PathList& pathList) {
+    int res = 0;
+    foreach(const Path path, pathList) {
+        res += path.size() - 1;
+    }
+    return res + 1;
+}
+
+Relations::PathList Relations::shortest(const QList<PathList> & pathLists) {
+    if (pathLists.isEmpty()) {
+        return PathList();
+    }
+    QList<int> lengths;
+    foreach(const PathList& pathList, pathLists) {
+        lengths << length(pathList);
+    }
+    int minLength = *std::min_element(lengths.begin(), lengths.end());
+    for(int i=0;i<lengths.size();i++) {
+        if (lengths[i] == minLength) {
+            return pathLists[i];
+        }
+    }
+    return PathList();
+}
+
+QList<Relations::PathList> Relations::filterDoubleJoin(const QList<Relations::PathList>& pathLists) {
+    QList<Relations::PathList> res;
+    foreach(const PathList& pathList, pathLists) {
+        QSet<int> pool = pathList[0].toSet();
+        bool ok = true;
+        for(int i=1;i<pathList.size();i++) {
+            QList<int> tail = pathList[i].mid(1);
+            foreach(int table, tail) {
+                if (pool.contains(table)) {
+                    ok = false;
+                    break;
+                } else {
+                    pool.insert(table);
+                }
+            }
+            if (!ok) {
+                break;
+            }
+        }
+        if (ok) {
+            res << pathList;
+        }
+    }
+    return res;
+}
+
+Relations::PathList Relations::findPath(const QStringList &tables)
+{
+    QList<int> indexes = tablesToIndexes(tables);
+    int head = indexes[0];
+    std::vector<int> tail = indexes.mid(1).toVector().toStdVector();
+    std::sort(tail.begin(),tail.end());
+
+    QList<PathList> possible;
+
+    do {
+        Path nodes = concat(head, tail);
+        qDebug() << nodes;
+        PathList current;
+        bool ok = true;
+        for(int i=1;i<nodes.size();i++) {
+            Path p = shortest(nodes[i-1],nodes[i]);
+            if (p.isEmpty()) {
+                ok = false;
+                break;
+            } else {
+                current << p;
+            }
+        }
+        if (ok) {
+            possible << current;
+        }
+    } while (std::next_permutation(tail.begin(),tail.end()));
+
+    return shortest(filterDoubleJoin(possible));
+}
+
+const Relation& Relations::findRelation(int table1, int table2, bool* reverse) {
+    foreach(const Relation& relation, mRelations) {
+        bool t1 = (relation.primary() == table1 &&
+                   relation.foreign() == table2);
+        bool t2 = (relation.primary() == table2 &&
+                   relation.foreign() == table1);
+        if (t1 || t2) {
+            if (t1) {
+                *reverse = false;
+            } else {
+                *reverse = true;
+            }
+            return relation;
+        }
+    }
+    return mRelations[0];
+}
+
+const QString Relations::joinExpression(const Relation &relation, bool reverse)
+{
+    if (!reverse) {
+        return QString("%1.%2=%3.%4")
+                 .arg(mTables[relation.primary()])
+                 .arg(relation.primaryKey())
+                 .arg(mTables[relation.foreign()])
+                 .arg(relation.foreignKey());
+    }
+    return  QString("%1.%2=%3.%4")
+            .arg(mTables[relation.foreign()])
+            .arg(relation.primaryKey())
+            .arg(mTables[relation.primary()])
+            .arg(relation.foreignKey());
+}
+
+QString Relations::expression(const Relations::PathList &path, bool join, bool mssql)
+{
+
+    QStringList tables;
+    QStringList joins;
+    for(int i=0;i<path.size();i++) {
+        const Path& subpath = path[i];
+        for(int j = (i == 0) ? 0 : 1; j<subpath.size();j++) {
+            tables << mTables[subpath[j]];
+        }
+        for(int j=1;j<subpath.size();j++) {
+            int table1 = subpath[j-1];
+            int table2 = subpath[j];
+            bool reverse;
+            const Relation& relation = findRelation(table1,table2,&reverse);
+            joins << joinExpression(relation,reverse);
+        }
+    }
+
+    QString expression = QString("select * from %1\nwhere %2")
+            .arg(tables.join(", "))
+            .arg(joins.join("\nand "));
+
+    return expression;
 }
 
 void Relations::initRelations(QAbstractItemModel *model)
@@ -16,25 +180,25 @@ void Relations::initRelations(QAbstractItemModel *model)
         RowValueGetter g(model,row);
         Relation relation(g(0).toString(),g(1).toString());
         if (!relation.isEmpty()) {
-            relations.append(relation);
+            mRelations.append(relation);
         }
     }
-    QStringList tables;
-    foreach(const Relation& relation, relations) {
-        tables << relation.primaryTable() << relation.foreignTable();
+
+    foreach(const Relation& relation, mRelations) {
+        mTables << relation.primaryTable() << relation.foreignTable();
     }
-    tables = tables.toSet().toList();
-    for(int i=0;i<relations.size();i++) {
-        Relation& relation = relations[i];
-        relation.setPrimary(tables.indexOf(relation.primaryTable()));
-        relation.setForeign(tables.indexOf(relation.foreignTable()));
+    mTables = mTables.toSet().toList();
+    for(int i=0;i<mRelations.size();i++) {
+        Relation& relation = mRelations[i];
+        relation.setPrimary(mTables.indexOf(relation.primaryTable()));
+        relation.setForeign(mTables.indexOf(relation.foreignTable()));
     }
 }
 
 void Relations::initLinks()
 {
 
-    foreach(const Relation& relation, relations) {
+    foreach(const Relation& relation, mRelations) {
         int primary = relation.primary();
         int foreign = relation.foreign();
         if (!links.contains(primary)) {
@@ -67,6 +231,11 @@ Relations::PathList Relations::filterContains(const PathList& paths, int table) 
 }
 
 Relations::Path Relations::shortest(const PathList &paths, int table) {
+
+    if (paths.isEmpty()) {
+        return Path();
+    }
+
     QList<int> indexes;
     foreach(const Path& path, paths) {
         indexes << path.indexOf(table);
@@ -83,11 +252,7 @@ Relations::Path Relations::shortest(const PathList &paths, int table) {
 Relations::Path Relations::shortest(int table1, int table2)
 {
     Relations::PathList paths = pathList(table1);
-    paths = filterContains(paths, table2);
-    if (paths.isEmpty()) {
-        return Path();
-    }
-    return shortest(paths, table2);
+    return shortest(filterContains(paths, table2), table2);
 }
 
 Relations::PathList Relations::pathList(int head)

@@ -22,7 +22,10 @@ public:
     void findPath();
 
 private slots:
-    void onTableModelDataChanged(QModelIndex, QModelIndex, QVector<int>);
+
+    void on_add_clicked();
+
+    void on_remove_clicked();
 
 public slots:
     void accept();

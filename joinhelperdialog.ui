@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>931</width>
     <height>600</height>
    </rect>
   </property>
@@ -28,7 +28,46 @@
         <number>200</number>
        </attribute>
       </widget>
-      <widget class="QListView" name="tables"/>
+      <widget class="QWidget" name="">
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="1" column="1">
+         <widget class="QPushButton" name="add">
+          <property name="text">
+           <string>add</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLineEdit" name="filter"/>
+        </item>
+        <item row="2" column="1">
+         <widget class="QPushButton" name="remove">
+          <property name="text">
+           <string>remove</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="0" rowspan="3">
+         <widget class="QListView" name="allTables"/>
+        </item>
+        <item row="0" column="2" rowspan="4">
+         <widget class="QTableView" name="selectedTables"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
      <widget class="TextEdit" name="query"/>
     </widget>

@@ -43,7 +43,8 @@ SOURCES += main.cpp\
     modelappender.cpp \
     itemdelegatewithcompleter.cpp \
     relation.cpp \
-    relations.cpp
+    relations.cpp \
+    relationsmodel.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -77,7 +78,8 @@ HEADERS  += mainwindow.h \
     modelappender.h \
     itemdelegatewithcompleter.h \
     relation.h \
-    relations.h
+    relations.h \
+    relationsmodel.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \
