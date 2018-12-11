@@ -6,6 +6,7 @@
 #include "settings.h"
 #include <QSqlDatabase>
 #include <QStandardItemModel>
+#include <QStringListModel>
 #include <QTextStream>
 #include <QTextCodec>
 #include <QMessageBox>
@@ -22,6 +23,7 @@
 #include "relationsmodel.h"
 #include <QSortFilterProxyModel>
 #include <QTimer>
+#include "sl.h"
 
 JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
     QWidget(parent),
@@ -33,25 +35,35 @@ JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
 
     ui->relations->setModel(model);
 
-    mAppender = new ModelAppender(this);
-    mAppender->setModel(model);
+    mRelationsAppender = new ModelAppender(this);
+    mRelationsAppender->setModel(model);
 
-    QStandardItemModel* selectedTables = new QStandardItemModel(0,1,this);
-    ui->selectedTables->setModel(selectedTables);
+    /*QStandardItemModel* selectedTables = new QStandardItemModel(0,1,this);
+    ui->selectedTables->setModel(selectedTables);*/
+
+    QStringListModel* tables = new QStringListModel();
+    tables->setHeaderData(0,Qt::Horizontal,"Tables");
+    ui->tables->setModel(tables);
+
+    mTablesAppender = new ModelAppender(this);
+    mTablesAppender->setModel(tables);
 
     QTimer::singleShot(0,this,SLOT(onAdjustSplitters()));
 }
 
 void JoinHelperWidget::init(const Tokens& tokens) {
 
-    ItemDelegateWithCompleter* itemDelegate = new ItemDelegateWithCompleter(tokens.fields(true),this);
-    ui->relations->setItemDelegate(itemDelegate);
+    ItemDelegateWithCompleter* relationsDelegate = new ItemDelegateWithCompleter(tokens.fields(true),this);
+    ui->relations->setItemDelegate(relationsDelegate);
 
-    QStringListModel* allTables = new QStringListModel(tokens.tables(),this);
+    /*QStringListModel* allTables = new QStringListModel(tokens.tables(),this);
 
     QSortFilterProxyModel* proxyModel = new QSortFilterProxyModel(this);
     proxyModel->setSourceModel(allTables);
-    ui->allTables->setModel(proxyModel);
+    ui->allTables->setModel(proxyModel);*/
+
+    ItemDelegateWithCompleter* tablesDelegate = new ItemDelegateWithCompleter(tokens.tables(),this);
+    ui->tables->setItemDelegate(tablesDelegate);
 
     ui->query->setTokens(tokens);
 }
@@ -72,11 +84,34 @@ void JoinHelperWidget::init(const QString& connectionName) {
     mConnectionName = connectionName;
     loadRelationsModel();
 
-    QAbstractItemModel* selectedTables = ui->selectedTables->model();
-    if (selectedTables->rowCount() > 0) {
-        selectedTables->removeRows(0,selectedTables->rowCount());
-    }
+    //QAbstractItemModel* selectedTables = ui->selectedTables->model();
 
+    QStringListModel* tables = qobject_cast<QStringListModel*>(ui->tables->model());
+
+    mTablesAppender->setActive(false);
+
+    tables->setStringList(sl(QString(),QString()));
+
+    mTablesAppender->setActive(true);
+
+    connect(mTablesAppender,SIGNAL(rowInserted(int)),this,SLOT(onTablesRowInserted(int)));
+
+    connect(tables,SIGNAL(dataChanged(QModelIndex,QModelIndex)),this,SLOT(onTablesDataChanged(QModelIndex,QModelIndex)));
+}
+
+void JoinHelperWidget::onTablesDataChanged(QModelIndex,QModelIndex) {
+    findPath();
+}
+
+void JoinHelperWidget::onTablesRowInserted(int) {
+    QTimer::singleShot(0,this,SLOT(onSelectLastTablesRow()));
+}
+
+void JoinHelperWidget::onSelectLastTablesRow() {
+    QAbstractItemModel* model = ui->tables->model();
+    int row = model->rowCount()-1;
+    QModelIndex index = model->index(row,0);
+    ui->tables->setCurrentIndex(index);
 }
 
 void JoinHelperWidget::onAdjustSplitters() {
@@ -105,22 +140,33 @@ QString JoinHelperWidget::filePath() const
 }
 
 
+namespace {
+
+QStringList filterEmpty(const QStringList& items) {
+    QStringList res;
+    foreach(const QString& item, items) {
+        if (!item.isEmpty()) {
+            res << item;
+        }
+    }
+    return res;
+}
+
+}
 
 void JoinHelperWidget::findPath()
 {
     Relations relations(ui->relations->model());
 
-    QAbstractItemModel* model = ui->selectedTables->model();
+    QStringListModel* tablesModel = qobject_cast<QStringListModel*>(ui->tables->model());
 
-    if (model->rowCount() < 2) {
+    QStringList tables = filterEmpty(tablesModel->stringList());
+
+    if (tables.size() < 2) {
         ui->query->setText("select two or more tables");
         return;
     }
 
-    QStringList tables;
-    for(int row=0;row<model->rowCount();row++) {
-        tables << model->data(model->index(row,0)).toString();
-    }
     Relations::PathList path = relations.findPath(tables);
     if (path.isEmpty()) {
         ui->query->setText("no path found");
@@ -130,51 +176,8 @@ void JoinHelperWidget::findPath()
 
 }
 
-void JoinHelperWidget::on_add_clicked()
-{
-    QModelIndexList indexes = ui->allTables->selectionModel()->selectedIndexes();
-    QAbstractItemModel* model = ui->selectedTables->model();
-    foreach(const QModelIndex& index, indexes) {
-        int row = model->rowCount();
-        model->insertRow(row);
-        model->setData(model->index(row,0),index.data());
-    }
-    findPath();
-}
 
-void JoinHelperWidget::on_remove_clicked()
-{
-    QModelIndexList indexes = ui->selectedTables->selectionModel()->selectedIndexes();
-    qSort(indexes);
-    QAbstractItemModel* model = ui->selectedTables->model();
-    for(QModelIndexList::reverse_iterator it = indexes.rbegin(); it != indexes.rend(); it++) {
-        model->removeRow(it->row());
-    }
 
-    findPath();
-}
-
-void JoinHelperWidget::on_filter_textChanged(const QString &text)
-{
-    QSortFilterProxyModel* proxyModel = qobject_cast<QSortFilterProxyModel*>(ui->allTables->model());
-    proxyModel->setFilterRegExp(QRegExp(text,Qt::CaseInsensitive));
-}
-
-void JoinHelperWidget::on_allTables_doubleClicked(const QModelIndex &index)
-{
-    QAbstractItemModel* model = ui->selectedTables->model();
-    int row = model->rowCount();
-    model->insertRow(row);
-    model->setData(model->index(row,0),index.data());
-    findPath();
-}
-
-void JoinHelperWidget::on_selectedTables_doubleClicked(const QModelIndex &index)
-{
-    QAbstractItemModel* model = ui->selectedTables->model();
-    model->removeRow(index.row());
-    findPath();
-}
 
 void JoinHelperWidget::saveRelationsModel() {
     RelationsModel* model = qobject_cast<RelationsModel*>(ui->relations->model());
@@ -184,10 +187,10 @@ void JoinHelperWidget::saveRelationsModel() {
 void JoinHelperWidget::loadRelationsModel()
 {
     RelationsModel* model = qobject_cast<RelationsModel*>(ui->relations->model());
-    mAppender->setActive(false);
+    mRelationsAppender->setActive(false);
     model->load(filePath());
     model->insertRow(model->rowCount());
-    mAppender->setActive(true);
+    mRelationsAppender->setActive(true);
 }
 
 void JoinHelperWidget::on_copy_clicked()

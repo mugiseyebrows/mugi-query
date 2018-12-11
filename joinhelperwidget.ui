@@ -30,46 +30,17 @@
       </widget>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QGridLayout" name="gridLayout">
-        <item row="1" column="1">
-         <widget class="QPushButton" name="add">
-          <property name="text">
-           <string>add</string>
-          </property>
+        <item row="0" column="0" rowspan="2">
+         <widget class="QTableView" name="tables">
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
          </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLineEdit" name="filter"/>
-        </item>
-        <item row="2" column="1">
-         <widget class="QPushButton" name="remove">
-          <property name="text">
-           <string>remove</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="1" column="0" rowspan="3">
-         <widget class="QListView" name="allTables"/>
-        </item>
-        <item row="0" column="2" rowspan="4">
-         <widget class="QListView" name="selectedTables"/>
         </item>
        </layout>
       </widget>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QPushButton" name="copy">

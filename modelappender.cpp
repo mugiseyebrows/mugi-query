@@ -24,8 +24,9 @@ void ModelAppender::onDataChanged(QModelIndex tl,QModelIndex br,QVector<int> rol
 
     QAbstractItemModel* model = const_cast<QAbstractItemModel*>(br.model());
     if (br.row() == model->rowCount() - 1 && !model->data(br).toString().isEmpty()) {
-        model->insertRow(model->rowCount());
+        int row = model->rowCount();
+        model->insertRow(row);
+        emit rowInserted(row);
     }
-
 
 }

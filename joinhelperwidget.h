@@ -4,6 +4,8 @@
 #include <QWidget>
 #include "tokens.h"
 
+#include <QModelIndex>
+
 class ModelAppender;
 
 namespace Ui {
@@ -23,6 +25,8 @@ public:
 
     void closeEvent(QCloseEvent *event) override;
 
+public slots:
+    void onTablesDataChanged(QModelIndex, QModelIndex);
 protected:
     QString filePath() const;
     void findPath();
@@ -31,14 +35,12 @@ protected:
 signals:
     void appendQuery(QString);
 
+protected slots:
+    void onTablesRowInserted(int);
+    void onSelectLastRow();
 private slots:
 
     void onAdjustSplitters();
-    void on_add_clicked();
-    void on_remove_clicked();
-    void on_filter_textChanged(const QString &arg1);
-    void on_allTables_doubleClicked(const QModelIndex &index);
-    void on_selectedTables_doubleClicked(const QModelIndex &index);
 
     void on_copy_clicked();
 
@@ -46,7 +48,8 @@ private:
     Ui::JoinHelperWidget *ui;
     QString mConnectionName;
     Tokens mTokens;
-    ModelAppender* mAppender;
+    ModelAppender* mRelationsAppender;
+    ModelAppender* mTablesAppender;
 };
 
 #endif // JOINHELPERWIDGET_H

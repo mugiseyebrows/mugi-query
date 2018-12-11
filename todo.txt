@@ -18,3 +18,13 @@ find-static-functions.py
 tokens: postgres functions and types
 tokens: ms access functions and types
 tokens: store in file
+query history: highlight
+joinhelper: where or join on
+joinhelper: one helper for each connection name
+joinhelper: reorder tables (drag-and-drop?)
+joinhelper: delete, tables title (headerData)
+copyeventfilter: refactor
+test savedata output
+textedit: functions arguments popup
+open database: remove if !db.open()
+relations: fix double join

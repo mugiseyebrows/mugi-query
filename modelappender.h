@@ -18,7 +18,7 @@ protected:
     bool mActive;
 
 signals:
-
+    void rowInserted(int);
 private slots:
     void onDataChanged(QModelIndex, QModelIndex, QVector<int>);
 };

@@ -40,7 +40,7 @@ Highlighter::Highlighter(const Tokens &tokens, QTextDocument *parent) : QSyntaxH
     HighlightingRule rule;
 
     keywordFormat.setForeground(Qt::darkBlue);
-    keywordFormat.setFontWeight(QFont::Bold);
+    //keywordFormat.setFontWeight(QFont::Bold);
     QStringList keywordPatterns = wordBounded(spaceSplit(tokens.keywords()));
     foreach (const QString &pattern, keywordPatterns) {
         rule.pattern = QRegularExpression(pattern,QRegularExpression::CaseInsensitiveOption);
@@ -48,7 +48,7 @@ Highlighter::Highlighter(const Tokens &tokens, QTextDocument *parent) : QSyntaxH
         highlightingRules.append(rule);
     }
 
-    tableFormat.setFontWeight(QFont::Bold);
+    //tableFormat.setFontWeight(QFont::Bold);
     tableFormat.setForeground(Qt::darkMagenta);
     QStringList tablePatterns = wordBounded(tokens.tablesAndFields(false));
     foreach (const QString &pattern, tablePatterns) {
@@ -57,7 +57,7 @@ Highlighter::Highlighter(const Tokens &tokens, QTextDocument *parent) : QSyntaxH
         highlightingRules.append(rule);
     }
 
-    functionFormat.setFontWeight(QFont::Bold);
+    //functionFormat.setFontWeight(QFont::Bold);
     functionFormat.setForeground(Qt::red);
     QStringList functionPatterns = wordBoundedWithBracket(tokens.functions());
     foreach (const QString &pattern, functionPatterns) {

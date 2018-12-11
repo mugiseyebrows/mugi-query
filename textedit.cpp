@@ -12,22 +12,33 @@
 #include "tokens.h"
 
 #include "highlighter.h"
+#include <QStyle>
 
 TextEdit::TextEdit(QWidget *parent)
-: QTextEdit(parent), mCompleter(0), mHighlighter(0)
+: QTextEdit(parent), mCompleter(nullptr), mHighlighter(nullptr)
 {
+    const QFont defaultFont = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
 
+#ifdef Q_OS_LINUX
+    QFont font("Liberation Mono",10,QFont::Normal);
+#endif
+
+#ifdef Q_OS_WIN
+    QFont font(defaultFont.defaultFamily(),10);
+#endif
+
+    setFont(font);
 }
 
 TextEdit::~TextEdit()
 {
     if (mCompleter) {
         mCompleter->deleteLater();
-        mCompleter = 0;
+        mCompleter = nullptr;
     }
     if (mHighlighter) {
         mHighlighter->deleteLater();
-        mHighlighter = 0;
+        mHighlighter = nullptr;
     }
 }
 
