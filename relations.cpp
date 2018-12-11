@@ -178,7 +178,13 @@ const QString Relations::joinExpression(const Relation &relation, bool reverse)
             .arg(relation.primaryKey());
 }
 
-QString Relations::expression(const Relations::PathList &path, bool join, bool mssql)
+QString repeat(QChar c, int n) {
+    QString s;
+    s.fill('(',n);
+    return s;
+}
+
+QString Relations::expression(const Relations::PathList &path, bool leftJoin, bool mssql)
 {
 
     QStringList tables;
@@ -197,9 +203,33 @@ QString Relations::expression(const Relations::PathList &path, bool join, bool m
         }
     }
 
-    QString expression = QString("select * from %1\nwhere %2")
-            .arg(tables.join(", "))
-            .arg(joins.join("\nand "));
+    QString expression;
+
+    if (leftJoin) {
+        if (mssql) {
+            QStringList expression_;
+            QString commans;
+            expression_ << QString("select * from %2%1").arg(tables[0]).arg(repeat('(',joins.size()-1));
+            for(int i=0;i<joins.size();i++) {
+                expression_ << QString("left join %1 on %2%3")
+                               .arg(tables[i+1])
+                        .arg(joins[i])
+                        .arg(i+1<joins.size() ? ")" : "");
+            }
+            expression = expression_.join("\n");
+        } else {
+            QStringList expression_;
+            expression_ << QString("select * from %1").arg(tables[0]);
+            for(int i=0;i<joins.size();i++) {
+                expression_ << QString("left join %1 on %2").arg(tables[i+1]).arg(joins[i]);
+            }
+            expression = expression_.join("\n");
+        }
+    } else {
+        expression = QString("select * from %1\nwhere %2")
+                    .arg(tables.join(", "))
+                    .arg(joins.join("\nand "));
+    }
 
     return expression;
 }

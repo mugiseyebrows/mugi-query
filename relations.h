@@ -16,7 +16,7 @@ public:
 
     PathList findPath(const QStringList& tables);
 
-    QString expression(const PathList& path, bool join, bool mssql);
+    QString expression(const PathList& path, bool leftJoin, bool mssql);
 
     void initRelations(QAbstractItemModel* model);
     void initLinks();

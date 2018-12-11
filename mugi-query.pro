@@ -44,7 +44,8 @@ SOURCES += main.cpp\
     relation.cpp \
     relations.cpp \
     relationsmodel.cpp \
-    joinhelperwidget.cpp
+    joinhelperwidget.cpp \
+    jsonhelper.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -79,7 +80,8 @@ HEADERS  += mainwindow.h \
     relation.h \
     relations.h \
     relationsmodel.h \
-    joinhelperwidget.h
+    joinhelperwidget.h \
+    jsonhelper.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

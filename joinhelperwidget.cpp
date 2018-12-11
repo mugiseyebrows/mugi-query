@@ -124,7 +124,7 @@ JoinHelperWidget::~JoinHelperWidget()
     delete ui;
 }
 
-QString JoinHelperWidget::filePath() const
+QString JoinHelperWidget::relationsPath() const
 {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
@@ -167,11 +167,14 @@ void JoinHelperWidget::findPath()
         return;
     }
 
+    bool leftJoin = ui->joinType->currentIndex() == 0;
+    bool mssql = QSqlDatabase::database(mConnectionName).driverName() == "QODBC";
+
     Relations::PathList path = relations.findPath(tables);
     if (path.isEmpty()) {
         ui->query->setText("no path found");
     } else {
-        ui->query->setText(relations.expression(path,true,true));
+        ui->query->setText(relations.expression(path,leftJoin,mssql));
     }
 
 }
@@ -181,14 +184,14 @@ void JoinHelperWidget::findPath()
 
 void JoinHelperWidget::saveRelationsModel() {
     RelationsModel* model = qobject_cast<RelationsModel*>(ui->relations->model());
-    model->save(filePath());
+    model->save(relationsPath());
 }
 
 void JoinHelperWidget::loadRelationsModel()
 {
     RelationsModel* model = qobject_cast<RelationsModel*>(ui->relations->model());
     mRelationsAppender->setActive(false);
-    model->load(filePath());
+    model->load(relationsPath());
     model->insertRow(model->rowCount());
     mRelationsAppender->setActive(true);
 }
@@ -197,4 +200,9 @@ void JoinHelperWidget::on_copy_clicked()
 {
     saveRelationsModel();
     emit appendQuery(ui->query->toPlainText());
+}
+
+void JoinHelperWidget::on_joinType_currentIndexChanged(int)
+{
+    findPath();
 }

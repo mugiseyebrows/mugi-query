@@ -9,6 +9,7 @@
 #include "databasehistorydialog.h"
 #include <QDebug>
 #include <QTimer>
+#include "settings.h"
 
 AddDatabaseDialog::AddDatabaseDialog(bool showHistory, QWidget *parent) :
     QDialog(parent),
@@ -20,6 +21,8 @@ AddDatabaseDialog::AddDatabaseDialog(bool showHistory, QWidget *parent) :
     if (showHistory) {
         QTimer::singleShot(0,this,SLOT(on_history_clicked()));
     }
+
+    ui->savePassword->setChecked(Settings::instance()->savePasswords());
 }
 
 AddDatabaseDialog::~AddDatabaseDialog()
@@ -97,8 +100,11 @@ void AddDatabaseDialog::accept()
     if (!db.open()) {
         QString error = db.lastError().text();
         QMessageBox::critical(this,"Error",error);
+        QSqlDatabase::removeDatabase(connectionName);
         return;
     }
+
+    Settings::instance()->setSavePasswords(ui->savePassword->isChecked());
 
     QDialog::accept();
 }
@@ -119,4 +125,15 @@ void AddDatabaseDialog::on_history_clicked()
     ui->database->setText(dialog.database());
     ui->port->setText(dialog.port() > -1 ? QString::number(dialog.port()) : QString());
 
+}
+
+void AddDatabaseDialog::on_savePassword_clicked(bool checked)
+{
+    if (checked) {
+        QString msg("Storing passwords is not secure, are you sure?");
+        int res = QMessageBox::question(this,"",msg,QMessageBox::Yes,QMessageBox::No);
+        if (res != QMessageBox::Yes) {
+            ui->savePassword->setChecked(false);
+        }
+    }
 }

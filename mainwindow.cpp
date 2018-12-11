@@ -475,7 +475,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (mQueryHistory) {
         mQueryHistory->close();
     }
+    Settings::instance()->save();
     event->accept();
+    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::on_reconnect_triggered()
@@ -565,4 +567,22 @@ void MainWindow::on_queryJoin_triggered()
     mJoinHelperWidget->show();
     mJoinHelperWidget->raise();
 
+}
+
+void MainWindow::on_queryQuote_triggered()
+{
+    SessionTab* tab = currentTab();
+    if (!tab) {
+        return;
+    }
+    tab->quoteQuery();
+}
+
+void MainWindow::on_queryUnquote_triggered()
+{
+    SessionTab* tab = currentTab();
+    if (!tab) {
+        return;
+    }
+    tab->unquoteQuery();
 }

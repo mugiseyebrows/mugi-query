@@ -30,6 +30,8 @@ public slots:
 private slots:
     void on_history_clicked();
 
+    void on_savePassword_clicked(bool checked);
+
 private:
     Ui::AddDatabaseDialog *ui;
 };

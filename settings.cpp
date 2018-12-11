@@ -6,6 +6,9 @@ Settings* Settings::mInstance = 0;
 #include <QApplication>
 #include <QStandardPaths>
 #include <QMessageBox>
+#include "jsonhelper.h"
+#include <QJsonDocument>
+#include <QJsonObject>
 
 Settings::Settings()
 {
@@ -27,6 +30,7 @@ Settings::Settings()
         d.cd(name);
     }
     mDir = appData;
+    load();
 }
 
 Settings *Settings::instance()
@@ -50,4 +54,42 @@ void Settings::setDateTimeFormat(Settings::DateTimeFormat format)
 QString Settings::dir() const
 {
     return mDir;
+}
+
+QString Settings::settingsPath() const
+{
+    return QDir(mDir).filePath("settings.json");
+}
+
+
+void Settings::save()
+{
+    QJsonObject obj;
+    obj["SavePasswords"] = QJsonValue(mSavePasswords);
+    saveJson(settingsPath(),obj);
+}
+
+void Settings::load()
+{
+    mSavePasswords = false;
+
+    bool ok;
+    QJsonDocument doc = loadJson(settingsPath(),&ok);
+    if (doc.isNull()) {
+        return;
+    }
+    QJsonObject obj = doc.object();
+
+    mSavePasswords = obj.value("SavePasswords").toBool(false);
+
+}
+
+bool Settings::savePasswords() const
+{
+    return mSavePasswords;
+}
+
+void Settings::setSavePasswords(bool value)
+{
+    mSavePasswords = value;
 }

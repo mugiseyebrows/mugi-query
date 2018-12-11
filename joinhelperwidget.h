@@ -28,7 +28,7 @@ public:
 public slots:
     void onTablesDataChanged(QModelIndex, QModelIndex);
 protected:
-    QString filePath() const;
+    QString relationsPath() const;
     void findPath();
     void saveRelationsModel();
     void loadRelationsModel();
@@ -37,12 +37,14 @@ signals:
 
 protected slots:
     void onTablesRowInserted(int);
-    void onSelectLastRow();
+    void onSelectLastTablesRow();
 private slots:
 
     void onAdjustSplitters();
 
     void on_copy_clicked();
+
+    void on_joinType_currentIndexChanged(int index);
 
 private:
     Ui::JoinHelperWidget *ui;

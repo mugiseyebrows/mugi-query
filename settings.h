@@ -19,6 +19,15 @@ public:
 
     QString dir() const;
 
+    QString settingsPath() const;
+
+    void save();
+
+    void load();
+
+    bool savePasswords() const;
+    void setSavePasswords(bool value);
+
 private:
 
     Settings();
@@ -27,6 +36,7 @@ private:
 
     DateTimeFormat mDateTimeFormat;
     QString mDir;
+    bool mSavePasswords;
 
 };
 

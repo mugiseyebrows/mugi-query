@@ -89,6 +89,8 @@
     <addaction name="separator"/>
     <addaction name="queryCreateUser"/>
     <addaction name="queryJoin"/>
+    <addaction name="queryQuote"/>
+    <addaction name="queryUnquote"/>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
@@ -230,6 +232,16 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="queryQuote">
+   <property name="text">
+    <string>Quote</string>
+   </property>
+  </action>
+  <action name="queryUnquote">
+   <property name="text">
+    <string>Unquote</string>
    </property>
   </action>
  </widget>

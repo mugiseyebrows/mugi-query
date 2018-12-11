@@ -230,3 +230,38 @@ void SessionTab::on_history_clicked()
     emit showQueryHistory();
 }
 
+namespace {
+
+
+QStringList quote(const QStringList& items) {
+    QStringList res;
+    foreach(const QString& item, items) {
+        res << "\"" + item + " \"";
+    }
+    return res;
+}
+
+QStringList unquote(const QStringList& items) {
+    QStringList res;
+    foreach(const QString& item, items) {
+        QRegExp rx("^\\s*[\"](.*)[\"]\\s*$");
+        if (item.indexOf(rx) > -1) {
+            res << rx.cap(1).trimmed();
+        } else {
+            res << item;
+        }
+    }
+    return res;
+}
+
+}
+
+void SessionTab::quoteQuery() {
+    TextEdit* edit = ui->query;
+    edit->setPlainText(quote(edit->toPlainText().split("\n")).join("\n"));
+}
+
+void SessionTab::unquoteQuery() {
+    TextEdit* edit = ui->query;
+    edit->setPlainText(unquote(edit->toPlainText().split("\n")).join("\n"));
+}

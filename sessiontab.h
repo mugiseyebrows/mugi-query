@@ -45,6 +45,8 @@ public:
     QTableView *currentView();
     QTextDocument *document() const;
 
+    void quoteQuery();
+    void unquoteQuery();
 signals:
     void query(QString);
     void showQueryHistory();

@@ -52,8 +52,7 @@ void History::addDatabase(const QString &connectionName,const QString &driver, c
     q.addBindValue(driver);
     q.addBindValue(host);
     q.addBindValue(user);
-    q.addBindValue(password);
-    q.addBindValue(database);
+    q.addBindValue(Settings::instance()->savePasswords() ? password : QString());    q.addBindValue(database);
     q.addBindValue(port);
     QUERY_EXEC(q);
 }
