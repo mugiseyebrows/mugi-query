@@ -136,4 +136,5 @@ void AddDatabaseDialog::on_savePassword_clicked(bool checked)
             ui->savePassword->setChecked(false);
         }
     }
+    Settings::instance()->setSavePasswords(checked);
 }

@@ -20,7 +20,7 @@ TextEdit::TextEdit(QWidget *parent)
     const QFont defaultFont = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
 
 #ifdef Q_OS_LINUX
-    QFont font("Liberation Mono",10,QFont::Normal);
+    QFont font("Liberation Mono",11,QFont::Normal);
 #endif
 
 #ifdef Q_OS_WIN

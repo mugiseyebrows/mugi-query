@@ -127,6 +127,90 @@ QStringList Tokens::functions() const
              << "uuid_to_bin" << "validate_password_strength" << "var_pop" << "var_samp"
              << "variance" << "version" << "wait_for_executed_gtid_set" << "wait_until_sql_thread_after_gtids" << "week"
              << "weekday" << "weekofyear" << "weight_string" << "year" << "yearweek";
+    } else if (mDriverName == "QPSQL") {
+        /*
+
+https://www.postgresql.org/docs/11/functions-string.html
+https://www.postgresql.org/docs/11/functions-binarystring.html
+https://www.postgresql.org/docs/11/functions-json.html
+https://www.postgresql.org/docs/11/functions-datetime.html
+https://www.postgresql.org/docs/11/functions-array.html
+https://www.postgresql.org/docs/11/functions-geometry.html
+
+let ids = ['#FUNCTIONS-JSON-CREATION-TABLE tbody','#FUNCTIONS-JSON-PROCESSING-TABLE tbody',
+    '#FUNCTIONS-STRING-SQL tbody','#FUNCTIONS-STRING-OTHER tbody','#FUNCTIONS-BINARYSTRING-SQL tbody',
+    '#FUNCTIONS-BINARYSTRING-OTHER tbody','#ARRAY-FUNCTIONS-TABLE tbody','#FUNCTIONS-GEOMETRY-FUNC-TABLE tbody',
+    '#FUNCTIONS-GEOMETRY-CONV-TABLE tbody']
+let tables = ids.reduce( (p,c) => {let t = document.querySelector(c); if (t) p.push(t); return p} , [])
+
+let tds = []
+tables.forEach( t => [...t.querySelectorAll('tr')].forEach( tr => tr.querySelector('td').innerText.split(/\n|( or )/).forEach( e => tds.push(e) )))
+tds = tds.map( e => {let m = e.match(/([^ ]+)[(]/); if (m) return m[1]} ).filter( e => e )
+tds = Array.from(new Set(tds))
+document.body.innerText = tds.map( (e,i) => ` << "${e}"` + ((i % 5) == 4 ? "\n" : "") ).join('')
+
+https://www.postgresql.org/docs/11/functions-math.html
+
+let ids = ['#FUNCTIONS-MATH-FUNC-TABLE tbody','#FUNCTIONS-MATH-TRIG-TABLE tbody']
+let tables = ids.reduce( (p,c) => {let t = document.querySelector(c); if (t) p.push(t); return p} , [])
+let tds = []
+tables.forEach( t => [...t.querySelectorAll('tr')].forEach( tr => [...tr.querySelectorAll('td')].forEach(td => td.innerText.split(/\n|( or )/).forEach( e => tds.push(e) ))))
+tds = tds.map( e => {let m = e.match(/([^ ]+)[(]/); if (m) return m[1]} ).filter( e => e )
+tds = Array.from(new Set(tds))
+document.body.innerText = tds.map( (e,i) => ` << "${e}"` + ((i % 7) == 6 ? "\n" : "") ).join('')
+
+*/
+
+        res << "bit_length" << "char_length" << "character_length" << "lower" << "octet_length"
+            << "overlay" << "position" << "substring" << "substring" << "substring"
+            << "trim" << "trim" << "upper" << "ascii" << "btrim"
+            << "chr" << "concat" << "concat_ws" << "convert" << "convert_from"
+            << "convert_to" << "decode" << "encode" << "format" << "initcap"
+            << "left" << "length" << "length" << "lpad" << "ltrim"
+            << "md5" << "parse_ident" << "pg_client_encoding" << "quote_ident" << "quote_literal"
+            << "quote_literal" << "quote_nullable" << "quote_nullable" << "regexp_match" << "regexp_matches"
+            << "regexp_replace" << "regexp_split_to_array" << "regexp_split_to_table" << "repeat" << "replace"
+            << "reverse" << "right" << "rpad" << "rtrim" << "split_part"
+            << "strpos" << "substr" << "starts_with" << "to_ascii" << "to_hex"
+            << "translate"
+
+            << "octet_length" << "overlay" << "position" << "substring" << "trim"
+            << "btrim" << "decode" << "encode" << "get_bit" << "get_byte"
+            << "length" << "md5" << "set_bit" << "set_byte" << "sha224"
+            << "sha256" << "sha384" << "sha512"
+
+            << "array_append" << "array_cat" << "array_ndims" << "array_dims" << "array_fill"
+            << "array_length" << "array_lower" << "array_position" << "array_positions" << "array_prepend"
+            << "array_remove" << "array_replace" << "array_to_string" << "array_upper" << "cardinality"
+            << "string_to_array" << "unnest" << "unnest"
+
+            << "to_json" << "to_jsonb" << "array_to_json" << "row_to_json" << "json_build_array"
+            << "jsonb_build_array" << "json_build_object" << "jsonb_build_object" << "json_object" << "jsonb_object"
+            << "json_object" << "jsonb_object" << "json_array_length" << "jsonb_array_length" << "json_each"
+            << "jsonb_each" << "json_each_text" << "jsonb_each_text" << "json_extract_path" << "jsonb_extract_path"
+            << "json_extract_path_text" << "jsonb_extract_path_text" << "json_object_keys" << "jsonb_object_keys" << "json_populate_record"
+            << "jsonb_populate_record" << "json_populate_recordset" << "jsonb_populate_recordset" << "json_array_elements" << "jsonb_array_elements"
+            << "json_array_elements_text" << "jsonb_array_elements_text" << "json_typeof" << "jsonb_typeof" << "json_to_record"
+            << "jsonb_to_record" << "json_to_recordset" << "jsonb_to_recordset" << "json_strip_nulls" << "jsonb_strip_nulls"
+            << "jsonb_set" << "jsonb_insert" << "jsonb_pretty"
+
+            << "age" << "age" << "clock_timestamp" << "date_part" << "date_part"
+            << "date_trunc" << "date_trunc" << "extract" << "extract" << "isfinite"
+            << "isfinite" << "isfinite" << "justify_days" << "justify_hours" << "justify_interval"
+            << "make_date" << "make_interval" << "make_time" << "make_timestamp" << "make_timestamptz"
+            << "now" << "statement_timestamp" << "timeofday" << "transaction_timestamp" << "to_timestamp"
+
+            << "area" << "center" << "diameter" << "height" << "isclosed"
+            << "isopen" << "length" << "npoints" << "pclose" << "popen"
+            << "radius" << "width" << "box" << "bound_box" << "circle"
+            << "line" << "lseg" << "path" << "point" << "polygon"
+
+            << "abs" << "cbrt" << "ceil" << "ceiling" << "degrees" << "div" << "exp"
+            << "floor" << "ln" << "log" << "mod" << "pi" << "power" << "radians"
+            << "round" << "scale" << "sign" << "sqrt" << "trunc" << "width_bucket" << "width_bucket(now"
+            << "acos" << "acosd" << "asin" << "asind" << "atan" << "atand" << "atan2"
+            << "atan2d" << "cos" << "cosd" << "cot" << "cotd" << "sin" << "sind"
+            << "tan" << "tand";
     }
     return res;
 }
@@ -199,6 +283,50 @@ QStringList Tokens::types() const
             << "double precision" << "date" << "datetime" << "time"
             << "timestamp" << "year" << "char" << "varchar" << "binary"
             << "varbinary" << "blob" << "text" << "enum";
+    } else if (mDriverName == "QPSQL") {
+/*
+
+https://www.postgresql.org/docs/11/datatype-numeric.html
+https://www.postgresql.org/docs/11/datatype-money.html
+https://www.postgresql.org/docs/11/datatype-character.html
+https://www.postgresql.org/docs/11/datatype-boolean.html
+https://www.postgresql.org/docs/11/datatype-geometric.html
+https://www.postgresql.org/docs/11/datatype-net-types.html
+https://www.postgresql.org/docs/11/datatype-json.html
+
+let ids = ['#DATATYPE-NUMERIC-TABLE tbody','#DATATYPE-MONEY-TABLE tbody',
+    '#DATATYPE-BINARY-TABLE tbody','#DATATYPE-BOOLEAN-TABLE tbody','#DATATYPE-GEO-TABLE tbody',
+    '#DATATYPE-NET-TYPES-TABLE tbody','#JSON-TYPE-MAPPING-TABLE tbody']
+let tables = ids.reduce( (p,c) => {let t = document.querySelector(c); if (t) p.push(t); return p} , [])
+let tds = []
+tables.forEach( t => [...t.querySelectorAll('tr')].forEach( tr => tds.push(tr.querySelector('td').innerText) ))
+tds = Array.from(new Set(tds))
+document.body.innerText = tds.map( (e,i) => ` << "${e}"` + ((i % 7) == 6 ? "\n" : "") ).join('')
+
+https://www.postgresql.org/docs/11/datatype-character.html
+https://www.postgresql.org/docs/11/datatype-datetime.html
+
+let ids = ['#DATATYPE-CHARACTER-TABLE tbody','#DATATYPE-DATETIME-TABLE tbody']
+let tables = ids.reduce( (p,c) => {let t = document.querySelector(c); if (t) p.push(t); return p} , [])
+let tds = []
+tables.forEach( t => [...t.querySelectorAll('tr')].forEach( tr => tr.querySelector('td').innerText.split(',').forEach( e => tds.push(e) )))
+tds = tds.map( td => td.split(/[(\[]/)[0].trim() )
+tds = Array.from(new Set(tds))
+document.body.innerText = tds.map( (e,i) => ` << "${e}"` + ((i % 7) == 6 ? "\n" : "") ).join('')
+*/
+        res << "smallint" << "integer" << "bigint" << "decimal" << "numeric" << "real" << "double precision"
+            << "smallserial" << "serial" << "bigserial"
+            << "money"
+            << "character varying" << " varchar" << "character" << " char" << "text"
+            << "bytea"
+            << "timestamp" << "date" << "time" << "interval"
+            << "boolean"
+            << "point" << "line" << "lseg" << "box" << "path" << "polygon" << "circle"
+            << "cidr" << "inet" << "macaddr" << "macaddr8"
+            << "tsvector" << "tsquery" << "uuid" << "xml"
+            << "string" << "number" << "boolean" << "null"
+            << "json" << "jsonb";
+
     }
     return res;
 }
@@ -294,6 +422,163 @@ QStringList Tokens::driverKeywords() const
              << "show relaylog events" << "show slave hosts" << "show slave status"
              << "show status" << "show table status" << "show tables"
              << "show triggers" << "show variables" << "show warnings";
+    } else if (mDriverName == "QPSQL") {
+/*
+https://www.postgresql.org/docs/9.1/sql-keywords-appendix.html
+let keywords = [...document.querySelectorAll('.CALSTABLE tbody')].slice(0,2).map( tbody => [...tbody.querySelectorAll('tr')].map( e => e.querySelector('td').innerText ) ).reduce( (p,c) => p.concat(c) ).map( e => e.toLowerCase() )
+document.body.innerText = keywords.map( (e,i) => ` << "${e}"` + ((i % 5) == 4 ? "\n" : "") ).join('');
+*/
+
+        res << "a" << "abort" << "abs" << "absent" << "absolute"
+            << "access" << "according" << "action" << "ada" << "add"
+            << "admin" << "after" << "aggregate" << "alias" << "all"
+            << "allocate" << "also" << "alter" << "always" << "analyse"
+            << "analyze" << "and" << "any" << "are" << "array"
+            << "array_agg" << "as" << "asc" << "asensitive" << "assertion"
+            << "assignment" << "asymmetric" << "at" << "atomic" << "attribute"
+            << "attributes" << "authorization" << "avg" << "backward" << "base64"
+            << "before" << "begin" << "bernoulli" << "between" << "bigint"
+            << "binary" << "bit" << "bitvar" << "bit_length" << "blob"
+            << "blocked" << "bom" << "boolean" << "both" << "breadth"
+            << "by" << "c" << "cache" << "call" << "called"
+            << "cardinality" << "cascade" << "cascaded" << "case" << "cast"
+            << "catalog" << "catalog_name" << "ceil" << "ceiling" << "chain"
+            << "char" << "character" << "characteristics" << "characters" << "character_length"
+            << "character_set_catalog" << "character_set_name" << "character_set_schema" << "char_length" << "check"
+            << "checked" << "checkpoint" << "class" << "class_origin" << "clob"
+            << "close" << "cluster" << "coalesce" << "cobol" << "collate"
+            << "collation" << "collation_catalog" << "collation_name" << "collation_schema" << "collect"
+            << "column" << "columns" << "column_name" << "command_function" << "command_function_code"
+            << "comment" << "comments" << "commit" << "committed" << "completion"
+            << "concurrently" << "condition" << "condition_number" << "configuration" << "connect"
+            << "connection" << "connection_name" << "constraint" << "constraints" << "constraint_catalog"
+            << "constraint_name" << "constraint_schema" << "constructor" << "contains" << "content"
+            << "continue" << "control" << "conversion" << "convert" << "copy"
+            << "corr" << "corresponding" << "cost" << "count" << "covar_pop"
+            << "covar_samp" << "create" << "cross" << "csv" << "cube"
+            << "cume_dist" << "current" << "current_catalog" << "current_date" << "current_default_transform_group"
+            << "current_path" << "current_role" << "current_schema" << "current_time" << "current_timestamp"
+            << "current_transform_group_for_type" << "current_user" << "cursor" << "cursor_name" << "cycle"
+            << "data" << "database" << "datalink" << "date" << "datetime_interval_code"
+            << "datetime_interval_precision" << "day" << "db" << "deallocate" << "dec"
+            << "decimal" << "declare" << "default" << "defaults" << "deferrable"
+            << "deferred" << "defined" << "definer" << "degree" << "delete"
+            << "delimiter" << "delimiters" << "dense_rank" << "depth" << "deref"
+            << "derived" << "desc" << "describe" << "descriptor" << "destroy"
+            << "destructor" << "deterministic" << "diagnostics" << "dictionary" << "disable"
+            << "discard" << "disconnect" << "dispatch" << "distinct" << "dlnewcopy"
+            << "dlpreviouscopy" << "dlurlcomplete" << "dlurlcompleteonly" << "dlurlcompletewrite" << "dlurlpath"
+            << "dlurlpathonly" << "dlurlpathwrite" << "dlurlscheme" << "dlurlserver" << "dlvalue"
+            << "do" << "document" << "domain" << "double" << "drop"
+            << "dynamic" << "dynamic_function" << "dynamic_function_code" << "each" << "element"
+            << "else" << "empty" << "enable" << "encoding" << "encrypted"
+            << "end" << "end-exec" << "enum" << "equals" << "escape"
+            << "every" << "except" << "exception" << "exclude" << "excluding"
+            << "exclusive" << "exec" << "execute" << "existing" << "exists"
+            << "exp" << "explain" << "extension" << "external" << "extract"
+            << "false" << "family" << "fetch" << "file" << "filter"
+            << "final" << "first" << "first_value" << "flag" << "float"
+            << "floor" << "following" << "for" << "force" << "foreign"
+            << "fortran" << "forward" << "found" << "free" << "freeze"
+            << "from" << "fs" << "full" << "function" << "functions"
+            << "fusion" << "g" << "general" << "generated" << "get"
+            << "global" << "go" << "goto" << "grant" << "granted"
+            << "greatest" << "group" << "grouping" << "handler" << "having"
+            << "header" << "hex" << "hierarchy" << "hold" << "host"
+            << "hour" << "id" << "identity" << "if" << "ignore"
+            << "ilike" << "immediate" << "immutable" << "implementation" << "implicit"
+            << "import" << "in" << "including" << "increment" << "indent"
+            << "index" << "indexes" << "indicator" << "infix" << "inherit"
+            << "inherits" << "initialize" << "initially" << "inline" << "inner"
+            << "inout" << "input" << "insensitive" << "insert" << "instance"
+            << "instantiable" << "instead" << "int" << "integer" << "integrity"
+            << "intersect" << "intersection" << "interval" << "into" << "invoker"
+            << "is" << "isnull" << "isolation" << "iterate" << "join"
+            << "k" << "key" << "key_member" << "key_type" << "label"
+            << "lag" << "language" << "large" << "last" << "last_value"
+            << "lateral" << "lc_collate" << "lc_ctype" << "lead" << "leading"
+            << "least" << "left" << "length" << "less" << "level"
+            << "library" << "like" << "like_regex" << "limit" << "link"
+            << "listen" << "ln" << "load" << "local" << "localtime"
+            << "localtimestamp" << "location" << "locator" << "lock" << "lower"
+            << "m" << "map" << "mapping" << "match" << "matched"
+            << "max" << "maxvalue" << "max_cardinality" << "member" << "merge"
+            << "message_length" << "message_octet_length" << "message_text" << "method" << "min"
+            << "minute" << "minvalue" << "mod" << "mode" << "modifies"
+            << "modify" << "module" << "month" << "more" << "move"
+            << "multiset" << "mumps" << "name" << "names" << "namespace"
+            << "national" << "natural" << "nchar" << "nclob" << "nesting"
+            << "new" << "next" << "nfc" << "nfd" << "nfkc"
+            << "nfkd" << "nil" << "no" << "none" << "normalize"
+            << "normalized" << "not" << "nothing" << "notify" << "notnull"
+            << "nowait" << "nth_value" << "ntile" << "null" << "nullable"
+            << "nullif" << "nulls" << "number" << "numeric" << "object"
+            << "occurrences_regex" << "octets" << "octet_length" << "of" << "off"
+            << "offset" << "oids" << "old" << "on" << "only"
+            << "open" << "operation" << "operator" << "option" << "options"
+            << "or" << "order" << "ordering" << "ordinality" << "others"
+            << "out" << "outer" << "output" << "over" << "overlaps"
+            << "overlay" << "overriding" << "owned" << "owner" << "p"
+            << "pad" << "parameter" << "parameters" << "parameter_mode" << "parameter_name"
+            << "parameter_ordinal_position" << "parameter_specific_catalog" << "parameter_specific_name" << "parameter_specific_schema" << "parser"
+            << "partial" << "partition" << "pascal" << "passing" << "passthrough"
+            << "password" << "path" << "percentile_cont" << "percentile_disc" << "percent_rank"
+            << "permission" << "placing" << "plans" << "pli" << "position"
+            << "position_regex" << "postfix" << "power" << "preceding" << "precision"
+            << "prefix" << "preorder" << "prepare" << "prepared" << "preserve"
+            << "primary" << "prior" << "privileges" << "procedural" << "procedure"
+            << "public" << "quote" << "range" << "rank" << "read"
+            << "reads" << "real" << "reassign" << "recheck" << "recovery"
+            << "recursive" << "ref" << "references" << "referencing" << "regr_avgx"
+            << "regr_avgy" << "regr_count" << "regr_intercept" << "regr_r2" << "regr_slope"
+            << "regr_sxx" << "regr_sxy" << "regr_syy" << "reindex" << "relative"
+            << "release" << "rename" << "repeatable" << "replace" << "replica"
+            << "requiring" << "reset" << "respect" << "restart" << "restore"
+            << "restrict" << "result" << "return" << "returned_cardinality" << "returned_length"
+            << "returned_octet_length" << "returned_sqlstate" << "returning" << "returns" << "revoke"
+            << "right" << "role" << "rollback" << "rollup" << "routine"
+            << "routine_catalog" << "routine_name" << "routine_schema" << "row" << "rows"
+            << "row_count" << "row_number" << "rule" << "savepoint" << "scale"
+            << "schema" << "schema_name" << "scope" << "scope_catalog" << "scope_name"
+            << "scope_schema" << "scroll" << "search" << "second" << "section"
+            << "security" << "select" << "selective" << "self" << "sensitive"
+            << "sequence" << "sequences" << "serializable" << "server" << "server_name"
+            << "session" << "session_user" << "set" << "setof" << "sets"
+            << "share" << "show" << "similar" << "simple" << "size"
+            << "smallint" << "some" << "source" << "space" << "specific"
+            << "specifictype" << "specific_name" << "sql" << "sqlcode" << "sqlerror"
+            << "sqlexception" << "sqlstate" << "sqlwarning" << "sqrt" << "stable"
+            << "standalone" << "start" << "state" << "statement" << "static"
+            << "statistics" << "stddev_pop" << "stddev_samp" << "stdin" << "stdout"
+            << "storage" << "strict" << "strip" << "structure" << "style"
+            << "subclass_origin" << "sublist" << "submultiset" << "substring" << "substring_regex"
+            << "sum" << "symmetric" << "sysid" << "system" << "system_user"
+            << "t" << "table" << "tables" << "tablesample" << "tablespace"
+            << "table_name" << "temp" << "template" << "temporary" << "terminate"
+            << "text" << "than" << "then" << "ties" << "time"
+            << "timestamp" << "timezone_hour" << "timezone_minute" << "to" << "token"
+            << "top_level_count" << "trailing" << "transaction" << "transactions_committed" << "transactions_rolled_back"
+            << "transaction_active" << "transform" << "transforms" << "translate" << "translate_regex"
+            << "translation" << "treat" << "trigger" << "trigger_catalog" << "trigger_name"
+            << "trigger_schema" << "trim" << "trim_array" << "true" << "truncate"
+            << "trusted" << "type" << "uescape" << "unbounded" << "uncommitted"
+            << "under" << "unencrypted" << "union" << "unique" << "unknown"
+            << "unlink" << "unlisten" << "unlogged" << "unnamed" << "unnest"
+            << "until" << "untyped" << "update" << "upper" << "uri"
+            << "usage" << "user" << "user_defined_type_catalog" << "user_defined_type_code" << "user_defined_type_name"
+            << "user_defined_type_schema" << "using" << "vacuum" << "valid" << "validate"
+            << "validator" << "value" << "values" << "varbinary" << "varchar"
+            << "variable" << "variadic" << "varying" << "var_pop" << "var_samp"
+            << "verbose" << "version" << "view" << "volatile" << "when"
+            << "whenever" << "where" << "whitespace" << "width_bucket" << "window"
+            << "with" << "within" << "without" << "work" << "wrapper"
+            << "write" << "xml" << "xmlagg" << "xmlattributes" << "xmlbinary"
+            << "xmlcast" << "xmlcomment" << "xmlconcat" << "xmldeclaration" << "xmldocument"
+            << "xmlelement" << "xmlexists" << "xmlforest" << "xmliterate" << "xmlnamespaces"
+            << "xmlparse" << "xmlpi" << "xmlquery" << "xmlroot" << "xmlschema"
+            << "xmlserialize" << "xmltable" << "xmltext" << "xmlvalidate" << "year"
+            << "yes" << "zone";
+
     }
 
     return res;
