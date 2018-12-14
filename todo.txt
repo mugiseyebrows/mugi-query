@@ -1,27 +1,23 @@
 binary delegate
 edit schema dialog
 users helper
-query history context menu copy to new session
-query history right double click
+query history: button copy to new session
 save data values(),(),()
 editable shortcuts
 beautify query
-quote query
 upcase keywords
-save not executed on close session
-append or replace options query history tab (save to history on replace)
-query history: exec and error columns
+query history: save not executed on close session?
+query history: exec and error columns?
 pop-includes.py
 find-static-functions.py
-tokens: postgres functions and types
 tokens: ms access functions and types
 tokens: store in file
 query history: highlight
-joinhelper: where or join on
-joinhelper: one helper for each connection name
+query history: search
 joinhelper: reorder tables (drag-and-drop?)
 joinhelper: delete, tables title (headerData)
 copyeventfilter: refactor
-test savedata output
 textedit: functions arguments popup
 relations: fix double join
+relations: refactor
+tokenizer: multiline comment

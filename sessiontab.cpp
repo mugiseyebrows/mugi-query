@@ -16,6 +16,7 @@
 #include <QHeaderView>
 #include <QStringListModel>
 #include <QCompleter>
+#include <QClipboard>
 #include "tokens.h"
 #include "highlighter.h"
 
@@ -196,6 +197,9 @@ void SessionTab::saveData()
         emit addSessionWithQuery(output);
     } else if (dialog.output() == OutputType::CurrentSession) {
         appendQuery(output);
+    } else if (dialog.output() == OutputType::Clipboard) {
+        QClipboard *clipboard = QApplication::clipboard();
+        clipboard->setText(output);
     }
 
     if (file) {
