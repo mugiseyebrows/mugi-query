@@ -29,6 +29,7 @@
 #include "settings.h"
 #include "highlighter.h"
 #include "joinhelperwidget.h"
+#include "settingsdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -595,4 +596,14 @@ void MainWindow::on_queryUnquote_triggered()
         return;
     }
     tab->unquoteQuery();
+}
+
+
+
+void MainWindow::on_settingsFormat_triggered()
+{
+    SettingsDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+
+    }
 }

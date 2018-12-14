@@ -82,6 +82,7 @@ private slots:
     void on_selectionCopyAsList_triggered();
     void on_queryQuote_triggered();
     void on_queryUnquote_triggered();
+    void on_settingsFormat_triggered();
 
 private:
     Ui::MainWindow *ui;

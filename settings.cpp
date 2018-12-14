@@ -42,16 +42,6 @@ Settings *Settings::instance()
     return mInstance;
 }
 
-Settings::DateTimeFormat Settings::dateTimeFormat() const
-{
-    return mDateTimeFormat;
-}
-
-void Settings::setDateTimeFormat(Settings::DateTimeFormat format)
-{
-    mDateTimeFormat = format;
-}
-
 QString Settings::dir() const
 {
     return mDir;
@@ -66,15 +56,25 @@ QString Settings::settingsPath() const
 void Settings::save()
 {
     QJsonObject obj;
+    // m(.*) = (.*)$
+    // obj["\1"] = m\1;
     obj["SavePasswords"] = mSavePasswords;
     obj["DateTimeFormat"] = mDateTimeFormat;
+    obj["DateFormat"] = mDateFormat;
+    obj["TimeFormat"] = mTimeFormat;
+    obj["DateTimeLocale"] = mDateTimeLocale;
+    obj["RealLocale"] = mRealLocale;
     saveJson(settingsPath(),obj);
 }
 
 void Settings::load()
 {
     mSavePasswords = false;
-    mDateTimeFormat = DateTimeFormatWithSeconds;
+    mDateTimeFormat = "yyyy-MM-dd hh:mm:ss";
+    mDateFormat = "yyyy-MM-dd";
+    mTimeFormat = "hh:mm:ss";
+    mDateTimeLocale = DisplayFormat::Current;
+    mRealLocale = DisplayFormat::Current;
 
     bool ok;
     QJsonDocument doc = loadJson(settingsPath(),&ok);
@@ -84,15 +84,48 @@ void Settings::load()
     QJsonObject obj = doc.object();
 
     mSavePasswords = obj.value("SavePasswords").toBool(false);
-    mDateTimeFormat = static_cast<DateTimeFormat>(obj.value("DateTimeFormat").toInt());
+    mDateTimeFormat = obj.value("DateTimeFormat").toString();
+    mDateFormat = obj.value("DateFormat").toString();
+    mTimeFormat = obj.value("TimeFormat").toString();
+    mDateTimeLocale = static_cast<DisplayFormat::Locale>(obj.value("DateTimeLocale").toInt(0));
+    mRealLocale = static_cast<DisplayFormat::Locale>(obj.value("RealLocale").toInt(0));
 }
 
-bool Settings::savePasswords() const
-{
+/************************* GETTERS **************************/
+bool Settings::savePasswords() const {
     return mSavePasswords;
 }
-
-void Settings::setSavePasswords(bool value)
-{
+QString Settings::dateTimeFormat() const {
+    return mDateTimeFormat;
+}
+QString Settings::dateFormat() const {
+    return mDateFormat;
+}
+QString Settings::timeFormat() const {
+    return mTimeFormat;
+}
+DisplayFormat::Locale Settings::dateTimeLocale() const {
+    return mDateTimeLocale;
+}
+DisplayFormat::Locale Settings::realLocale() const {
+    return mRealLocale;
+}
+/************************* SETTERS **************************/
+void Settings::setSavePasswords(bool value) {
     mSavePasswords = value;
+}
+void Settings::setDateTimeFormat(const QString& value) {
+    mDateTimeFormat = value;
+}
+void Settings::setDateFormat(const QString& value) {
+    mDateFormat = value;
+}
+void Settings::setTimeFormat(const QString& value) {
+    mTimeFormat = value;
+}
+void Settings::setDateTimeLocale(DisplayFormat::Locale value) {
+    mDateTimeLocale = value;
+}
+void Settings::setRealLocale(DisplayFormat::Locale value) {
+    mRealLocale = value;
 }

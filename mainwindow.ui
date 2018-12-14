@@ -68,7 +68,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatabase">
@@ -112,11 +112,18 @@
     <addaction name="selectionCopy"/>
     <addaction name="selectionCopyAsList"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="settingsFormat"/>
+   </widget>
    <addaction name="menuDatabase"/>
    <addaction name="menuQuery"/>
    <addaction name="menuSession"/>
    <addaction name="menuData"/>
    <addaction name="menuS_election"/>
+   <addaction name="menuSettings"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -242,6 +249,11 @@
   <action name="queryUnquote">
    <property name="text">
     <string>Unquote</string>
+   </property>
+  </action>
+  <action name="settingsFormat">
+   <property name="text">
+    <string>Format</string>
    </property>
   </action>
  </widget>

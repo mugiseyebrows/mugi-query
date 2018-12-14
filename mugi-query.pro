@@ -46,7 +46,9 @@ SOURCES += main.cpp\
     relationsmodel.cpp \
     joinhelperwidget.cpp \
     jsonhelper.cpp \
-    stringlistmodelwithheader.cpp
+    stringlistmodelwithheader.cpp \
+    settingsdialog.cpp \
+    displayformat.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -83,7 +85,9 @@ HEADERS  += mainwindow.h \
     relationsmodel.h \
     joinhelperwidget.h \
     jsonhelper.h \
-    stringlistmodelwithheader.h
+    stringlistmodelwithheader.h \
+    settingsdialog.h \
+    displayformat.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \
@@ -93,7 +97,8 @@ FORMS    += mainwindow.ui \
     queryhistorywidget.ui \
     savedatadialog.ui \
     userhelperdialog.ui \
-    joinhelperwidget.ui
+    joinhelperwidget.ui \
+    settingsdialog.ui
 
 RC_ICONS += mugi-query.ico
 
