@@ -23,3 +23,13 @@ QString ItemDelegate::displayText(const QVariant &value, const QLocale &locale) 
     return QStyledItemDelegate::displayText(value,locale);
 }
 
+QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if (index.data().type() == QVariant::DateTime) {
+        int w = option.fontMetrics.width(displayText(index.data(),option.locale)) + 16;
+        int h = option.fontMetrics.lineSpacing();
+        return QSize(w,h);
+    }
+    return QStyledItemDelegate::sizeHint(option,index);
+}
+

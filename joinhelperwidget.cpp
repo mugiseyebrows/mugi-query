@@ -51,20 +51,13 @@ JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
     QTimer::singleShot(0,this,SLOT(onAdjustSplitters()));
 }
 
-void JoinHelperWidget::init(const Tokens& tokens) {
+void JoinHelperWidget::update(const Tokens& tokens) {
 
     ItemDelegateWithCompleter* relationsDelegate = new ItemDelegateWithCompleter(tokens.fields(true),this);
     ui->relations->setItemDelegate(relationsDelegate);
 
-    /*QStringListModel* allTables = new QStringListModel(tokens.tables(),this);
-
-    QSortFilterProxyModel* proxyModel = new QSortFilterProxyModel(this);
-    proxyModel->setSourceModel(allTables);
-    ui->allTables->setModel(proxyModel);*/
-
     ItemDelegateWithCompleter* tablesDelegate = new ItemDelegateWithCompleter(tokens.tables(),this);
     ui->tables->setItemDelegate(tablesDelegate);
-
     ui->query->setTokens(tokens);
 }
 
@@ -75,10 +68,6 @@ void JoinHelperWidget::closeEvent(QCloseEvent *event)
 }
 
 void JoinHelperWidget::init(const QString& connectionName) {
-
-    if (mConnectionName == connectionName) {
-        return;
-    }
 
     saveRelationsModel();
     mConnectionName = connectionName;

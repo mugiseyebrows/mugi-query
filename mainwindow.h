@@ -45,8 +45,8 @@ protected:
     void closeEvent(QCloseEvent *event);
     History* mHistory;
     QueryHistoryWidget* mQueryHistory;
-    JoinHelperWidget* mJoinHelperWidget;
     QMap<QString,Tokens> mTokens;
+    QMap<QString,JoinHelperWidget*> mJoinHelpers;
 
     QString mQuery;
 
@@ -62,7 +62,6 @@ public slots:
     void onTabsCurrentChanged(int);
     void onQuery(QString query);
     void onShowQueryHistory();
-    //void onCopyQuery(QString query);
     void onAddSessionWithQuery(QString);
     void onAppendQuery(QString);
 
@@ -70,32 +69,18 @@ public slots:
 private slots:
 
     void on_databaseHistory_triggered();
-
     void on_queryHistory_triggered();
-
     void on_addSession_triggered();
-
     void on_removeSession_triggered();
-
     void on_removeDatabase_triggered();
-
     void on_reconnect_triggered();
-
     void on_queryHelp_triggered();
-
     void on_dataSave_triggered();
-
     void on_queryCreateUser_triggered();
-
     void on_queryJoin_triggered();
-
-
     void on_selectionCopy_triggered();
-
     void on_selectionCopyAsList_triggered();
-
     void on_queryQuote_triggered();
-
     void on_queryUnquote_triggered();
 
 private:

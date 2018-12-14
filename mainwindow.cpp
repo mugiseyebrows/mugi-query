@@ -33,7 +33,6 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     mQueryHistory(nullptr),
-    mJoinHelperWidget(nullptr),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -46,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mHistory = new History(this);
 
-    Settings::instance()->setDateTimeFormat(Settings::DateTimeFormatWithSeconds);
+    //Settings::instance()->setDateTimeFormat(Settings::DateTimeFormatWithSeconds);
 
     SessionModel* m = new SessionModel(ui->sessionTree);
     ui->sessionTree->setModel(m);
@@ -274,6 +273,7 @@ void MainWindow::onAppendQuery(QString query)
         return;
     }
     tab->appendQuery(query);
+    this->raise();
 }
 
 /*
@@ -367,6 +367,10 @@ void MainWindow::pushTokens(const QString &connectionName)
         if (tab->connectionName() == connectionName) {
             tab->setTokens(tokens);
         }
+    }
+    JoinHelperWidget* helper = mJoinHelpers[connectionName];
+    if (helper) {
+        helper->update(tokens);
     }
 }
 
@@ -475,6 +479,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (mQueryHistory) {
         mQueryHistory->close();
     }
+
+    QStringList connectionNames = mJoinHelpers.keys();
+    foreach(QString connectionName, connectionNames) {
+        mJoinHelpers[connectionName]->close();
+    }
+
     Settings::instance()->save();
     event->accept();
     QMainWindow::closeEvent(event);
@@ -555,18 +565,18 @@ void MainWindow::on_queryJoin_triggered()
         return;
     }
 
-    if (!mJoinHelperWidget) {
-        mJoinHelperWidget = new JoinHelperWidget();
-        connect(mJoinHelperWidget,SIGNAL(appendQuery(QString)),
-                this,SLOT(onAppendQuery(QString)));
+    JoinHelperWidget* helper = mJoinHelpers.value(connectionName);
+
+    if (!helper) {
+        helper = new JoinHelperWidget();
+        helper->init(connectionName);
+        connect(helper,SIGNAL(appendQuery(QString)),this,SLOT(onAppendQuery(QString)));
+        helper->update(mTokens[connectionName]);
+        mJoinHelpers[connectionName] = helper;
     }
 
-    mJoinHelperWidget->init(connectionName);
-    mJoinHelperWidget->init(mTokens[connectionName]);
-
-    mJoinHelperWidget->show();
-    mJoinHelperWidget->raise();
-
+    helper->show();
+    helper->raise();
 }
 
 void MainWindow::on_queryQuote_triggered()

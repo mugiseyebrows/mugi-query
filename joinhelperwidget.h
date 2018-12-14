@@ -21,7 +21,7 @@ public:
     ~JoinHelperWidget() override;
 
     void init(const QString &connectionName);
-    void init(const Tokens &tokens);
+    void update(const Tokens &tokens);
 
     void closeEvent(QCloseEvent *event) override;
 

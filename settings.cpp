@@ -9,6 +9,7 @@ Settings* Settings::mInstance = 0;
 #include "jsonhelper.h"
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDebug>
 
 Settings::Settings()
 {
@@ -65,13 +66,15 @@ QString Settings::settingsPath() const
 void Settings::save()
 {
     QJsonObject obj;
-    obj["SavePasswords"] = QJsonValue(mSavePasswords);
+    obj["SavePasswords"] = mSavePasswords;
+    obj["DateTimeFormat"] = mDateTimeFormat;
     saveJson(settingsPath(),obj);
 }
 
 void Settings::load()
 {
     mSavePasswords = false;
+    mDateTimeFormat = DateTimeFormatWithSeconds;
 
     bool ok;
     QJsonDocument doc = loadJson(settingsPath(),&ok);
@@ -81,7 +84,7 @@ void Settings::load()
     QJsonObject obj = doc.object();
 
     mSavePasswords = obj.value("SavePasswords").toBool(false);
-
+    mDateTimeFormat = static_cast<DateTimeFormat>(obj.value("DateTimeFormat").toInt());
 }
 
 bool Settings::savePasswords() const

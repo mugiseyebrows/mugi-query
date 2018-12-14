@@ -68,13 +68,14 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
             view->setModel(model);
             QString title = QString("res %1").arg(++i);
             ui->resultTabs->insertTab(ui->resultTabs->count(),view,title);
-            resizeColumnsToContents(view,this->width()/2);
+
             CopyEventFilter* filter = new CopyEventFilter(view);
             filter->setView(view);
 
             ItemDelegate* delegate = new ItemDelegate(view);
             view->setItemDelegate(delegate);
 
+            resizeColumnsToContents(view,this->width()/2);
         }
     }
 
