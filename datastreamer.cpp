@@ -25,7 +25,7 @@ QString DataStreamer::variantToString(const QVariant& value, DataFormat::Format 
 
     QString t;
 
-    if (format == DataFormat::Csv) {
+    if (format == DataFormat::Csv || format == DataFormat::Tsv) {
         if (value.isNull()) {
             return "";
         }
@@ -136,11 +136,13 @@ QStringList zipJoinNull(const QStringList& vs1, const QStringList vs2) {
 void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model, DataFormat::Format format, const QString &table, QList<bool> data, QList<bool> keys)
 {
 
-    if (format == DataFormat::Csv) {
+    if (format == DataFormat::Csv || format == DataFormat::Tsv) {
 
-        stream << filterHeader(model,data).join(";") << "\n";
+        QString sep = format == DataFormat::Csv ? ";" : "\t";
+
+        stream << filterHeader(model,data).join(sep) << "\n";
         for(int r=0; r<model->rowCount(); r++) {
-            stream << variantListToStringList(filterData(model,r,data),format).join(";") << "\n";
+            stream << variantListToStringList(filterData(model,r,data),format).join(sep) << "\n";
         }
 
     } else if (format == DataFormat::SqlInsert) {

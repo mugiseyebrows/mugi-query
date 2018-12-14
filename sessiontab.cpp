@@ -173,6 +173,8 @@ void SessionTab::saveData()
         QString filter;
         if (dialog.format() == DataFormat::Csv) {
             filter = "csv files (*.csv)";
+        } else if (dialog.format() == DataFormat::Tsv) {
+            filter = "tsv files (*.tsv)";
         } else {
             filter = "sql files (*.sql)";
         }

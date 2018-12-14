@@ -31,6 +31,7 @@ SaveDataDialog::SaveDataDialog(QSqlQueryModel* model, QWidget *parent) :
     ui->keys->setModel(m2);
 
     OutputType::initComboBox(ui->output);
+    DataFormat::initComboBox(ui->format);
 }
 
 SaveDataDialog::~SaveDataDialog()
@@ -40,19 +41,7 @@ SaveDataDialog::~SaveDataDialog()
 
 DataFormat::Format SaveDataDialog::format() const
 {
-    QString format = ui->format->currentText();
-    QString statement = ui->statement->currentText();
-
-    if (format == "csv") {
-        return DataFormat::Csv;
-    } else if (format == "sql") {
-        if (statement == "insert") {
-            return DataFormat::SqlInsert;
-        } else if (statement == "update") {
-            return DataFormat::SqlUpdate;
-        }
-    }
-    return DataFormat::Unknown;
+    return DataFormat::value(ui->format);
 }
 
 namespace  {
@@ -131,13 +120,6 @@ void SaveDataDialog::on_noneKeys_clicked()
     keysModel()->setAllUnchecked();
 }
 
-
-void SaveDataDialog::on_statement_currentIndexChanged(int index)
-{
-    Q_UNUSED(index);
-    updateLabels();
-}
-
 void SaveDataDialog::updateLabels() {
     DataFormat::Format f = format();
     QString t = table();
@@ -150,7 +132,7 @@ void SaveDataDialog::updateLabels() {
     } else if (f == DataFormat::SqlUpdate) {
         dataLabel = QString("update %1 set ...").arg(t);
         keysLabel = "where ...";
-    } else if (f == DataFormat::Csv) {
+    } else if (f == DataFormat::Csv || t == DataFormat::Tsv) {
         dataLabel = t;
         keysLabel = QString();
     }
@@ -158,8 +140,12 @@ void SaveDataDialog::updateLabels() {
     ui->keysLabel->setText(keysLabel);
 }
 
-void SaveDataDialog::on_table_textChanged(const QString &arg1)
+void SaveDataDialog::on_table_textChanged(const QString&)
 {
-    on_statement_currentIndexChanged(-1);
+    updateLabels();
+}
+
+void SaveDataDialog::on_format_currentIndexChanged(int)
+{
     updateLabels();
 }

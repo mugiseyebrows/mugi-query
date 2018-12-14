@@ -24,6 +24,7 @@
 #include <QSortFilterProxyModel>
 #include <QTimer>
 #include "sl.h"
+#include "stringlistmodelwithheader.h"
 
 JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
     QWidget(parent),
@@ -41,7 +42,7 @@ JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
     /*QStandardItemModel* selectedTables = new QStandardItemModel(0,1,this);
     ui->selectedTables->setModel(selectedTables);*/
 
-    QStringListModel* tables = new QStringListModel();
+    StringListModelWithHeader* tables = new StringListModelWithHeader();
     tables->setHeaderData(0,Qt::Horizontal,"Tables");
     ui->tables->setModel(tables);
 

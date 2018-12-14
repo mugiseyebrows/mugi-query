@@ -49,9 +49,9 @@ private slots:
 
     void on_noneKeys_clicked();
 
-    void on_statement_currentIndexChanged(int index);
-
     void on_table_textChanged(const QString &arg1);
+
+    void on_format_currentIndexChanged(int index);
 
 private:
     Ui::SaveDataDialog *ui;
