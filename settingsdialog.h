@@ -17,17 +17,17 @@ public:
     explicit SettingsDialog(QWidget *parent = 0);
     ~SettingsDialog();
 
-    DisplayFormat::Locale dateTimeLocale() const;
-    DisplayFormat::Locale realLocale() const;
-
-    QString dateTime() const;
-    QString date() const;
-    QString time() const;
-
+protected:
+    void setDateTimeEnabled(bool state);
+    void setRealEnabled(bool state);
 private slots:
-    void on_dateSpecial_clicked();
-    void on_dateCurrentLocale_clicked();
-    void on_dateCLocale_clicked();
+
+    void on_dateTimeUseLocale_clicked(bool checked);
+
+    void on_dateTimeUseSpecial_clicked(bool checked);
+
+    void on_realUseLocale_clicked(bool checked);
+
 protected slots:
     void accept() override;
 

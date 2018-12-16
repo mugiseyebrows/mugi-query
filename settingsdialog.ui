@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>434</width>
-    <height>371</height>
+    <height>410</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Data formats</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
@@ -22,57 +22,37 @@
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="2" column="0" colspan="2">
-         <widget class="QRadioButton" name="dateSpecial">
+        <item row="1" column="0" colspan="2">
+         <widget class="QRadioButton" name="dateTimeUseSpecial">
           <property name="text">
            <string>Use special</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="time"/>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="timeFormat"/>
         </item>
-        <item row="5" column="0">
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="dateFormat"/>
+        </item>
+        <item row="3" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
            <string>Time</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>DateTime</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="2">
-         <widget class="QRadioButton" name="dateCLocale">
-          <property name="text">
-           <string>Use C  locale</string>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="date"/>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="dateTime"/>
-        </item>
-        <item row="4" column="0">
+        <item row="2" column="0">
          <widget class="QLabel" name="label_2">
           <property name="text">
            <string>Date</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0" colspan="2">
-         <widget class="QRadioButton" name="dateCurrentLocale">
+        <item row="0" column="0" colspan="2">
+         <widget class="QRadioButton" name="dateTimeUseLocale">
           <property name="text">
-           <string>Use current locale</string>
+           <string>Use locale</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -80,6 +60,20 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="dateTimeOverrideForCopy">
+        <property name="text">
+         <string>Use on copy</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="dateTimeOverrideForCsv">
+        <property name="text">
+         <string>Use on save to csv / tsv</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -91,22 +85,23 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QRadioButton" name="realCLocale">
+       <widget class="QCheckBox" name="realUseLocale">
         <property name="text">
-         <string>Use C locale</string>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
+         <string>Use locale</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="realCurrentLocale">
+       <widget class="QCheckBox" name="realOverrideForCopy">
         <property name="text">
-         <string>Use current locale</string>
+         <string>Use on copy</string>
         </property>
-        <property name="checked">
-         <bool>true</bool>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="realOverrideForCsv">
+        <property name="text">
+         <string>Use on save to csv / tsv</string>
         </property>
        </widget>
       </item>

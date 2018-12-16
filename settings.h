@@ -4,7 +4,7 @@
 /*
 http://mugiseyebrows.ru/web-utils/class.html
 Settings
-bool savePasswords; QString dateTimeFormat; QString dateFormat; QString timeFormat; bool useLocaleDateFormat;
+bool savePasswords; bool dateTimeOverrideForCsv; bool dateTimeOverrideForCopy; bool realOverrideForCopy; bool realOverrideForCsv; bool realUseLocale; QString dateFormat; QString timeFormat; bool dateTimeUseLocale
 
 */
 
@@ -27,18 +27,24 @@ public:
 
     /************************* GETTERS **************************/
     bool savePasswords() const;
-    QString dateTimeFormat() const;
+    bool dateTimeOverrideForCsv() const;
+    bool dateTimeOverrideForCopy() const;
+    bool realOverrideForCopy() const;
+    bool realOverrideForCsv() const;
+    bool realUseLocale() const;
     QString dateFormat() const;
     QString timeFormat() const;
-    DisplayFormat::Locale dateTimeLocale() const;
-    DisplayFormat::Locale realLocale() const;
+    bool dateTimeUseLocale() const;
     /************************* SETTERS **************************/
     void setSavePasswords(bool value);
-    void setDateTimeFormat(const QString& value);
+    void setDateTimeOverrideForCsv(bool value);
+    void setDateTimeOverrideForCopy(bool value);
+    void setRealOverrideForCopy(bool value);
+    void setRealOverrideForCsv(bool value);
+    void setRealUseLocale(bool value);
     void setDateFormat(const QString& value);
     void setTimeFormat(const QString& value);
-    void setDateTimeLocale(DisplayFormat::Locale value);
-    void setRealLocale(DisplayFormat::Locale value);
+    void setDateTimeUseLocale(bool value);
 
 private:
 
@@ -46,14 +52,17 @@ private:
 
     static Settings* mInstance;
 
-    QString mDateTimeFormat;
+    bool mSavePasswords;
+    bool mDateTimeOverrideForCsv;
+    bool mDateTimeOverrideForCopy;
+    bool mRealOverrideForCopy;
+    bool mRealOverrideForCsv;
+    bool mRealUseLocale;
     QString mDateFormat;
     QString mTimeFormat;
-    DisplayFormat::Locale mDateTimeLocale;
-    DisplayFormat::Locale mRealLocale;
+    bool mDateTimeUseLocale;
 
     QString mDir;
-    bool mSavePasswords;
 
 };
 

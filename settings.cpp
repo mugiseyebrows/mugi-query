@@ -56,25 +56,43 @@ QString Settings::settingsPath() const
 void Settings::save()
 {
     QJsonObject obj;
-    // m(.*) = (.*)$
-    // obj["\1"] = m\1;
+    // (.*) m(.*);$
+    // obj["\2"] = m\2;
     obj["SavePasswords"] = mSavePasswords;
-    obj["DateTimeFormat"] = mDateTimeFormat;
+    obj["DateTimeOverrideForCsv"] = mDateTimeOverrideForCsv;
+    obj["DateTimeOverrideForCopy"] = mDateTimeOverrideForCopy;
+    obj["RealOverrideForCopy"] = mRealOverrideForCopy;
+    obj["RealOverrideForCsv"] = mRealOverrideForCsv;
+    obj["RealUseLocale"] = mRealUseLocale;
     obj["DateFormat"] = mDateFormat;
     obj["TimeFormat"] = mTimeFormat;
-    obj["DateTimeLocale"] = mDateTimeLocale;
-    obj["RealLocale"] = mRealLocale;
+    obj["DateTimeUseLocale"] = mDateTimeUseLocale;
     saveJson(settingsPath(),obj);
+}
+
+void loadValue(const QJsonObject& obj, const QString& name, bool* v) {
+    if (obj.contains(name)) {
+        *v = obj[name].toBool();
+    }
+}
+
+void loadValue(const QJsonObject& obj, const QString& name, QString* v) {
+    if (obj.contains(name)) {
+        *v = obj[name].toString();
+    }
 }
 
 void Settings::load()
 {
     mSavePasswords = false;
-    mDateTimeFormat = "yyyy-MM-dd hh:mm:ss";
     mDateFormat = "yyyy-MM-dd";
     mTimeFormat = "hh:mm:ss";
-    mDateTimeLocale = DisplayFormat::Current;
-    mRealLocale = DisplayFormat::Current;
+    mDateTimeOverrideForCsv = false;
+    mDateTimeOverrideForCopy = false;
+    mRealOverrideForCopy = false;
+    mRealOverrideForCsv = false;
+    mRealUseLocale = false;
+    mDateTimeUseLocale = true;
 
     bool ok;
     QJsonDocument doc = loadJson(settingsPath(),&ok);
@@ -82,21 +100,38 @@ void Settings::load()
         return;
     }
     QJsonObject obj = doc.object();
+    // (.*) m(.*);$
+    // loadValue(obj,"\2",&m\2);
+    loadValue(obj,"SavePasswords",&mSavePasswords);
+    loadValue(obj,"DateTimeOverrideForCsv",&mDateTimeOverrideForCsv);
+    loadValue(obj,"DateTimeOverrideForCopy",&mDateTimeOverrideForCopy);
+    loadValue(obj,"RealOverrideForCopy",&mRealOverrideForCopy);
+    loadValue(obj,"RealOverrideForCsv",&mRealOverrideForCsv);
+    loadValue(obj,"RealUseLocale",&mRealUseLocale);
+    loadValue(obj,"DateFormat",&mDateFormat);
+    loadValue(obj,"TimeFormat",&mTimeFormat);
+    loadValue(obj,"DateTimeUseLocale",&mDateTimeUseLocale);
 
-    mSavePasswords = obj.value("SavePasswords").toBool(false);
-    mDateTimeFormat = obj.value("DateTimeFormat").toString();
-    mDateFormat = obj.value("DateFormat").toString();
-    mTimeFormat = obj.value("TimeFormat").toString();
-    mDateTimeLocale = static_cast<DisplayFormat::Locale>(obj.value("DateTimeLocale").toInt(0));
-    mRealLocale = static_cast<DisplayFormat::Locale>(obj.value("RealLocale").toInt(0));
 }
 
 /************************* GETTERS **************************/
 bool Settings::savePasswords() const {
     return mSavePasswords;
 }
-QString Settings::dateTimeFormat() const {
-    return mDateTimeFormat;
+bool Settings::dateTimeOverrideForCsv() const {
+    return mDateTimeOverrideForCsv;
+}
+bool Settings::dateTimeOverrideForCopy() const {
+    return mDateTimeOverrideForCopy;
+}
+bool Settings::realOverrideForCopy() const {
+    return mRealOverrideForCopy;
+}
+bool Settings::realOverrideForCsv() const {
+    return mRealOverrideForCsv;
+}
+bool Settings::realUseLocale() const {
+    return mRealUseLocale;
 }
 QString Settings::dateFormat() const {
     return mDateFormat;
@@ -104,18 +139,27 @@ QString Settings::dateFormat() const {
 QString Settings::timeFormat() const {
     return mTimeFormat;
 }
-DisplayFormat::Locale Settings::dateTimeLocale() const {
-    return mDateTimeLocale;
-}
-DisplayFormat::Locale Settings::realLocale() const {
-    return mRealLocale;
+bool Settings::dateTimeUseLocale() const {
+    return mDateTimeUseLocale;
 }
 /************************* SETTERS **************************/
 void Settings::setSavePasswords(bool value) {
     mSavePasswords = value;
 }
-void Settings::setDateTimeFormat(const QString& value) {
-    mDateTimeFormat = value;
+void Settings::setDateTimeOverrideForCsv(bool value) {
+    mDateTimeOverrideForCsv = value;
+}
+void Settings::setDateTimeOverrideForCopy(bool value) {
+    mDateTimeOverrideForCopy = value;
+}
+void Settings::setRealOverrideForCopy(bool value) {
+    mRealOverrideForCopy = value;
+}
+void Settings::setRealOverrideForCsv(bool value) {
+    mRealOverrideForCsv = value;
+}
+void Settings::setRealUseLocale(bool value) {
+    mRealUseLocale = value;
 }
 void Settings::setDateFormat(const QString& value) {
     mDateFormat = value;
@@ -123,9 +167,6 @@ void Settings::setDateFormat(const QString& value) {
 void Settings::setTimeFormat(const QString& value) {
     mTimeFormat = value;
 }
-void Settings::setDateTimeLocale(DisplayFormat::Locale value) {
-    mDateTimeLocale = value;
-}
-void Settings::setRealLocale(DisplayFormat::Locale value) {
-    mRealLocale = value;
+void Settings::setDateTimeUseLocale(bool value) {
+    mDateTimeUseLocale = value;
 }
