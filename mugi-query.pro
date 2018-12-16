@@ -48,7 +48,8 @@ SOURCES += main.cpp\
     jsonhelper.cpp \
     stringlistmodelwithheader.cpp \
     settingsdialog.cpp \
-    displayformat.cpp
+    displayformat.cpp \
+    formats.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -87,7 +88,8 @@ HEADERS  += mainwindow.h \
     jsonhelper.h \
     stringlistmodelwithheader.h \
     settingsdialog.h \
-    displayformat.h
+    displayformat.h \
+    formats.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

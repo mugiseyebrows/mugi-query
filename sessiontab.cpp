@@ -193,7 +193,9 @@ void SessionTab::saveData()
         stream = new QTextStream(&output,QIODevice::WriteOnly);
     }
 
-    DataStreamer::stream(*stream,model,dialog.format(),dialog.table(),dialog.dataChecked(),dialog.keysChecked());
+    DataStreamer::stream(*stream,model,dialog.format(),dialog.table(),
+                         dialog.dataChecked(),dialog.keysChecked(),
+                         DataFormat::ActionSave,locale());
 
     if (dialog.output() == OutputType::NewSession) {
         emit addSessionWithQuery(output);
@@ -219,11 +221,11 @@ void SessionTab::copySelected(bool asList)
     }
     QItemSelection selection = currentView()->selectionModel()->selection();
     if (asList) {
-        CopyEventFilter::copySelectedAsList(model, selection);
+        CopyEventFilter::copySelectedAsList(model, selection, locale());
     } else {
         QString separator = "\t";
         DataFormat::Format format = DataFormat::Csv;
-        CopyEventFilter::copySelected(model, selection, format, separator);
+        CopyEventFilter::copySelected(model, selection, format, separator, locale());
     }
 }
 

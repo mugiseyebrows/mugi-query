@@ -87,12 +87,12 @@ void Settings::load()
     mSavePasswords = false;
     mDateFormat = "yyyy-MM-dd";
     mTimeFormat = "hh:mm:ss";
+    mDateTimeUseLocale = true;
     mDateTimeOverrideForCsv = false;
     mDateTimeOverrideForCopy = false;
+    mRealUseLocale = false;
     mRealOverrideForCopy = false;
     mRealOverrideForCsv = false;
-    mRealUseLocale = false;
-    mDateTimeUseLocale = true;
 
     bool ok;
     QJsonDocument doc = loadJson(settingsPath(),&ok);

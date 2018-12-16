@@ -7,21 +7,24 @@
 #include <QDate>
 #include <QDateTime>
 
-DataStreamer::DataStreamer()
-{
+#include "settings.h"
 
-}
 
 QStringList DataStreamer::variantListToStringList(const QVariantList& values,
-                                                  DataFormat::Format format) {
+                                                  DataFormat::Format format,
+                                                  const Formats& formats,
+                                                  const QLocale& locale) {
     QStringList res;
     foreach(const QVariant& value, values) {
-        res << variantToString(value,format);
+        res << variantToString(value,format,formats,locale);
     }
     return res;
 }
 
-QString DataStreamer::variantToString(const QVariant& value, DataFormat::Format format) {
+QString DataStreamer::variantToString(const QVariant& value,
+                                      DataFormat::Format format,
+                                      const Formats& formats,
+                                      const QLocale& locale) {
 
     QString t;
 
@@ -39,13 +42,37 @@ QString DataStreamer::variantToString(const QVariant& value, DataFormat::Format 
         case QVariant::ULongLong:
             return QString::number(value.toULongLong());
         case QVariant::Double:
-            return QString::number(value.toDouble());
+            if (formats.realUseLocale) {
+                return locale.toString(value.toDouble());
+            } else {
+                return QString::number(value.toDouble());
+            }
         case QVariant::Bool:
             return QString::number(value.toInt());
         case QVariant::Date:
-            return value.toDate().toString("yyyy-MM-dd");
+        {
+            QDate value_ = value.toDate();
+            if (formats.dateTimeUseLocale) {
+                return locale.toString(value_,QLocale::ShortFormat);
+            }
+            return value_.toString(formats.dateFormat);
+        }
         case QVariant::DateTime:
-            return value.toDateTime().toString("yyyy-MM-dd hh:mm:ss");
+        {
+            QDateTime value_ = value.toDateTime();
+            if (formats.dateTimeUseLocale) {
+                return locale.toString(value_,QLocale::ShortFormat);
+            }
+            return value_.toString(formats.dateFormat + " " + formats.timeFormat);
+        }
+        case QVariant::Time:
+        {
+            QTime value_ = value.toTime();
+            if (formats.dateTimeUseLocale) {
+                return locale.toString(value_,QLocale::ShortFormat);
+            }
+            return value_.toString(formats.timeFormat);
+        }
         case QVariant::String:
             return value.toString().replace(QRegExp("\\n[\\r]?\\s*")," ");
         case QVariant::ByteArray:
@@ -133,8 +160,11 @@ QStringList zipJoinNull(const QStringList& vs1, const QStringList vs2) {
 
 }
 
-void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model, DataFormat::Format format, const QString &table, QList<bool> data, QList<bool> keys)
+void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model, DataFormat::Format format,
+                          const QString &table, QList<bool> data, QList<bool> keys,
+                          DataFormat::ActionType action, const QLocale& locale)
 {
+    Formats formats(action);
 
     if (format == DataFormat::Csv || format == DataFormat::Tsv) {
 
@@ -142,14 +172,14 @@ void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model, DataFormat
 
         stream << filterHeader(model,data).join(sep) << "\n";
         for(int r=0; r<model->rowCount(); r++) {
-            stream << variantListToStringList(filterData(model,r,data),format).join(sep) << "\n";
+            stream << variantListToStringList(filterData(model,r,data),format,formats,locale).join(sep) << "\n";
         }
 
     } else if (format == DataFormat::SqlInsert) {
 
         QString columns = filterHeader(model, data).join(",");
         for(int r=0;r<model->rowCount();r++) {
-            QString values = variantListToStringList(filterData(model,r,data),format).join(",");
+            QString values = variantListToStringList(filterData(model,r,data),format,formats,locale).join(",");
             stream << "insert into " << table << "(" << columns << ") "
                    << "values(" << values << ");\n";
         }
@@ -161,8 +191,8 @@ void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model, DataFormat
 
         for(int r=0;r<model->rowCount();r++) {
 
-            QStringList values1 = variantListToStringList(filterData(model,r,data),format);
-            QStringList values2 = variantListToStringList(filterData(model,r,keys),format);
+            QStringList values1 = variantListToStringList(filterData(model,r,data),format,formats,locale);
+            QStringList values2 = variantListToStringList(filterData(model,r,keys),format,formats,locale);
 
             stream << "update " << table << " set "
                    << zipJoin(columns1,"=",values1).join(", ")

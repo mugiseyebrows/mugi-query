@@ -155,3 +155,13 @@ void SettingsDialog::on_realUseLocale_clicked(bool checked)
 {
     setRealEnabled(checked);
 }
+
+void SettingsDialog::on_dateFormatDefault_clicked()
+{
+    ui->dateFormat->setText("yyyy-MM-dd");
+}
+
+void SettingsDialog::on_timeFormatDefault_clicked()
+{
+    ui->timeFormat->setText("hh:mm:ss");
+}

@@ -23,18 +23,17 @@ public:
      */
     void setView(QTableView* view);
     
-    static void streamRange(QTextStream &stream, const QItemSelectionRange& rng,
-                            DataFormat::Format format = DataFormat::Csv,
-                            const QString& separator = "\t");
-
-    static void copyAll(QAbstractItemModel *model);
-
     static void copySelected(QAbstractItemModel *model, const QItemSelection& selection,
-                             DataFormat::Format format = DataFormat::Csv,
-                             const QString& separator = "\t");
+                             DataFormat::Format format, const QString& separator,
+                             const QLocale &locale);
 
-    static void copySelectedAsList(QAbstractItemModel *model, const QItemSelection& selection);
+    static void copySelectedAsList(QAbstractItemModel *model,
+                                   const QItemSelection& selection,
+                                   const QLocale &locale);
 
+    static void streamRange(QTextStream &stream, const QItemSelectionRange &rng,
+                            DataFormat::Format format, const QString &separator,
+                            DataFormat::ActionType action, const QLocale &locale);
 protected:
 
     bool eventFilter(QObject* object, QEvent *event);

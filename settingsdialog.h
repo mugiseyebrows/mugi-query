@@ -23,10 +23,10 @@ protected:
 private slots:
 
     void on_dateTimeUseLocale_clicked(bool checked);
-
     void on_dateTimeUseSpecial_clicked(bool checked);
-
     void on_realUseLocale_clicked(bool checked);
+    void on_dateFormatDefault_clicked();
+    void on_timeFormatDefault_clicked();
 
 protected slots:
     void accept() override;

@@ -12,6 +12,12 @@ namespace DataFormat
         SqlUpdate
     };
 
+    enum ActionType {
+        ActionNone,
+        ActionCopy,
+        ActionSave
+    };
+
     void initComboBox(QComboBox* comboBox);
 
     Format value(QComboBox* comboBox);

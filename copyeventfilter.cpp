@@ -33,24 +33,29 @@ bool CopyEventFilter::eventFilter(QObject * object, QEvent * event) {
                 return false;
             }
             QItemSelection selection = mView->selectionModel()->selection();
-            copySelected(model, selection);
+            copySelected(model, selection, DataFormat::Csv, "\t", mView->locale());
             return true;
         }
     }
     return false;
 }
 
+#include "settings.h"
+
 void CopyEventFilter::streamRange(QTextStream& stream, const QItemSelectionRange &rng,
                                   DataFormat::Format format,
-                                  const QString &separator) {
+                                  const QString &separator,
+                                  DataFormat::ActionType action,
+                                  const QLocale& locale) {
 
+    Formats formats(action);
     QAbstractItemModel* model = const_cast<QAbstractItemModel*>(rng.model());
     for(int row = rng.topLeft().row(); row <= rng.bottomRight().row(); row++) {
         RowValueGetter g(model,row);
         int column = rng.topLeft().column();
-        stream << DataStreamer::variantToString(g(column++),format);
+        stream << DataStreamer::variantToString(g(column++),format,formats,locale);
         for(;column <= rng.bottomRight().column(); column++) {
-            stream << separator << DataStreamer::variantToString(g(column),format);
+            stream << separator << DataStreamer::variantToString(g(column),format,formats,locale);
         }
         stream << "\n";
     }
@@ -68,7 +73,7 @@ QModelIndex bottomRight(QAbstractItemModel* model) {
 
 }
 
-
+#if 0
 void CopyEventFilter::copyAll(QAbstractItemModel* model) {
     QString data;
     QTextStream stream(&data);
@@ -79,14 +84,18 @@ void CopyEventFilter::copyAll(QAbstractItemModel* model) {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(data);
 }
+#endif
 
 void CopyEventFilter::copySelected(QAbstractItemModel *model, const QItemSelection& selection,
-                                   DataFormat::Format format, const QString &separator) {
+                                   DataFormat::Format format, const QString &separator, const QLocale& locale) {
+
+    DataFormat::ActionType action = DataFormat::ActionCopy;
+    Formats formats(action);
 
     // one range of one index
     if (selection.size() == 1 && selection[0].topLeft() == selection[0].bottomRight()) {
         QClipboard *clipboard = QApplication::clipboard();
-        QString data = DataStreamer::variantToString(model->data(selection[0].topLeft()),format);
+        QString data = DataStreamer::variantToString(model->data(selection[0].topLeft()),format,formats,locale);
         clipboard->setText(data);
         return;
     }
@@ -95,7 +104,7 @@ void CopyEventFilter::copySelected(QAbstractItemModel *model, const QItemSelecti
     QString data;
     QTextStream stream(&data);
     foreach(const QItemSelectionRange& rng, selection) {
-        streamRange(stream, rng, format, separator);
+        streamRange(stream, rng, format, separator, action, locale);
     }
     stream.flush();
     QClipboard *clipboard = QApplication::clipboard();
@@ -103,7 +112,9 @@ void CopyEventFilter::copySelected(QAbstractItemModel *model, const QItemSelecti
 
 }
 
-void CopyEventFilter::copySelectedAsList(QAbstractItemModel *model, const QItemSelection &selection)
+void CopyEventFilter::copySelectedAsList(QAbstractItemModel *model,
+                                         const QItemSelection &selection,
+                                         const QLocale& locale)
 {
     QVariantList vs;
     foreach(const QItemSelectionRange& rng, selection) {
@@ -113,7 +124,8 @@ void CopyEventFilter::copySelectedAsList(QAbstractItemModel *model, const QItemS
             }
         }
     }
-    QStringList ss = DataStreamer::variantListToStringList(vs,DataFormat::SqlInsert);
+    Formats formats(DataFormat::ActionCopy);
+    QStringList ss = DataStreamer::variantListToStringList(vs,DataFormat::SqlInsert,formats,locale);
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText("(" + ss.join(",") + ")");
     return;

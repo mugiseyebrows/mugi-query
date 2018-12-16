@@ -8,17 +8,19 @@ class QSqlQueryModel;
 class QTextStream;
 
 #include "dataformat.h"
+#include "formats.h"
 
 class DataStreamer
 {
 public:
-    DataStreamer();
-    static QString variantToString(const QVariant &value, DataFormat::Format format);
+
 
     static void stream(QTextStream& stream, QSqlQueryModel* model, DataFormat::Format format, const QString& table,
-                 QList<bool> data, QList<bool> keys);
+                 QList<bool> data, QList<bool> keys, DataFormat::ActionType action, const QLocale &locale);
 
-    static QStringList variantListToStringList(const QVariantList &values, DataFormat::Format format);
+    static QStringList variantListToStringList(const QVariantList &values, DataFormat::Format format, const Formats &formats, const QLocale &locale);
+    static QString variantToString(const QVariant &value, DataFormat::Format format, const Formats& formats, const QLocale& locale);
 };
+
 
 #endif // DATASTREAMER_H
