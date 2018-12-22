@@ -189,10 +189,16 @@ void JoinHelperWidget::loadRelationsModel()
 void JoinHelperWidget::on_copy_clicked()
 {
     saveRelationsModel();
-    emit appendQuery(ui->query->toPlainText());
+    emit appendQuery(ui->query->toPlainText(),true);
 }
 
 void JoinHelperWidget::on_joinType_currentIndexChanged(int)
 {
     findPath();
+}
+
+void JoinHelperWidget::on_copyToNewSession_clicked()
+{
+    saveRelationsModel();
+    emit appendQuery(ui->query->toPlainText(),false);
 }

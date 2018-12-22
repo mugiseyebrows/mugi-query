@@ -267,8 +267,14 @@ void MainWindow::onAddSessionWithQuery(QString query) {
     on_addSession_triggered();
 }
 
-void MainWindow::onAppendQuery(QString query)
+void MainWindow::onAppendQuery(QString query, bool currentSession)
 {
+    if (!currentSession) {
+        mQuery = query;
+        on_addSession_triggered();
+        return;
+    }
+
     SessionTab* tab = currentTab();
     if (!tab) {
         return;
@@ -571,7 +577,7 @@ void MainWindow::on_queryJoin_triggered()
     if (!helper) {
         helper = new JoinHelperWidget();
         helper->init(connectionName);
-        connect(helper,SIGNAL(appendQuery(QString)),this,SLOT(onAppendQuery(QString)));
+        connect(helper,SIGNAL(appendQuery(QString,bool)),this,SLOT(onAppendQuery(QString,bool)));
         helper->update(mTokens[connectionName]);
         mJoinHelpers[connectionName] = helper;
     }

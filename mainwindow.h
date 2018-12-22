@@ -63,7 +63,7 @@ public slots:
     void onQuery(QString query);
     void onShowQueryHistory();
     void onAddSessionWithQuery(QString);
-    void onAppendQuery(QString);
+    void onAppendQuery(QString, bool currentSession);
 
 
 private slots:

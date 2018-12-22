@@ -18,6 +18,8 @@ AddDatabaseDialog::AddDatabaseDialog(bool showHistory, QWidget *parent) :
     ui->setupUi(this);
     ui->driver->addItems(QSqlDatabase::drivers());
 
+    this->adjustSize();
+
     if (showHistory) {
         QTimer::singleShot(0,this,SLOT(on_history_clicked()));
     }
