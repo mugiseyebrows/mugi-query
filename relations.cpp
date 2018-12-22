@@ -8,7 +8,7 @@
 Relations::Relations(QAbstractItemModel* model)
 {
     initRelations(model);
-    initLinks();
+    //initLinks();
 }
 
 QList<int> concat(int head, const std::vector<int>& tail) {
@@ -40,6 +40,7 @@ int Relations::length(const PathList& pathList) {
     return res + 1;
 }
 
+// todo refactor
 Relations::PathList Relations::shortest(const QList<PathList> & pathLists) {
     if (pathLists.isEmpty()) {
         return PathList();
@@ -57,6 +58,7 @@ Relations::PathList Relations::shortest(const QList<PathList> & pathLists) {
     return PathList();
 }
 
+/*
 QList<Relations::PathList> Relations::filterDoubleJoin(const QList<Relations::PathList>& pathLists) {
     QList<Relations::PathList> res;
     foreach(const PathList& pathList, pathLists) {
@@ -82,8 +84,9 @@ QList<Relations::PathList> Relations::filterDoubleJoin(const QList<Relations::Pa
     }
     return res;
 }
+*/
 
-
+/*
 int Relations::indexOfShortestNotEmpty(const PathList& paths) {
 
     std::vector<int> length;
@@ -93,7 +96,7 @@ int Relations::indexOfShortestNotEmpty(const PathList& paths) {
     int index = std::min_element(std::begin(length),std::end(length)) - std::begin(length);
     return index;
 }
-
+*/
 
 int Relations::indexOfShortest(const PathList& paths) {
 
@@ -112,9 +115,15 @@ Relations::PathList Relations::findPath(const QStringList &tables)
     QList<int> head = indexes.mid(0,1);
     QList<int> tail = indexes.mid(1);
 
+    //QStringList errors;
+
     PathList result;
 
     typedef QPair<int,int> IntPair;
+
+    QMap<int, QList<int> > links = Relations::buildLinks(mRelations,errors);
+
+    QMap<int, PathList> completePaths = Relations::completePaths(indexes, links);
 
     while (tail.size() > 0) {
 
@@ -123,7 +132,14 @@ Relations::PathList Relations::findPath(const QStringList &tables)
 
         foreach(int table1, head) {
             foreach(int table2, tail) {
-                Path path = shortest(table1,table2);
+                Path path = Relations::shortestPathTo(completePaths,table1,table2);
+
+                /*if (path.isEmpty()) {
+                    qDebug() << "no path from " << mTables[table1] << mTables[table2];
+                } else {
+                    qDebug() << "path from " << mTables[table1] << mTables[table2] << "is" << (path.size() - 1) << "hops";
+                }*/
+
                 if (!path.isEmpty()) {
                     keys << IntPair(table1,table2);
                     paths << path;
@@ -255,10 +271,10 @@ void Relations::initRelations(QAbstractItemModel *model)
     }
 }
 
-void Relations::initLinks()
+QMap<int, QList<int> > Relations::buildLinks(const QList<Relation>& relations, QStringList& errors)
 {
-
-    foreach(const Relation& relation, mRelations) {
+    QMap<int, QList<int> > links;
+    foreach(const Relation& relation, relations) {
         int primary = relation.primary();
         int foreign = relation.foreign();
         if (!links.contains(primary)) {
@@ -278,6 +294,7 @@ void Relations::initLinks()
             links[foreign].append(primary);
         }
     }
+    return links;
 }
 
 Relations::PathList Relations::filterContains(const PathList& paths, int table) {
@@ -290,13 +307,13 @@ Relations::PathList Relations::filterContains(const PathList& paths, int table) 
     return res;
 }
 
-Relations::Path Relations::shortest(const PathList &paths, int table) {
+Relations::Path Relations::shortestPathTo(const PathList &paths, int table) {
 
     if (paths.isEmpty()) {
         return Path();
     }
 
-    QList<int> indexes;
+    /*QList<int> indexes;
     foreach(const Path& path, paths) {
         indexes << path.indexOf(table);
     }
@@ -306,15 +323,94 @@ Relations::Path Relations::shortest(const PathList &paths, int table) {
             return paths[i].mid(0,minIndex+1);
         }
     }
-    return Relations::Path();
+    return Relations::Path();*/
+
+    std::vector<int> indexes;
+    std::transform(paths.begin(),paths.end(),
+                   std::back_inserter(indexes),
+                   [table](const Path& path){
+        int index = path.indexOf(table);
+        return index > -1 ? index : INT_MAX;
+    });
+    int index = std::min_element(std::begin(indexes),std::end(indexes)) - std::begin(indexes);
+    if (indexes[index] == INT_MAX) {
+        return Path();
+    }
+    return paths[index].mid(0,indexes[index]+1);
 }
 
+/*
 Relations::Path Relations::shortest(int table1, int table2)
 {
     Relations::PathList paths = pathList(table1);
     return shortest(filterContains(paths, table2), table2);
 }
+*/
 
+Relations::Path Relations::pathTo(const Relations::Path& path, int table) {
+    int index = path.indexOf(table);
+    if (index < 0) {
+        return Relations::Path();
+    }
+    return path.mid(0,index-1);
+}
+
+/*
+Relations::Path Relations::shortestPathTo(const PathList &paths, int table2) {
+    return pathTo(shortest(filterContains(paths, table2), table2));
+}*/
+
+Relations::Path Relations::shortestPathTo(const QMap<int, Relations::PathList>& paths, int table1, int table2) {
+    if (!paths.contains(table1)) {
+        return Relations::Path();
+    }
+    return shortestPathTo(paths[table1],table2);
+}
+
+QMap<int, Relations::PathList> Relations::completePaths(const QList<int>& heads, const QMap<int,QList<int> >& links) {
+    int head;
+    QMap<int, Relations::PathList> result;
+    foreach(head,heads) {
+        result[head] = completePaths(head, links);
+    }
+    return result;
+}
+
+Relations::PathList Relations::completePaths(int head, const QMap<int,QList<int> >& links) {
+    QList<QList<int> > paths;
+    QList<QList<int> > paths_;
+    QList<int> initial;
+    initial << head;
+    paths.append(initial);
+    QList<QList<int> > complete;
+    int iter = 0;
+    while(!paths.isEmpty()) {
+        iter++;
+        for(int i=0;i<paths.size();i++) {
+            QList<int> path = paths[i];
+            int head = path[path.size()-1];
+            QList<int> possibilities = links[head];
+            bool stuck = true;
+            foreach(int possibility, possibilities) {
+                if (!path.contains(possibility)) {
+                    QList<int> newPath = path;
+                    newPath << possibility;
+                    paths_ << newPath;
+                    stuck = false;
+                }
+            }
+            if (stuck) {
+                complete << path;
+            }
+        }
+
+        paths = paths_;
+        paths_ = QList<QList<int> >();
+    }
+    return complete;
+}
+
+/*
 Relations::PathList Relations::pathList(int head)
 {
     if (mPathLists.contains(head)) {
@@ -355,3 +451,4 @@ Relations::PathList Relations::pathList(int head)
     mPathLists[head] = complete;
     return complete;
 }
+*/
