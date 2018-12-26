@@ -6,10 +6,8 @@
 #include <QClipboard>
 #include <QApplication>
 #include <QDebug>
-
 #include "datastreamer.h"
-
-
+#include "settings.h"
 #include "rowvaluegetter.h"
 
 
@@ -40,8 +38,6 @@ bool CopyEventFilter::eventFilter(QObject * object, QEvent * event) {
     return false;
 }
 
-#include "settings.h"
-
 void CopyEventFilter::streamRange(QTextStream& stream, const QItemSelectionRange &rng,
                                   DataFormat::Format format,
                                   const QString &separator,
@@ -60,31 +56,6 @@ void CopyEventFilter::streamRange(QTextStream& stream, const QItemSelectionRange
         stream << "\n";
     }
 }
-
-namespace {
-
-QModelIndex topLeft(QAbstractItemModel* model) {
-    return model->index(0,0);
-}
-
-QModelIndex bottomRight(QAbstractItemModel* model) {
-    return model->index(model->rowCount()-1,model->columnCount()-1);
-}
-
-}
-
-#if 0
-void CopyEventFilter::copyAll(QAbstractItemModel* model) {
-    QString data;
-    QTextStream stream(&data);
-
-    QItemSelectionRange rng(topLeft(model),bottomRight(model));
-    streamRange(stream,rng);
-    stream.flush();
-    QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(data);
-}
-#endif
 
 void CopyEventFilter::copySelected(QAbstractItemModel *model, const QItemSelection& selection,
                                    DataFormat::Format format, const QString &separator, const QLocale& locale) {

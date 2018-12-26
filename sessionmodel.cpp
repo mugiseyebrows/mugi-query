@@ -42,45 +42,33 @@ bool SessionModel::insertRows(int row, int count, const QModelIndex &parent)
         rootItem->appendChild(child);
     }
     endInsertRows();
+    return true;
 }
 
 bool SessionModel::removeRows(int row, int count, const QModelIndex &parent)
 {
-//    if (parent.isValid()) {
-        // remove sessions
-        QList<SessionItem*> sessions;
-        QStringList names;
 
-        for(int i=0;i<count;i++) {
-            SessionItem* session = static_cast<SessionItem*>(index(row + i,0,parent).internalPointer());
-            sessions << session;
-            names << session->name();
-        }
+    QList<SessionItem*> sessions;
+    QStringList names;
 
-        if (sessions[0]->isSession()) {
-            // sessions
-            QString database = sessions[0]->parent()->name();
-            foreach(const QString& name, names) {
-                emit sessionRemoved(database,name);
-            }
-        }
-
-        beginRemoveRows(parent, row, row + count - 1);
-        qDeleteAll(sessions);
-        endRemoveRows();
-
-#if 0
-
-    } else {
-        // remove databases
-
-        beginRemoveRows(parent, row, row + count - 1);
-
-        endRemoveRows();
+    for(int i=0;i<count;i++) {
+        SessionItem* session = static_cast<SessionItem*>(index(row + i,0,parent).internalPointer());
+        sessions << session;
+        names << session->name();
     }
-#endif
 
+    if (sessions[0]->isSession()) {
+        // sessions
+        QString database = sessions[0]->parent()->name();
+        foreach(const QString& name, names) {
+            emit sessionRemoved(database,name);
+        }
+    }
 
+    beginRemoveRows(parent, row, row + count - 1);
+    qDeleteAll(sessions);
+    endRemoveRows();
+    return true;
 }
 
 void SessionModel::addDatabase(const QString &name)

@@ -21,3 +21,5 @@ textedit: functions arguments popup
 relations: fix double join
 relations: refactor
 tokenizer: multiline comment
+squeeze dialogs
+fix tab order in dialogs

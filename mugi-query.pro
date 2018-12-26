@@ -48,7 +48,6 @@ SOURCES += main.cpp\
     jsonhelper.cpp \
     stringlistmodelwithheader.cpp \
     settingsdialog.cpp \
-    displayformat.cpp \
     formats.cpp
 
 HEADERS  += mainwindow.h \
@@ -88,7 +87,6 @@ HEADERS  += mainwindow.h \
     jsonhelper.h \
     stringlistmodelwithheader.h \
     settingsdialog.h \
-    displayformat.h \
     formats.h
 
 FORMS    += mainwindow.ui \

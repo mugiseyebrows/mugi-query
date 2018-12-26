@@ -53,12 +53,11 @@ signals:
     void addSessionWithQuery(QString);
     
 protected:
-
+    Ui::SessionTab *ui;
     QString mConnectionName;
     QString mName;
     bool mFirstQuery;
 
-    Ui::SessionTab *ui;
 private slots:
     void on_execute_clicked();
     void on_history_clicked();

@@ -3,8 +3,6 @@
 
 #include <QDialog>
 
-#include "displayformat.h"
-
 namespace Ui {
 class SettingsDialog;
 }

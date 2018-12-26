@@ -196,7 +196,7 @@ const QString Relations::joinExpression(const Relation &relation, bool reverse)
 
 QString repeat(QChar c, int n) {
     QString s;
-    s.fill('(',n);
+    s.fill(c,n);
     return s;
 }
 

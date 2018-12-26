@@ -9,7 +9,7 @@ bool savePasswords; bool dateTimeOverrideForCsv; bool dateTimeOverrideForCopy; b
 */
 
 #include <QString>
-#include "displayformat.h"
+
 
 class Settings
 {

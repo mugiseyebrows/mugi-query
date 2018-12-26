@@ -16,7 +16,7 @@ void ModelAppender::setActive(bool active)
     mActive = active;
 }
 
-void ModelAppender::onDataChanged(QModelIndex tl,QModelIndex br,QVector<int> roles) {
+void ModelAppender::onDataChanged(QModelIndex ,QModelIndex br,QVector<int> ) {
 
     if (!mActive) {
         return;

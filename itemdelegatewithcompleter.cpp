@@ -11,8 +11,8 @@ ItemDelegateWithCompleter::ItemDelegateWithCompleter(const QStringList& completi
 
 }
 
-QWidget *ItemDelegateWithCompleter::createEditor(QWidget *parent, const QStyleOptionViewItem &option,
-                                                 const QModelIndex &index) const
+QWidget *ItemDelegateWithCompleter::createEditor(QWidget *parent, const QStyleOptionViewItem &,
+                                                 const QModelIndex &) const
 {
     QLineEdit* edit = new QLineEdit(parent);
     QCompleter* completer = new QCompleter(mCompletions,edit);
