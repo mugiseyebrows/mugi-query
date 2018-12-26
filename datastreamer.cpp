@@ -103,7 +103,7 @@ QString DataStreamer::variantToString(const QVariant& value,
         case QVariant::DateTime:
             return "'" + value.toDateTime().toString("yyyy-MM-dd hh:mm:ss") + "'";
         case QVariant::String:
-            return "'" + value.toString().replace("'","''") + "'";
+            return "'" + value.toString().replace("'","''").replace("\\","\\\\") + "'";
         case QVariant::ByteArray:
             return "0x" + value.toByteArray().toHex();
         default:
