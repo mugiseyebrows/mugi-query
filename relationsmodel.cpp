@@ -25,6 +25,11 @@ bool RelationsModel::setData(const QModelIndex &index, const QVariant &value, in
     return QStandardItemModel::setData(index,value,role);
 }
 
+bool RelationsModel::changed() const
+{
+    return mChanged;
+}
+
 void RelationsModel::load(const QString &path)
 {
     if (rowCount() > 0) {

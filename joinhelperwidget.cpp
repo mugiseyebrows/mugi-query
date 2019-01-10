@@ -62,10 +62,16 @@ void JoinHelperWidget::update(const Tokens& tokens) {
     ui->query->setTokens(tokens);
 }
 
+/*
 void JoinHelperWidget::closeEvent(QCloseEvent *event)
 {
     saveRelationsModel();
     QWidget::closeEvent(event);
+}*/
+
+QString JoinHelperWidget::connectionName() const
+{
+    return mConnectionName;
 }
 
 void JoinHelperWidget::init(const QString& connectionName) {
@@ -169,12 +175,11 @@ void JoinHelperWidget::findPath()
 
 }
 
-
-
-
 void JoinHelperWidget::saveRelationsModel() {
     RelationsModel* model = qobject_cast<RelationsModel*>(ui->relations->model());
-    model->save(relationsPath());
+    if (model->changed()) {
+        model->save(relationsPath());
+    }
 }
 
 void JoinHelperWidget::loadRelationsModel()

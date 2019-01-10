@@ -30,10 +30,12 @@
 #include "highlighter.h"
 #include "joinhelperwidget.h"
 #include "settingsdialog.h"
+#include "joinhelperwidgets.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     mQueryHistory(nullptr),
+    mJoinHelpers(nullptr),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -168,6 +170,22 @@ SessionTab *MainWindow::tab(int index)
     return qobject_cast<SessionTab*>(ui->sessionTabs->widget(index));
 }
 
+int MainWindow::lastTabIndex(const QString& connectionName) {
+    int index = -1;
+    for(int i=0;i<ui->sessionTabs->count();i++) {
+        if (tab(i)->connectionName() == connectionName) {
+            index = i;
+        }
+    }
+    return index;
+}
+
+void MainWindow::selectDatabase(const QString& connectionName) {
+    SessionModel* m = model();
+    QModelIndex index = m->indexOf(connectionName);
+    ui->sessionTree->setCurrentIndex(index);
+}
+
 SessionTab *MainWindow::currentTab()
 {
     int index = ui->sessionTabs->currentIndex();
@@ -202,6 +220,12 @@ QStringList filterEmpty(const QStringList& items) {
         }
     }
     return res;
+}
+
+void showOnTop(QWidget* widget) {
+    widget->show();
+    widget->activateWindow();
+    widget->raise();
 }
 
 }
@@ -267,10 +291,11 @@ void MainWindow::onAddSessionWithQuery(QString query) {
     on_addSession_triggered();
 }
 
-void MainWindow::onAppendQuery(QString query, bool currentSession)
+void MainWindow::onAppendQuery(const QString& connectionName, QString query, bool currentSession)
 {
     if (!currentSession) {
         mQuery = query;
+        selectDatabase(connectionName);
         on_addSession_triggered();
         return;
     }
@@ -279,8 +304,17 @@ void MainWindow::onAppendQuery(QString query, bool currentSession)
     if (!tab) {
         return;
     }
+    if (tab->connectionName() != connectionName) {
+        int index = lastTabIndex(connectionName);
+        if (index < 0) {
+            return;
+        }
+        ui->sessionTabs->setCurrentIndex(index);
+        tab = this->tab(index);
+    }
+
     tab->appendQuery(query);
-    this->raise();
+    showOnTop(this);
 }
 
 /*
@@ -375,9 +409,12 @@ void MainWindow::pushTokens(const QString &connectionName)
             tab->setTokens(tokens);
         }
     }
-    JoinHelperWidget* helper = mJoinHelpers[connectionName];
+    /*JoinHelperWidget* helper = mJoinHelpers[connectionName];
     if (helper) {
         helper->update(tokens);
+    }*/
+    if (mJoinHelpers) {
+        mJoinHelpers->update(connectionName,tokens,false);
     }
 }
 
@@ -467,8 +504,12 @@ void MainWindow::on_removeDatabase_triggered()
     SessionModel* m = model();
     QString connectionName = m->connectionName(index);
     RemoveDatabaseDialog dialog(connectionName,this);
-    if (dialog.exec() == QDialog::Accepted) {
-        m->removeDatabase(index);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    m->removeDatabase(index);
+    if (mJoinHelpers) {
+        mJoinHelpers->closeTab(connectionName);
     }
 }
 
@@ -487,9 +528,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
         mQueryHistory->close();
     }
 
-    QStringList connectionNames = mJoinHelpers.keys();
-    foreach(QString connectionName, connectionNames) {
-        mJoinHelpers[connectionName]->close();
+    if (mJoinHelpers) {
+        mJoinHelpers->save();
+        mJoinHelpers->close();
     }
 
     Settings::instance()->save();
@@ -572,18 +613,13 @@ void MainWindow::on_queryJoin_triggered()
         return;
     }
 
-    JoinHelperWidget* helper = mJoinHelpers.value(connectionName);
-
-    if (!helper) {
-        helper = new JoinHelperWidget();
-        helper->init(connectionName);
-        connect(helper,SIGNAL(appendQuery(QString,bool)),this,SLOT(onAppendQuery(QString,bool)));
-        helper->update(mTokens[connectionName]);
-        mJoinHelpers[connectionName] = helper;
+    if (!mJoinHelpers) {
+        mJoinHelpers = new JoinHelperWidgets();
+        connect(mJoinHelpers,SIGNAL(appendQuery(QString,QString,bool)),this,SLOT(onAppendQuery(QString,QString,bool)));
     }
 
-    helper->show();
-    helper->raise();
+    mJoinHelpers->update(connectionName,mTokens[connectionName],true);
+    showOnTop(mJoinHelpers);
 }
 
 void MainWindow::on_queryQuote_triggered()

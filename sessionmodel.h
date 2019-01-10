@@ -42,6 +42,7 @@ public:
 
     QModelIndex indexOf(const QString& connectionName, const QString& name) const;
 
+    QModelIndex indexOf(const QString &connectionName) const;
 signals:
 
     //void databaseAdded(QString,QString);

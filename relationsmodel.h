@@ -12,6 +12,8 @@ public:
 
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
 
+    bool changed() const;
+
     void load(const QString& path);
     void save(const QString& path);
 protected:

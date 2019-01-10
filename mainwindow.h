@@ -10,7 +10,7 @@ class History;
 class QueryHistoryWidget;
 class QCompleter;
 class Highlighter;
-class JoinHelperWidget;
+class JoinHelperWidgets;
 
 #include "tokens.h"
 
@@ -46,12 +46,15 @@ protected:
     History* mHistory;
     QueryHistoryWidget* mQueryHistory;
     QMap<QString,Tokens> mTokens;
-    QMap<QString,JoinHelperWidget*> mJoinHelpers;
+    //QMap<QString,JoinHelperWidget*> mJoinHelpers;
+    JoinHelperWidgets* mJoinHelpers;
 
     QString mQuery;
 
     void copySelected(bool asList);
 
+    int lastTabIndex(const QString &connectionName);
+    void selectDatabase(const QString &connectionName);
 public slots:
     void on_addDatabase_triggered();
     void on_sessionTree_customContextMenuRequested(QPoint pos);
@@ -63,7 +66,7 @@ public slots:
     void onQuery(QString query);
     void onShowQueryHistory();
     void onAddSessionWithQuery(QString);
-    void onAppendQuery(QString, bool currentSession);
+    void onAppendQuery(const QString &connectionName, QString, bool currentSession);
 
 
 private slots:
