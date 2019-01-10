@@ -28,3 +28,4 @@ squeeze dialogs
 fix tab order in dialogs
 join helper: one widget for each connectionName: tab
 join helper: relations, tables copy/paste event filter
+plot data
