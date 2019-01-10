@@ -1,19 +1,22 @@
 binary delegate
 edit schema dialog
 users helper
-query history: button copy to new session
 save data values(),(),()
 editable shortcuts
 beautify query
 upcase keywords
-query history: save not executed on close session?
-query history: exec and error columns?
+query history: 
+    save not executed on close session?
+    exec and error columns?
+    button copy to new session
+    highlight
+    search
+    connectionName combobox
+    fix onclick, copy
 pop-includes.py
 find-static-functions.py
 tokens: ms access functions and types
 tokens: store in file
-query history: highlight
-query history: search
 joinhelper: reorder tables (drag-and-drop?)
 joinhelper: delete, tables title (headerData)
 copyeventfilter: refactor
@@ -23,3 +26,5 @@ relations: refactor
 tokenizer: multiline comment
 squeeze dialogs
 fix tab order in dialogs
+join helper: one widget for each connectionName: tab
+join helper: relations, tables copy/paste event filter
