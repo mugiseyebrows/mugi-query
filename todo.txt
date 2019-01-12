@@ -10,15 +10,11 @@ query history:
     exec and error columns?
     button copy to new session
     highlight
-    search
-    connectionName combobox
-    fix onclick, copy
 pop-includes.py
 find-static-functions.py
 tokens: 
     ms access functions and types
     store in file
-
 copyeventfilter: refactor
 textedit: 
     functions arguments popup

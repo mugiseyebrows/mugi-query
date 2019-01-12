@@ -265,7 +265,7 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
         index = tabIndex(ui->sessionTabs,namePrev);
     }
 
-    qDebug() << "onSessionAdded" << connectionName << name << namePrev << index;
+    //qDebug() << "onSessionAdded" << connectionName << name << namePrev << index;
 
     SessionTab* tab = new SessionTab(connectionName, name, ui->sessionTabs);
 
@@ -317,23 +317,14 @@ void MainWindow::onAppendQuery(const QString& connectionName, QString query, boo
     showOnTop(this);
 }
 
-/*
-void MainWindow::onCopyQuery(QString query) {
-    SessionTab* tab = currentTab();
-    if (!tab) {
-        return;
-    }
-    tab->setQuery(query);
-}
-*/
 void MainWindow::onShowQueryHistory() {
     if (!mQueryHistory) {
         mQueryHistory = new QueryHistoryWidget();
-        connect(mQueryHistory,SIGNAL(copyQuery(QString)),this,SLOT(onAppendQuery(QString)));
+        connect(mQueryHistory,SIGNAL(appendQuery(QString,QString,bool)),
+                this,SLOT(onAppendQuery(QString,QString,bool)));
     }
-    mQueryHistory->refresh();
-    mQueryHistory->show();
-    mQueryHistory->raise();
+    mQueryHistory->refresh(currentTab()->connectionName());
+    showOnTop(mQueryHistory);
 }
 
 QStringList filterBlank(const QStringList items) {
