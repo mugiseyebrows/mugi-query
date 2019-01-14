@@ -64,6 +64,15 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>refresh</tabstop>
+  <tabstop>copy</tabstop>
+  <tabstop>connectionName</tabstop>
+  <tabstop>filter</tabstop>
+  <tabstop>search</tabstop>
+  <tabstop>all</tabstop>
+  <tabstop>tableView</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

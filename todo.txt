@@ -10,7 +10,6 @@ query history:
     exec and error columns?
     button copy to new session
     highlight
-pop-includes.py
 find-static-functions.py
 tokens: 
     ms access functions and types
@@ -22,11 +21,10 @@ textedit:
 relations: 
     fix double join
     refactor
-
-tokenizer: multiline comment
-squeeze dialogs
-fix tab order in dialogs
+dialogs:
+    this->adjustSize();
+    tab order
 join helper:
     relations, tables: copy/paste/delete event filter
-    reorder tables (drag-and-drop?)
+    reorder tables buttons
 plot data

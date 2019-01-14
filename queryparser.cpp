@@ -82,6 +82,26 @@ void QueryParser::testSplit() {
     a = split(q);
     testSplitCompare(e,a);
 
+    q = "foo/*bar;*/baz";
+    e = sl("foo/*bar;*/baz");
+    a = split(q);
+    testSplitCompare(e,a);
+
+    q = "foo/*bar*/;baz";
+    e = sl("foo/*bar*/","baz");
+    a = split(q);
+    testSplitCompare(e,a);
+
+    q = "foo--/*bar\n;*/baz";
+    e = sl("foo--/*bar\n","*/baz");
+    a = split(q);
+    testSplitCompare(e,a);
+
+    q = "foo'/*bar';*/baz";
+    e = sl("foo'/*bar'","*/baz");
+    a = split(q);
+    testSplitCompare(e,a);
+
     qDebug() << "QueryParser::testSplit() complete";
 }
 
@@ -94,25 +114,41 @@ QStringList QueryParser::split(const QString &queries)
     QChar semicolon = ';';
     QChar minus = '-';
     QChar newline = '\n';
+    QChar slash = '/';
+    QChar star = '*';
     bool comment = false;
+    bool multilineComment = false;
     bool literal = false;
     for(int i=0;i<queries.size();i++) {
         QChar c = queries[i];
-        bool hasNext = i+1<queries.size();
+        bool hasNext = i + 1 < queries.size();
+        bool hasPrev = i > 0;
         if (c == quote) {
-            if (!comment) {
+            if (!comment && !multilineComment) {
                 literal = !literal;
             }
         } else if (c == semicolon) {
-            if (!literal && !comment) {
+            if (!literal && !comment && !multilineComment) {
                 bounds << i;
             }
         } else if (c == minus) {
-            if (hasNext && queries[i+1] == '-' && !literal) {
+            if (hasNext && queries[i+1] == minus && !literal && !multilineComment) {
                 comment = true;
             }
         } else if (c == newline) {
             comment = false;
+        } else if (c == slash) {
+            if (!comment && !literal) {
+                if (!multilineComment) {
+                    if (hasNext && queries[i+1] == star) {
+                        multilineComment = true;
+                    }
+                } else {
+                    if (hasPrev && queries[i-1] == star) {
+                        multilineComment = false;
+                    }
+                }
+            }
         }
     }
     bounds << queries.size();

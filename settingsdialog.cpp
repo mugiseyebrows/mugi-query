@@ -57,6 +57,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    this->adjustSize();
+
     Settings* s = Settings::instance();
 
     setValueOrDefault(ui->dateFormat,s->dateFormat(),"yyyy-MM-dd");

@@ -144,6 +144,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>format</tabstop>
+  <tabstop>table</tabstop>
+  <tabstop>output</tabstop>
+  <tabstop>data</tabstop>
+  <tabstop>allData</tabstop>
+  <tabstop>noneData</tabstop>
+  <tabstop>keys</tabstop>
+  <tabstop>allKeys</tabstop>
+  <tabstop>noneKeys</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

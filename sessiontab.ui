@@ -94,6 +94,12 @@
    <header>textedit.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>query</tabstop>
+  <tabstop>execute</tabstop>
+  <tabstop>history</tabstop>
+  <tabstop>resultTabs</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

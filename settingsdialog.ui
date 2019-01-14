@@ -134,6 +134,19 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>dateTimeUseLocale</tabstop>
+  <tabstop>dateTimeUseSpecial</tabstop>
+  <tabstop>dateFormat</tabstop>
+  <tabstop>dateFormatDefault</tabstop>
+  <tabstop>timeFormat</tabstop>
+  <tabstop>timeFormatDefault</tabstop>
+  <tabstop>dateTimeOverrideForCopy</tabstop>
+  <tabstop>dateTimeOverrideForCsv</tabstop>
+  <tabstop>realUseLocale</tabstop>
+  <tabstop>realOverrideForCopy</tabstop>
+  <tabstop>realOverrideForCsv</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
