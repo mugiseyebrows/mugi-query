@@ -3,6 +3,7 @@
 
 #include "queryparser.h"
 #include "version.h"
+#include "tests.h"
 
 int main(int argc, char *argv[])
 {
@@ -14,7 +15,7 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
-    //QueryParser::testSplit();
+    Tests::run();
 
     return a.exec();
 }

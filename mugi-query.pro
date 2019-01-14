@@ -49,7 +49,10 @@ SOURCES += main.cpp\
     stringlistmodelwithheader.cpp \
     settingsdialog.cpp \
     formats.cpp \
-    joinhelperwidgets.cpp
+    joinhelperwidgets.cpp \
+    stringstringmap.cpp \
+    tests.cpp \
+    jointokenlist.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -89,7 +92,12 @@ HEADERS  += mainwindow.h \
     stringlistmodelwithheader.h \
     settingsdialog.h \
     formats.h \
-    joinhelperwidgets.h
+    joinhelperwidgets.h \
+    stringstringmap.h \
+    tests.h \
+    jointoken.h \
+    jointokenlist.h \
+    zipunzip.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \
