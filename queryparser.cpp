@@ -10,9 +10,9 @@ QueryParser::QueryParser()
 
 }
 
-
 bool QueryParser::isAlterSchemaQuery(const QString& query) {
-    return query.indexOf(QRegExp("(create|drop|alter)\\s+table",Qt::CaseInsensitive)) > -1;
+    QRegularExpression rx("(create|drop|alter)\\s+table", QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
+    return rx.match(query).hasMatch();
 }
 
 QStringList QueryParser::split(const QString &queries)
@@ -77,9 +77,125 @@ QStringList QueryParser::split(const QString &queries)
     return res;
 }
 
-QString QueryParser::outer(const QString& query, const IntPairList& openParenthesisPos, const IntPairList& closeParenthesisPos) {
-    return query;
+
+typedef QPair<int,int> IntPair;
+typedef QList<IntPair> IntPairList;
+
+QList<int> filterLevel(const IntPairList& items, int level) {
+    IntPairList result;
+    std::copy_if(items.begin(),items.end(),std::back_inserter(result),
+                 [level](const IntPair& p){return p.second == level;});
+    return unzipFirsts(result);
 }
+
+QStringList innerQueries(const QString& query, QList<int>& open0, QList<int>& close0) {
+    QStringList result;
+    if (open0.size() != close0.size()) {
+        return result;
+    }
+    for(int i=0;i<open0.size();i++) {
+        int p = open0[i] + 1;
+        int t = close0[i];
+        result << query.mid(p,t - p);
+    }
+    return result;
+}
+
+QString outerQuery(const QString& query, QList<int>& open0, QList<int>& close0) {
+    QStringList parts;
+
+    if (open0.size() != close0.size()) {
+        return QString {};
+    }
+
+    if (open0.isEmpty()) {
+        parts << query;
+    } else {
+        for(int i=0;i<open0.size();i++) {
+            int p = 0;
+            if (i > 0) {
+                p = close0[i-1];
+            }
+            int t = open0[i] + 1;
+            if (t - p > 0) {
+                parts << query.mid(p,t - p);
+            }
+        }
+        int p = close0.last();
+        parts << query.mid(p);
+    }
+    return parts.join("");
+}
+
+QPair<IntPairList,IntPairList> parenthesis(const QString& query) {
+    IntPairList open;
+    IntPairList close;
+    int level = 0;
+    for(int i=0;i<query.size();i++) {
+        QChar c = query[i];
+        if (c == '(') {
+            open << IntPair(i,level++);
+        } else if (c == ')') {
+            close << IntPair(i,--level);
+        }
+    }
+    return QPair<IntPairList,IntPairList>(open,close);
+}
+
+#include <QQueue>
+
+QStringList QueryParser::flatQueries(const QString& query_) {
+
+
+#if 0
+    IntPairList open;
+    IntPairList close;
+
+    int level = 0;
+    for(int i=0;i<query.size();i++) {
+        QChar c = query[i];
+        if (c == '(') {
+            open << IntPair(i,level++);
+        } else if (c == ')') {
+            close << IntPair(i,--level);
+        }
+    }
+
+    if (open.size() != close.size()) {
+        return result;
+    }
+
+    QList<int> open0 = filterLevel(open,0);
+    QList<int> close0 = filterLevel(close,0);
+
+    QString outer = outerQuery(query,open0,close0);
+
+    result << outer;
+#endif
+
+    QStringList result;
+
+    QQueue<QString> queue;
+    queue.enqueue(query_);
+
+    while(!queue.isEmpty()) {
+        QString query = queue.dequeue();
+        QPair<IntPairList,IntPairList> parenthesis_ = parenthesis(query);
+        QList<int> open0 = filterLevel(parenthesis_.first,0);
+        QList<int> close0 = filterLevel(parenthesis_.second,0);
+        result << outerQuery(query,open0,close0);
+        QStringList inner = innerQueries(query,open0,close0);
+        foreach(const QString& q, inner) {
+            queue.enqueue(q);
+        }
+    }
+
+    return result;
+}
+
+
+namespace {
+
 
 void appendIfHasMatch(QList<QRegularExpressionMatch>& ms, const QRegularExpressionMatch& m) {
     if (m.hasMatch()) {
@@ -93,6 +209,8 @@ QList<QRegularExpressionMatch> matched(const QRegularExpressionMatch& m1, const 
     appendIfHasMatch(res,m2);
     appendIfHasMatch(res,m3);
 }
+
+
 
 #if 0
 QList<QRegularExpressionMatch> filterHasMatch(const QList<QRegularExpressionMatch>& ms) {
@@ -131,7 +249,18 @@ bool goesFirst(const QRegularExpressionMatch& m1, const QRegularExpressionMatch&
     return goesFirst(m1,ms);
 }
 
+QStringList filter(const QList<QPair<JoinToken::JoinToken,QString> >& tokens, JoinToken::JoinToken type) {
+    QStringList result;
+    for(int i=0;i<tokens.size();i++) {
+        const QPair<JoinToken::JoinToken,QString>& token = tokens[i];
+        if (token.first == type) {
+            result << token.second;
+        }
+    }
+    return result;
+}
 
+}
 
 QList<QPair<JoinToken::JoinToken,QString> > QueryParser::joinSplit(const QString& joinExpr) {
 
@@ -192,54 +321,69 @@ QList<QPair<JoinToken::JoinToken,QString> > QueryParser::joinSplit(const QString
     return zipToPairList(types, tokens);
 }
 
-QMap<QString,QString> QueryParser::aliases(const QString& query) {
+namespace {
 
-    IntPairList openParenthesisPos;
-    IntPairList closeParenthesisPos;
+
+QStringList mapTrimmed(const QStringList& vs) {
+    QStringList res;
+    foreach(const QString& v, vs) {
+        res << v.trimmed();
+    }
+    return res;
+}
+
+}
+
+QMap<QString,QString> QueryParser::filterAliases(const QMap<QString,QString>& aliases, const QStringList& tables) {
     QMap<QString,QString> result;
-
-    QChar openParenthesis = '(';
-    QChar closeParenthesis = ')';
-    int level = 0;
-    for(int i=0;i<query.size();i++) {
-        QChar c = query[i];
-        if (c == openParenthesis) {
-            openParenthesisPos << IntPair(i,++level);
-        } else if (c == closeParenthesis) {
-            closeParenthesisPos << IntPair(i,level--);
+    QStringList keys = aliases.keys();
+    foreach(const QString& key, keys) {
+        QString table = aliases[key];
+        if (tables.contains(table)) {
+            result[key] = table;
         }
     }
-    if (openParenthesisPos.size() != closeParenthesisPos.size()) {
-        return result;
-    }
+    return result;
+}
 
-    QString outer = QueryParser::outer(query, openParenthesisPos, closeParenthesisPos);
+void collectAliases(const QString& flatQuery, QMap<QString,QString>& result) {
 
     QRegularExpression::PatternOptions opt = QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption;
 
-    QRegularExpression rx("select.*from(.*)", opt);
-    QRegularExpressionMatch m = rx.match(outer);
-#if 0
-    QRegularExpression comma(",", opt);
-    QRegularExpression join("(left|right|inner|cross)\\s+join",opt);
-    QRegularExpression where("(where|having)",opt);
+    QRegularExpression rx1("select.*from(.*)", opt);
+    QRegularExpression rx2("select.*from(.*)(where|having|group\\s+by|limit)", opt);
+    QRegularExpressionMatch m1 = rx1.match(flatQuery);
+    QRegularExpressionMatch m2 = rx2.match(flatQuery);
+    QRegularExpressionMatch m = m2.hasMatch() ? m2 : m1;
 
     if (!m.hasMatch()) {
-        return result;
+        return;
     }
 
-    QString tail = m.captured(1);
-    QStringList sources;
+    QString joinExp = m.captured(1);
 
-    QRegularExpressionMatch m1 = comma.match(tail);
-    QRegularExpressionMatch m2 = join.match(tail);
-    QRegularExpressionMatch m3 = where.match(tail);
+    QList<QPair<JoinToken::JoinToken,QString> > tokens = QueryParser::joinSplit(joinExp);
 
-    QList<QRegularExpressionMatch> ms = matched(m1,m2,m3);
-    if (ms.isEmpty()) {
+    QStringList filtered = mapTrimmed(filter(tokens, JoinToken::JoinTokenTable));
 
+    foreach(const QString& item, filtered) {
+        QStringList words = item.split(QRegularExpression("\\s+"));
+        if (words.size() == 2) {
+            QString table = words[0];
+            QString alias = words[1];
+            if (table != "()") {
+                result[alias] = table;
+            }
+        }
     }
-#endif
 
+}
+
+QMap<QString,QString> QueryParser::aliases(const QString& query) {
+    QMap<QString,QString> result;
+    QStringList queries = flatQueries(query);
+    foreach(const QString& flatQuery, queries) {
+        collectAliases(flatQuery, result);
+    }
     return result;
 }

@@ -2,10 +2,12 @@
 #define PLAINTEXTEDIT_H
 
 #include <QPlainTextEdit>
+#include "tokens.h"
+#include <QMap>
 
 class QCompleter;
 class Highlighter;
-class Tokens;
+
 
 class TextEdit : public QTextEdit
 {
@@ -16,6 +18,7 @@ public:
     ~TextEdit();
 
     void setTokens(const Tokens &tokens);
+    void updateCompleter();
 signals:
     void submit();
 
@@ -30,7 +33,8 @@ protected:
     Highlighter* highlighter() const;
 
 
-private slots:
+protected slots:
+    void onTextChanged();
     void insertCompletion(const QString &completion);
 
 private:
@@ -39,7 +43,8 @@ private:
 private:
     QCompleter *mCompleter;
     Highlighter* mHighlighter;
-
+    Tokens mTokens;
+    QMap<QString,QString> mAliases;
 };
 
 #endif // TEXTEDIT_H

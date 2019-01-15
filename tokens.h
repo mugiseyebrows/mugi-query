@@ -3,6 +3,7 @@
 
 #include <QStringList>
 #include <QSqlDatabase>
+#include <QMap>
 
 class Tokens
 {
@@ -15,7 +16,7 @@ public:
 
     QStringList keywords() const;
 
-    QStringList autocompletion() const;
+    QStringList autocompletion(const QMap<QString, QString> &aliases = QMap<QString, QString> {}) const;
 
     QStringList types() const;
 
@@ -25,6 +26,7 @@ public:
 
     QStringList tables() const;
 
+    QStringList fields(const QString &table, const QString &alias) const;
 protected:
     struct Table {
         QString table;

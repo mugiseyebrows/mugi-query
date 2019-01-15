@@ -1,5 +1,6 @@
 #include "tokens.h"
 #include "tokens.h"
+#include "tokens.h"
 
 #include <QSet>
 #include <QSqlRecord>
@@ -238,6 +239,19 @@ QStringList Tokens::tablesAndFields(bool doted) const {
     return res;
 }
 
+QStringList Tokens::fields(const QString& tableName, const QString& alias) const {
+    QStringList res;
+    foreach(const Table& table, mTables) {
+        if (table.table != tableName) {
+            continue;
+        }
+        foreach(const QString& field, table.fields) {
+            res << (alias + "." + field);
+        }
+    }
+    return res;
+}
+
 QStringList Tokens::fields(bool doted) const
 {
     QStringList res;
@@ -262,14 +276,22 @@ QStringList Tokens::tables() const
     return res;
 }
 
-QStringList Tokens::autocompletion() const
+QStringList Tokens::autocompletion(const QMap<QString,QString>& aliases) const
 {
     QStringList res;
     res << keywords();
     res << tablesAndFields(true);
     res << functions();
     res << types();
+
+    QStringList names = aliases.keys();
+    foreach (const QString& name, names) {
+        res << fields(aliases[name],name);
+        res << name;
+    }
+
     res = res.toSet().toList();
+
     qSort(res);
     return res;
 }

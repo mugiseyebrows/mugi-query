@@ -7,6 +7,7 @@ namespace Tests
     void testSplit();
     void testJoinSplit();
     void testAliases();
+    void testFlatQueries();
 }
 
 #endif // TESTS_H

@@ -7,7 +7,6 @@
 #include <QDebug>
 #include "queryparser.h"
 #include "sl.h"
-#include "jointokenlist.h"
 #include "stringstringmap.h"
 
 void Tests::run()
@@ -15,6 +14,7 @@ void Tests::run()
     testSplit();
     testJoinSplit();
     testAliases();
+    testFlatQueries();
 }
 
 namespace {
@@ -94,8 +94,13 @@ void Tests::testAliases() {
     a = QueryParser::aliases(q);
     compare(e,a);
 
-    q = "select * from foo f1, bar b1 left join baz b2";
-    e = ssm("f1","foo","b1","bar","b2","baz");
+    q = "select * from foo f1, bar b1 left join baz b2 on baz.id=bar.id join qix q1";
+    e = ssm("f1","foo","b1","bar","b2","baz","q1","qix");
+    a = QueryParser::aliases(q);
+    compare(e,a);
+
+    q = "select * from (select abc from zen z1 having 2) x, bar b1 left join baz b2 on baz.id=bar.id join qix q1 where a=b";
+    e = ssm("b1","bar","b2","baz","q1","qix","z1","zen");
     a = QueryParser::aliases(q);
     compare(e,a);
 
@@ -225,3 +230,27 @@ void Tests::testSplit() {
     qDebug() << "testSplit() complete";
 }
 
+void Tests::testFlatQueries() {
+
+    qDebug() << "testFlatQueries() started";
+
+    QString q;
+    QStringList e,a;
+
+    q = "select foo from (select * from bar) union (select baz from qix)";
+    e = sl("select foo from () union ()","select * from bar","select baz from qix");
+    a = QueryParser::flatQueries(q);
+    compare(e,a);
+
+    q = "select a,b,c from (select foo from (select * from bar) union (select baz from qix)) where 1";
+    e = sl("select a,b,c from () where 1","select foo from () union ()","select * from bar","select baz from qix");
+    a = QueryParser::flatQueries(q);
+    compare(e,a);
+
+    q = "select * from foo";
+    e = sl("select * from foo");
+    a = QueryParser::flatQueries(q);
+    compare(e,a);
+
+    qDebug() << "testFlatQueries() complete";
+}

@@ -12,6 +12,7 @@
 #include "tokens.h"
 
 #include "highlighter.h"
+#include "queryparser.h"
 #include <QStyle>
 
 TextEdit::TextEdit(QWidget *parent)
@@ -28,6 +29,8 @@ TextEdit::TextEdit(QWidget *parent)
 #endif
 
     setFont(font);
+
+    connect(this,SIGNAL(textChanged()),this,SLOT(onTextChanged()));
 }
 
 TextEdit::~TextEdit()
@@ -44,18 +47,10 @@ TextEdit::~TextEdit()
 
 
 void TextEdit::setTokens(const Tokens& tokens) {
-
-    QCompleter* completer = new QCompleter();
-    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
-    completer->setCaseSensitivity(Qt::CaseInsensitive);
-
-    QStringListModel* stringListModel = new QStringListModel(tokens.autocompletion(),completer);
-    completer->setModel(stringListModel);
-
-    setCompleter(completer);
-
+    mTokens = tokens;
     Highlighter* highlighter = new Highlighter(tokens,0);
     setHighlighter(highlighter);
+    updateCompleter();
 }
 
 void TextEdit::setCompleter(QCompleter *completer)
@@ -199,3 +194,20 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
     mCompleter->complete(cr);
 }
 
+void TextEdit::updateCompleter() {
+    QCompleter* completer = new QCompleter();
+    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    QStringListModel* stringListModel = new QStringListModel(mTokens.autocompletion(mAliases),completer);
+    completer->setModel(stringListModel);
+    setCompleter(completer);
+}
+
+void TextEdit::onTextChanged() {
+    QMap<QString,QString> aliases = QueryParser::filterAliases(QueryParser::aliases(this->toPlainText()),mTokens.tables());
+    if (aliases == mAliases) {
+        return;
+    }
+    mAliases = aliases;
+    updateCompleter();
+}
