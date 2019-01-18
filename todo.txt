@@ -1,4 +1,3 @@
-binary delegate
 edit schema dialog
 users helper
 save data values(),(),()
@@ -28,3 +27,7 @@ join helper:
     relations, tables: copy/paste/delete event filter
     reorder tables buttons
 plot data
+result tab:
+    context menu: selection menu
+adddatabase:
+    search filters

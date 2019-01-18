@@ -33,6 +33,20 @@ QString ItemDelegate::displayText(const QVariant &value, const QLocale &locale) 
         if (!Settings::instance()->realUseLocale()) {
             return QString::number(value.toDouble());
         }
+    } else if (t == QVariant::ByteArray) {
+        QByteArray data = value.toByteArray();
+        QStringList hex;
+        int showSize = qMin(data.size(),256);
+        for (int i=0;i<showSize;i++) {
+            //hex << QString::number((uchar) data[i], 16).rightJustified(2,'0');
+            hex << QString("%1").arg((uchar) data[i],2,16,QChar('0'));
+            if (i % 16 == 15)
+                hex << "\n";
+        }
+        if (data.size() > showSize) {
+            hex << "...";
+        }
+        return hex.join(" ");
     }
     return QStyledItemDelegate::displayText(value,locale);
 }
