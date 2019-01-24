@@ -30,7 +30,6 @@ SOURCES += main.cpp\
     datastreamer.cpp \
     dataformat.cpp \
     queriesstatmodel.cpp \
-    setsplitersizesratio.cpp \
     outputtype.cpp \
     copyeventfilter.cpp \
     itemdelegate.cpp \
@@ -52,7 +51,8 @@ SOURCES += main.cpp\
     joinhelperwidgets.cpp \
     stringstringmap.cpp \
     tests.cpp \
-    jointokenlist.cpp
+    jointokenlist.cpp \
+    splitterutil.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -72,7 +72,6 @@ HEADERS  += mainwindow.h \
     datastreamer.h \
     dataformat.h \
     queriesstatmodel.h \
-    setsplitersizesratio.h \
     outputtype.h \
     copyeventfilter.h \
     itemdelegate.h \
@@ -97,7 +96,8 @@ HEADERS  += mainwindow.h \
     tests.h \
     jointoken.h \
     jointokenlist.h \
-    zipunzip.h
+    zipunzip.h \
+    splitterutil.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

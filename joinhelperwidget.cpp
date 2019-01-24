@@ -18,7 +18,7 @@
 #include <QDebug>
 #include "relation.h"
 #include "relations.h"
-#include "setsplitersizesratio.h"
+#include "splitterutil.h"
 
 #include "relationsmodel.h"
 #include <QSortFilterProxyModel>
@@ -111,8 +111,8 @@ void JoinHelperWidget::onSelectLastTablesRow() {
 }
 
 void JoinHelperWidget::onAdjustSplitters() {
-    setSpliterSizesRatio(ui->horizontalSplitter,1,1);
-    setSpliterSizesRatio(ui->verticalSplitter,3,1);
+    SplitterUtil::setRatio(ui->horizontalSplitter,1,1);
+    SplitterUtil::setRatio(ui->verticalSplitter,3,1);
 }
 
 JoinHelperWidget::~JoinHelperWidget()

@@ -1,6 +1,8 @@
 edit schema dialog
 users helper
-save data values(),(),()
+save data:
+    values(),(),()
+    backticks
 editable shortcuts
 beautify query
 upcase keywords

@@ -9,7 +9,7 @@
 #include "savedatadialog.h"
 #include <QFileDialog>
 #include "datastreamer.h"
-#include "setsplitersizesratio.h"
+#include "splitterutil.h"
 #include "copyeventfilter.h"
 #include "itemdelegate.h"
 #include <QMessageBox>
@@ -95,7 +95,7 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
     ui->resultTabs->insertTab(ui->resultTabs->count(),view,title);
 
     if (mFirstQuery) {
-        setSpliterSizesRatio(ui->splitter,1,5);
+        SplitterUtil::setRatio(ui->splitter,1,5);
     }
     mFirstQuery = false;
 }

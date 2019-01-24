@@ -25,7 +25,7 @@
 #include "history.h"
 #include "queryparser.h"
 #include "queryhistorywidget.h"
-#include "setsplitersizesratio.h"
+#include "splitterutil.h"
 #include "settings.h"
 #include "highlighter.h"
 #include "joinhelperwidget.h"
@@ -135,7 +135,7 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 }
 
 void MainWindow::onAdjustSplitter() {
-    setSpliterSizesRatio(ui->splitter,1,4);
+    SplitterUtil::setRatio(ui->splitter,1,4);
 }
 
 void MainWindow::onTreeCurrentChanged(QModelIndex index,QModelIndex) {
