@@ -36,3 +36,4 @@ adddatabase:
 fix save data to clipboard
 fix save data 'select * from (((foo)))'
 automation for tests
+qsharedpointer for query results
