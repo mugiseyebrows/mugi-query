@@ -10,6 +10,9 @@
 #include <QDebug>
 #include <QTimer>
 #include "settings.h"
+#include "automation.h"
+
+#include <QThread>
 
 AddDatabaseDialog::AddDatabaseDialog(bool showHistory, QWidget *parent) :
     QDialog(parent),
@@ -75,6 +78,8 @@ int AddDatabaseDialog::port()
 
 void AddDatabaseDialog::accept()
 {
+    //qDebug() << "AddDatabaseDialog::accept()" << QThread::currentThreadId();
+
     QString connectionName = ui->connectionName->text();
 
     if (connectionName.isEmpty()) {
@@ -112,12 +117,17 @@ void AddDatabaseDialog::accept()
 }
 
 
+
 void AddDatabaseDialog::on_history_clicked()
 {
     DatabaseHistoryDialog dialog;
+
+    Automation::instance()->beforeDialog(&dialog);
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
+
+    //qDebug() << "AddDatabaseDialog::on_history_clicked()" << QThread::currentThreadId();
 
     ui->connectionName->setText(dialog.connectionName());
     ui->driver->setCurrentIndex(ui->driver->findText(dialog.driver()));
@@ -127,6 +137,7 @@ void AddDatabaseDialog::on_history_clicked()
     ui->database->setText(dialog.database());
     ui->port->setText(dialog.port() > -1 ? QString::number(dialog.port()) : QString());
 
+    Automation::instance()->afterDialog(&dialog);
 }
 
 void AddDatabaseDialog::on_savePassword_clicked(bool checked)

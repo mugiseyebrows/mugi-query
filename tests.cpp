@@ -6,8 +6,10 @@
 #include "zipunzip.h"
 #include <QDebug>
 #include "queryparser.h"
-#include "sl.h"
+#include "lit.h"
 #include "stringstringmap.h"
+
+using namespace Lit;
 
 void Tests::run()
 {
@@ -104,7 +106,7 @@ void Tests::testAliases() {
     a = QueryParser::aliases(q);
     compare(e,a);
 
-    qDebug() << "testAliases() complete";
+    qDebug() << "testAliases() finished";
 }
 
 void Tests::testJoinSplit() {
@@ -227,7 +229,7 @@ void Tests::testSplit() {
     a = QueryParser::split(q);
     compare(e,a);
 
-    qDebug() << "testSplit() complete";
+    qDebug() << "testSplit() finished";
 }
 
 void Tests::testFlatQueries() {
@@ -252,5 +254,5 @@ void Tests::testFlatQueries() {
     a = QueryParser::flatQueries(q);
     compare(e,a);
 
-    qDebug() << "testFlatQueries() complete";
+    qDebug() << "testFlatQueries() finished";
 }

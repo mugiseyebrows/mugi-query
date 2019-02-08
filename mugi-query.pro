@@ -8,15 +8,21 @@ QT       += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+win32 {
+
+CONFIG(debug) {
+    LIBS += -LC:/qwt6/lib -lqwtd
+} else {
+    LIBS += -LC:/qwt6/lib -lqwt
+}
 
 INCLUDEPATH += C:/qwt6/src
 
-CONFIG(debug) {
-LIBS += -LC:/qwt6/lib -lqwtd
-} else {
-LIBS += -LC:/qwt6/lib -lqwt
 }
 
+unix {
+    CONFIG += qwt
+}
 
 TARGET = mugi-query
 TEMPLATE = app
@@ -31,7 +37,6 @@ SOURCES += main.cpp\
     databasehistorydialog.cpp \
     history.cpp \
     queryparser.cpp \
-    sl.cpp \
     rowvaluegetter.cpp \
     rowvaluesetter.cpp \
     queryhistorywidget.cpp \
@@ -63,7 +68,11 @@ SOURCES += main.cpp\
     tests.cpp \
     jointokenlist.cpp \
     splitterutil.cpp \
-    dataplot.cpp
+    dataplot.cpp \
+    automation.cpp \
+    lit.cpp \
+    deleteeventfilter.cpp \
+    action.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -74,7 +83,6 @@ HEADERS  += mainwindow.h \
     databasehistorydialog.h \
     history.h \
     queryparser.h \
-    sl.h \
     rowvaluegetter.h \
     rowvaluesetter.h \
     queryhistorywidget.h \
@@ -109,7 +117,11 @@ HEADERS  += mainwindow.h \
     jointokenlist.h \
     zipunzip.h \
     splitterutil.h \
-    dataplot.h
+    dataplot.h \
+    automation.h \
+    lit.h \
+    deleteeventfilter.h \
+    action.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

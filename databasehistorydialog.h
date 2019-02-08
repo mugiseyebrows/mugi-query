@@ -39,6 +39,8 @@ public:
     int port() const;
     void refresh();
 
+    void select(const QString& connectionName);
+
 private slots:
     void on_tableView_doubleClicked(const QModelIndex &index);
 

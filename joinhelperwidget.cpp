@@ -23,8 +23,10 @@
 #include "relationsmodel.h"
 #include <QSortFilterProxyModel>
 #include <QTimer>
-#include "sl.h"
+#include "lit.h"
 #include "stringlistmodelwithheader.h"
+
+using namespace Lit;
 
 JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
     QWidget(parent),
@@ -194,7 +196,7 @@ void JoinHelperWidget::loadRelationsModel()
 void JoinHelperWidget::on_copy_clicked()
 {
     saveRelationsModel();
-    emit appendQuery(ui->query->toPlainText(),true);
+    emit appendQuery(ui->query->toPlainText());
 }
 
 void JoinHelperWidget::on_joinType_currentIndexChanged(int)
@@ -202,8 +204,10 @@ void JoinHelperWidget::on_joinType_currentIndexChanged(int)
     findPath();
 }
 
+#if 0
 void JoinHelperWidget::on_copyToNewSession_clicked()
 {
     saveRelationsModel();
-    emit appendQuery(ui->query->toPlainText(),false);
+    emit appendQuery(ui->query->toPlainText());
 }
+#endif

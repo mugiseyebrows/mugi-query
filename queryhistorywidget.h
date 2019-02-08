@@ -27,7 +27,7 @@ public:
 
     void updateQuery();
 signals:
-    void appendQuery(QString,QString,bool);
+    void appendQuery(QString,QString);
 
 private slots:
     void on_refresh_clicked();

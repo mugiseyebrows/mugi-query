@@ -41,6 +41,7 @@ public:
     QString connectionName() const;
 
 
+    void selectTab(const QString &name);
 protected:
     void closeEvent(QCloseEvent *event);
     History* mHistory;
@@ -66,8 +67,8 @@ public slots:
     void onQuery(QString query);
     void onShowQueryHistory();
     void onAddSessionWithQuery(QString);
-    void onAppendQuery(const QString &connectionName, QString, bool currentSession);
-
+    void onAppendQuery(const QString &connectionName, QString);
+    
 
 private slots:
 

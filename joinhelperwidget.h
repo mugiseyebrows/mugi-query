@@ -37,7 +37,7 @@ protected:
 
     void loadRelationsModel();
 signals:
-    void appendQuery(QString,bool);
+    void appendQuery(QString);
 
 protected slots:
     void onTablesRowInserted(int);
@@ -50,7 +50,7 @@ private slots:
 
     void on_joinType_currentIndexChanged(int index);
 
-    void on_copyToNewSession_clicked();
+    //void on_copyToNewSession_clicked();
 
 private:
     Ui::JoinHelperWidget *ui;

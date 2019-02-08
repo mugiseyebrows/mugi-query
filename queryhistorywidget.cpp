@@ -26,7 +26,7 @@ void QueryHistoryWidget::on_tableView_doubleClicked(QModelIndex index) {
     QAbstractItemModel* m = ui->tableView->model();
     QString connectionName = m->data(m->index(index.row(),col_connectionName)).toString();
     QString query = m->data(m->index(index.row(),col_query)).toString();
-    emit appendQuery(connectionName,query,false);
+    emit appendQuery(connectionName,query);
 }
 
 void QueryHistoryWidget::refresh(const QString& connectionName)

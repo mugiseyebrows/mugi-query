@@ -30,7 +30,7 @@ protected:
     int tabIndex(const QString &connectionName);
 
 signals:
-    void appendQuery(QString,QString,bool);
+    void appendQuery(QString,QString);
 
 private:
     Ui::JoinHelperWidgets *ui;

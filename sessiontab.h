@@ -58,7 +58,7 @@ protected:
     QString mName;
     bool mFirstQuery;
 
-private slots:
+public slots:
     void on_execute_clicked();
     void on_history_clicked();
 };

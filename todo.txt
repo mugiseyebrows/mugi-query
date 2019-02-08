@@ -11,6 +11,7 @@ query history:
     exec and error columns?
     button copy to new session
     highlight
+    search tables table insert/select/update/delete/alter/any filters
 find-static-functions.py
 tokens: 
     ms access functions and types
@@ -37,3 +38,10 @@ fix save data to clipboard
 fix save data 'select * from (((foo)))'
 automation for tests
 qsharedpointer for query results
+csv/tsv to sql
+propagate errors from datastreamer
+code layout
+    models
+    widgets
+    generated
+    utilities

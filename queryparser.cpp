@@ -1,6 +1,5 @@
 #include "queryparser.h"
 
-#include "sl.h"
 #include <QDebug>
 #include <QRegularExpression>
 #include "zipunzip.h"

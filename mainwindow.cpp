@@ -31,6 +31,10 @@
 #include "joinhelperwidget.h"
 #include "settingsdialog.h"
 #include "joinhelperwidgets.h"
+#include "automation.h"
+
+#include <QThread>
+#include "dataplot.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -39,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    //qDebug() << "MainWindow::MainWindow" << QThread::currentThreadId();
 
     setWindowTitle(QString("%1 %2").arg(qApp->applicationName()).arg(qApp->applicationVersion()));
 
@@ -134,7 +140,6 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
 }
 
-#include "dataplot.h"
 
 void MainWindow::onAdjustSplitter() {
     SplitterUtil::setRatio(ui->splitter,1,4);
@@ -158,6 +163,10 @@ void MainWindow::onTreeCurrentChanged(QModelIndex index,QModelIndex) {
         return;
     }
     name = m->data(index).toString();
+    selectTab(ui->sessionTabs,name);
+}
+
+void MainWindow::selectTab(const QString& name) {
     selectTab(ui->sessionTabs,name);
 }
 
@@ -297,15 +306,15 @@ void MainWindow::onAddSessionWithQuery(QString query) {
     on_addSession_triggered();
 }
 
-void MainWindow::onAppendQuery(const QString& connectionName, QString query, bool currentSession)
+void MainWindow::onAppendQuery(const QString& connectionName, QString query)
 {
-    if (!currentSession) {
-        mQuery = query;
-        selectDatabase(connectionName);
-        on_addSession_triggered();
-        return;
-    }
 
+    mQuery = query;
+    selectDatabase(connectionName);
+    on_addSession_triggered();
+    showOnTop(this);
+
+    /*
     SessionTab* tab = currentTab();
     if (!tab) {
         return;
@@ -320,14 +329,14 @@ void MainWindow::onAppendQuery(const QString& connectionName, QString query, boo
     }
 
     tab->appendQuery(query);
-    showOnTop(this);
+    showOnTop(this);*/
 }
 
 void MainWindow::onShowQueryHistory() {
     if (!mQueryHistory) {
         mQueryHistory = new QueryHistoryWidget();
-        connect(mQueryHistory,SIGNAL(appendQuery(QString,QString,bool)),
-                this,SLOT(onAppendQuery(QString,QString,bool)));
+        connect(mQueryHistory,SIGNAL(appendQuery(QString,QString)),
+                this,SLOT(onAppendQuery(QString,QString)));
     }
     mQueryHistory->refresh(currentTab()->connectionName());
     showOnTop(mQueryHistory);
@@ -415,12 +424,15 @@ void MainWindow::pushTokens(const QString &connectionName)
     }
 }
 
+
+
 void MainWindow::addDatabase(bool showHistory)
 {
     SessionModel* m = model();
     AddDatabaseDialog dialog(showHistory, this);
     QString connectionName;
 
+    Automation::instance()->beforeDialog(&dialog);
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
@@ -431,6 +443,8 @@ void MainWindow::addDatabase(bool showHistory)
     updateTokens(connectionName);
     ui->sessionTree->setCurrentIndex(m->index(m->rowCount()-1,0));
     on_addSession_triggered();
+
+    Automation::instance()->afterDialog(&dialog);
 }
 
 void MainWindow::on_addDatabase_triggered()
@@ -612,7 +626,7 @@ void MainWindow::on_queryJoin_triggered()
 
     if (!mJoinHelpers) {
         mJoinHelpers = new JoinHelperWidgets();
-        connect(mJoinHelpers,SIGNAL(appendQuery(QString,QString,bool)),this,SLOT(onAppendQuery(QString,QString,bool)));
+        connect(mJoinHelpers,SIGNAL(appendQuery(QString,QString)),this,SLOT(onAppendQuery(QString,QString)));
     }
 
     mJoinHelpers->update(connectionName,mTokens[connectionName],true);

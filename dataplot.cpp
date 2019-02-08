@@ -3,7 +3,6 @@
 
 #include "modelappender.h"
 #include <QStringListModel>
-#include "sl.h"
 #include <QStandardItemModel>
 #include "itemdelegatewithcompleter.h"
 #include <QSqlQueryModel>
@@ -13,6 +12,10 @@
 #include "zipunzip.h"
 #include "rowvaluesetter.h"
 #include <qwt_symbol.h>
+#include <qwt_plot_item.h>
+#include "deleteeventfilter.h"
+#include "lit.h"
+using namespace Lit;
 
 namespace  {
 
@@ -163,12 +166,19 @@ void DataPlot::setDefaultColors() {
     mAppender->setActive(true);
 }
 
+
+
 void DataPlot::setModel(QSqlQueryModel *model)
 {
     mModel = model;
 
     QStandardItemModel* xyModel = new QStandardItemModel(1,cols_size);
     ui->xy->setModel(xyModel);
+
+    QStringList header = sl("X","Y","Line Color","Symbol Color");
+    for(int section=0; section<header.size(); section++) {
+        xyModel->setHeaderData(section,Qt::Horizontal,header[section]);
+    }
 
     ItemDelegateWithCompleter* xyCompleter = new ItemDelegateWithCompleter(headerData(model,Qt::Horizontal));
     ItemDelegateWithCompleter* colorCompleter = new ItemDelegateWithCompleter(getColors().keys());
@@ -177,6 +187,9 @@ void DataPlot::setModel(QSqlQueryModel *model)
     ui->xy->setItemDelegateForColumn(col_y,xyCompleter);
     ui->xy->setItemDelegateForColumn(col_line,colorCompleter);
     ui->xy->setItemDelegateForColumn(col_marker,colorCompleter);
+
+    DeleteEventFilter* f = new DeleteEventFilter();
+    f->setView(ui->xy);
 
     mAppender->setModel(xyModel);
 
@@ -242,6 +255,11 @@ void DataPlot::onModelDataChanged(QModelIndex,QModelIndex,QVector<int>) {
                     QBrush( Qt::red ), QPen( Qt::red, 2 ), QSize( 8, 8 ) );
 
             curves[i]->setSymbol(symbol);*/
+        }
+
+        for(int i=xy.size();i<curves.size();i++) {
+            curves[i]->detach();
+            delete curves[i];
         }
 
         ui->plot->replot();

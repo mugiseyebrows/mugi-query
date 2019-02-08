@@ -28,6 +28,18 @@ void DatabaseHistoryDialog::refresh() {
     ui->tableView->setColumnWidth(0,160);
 }
 
+void DatabaseHistoryDialog::select(const QString &connectionName)
+{
+    QAbstractItemModel* m = ui->tableView->model();
+    for(int row=0;row<m->rowCount();row++) {
+        if (m->data(m->index(row,col_connectionName)).toString() == connectionName) {
+            ui->tableView->setCurrentIndex(m->index(row,0));
+            on_tableView_doubleClicked(QModelIndex());
+            return;
+        }
+    }
+}
+
 QVariant DatabaseHistoryDialog::data(int column) const
 {
     QAbstractItemModel* m = ui->tableView->model();
