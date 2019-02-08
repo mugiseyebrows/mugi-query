@@ -68,7 +68,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatabase">
@@ -103,6 +103,7 @@
     <property name="title">
      <string>&amp;Data</string>
     </property>
+    <addaction name="dataPlot"/>
     <addaction name="dataSave"/>
    </widget>
    <widget class="QMenu" name="menuS_election">
@@ -254,6 +255,11 @@
   <action name="settingsFormat">
    <property name="text">
     <string>Format</string>
+   </property>
+  </action>
+  <action name="dataPlot">
+   <property name="text">
+    <string>&amp;Plot</string>
    </property>
   </action>
  </widget>

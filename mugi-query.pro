@@ -8,6 +8,16 @@ QT       += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+
+INCLUDEPATH += C:/qwt6/src
+
+CONFIG(debug) {
+LIBS += -LC:/qwt6/lib -lqwtd
+} else {
+LIBS += -LC:/qwt6/lib -lqwt
+}
+
+
 TARGET = mugi-query
 TEMPLATE = app
 
@@ -52,7 +62,8 @@ SOURCES += main.cpp\
     stringstringmap.cpp \
     tests.cpp \
     jointokenlist.cpp \
-    splitterutil.cpp
+    splitterutil.cpp \
+    dataplot.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -97,7 +108,8 @@ HEADERS  += mainwindow.h \
     jointoken.h \
     jointokenlist.h \
     zipunzip.h \
-    splitterutil.h
+    splitterutil.h \
+    dataplot.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \
@@ -109,7 +121,8 @@ FORMS    += mainwindow.ui \
     userhelperdialog.ui \
     joinhelperwidget.ui \
     settingsdialog.ui \
-    joinhelperwidgets.ui
+    joinhelperwidgets.ui \
+    dataplot.ui
 
 RC_ICONS += mugi-query.ico
 

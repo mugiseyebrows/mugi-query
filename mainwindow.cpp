@@ -134,8 +134,14 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
 }
 
+#include "dataplot.h"
+
 void MainWindow::onAdjustSplitter() {
     SplitterUtil::setRatio(ui->splitter,1,4);
+
+    /*DataPlot* plot = new DataPlot();
+    plot->show();*/
+
 }
 
 void MainWindow::onTreeCurrentChanged(QModelIndex index,QModelIndex) {
@@ -639,4 +645,19 @@ void MainWindow::on_settingsFormat_triggered()
     if (dialog.exec() == QDialog::Accepted) {
 
     }
+}
+
+void MainWindow::on_dataPlot_triggered()
+{
+    SessionTab* tab = currentTab();
+    if (!tab) {
+        return;
+    }
+    QSqlQueryModel* model = tab->currentModel();
+    if (!model) {
+        return;
+    }
+    DataPlot* dataPlot = new DataPlot();
+    dataPlot->setModel(model);
+    showOnTop(dataPlot);
 }

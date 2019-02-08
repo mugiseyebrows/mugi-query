@@ -86,6 +86,7 @@ private slots:
     void on_queryQuote_triggered();
     void on_queryUnquote_triggered();
     void on_settingsFormat_triggered();
+    void on_dataPlot_triggered();
 
 private:
     Ui::MainWindow *ui;
