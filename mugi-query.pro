@@ -10,7 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 win32 {
 
-CONFIG(debug) {
+CONFIG(debug, debug|release) {
     LIBS += -LC:/qwt6/lib -lqwtd
 } else {
     LIBS += -LC:/qwt6/lib -lqwt

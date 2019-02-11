@@ -1,4 +1,10 @@
 from mugidelivery import Manager
+import os
+
+plugins = [p for p in [
+    'C:\\Qt5\\5.11.1\\mingw53_32\\plugins',
+    'D:\\qt\\Qt5.11.3\\5.11.3\\mingw53_32\\plugins'
+] if os.path.exists(p)]
 
 conf = {
     'AppName' : 'mugi-query',
@@ -6,6 +12,14 @@ conf = {
     'Binaries' : [{'Source': 'D:\\dev\\mugi-query\\release\\mugi-query.exe', 'Dest': ''}],
 
     'BuildDir' : 'D:\\dev\\mugi-query',
+     'BuildActions': [{
+        'cmds': [
+            ['qmake'],
+            #['mingw32-make.exe', 'clean', '-j4'],
+            ['mingw32-make.exe', 'release', '-j4']
+        ],
+        'cwd': 'D:\\dev\\mugi-query'
+    }],
     
     'Arch': 'win32',
     'VersionUpdater': 'QtVersionUpdater',
@@ -15,13 +29,16 @@ conf = {
     'Data': [],
     
     'QtPlugins': ['qwindows','qwindowsvistastyle',"qsqlite","qsqlmysql","qsqlodbc","qsqlpsql"],
-    'QtPluginsSource': 'C:\\Qt5\\5.11.1\\mingw53_32\\plugins'
+    'QtPluginsSource': plugins[0]
 }
 
 #  ls 'C:\qt5\5.11.1\mingw53_32\plugins\sqldrivers' | sed 's,.dll,,' | grep -v 'd$' | sed 's,\(.*\),"\1",' | tr '\n' ','
 
+if os.path.exists('D:\\Qt\\Qt5.11.3\\5.11.3\\mingw53_32\\bin'):
+    os.environ['PATH'] = 'D:\\Qt\\Qt5.11.3\\5.11.3\\mingw53_32\\bin;D:\\Qt\\Qt5.11.3\\Tools\\mingw530_32\\bin;C:\\qwt6\\lib;C:\\lib-x86;C:\\windows\\system32'
+
 m = Manager(conf)
 m.updateVersion()
-#m.build()
+m.build()
 m.pack()
 #m.release()
