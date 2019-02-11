@@ -4,8 +4,7 @@ void OutputType::initComboBox(QComboBox *comboBox)
 {
     QStringList items;
     items << "File"
-          << "New session"
-          << "Current session"
+          << "Session"
           << "Clipboard";
     comboBox->clear();
     comboBox->addItems(items);

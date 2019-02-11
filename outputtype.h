@@ -7,8 +7,7 @@ namespace OutputType
 {
     enum Type {
         File,
-        NewSession,
-        CurrentSession,
+        Session,
         Clipboard
     };
 

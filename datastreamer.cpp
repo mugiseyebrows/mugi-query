@@ -13,10 +13,14 @@
 QStringList DataStreamer::variantListToStringList(const QVariantList& values,
                                                   DataFormat::Format format,
                                                   const Formats& formats,
-                                                  const QLocale& locale) {
+                                                  const QLocale& locale,
+                                                  QString& error) {
     QStringList res;
     foreach(const QVariant& value, values) {
-        res << variantToString(value,format,formats,locale);
+        res.append(variantToString(value,format,formats,locale, error));
+        if (!error.isEmpty()) {
+            return QStringList();
+        }
     }
     return res;
 }
@@ -24,7 +28,8 @@ QStringList DataStreamer::variantListToStringList(const QVariantList& values,
 QString DataStreamer::variantToString(const QVariant& value,
                                       DataFormat::Format format,
                                       const Formats& formats,
-                                      const QLocale& locale) {
+                                      const QLocale& locale,
+                                      QString& error) {
 
     QString t;
 
@@ -78,8 +83,8 @@ QString DataStreamer::variantToString(const QVariant& value,
         case QVariant::ByteArray:
             return "0x" + value.toByteArray().toHex();
         default:
-            qDebug() << QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
-            return value.toString();
+            error = QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
+            return QString();
         }
     } else if (format == DataFormat::SqlInsert || format == DataFormat::SqlUpdate) {
         if (value.isNull()) {
@@ -107,11 +112,12 @@ QString DataStreamer::variantToString(const QVariant& value,
         case QVariant::ByteArray:
             return "0x" + value.toByteArray().toHex();
         default:
-            qDebug() << QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
-            return value.toString();
+            error = QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
+            return QString();
         }
     } else {
-        qDebug() << "variantToString not implemented for format" << format;
+        error = QString("variantToString not implemented for format").arg(format);
+        return QString();
     }
     return QString();
 }
@@ -162,7 +168,7 @@ QStringList zipJoinNull(const QStringList& vs1, const QStringList vs2) {
 
 void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model, DataFormat::Format format,
                           const QString &table, QList<bool> data, QList<bool> keys,
-                          DataFormat::ActionType action, const QLocale& locale)
+                          DataFormat::ActionType action, const QLocale& locale, QString& error)
 {
     Formats formats(action);
 
@@ -172,14 +178,20 @@ void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model, DataFormat
 
         stream << filterHeader(model,data).join(sep) << "\n";
         for(int r=0; r<model->rowCount(); r++) {
-            stream << variantListToStringList(filterData(model,r,data),format,formats,locale).join(sep) << "\n";
+            stream << variantListToStringList(filterData(model,r,data),format,formats,locale,error).join(sep) << "\n";
+            if (!error.isEmpty()) {
+                return;
+            }
         }
 
     } else if (format == DataFormat::SqlInsert) {
 
         QString columns = filterHeader(model, data).join(",");
         for(int r=0;r<model->rowCount();r++) {
-            QString values = variantListToStringList(filterData(model,r,data),format,formats,locale).join(",");
+            QString values = variantListToStringList(filterData(model,r,data),format,formats,locale,error).join(",");
+            if (!error.isEmpty()) {
+                return;
+            }
             stream << "insert into " << table << "(" << columns << ") "
                    << "values(" << values << ");\n";
         }
@@ -191,8 +203,8 @@ void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model, DataFormat
 
         for(int r=0;r<model->rowCount();r++) {
 
-            QStringList values1 = variantListToStringList(filterData(model,r,data),format,formats,locale);
-            QStringList values2 = variantListToStringList(filterData(model,r,keys),format,formats,locale);
+            QStringList values1 = variantListToStringList(filterData(model,r,data),format,formats,locale,error);
+            QStringList values2 = variantListToStringList(filterData(model,r,keys),format,formats,locale,error);
 
             stream << "update " << table << " set "
                    << zipJoin(columns1,"=",values1).join(", ")

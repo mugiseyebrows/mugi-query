@@ -9,7 +9,8 @@ public:
         ActionEmpty,
         ActionAddDatabaseFromHistory,
         ActionAppendQuery,
-        ActionExecuteCurrentQuery
+        ActionExecuteCurrentQuery,
+        ActionShowSaveDataDialog
     };
     Action();
     Action(Type type, const QVariantList& args = QVariantList());

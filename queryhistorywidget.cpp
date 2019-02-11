@@ -67,7 +67,7 @@ void QueryHistoryWidget::on_copy_clicked()
     on_tableView_doubleClicked(index);
 }
 
-void QueryHistoryWidget::on_connectionName_currentIndexChanged(const QString &arg1)
+void QueryHistoryWidget::on_connectionName_currentIndexChanged(const QString &)
 {
     updateQuery();
 }

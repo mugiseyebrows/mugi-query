@@ -74,6 +74,7 @@ QPolygonF toPolygon(const QList<QPair<QVariant,QVariant> >& data) {
     return result;
 }
 
+#if 0
 bool equal(const QList<QStringList>& vs1, const QList<QStringList>& vs2) {
     if (vs1.size() != vs2.size()) {
         return false;
@@ -85,7 +86,7 @@ bool equal(const QList<QStringList>& vs1, const QList<QStringList>& vs2) {
     }
     return true;
 }
-
+#endif
 
 QString getColor(int i) {
     static QStringList colors;

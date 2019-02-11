@@ -33,7 +33,6 @@ public:
     void cleanTabs();
 
     void setQuery(const QString& query);
-    void appendQuery(const QString &query);
 
     void focusQuery();
 
@@ -50,7 +49,7 @@ public:
 signals:
     void query(QString);
     void showQueryHistory();
-    void addSessionWithQuery(QString);
+    void appendQuery(QString);
     
 protected:
     Ui::SessionTab *ui;

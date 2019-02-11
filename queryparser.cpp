@@ -202,13 +202,15 @@ void appendIfHasMatch(QList<QRegularExpressionMatch>& ms, const QRegularExpressi
     }
 }
 
+#if 0
 QList<QRegularExpressionMatch> matched(const QRegularExpressionMatch& m1, const QRegularExpressionMatch& m2, const QRegularExpressionMatch& m3) {
     QList<QRegularExpressionMatch> res;
     appendIfHasMatch(res,m1);
     appendIfHasMatch(res,m2);
     appendIfHasMatch(res,m3);
+    return res;
 }
-
+#endif
 
 
 #if 0

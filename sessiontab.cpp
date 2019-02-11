@@ -120,8 +120,9 @@ void SessionTab::setQuery(const QString &query)
     ui->query->setPlainText(query);
 }
 
-void SessionTab::appendQuery(const QString &query) {
-    QString prev = ui->query->toPlainText();
+#if 0
+void SessionTab::onAppendQuery(QString query) {
+    /*QString prev = ui->query->toPlainText();
     if (prev.trimmed().isEmpty()) {
         setQuery(query);
         return;
@@ -132,8 +133,10 @@ void SessionTab::appendQuery(const QString &query) {
         setQuery(prev + "\n" + query);
     } else {
         setQuery(prev + ";\n" + query);
-    }
+    }*/
+    setQuery(query);
 }
+#endif
 
 void SessionTab::focusQuery()
 {
@@ -193,14 +196,23 @@ void SessionTab::saveData()
         stream = new QTextStream(&output,QIODevice::WriteOnly);
     }
 
+    QString error;
+
     DataStreamer::stream(*stream,model,dialog.format(),dialog.table(),
                          dialog.dataChecked(),dialog.keysChecked(),
-                         DataFormat::ActionSave,locale());
+                         DataFormat::ActionSave,locale(),error);
 
-    if (dialog.output() == OutputType::NewSession) {
-        emit addSessionWithQuery(output);
-    } else if (dialog.output() == OutputType::CurrentSession) {
-        appendQuery(output);
+    if (!error.isEmpty()) {
+        QMessageBox::critical(this,"Error",error);
+        if (file) {
+            file->deleteLater();
+        }
+        delete stream;
+        return;
+    }
+
+    if (dialog.output() == OutputType::Session) {
+        emit appendQuery(output);
     } else if (dialog.output() == OutputType::Clipboard) {
         QClipboard *clipboard = QApplication::clipboard();
         clipboard->setText(output);
@@ -219,13 +231,17 @@ void SessionTab::copySelected(bool asList)
     if (!model) {
         return;
     }
+    QString error;
     QItemSelection selection = currentView()->selectionModel()->selection();
     if (asList) {
-        CopyEventFilter::copySelectedAsList(model, selection, locale());
+        CopyEventFilter::copySelectedAsList(model, selection, locale(), error);
     } else {
         QString separator = "\t";
         DataFormat::Format format = DataFormat::Csv;
-        CopyEventFilter::copySelected(model, selection, format, separator, locale());
+        CopyEventFilter::copySelected(model, selection, format, separator, locale(), error);
+    }
+    if (!error.isEmpty()) {
+        QMessageBox::critical(this,"Error",error);
     }
 }
 

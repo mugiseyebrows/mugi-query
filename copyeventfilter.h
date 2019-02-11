@@ -25,15 +25,15 @@ public:
     
     static void copySelected(QAbstractItemModel *model, const QItemSelection& selection,
                              DataFormat::Format format, const QString& separator,
-                             const QLocale &locale);
+                             const QLocale &locale, QString &error);
 
     static void copySelectedAsList(QAbstractItemModel *model,
                                    const QItemSelection& selection,
-                                   const QLocale &locale);
+                                   const QLocale &locale, QString &error);
 
     static void streamRange(QTextStream &stream, const QItemSelectionRange &rng,
                             DataFormat::Format format, const QString &separator,
-                            DataFormat::ActionType action, const QLocale &locale);
+                            DataFormat::ActionType action, const QLocale &locale, QString &error);
 protected:
 
     bool eventFilter(QObject* object, QEvent *event);

@@ -45,11 +45,16 @@ void Automation::query(const QString &connectionName, const QString &query) {
     mQueued.enqueue(Action(Action::ActionExecuteCurrentQuery));
 }
 
-void Automation::afterDialog(AddDatabaseDialog *dialog) {
+void Automation::showSaveDataDialog()
+{
+    mQueued.append(Action(Action::ActionShowSaveDataDialog));
+}
+
+void Automation::afterDialog(AddDatabaseDialog *) {
 
 }
 
-void Automation::afterDialog(DatabaseHistoryDialog *dialog) {
+void Automation::afterDialog(DatabaseHistoryDialog *) {
 
     if (mAction.type() == Action::ActionAddDatabaseFromHistory) {
         mAddDatabaseDialog->accept();
@@ -66,8 +71,6 @@ void Automation::next() {
     start();
 }
 
-
-
 void Automation::onStart() {
     if (!mQueued.isEmpty()) {
         mAction = mQueued.dequeue();
@@ -80,6 +83,9 @@ void Automation::onStart() {
             next();
         } else if (mAction.type() == Action::ActionExecuteCurrentQuery) {
             mainWindow()->currentTab()->on_execute_clicked();
+            next();
+        } else if (mAction.type() == Action::ActionShowSaveDataDialog) {
+            mainWindow()->on_dataSave_triggered();
             next();
         }
     } else {

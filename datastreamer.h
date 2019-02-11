@@ -16,10 +16,16 @@ public:
 
 
     static void stream(QTextStream& stream, QSqlQueryModel* model, DataFormat::Format format, const QString& table,
-                 QList<bool> data, QList<bool> keys, DataFormat::ActionType action, const QLocale &locale);
+                 QList<bool> data, QList<bool> keys, DataFormat::ActionType action, const QLocale &locale, QString &error);
 
-    static QStringList variantListToStringList(const QVariantList &values, DataFormat::Format format, const Formats &formats, const QLocale &locale);
-    static QString variantToString(const QVariant &value, DataFormat::Format format, const Formats& formats, const QLocale& locale);
+    static QStringList variantListToStringList(const QVariantList &values,
+                                               DataFormat::Format format,
+                                               const Formats &formats,
+                                               const QLocale &locale,
+                                               QString& error);
+    static QString variantToString(const QVariant &value, DataFormat::Format format,
+                                   const Formats& formats, const QLocale& locale,
+                                   QString& error);
 };
 
 

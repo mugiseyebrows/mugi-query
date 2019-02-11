@@ -66,11 +66,8 @@ public slots:
     void onTabsCurrentChanged(int);
     void onQuery(QString query);
     void onShowQueryHistory();
-    void onAddSessionWithQuery(QString);
+    //void onAddSessionWithQuery(QString);
     void onAppendQuery(const QString &connectionName, QString);
-    
-
-private slots:
 
     void on_databaseHistory_triggered();
     void on_queryHistory_triggered();

@@ -31,7 +31,12 @@ bool CopyEventFilter::eventFilter(QObject * object, QEvent * event) {
                 return false;
             }
             QItemSelection selection = mView->selectionModel()->selection();
-            copySelected(model, selection, DataFormat::Csv, "\t", mView->locale());
+            QString error;
+            copySelected(model, selection, DataFormat::Csv, "\t", mView->locale(), error);
+            if (!error.isEmpty()) {
+                QMessageBox::critical(mView,"Error",error);
+                return false;
+            }
             return true;
         }
     }
@@ -42,23 +47,30 @@ void CopyEventFilter::streamRange(QTextStream& stream, const QItemSelectionRange
                                   DataFormat::Format format,
                                   const QString &separator,
                                   DataFormat::ActionType action,
-                                  const QLocale& locale) {
+                                  const QLocale& locale, QString& error) {
 
     Formats formats(action);
     QAbstractItemModel* model = const_cast<QAbstractItemModel*>(rng.model());
     for(int row = rng.topLeft().row(); row <= rng.bottomRight().row(); row++) {
         RowValueGetter g(model,row);
         int column = rng.topLeft().column();
-        stream << DataStreamer::variantToString(g(column++),format,formats,locale);
+        stream << DataStreamer::variantToString(g(column++), format, formats, locale, error);
+        if (!error.isEmpty()) {
+            return;
+        }
         for(;column <= rng.bottomRight().column(); column++) {
-            stream << separator << DataStreamer::variantToString(g(column),format,formats,locale);
+            stream << separator << DataStreamer::variantToString(g(column),format,formats,locale,error);
+            if (!error.isEmpty()) {
+                return;
+            }
         }
         stream << "\n";
     }
 }
 
 void CopyEventFilter::copySelected(QAbstractItemModel *model, const QItemSelection& selection,
-                                   DataFormat::Format format, const QString &separator, const QLocale& locale) {
+                                   DataFormat::Format format, const QString &separator,
+                                   const QLocale& locale, QString& error) {
 
     DataFormat::ActionType action = DataFormat::ActionCopy;
     Formats formats(action);
@@ -66,16 +78,24 @@ void CopyEventFilter::copySelected(QAbstractItemModel *model, const QItemSelecti
     // one range of one index
     if (selection.size() == 1 && selection[0].topLeft() == selection[0].bottomRight()) {
         QClipboard *clipboard = QApplication::clipboard();
-        QString data = DataStreamer::variantToString(model->data(selection[0].topLeft()),format,formats,locale);
+        QString data = DataStreamer::variantToString(model->data(selection[0].topLeft()),format,formats,locale,error);
+        if (!error.isEmpty()) {
+            return;
+        }
         clipboard->setText(data);
         return;
     }
+
+
 
     // many ranges
     QString data;
     QTextStream stream(&data);
     foreach(const QItemSelectionRange& rng, selection) {
-        streamRange(stream, rng, format, separator, action, locale);
+        streamRange(stream, rng, format, separator, action, locale, error);
+        if (!error.isEmpty()) {
+            return;
+        }
     }
     stream.flush();
     QClipboard *clipboard = QApplication::clipboard();
@@ -85,7 +105,7 @@ void CopyEventFilter::copySelected(QAbstractItemModel *model, const QItemSelecti
 
 void CopyEventFilter::copySelectedAsList(QAbstractItemModel *model,
                                          const QItemSelection &selection,
-                                         const QLocale& locale)
+                                         const QLocale& locale, QString& error)
 {
     QVariantList vs;
     foreach(const QItemSelectionRange& rng, selection) {
@@ -96,7 +116,10 @@ void CopyEventFilter::copySelectedAsList(QAbstractItemModel *model,
         }
     }
     Formats formats(DataFormat::ActionCopy);
-    QStringList ss = DataStreamer::variantListToStringList(vs,DataFormat::SqlInsert,formats,locale);
+    QStringList ss = DataStreamer::variantListToStringList(vs,DataFormat::SqlInsert,formats,locale,error);
+    if (!error.isEmpty()) {
+        return;
+    }
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText("(" + ss.join(",") + ")");
     return;
