@@ -39,7 +39,6 @@ fix save data 'select * from (((foo)))'
 automation for tests
 qsharedpointer for query results
 csv/tsv to sql
-propagate errors from datastreamer
 code layout
     models
     widgets

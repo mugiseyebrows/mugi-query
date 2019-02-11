@@ -15,9 +15,52 @@
 #include <qwt_plot_item.h>
 #include "deleteeventfilter.h"
 #include "lit.h"
+#include <qwt_plot_multi_barchart.h>
+#include <qwt_scale_draw.h>
+#include <qwt_plot_layout.h>
+#include "xyplotmodel.h"
+#include "distributionplotitem.h"
+#include <qwt_column_symbol.h>
+#include <qwt_legend.h>
+
 using namespace Lit;
 
 namespace  {
+
+template <class T>
+QList<T*> filterItems(QwtPlot* plot, int rtti) {
+    QList<T*> result;
+    QwtPlotItemList items = plot->itemList();
+    foreach (QwtPlotItem* item, items) {
+        if (item->rtti() == rtti) {
+            T* curve = static_cast<T*>(item);
+            result.append(curve);
+        }
+    }
+    return result;
+}
+
+QList<QwtPlotMultiBarChart*> multibarCharts(QwtPlot* plot) {
+    return filterItems<QwtPlotMultiBarChart>(plot, QwtPlotItem::Rtti_PlotMultiBarChart);
+}
+
+QList<QwtPlotCurve*> curves(QwtPlot* plot) {
+    return filterItems<QwtPlotCurve>(plot, QwtPlotItem::Rtti_PlotCurve);
+}
+
+#if 0
+QList<QwtPlotMultiBarChart*> mutibarCharts(QwtPlot* plot) {
+    QList<QwtPlotMultiBarChart*> result;
+    QwtPlotItemList items = plot->itemList();
+    foreach (QwtPlotItem* item, items) {
+        if (item->rtti() == QwtPlotItem::Rtti_PlotMultiBarChart) {
+            QwtPlotCurve* curve = static_cast<QwtPlotCurve*>(item);
+            result.append(curve);
+        }
+    }
+    return result;
+}
+
 
 QList<QwtPlotCurve*> curves(QwtPlot* plot) {
     QList<QwtPlotCurve*> result;
@@ -30,6 +73,7 @@ QList<QwtPlotCurve*> curves(QwtPlot* plot) {
     }
     return result;
 }
+#endif
 
 QStringList headerData(const QAbstractItemModel* model, Qt::Orientation orientation) {
     QStringList result;
@@ -40,6 +84,13 @@ QStringList headerData(const QAbstractItemModel* model, Qt::Orientation orientat
     return result;
 }
 
+QStringList toLower(const QStringList& vs) {
+    QStringList result;
+    foreach(const QString& v, vs) {
+        result << v.toLower();
+    }
+    return result;
+}
 
 QVariantList columnData(const QAbstractItemModel* model,int column) {
     QVariantList result;
@@ -50,6 +101,36 @@ QVariantList columnData(const QAbstractItemModel* model,int column) {
     } else {
         for(int row = 0; row < model->rowCount(); row++) {
             result << model->data(model->index(row,column));
+        }
+    }
+    return result;
+}
+
+bool qIsNumericType(uint tp)
+{
+    static const qulonglong numericTypeBits =
+            Q_UINT64_C(1) << QMetaType::Bool |
+            Q_UINT64_C(1) << QMetaType::Double |
+            Q_UINT64_C(1) << QMetaType::Float |
+            Q_UINT64_C(1) << QMetaType::Char |
+            Q_UINT64_C(1) << QMetaType::SChar |
+            Q_UINT64_C(1) << QMetaType::UChar |
+            Q_UINT64_C(1) << QMetaType::Short |
+            Q_UINT64_C(1) << QMetaType::UShort |
+            Q_UINT64_C(1) << QMetaType::Int |
+            Q_UINT64_C(1) << QMetaType::UInt |
+            Q_UINT64_C(1) << QMetaType::Long |
+            Q_UINT64_C(1) << QMetaType::ULong |
+            Q_UINT64_C(1) << QMetaType::LongLong |
+            Q_UINT64_C(1) << QMetaType::ULongLong;
+    return tp < (CHAR_BIT * sizeof numericTypeBits) ? numericTypeBits & (Q_UINT64_C(1) << tp) : false;
+}
+
+QVariantList filterNumeric(const QVariantList& data) {
+    QVariantList result;
+    foreach (const QVariant& v, data) {
+        if (!v.isNull() && qIsNumericType(v.type())) {
+            result << v;
         }
     }
     return result;
@@ -135,14 +216,74 @@ QMap<QString, Qt::GlobalColor> getColors() {
 
 }
 
+#include <qwt_plot_legenditem.h>
+
+void DataPlot::initDistribution() {
+    QwtPlotMultiBarChart* chart = new QwtPlotMultiBarChart();
+    chart->setLayoutPolicy( QwtPlotMultiBarChart::AutoAdjustSamples );
+    chart->setSpacing( 3 );
+    chart->setMargin( 3 );
+    chart->attach(ui->distributionPlot);
+
+    ui->distributionPlot->setAutoReplot( true );
+
+    //ui->distributionPlot->insertLegend(new QwtLegend());
+
+    QwtPlotLegendItem* legend = new QwtPlotLegendItem();
+    legend->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    legend->setMaxColumns(1);
+    legend->attach(ui->distributionPlot);
+
+    DistributionPlotModel* model = new DistributionPlotModel(this);
+
+    ui->distribution->setModel(model);
+    connect(model,
+            SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)),
+            this,
+            SLOT(onDistributionPlotModelChanged(QModelIndex,QModelIndex,QVector<int>)));
+
+    mAppenderDistribution->setModel(model);
+
+
+
+    connect(mAppenderDistribution,SIGNAL(rowInserted(int)),this,SLOT(setDefaultColorsDistributionPlot()));
+}
+
+void DataPlot::initXY() {
+    ui->xyPlot->setAxisAutoScale(QwtPlot::xBottom);
+    ui->xyPlot->setAxisAutoScale(QwtPlot::yLeft);
+
+    QStandardItemModel* xyModel = new XYPlotModel(this);
+    ui->xy->setModel(xyModel);
+
+    mAppenderXYPlot->setModel(xyModel);
+
+    connect(xyModel,SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)),this,SLOT(onXYModelDataChanged(QModelIndex,QModelIndex,QVector<int>)));
+
+    ui->bins->setValue(12);
+    connect(ui->bins,SIGNAL(valueChanged(int)),this,SLOT(onBinsValueChanged(int)));
+
+    connect(mAppenderXYPlot,SIGNAL(rowInserted(int)),this,SLOT(setDefaultColorsXYPlot()));
+}
+
 DataPlot::DataPlot(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DataPlot),
-    mAppender(new ModelAppender())
+    mAppenderXYPlot(new ModelAppender(this)),
+    mAppenderDistribution(new ModelAppender(this))
 {
     ui->setupUi(this);
-    ui->plot->setAxisAutoScale(QwtPlot::xBottom);
-    ui->plot->setAxisAutoScale(QwtPlot::yLeft);
+    initXY();
+    initDistribution();
+}
+
+void DataPlot::onDistributionPlotModelChanged(QModelIndex,QModelIndex,QVector<int>) {
+    DistributionPlotModel* model = qobject_cast<DistributionPlotModel*>(ui->distribution->model());
+    QList<DistributionPlotItem> items = model->items(modelHeader());
+    if (mDistribution != items) {
+        mDistribution = items;
+    }
+    updateDistribution();
 }
 
 DataPlot::~DataPlot()
@@ -150,6 +291,39 @@ DataPlot::~DataPlot()
     delete ui;
 }
 
+void setDefaultColors(ModelAppender* appender, QAbstractItemModel* model,
+                                const QList<int>& nonEmpty, const QList<int>& nthColor,
+                                const QList<int>& noneColor) {
+    appender->setActive(false);
+
+    for(int row = 0; row < model->rowCount() - 1; row++) {
+        RowValueGetter g(model,row);
+        RowValueSetter s(model,row);
+        bool ok = nonEmpty.size() == 0;
+        foreach(int column, nonEmpty) {
+            if (!g(column).isNull()) {
+                ok = true;
+            }
+        }
+        if (!ok) {
+            continue;
+        }
+        foreach(int column, nthColor) {
+            if (g(column).isNull()) {
+                s(column,getColor(row));
+            }
+        }
+        foreach(int column, noneColor) {
+            if (g(column).isNull()) {
+                s(column,"none");
+            }
+        }
+    }
+
+    appender->setActive(true);
+}
+
+#if 0
 void DataPlot::setDefaultColors() {
     mAppender->setActive(false);
     QAbstractItemModel* model = ui->xy->model();
@@ -166,6 +340,7 @@ void DataPlot::setDefaultColors() {
     }
     mAppender->setActive(true);
 }
+#endif
 
 
 
@@ -173,68 +348,70 @@ void DataPlot::setModel(QSqlQueryModel *model)
 {
     mModel = model;
 
-    QStandardItemModel* xyModel = new QStandardItemModel(1,cols_size);
-    ui->xy->setModel(xyModel);
+    QStringList header = modelHeader();
 
-    QStringList header = sl("X","Y","Line Color","Symbol Color");
-    for(int section=0; section<header.size(); section++) {
-        xyModel->setHeaderData(section,Qt::Horizontal,header[section]);
-    }
-
-    ItemDelegateWithCompleter* xyCompleter = new ItemDelegateWithCompleter(headerData(model,Qt::Horizontal));
+    ItemDelegateWithCompleter* xyCompleter = new ItemDelegateWithCompleter(header);
     ItemDelegateWithCompleter* colorCompleter = new ItemDelegateWithCompleter(getColors().keys());
 
-    ui->xy->setItemDelegateForColumn(col_x,xyCompleter);
-    ui->xy->setItemDelegateForColumn(col_y,xyCompleter);
-    ui->xy->setItemDelegateForColumn(col_line,colorCompleter);
-    ui->xy->setItemDelegateForColumn(col_marker,colorCompleter);
+    ui->xy->setItemDelegateForColumn(XYPlotModel::col_x,xyCompleter);
+    ui->xy->setItemDelegateForColumn(XYPlotModel::col_y,xyCompleter);
+    ui->xy->setItemDelegateForColumn(XYPlotModel::col_line,colorCompleter);
+    ui->xy->setItemDelegateForColumn(XYPlotModel::col_marker,colorCompleter);
 
-    DeleteEventFilter* f = new DeleteEventFilter();
-    f->setView(ui->xy);
+    ui->distribution->setItemDelegateForColumn(DistributionPlotModel::col_color,colorCompleter);
+    ui->distribution->setItemDelegateForColumn(DistributionPlotModel::col_x,xyCompleter);
 
-    mAppender->setModel(xyModel);
+    (new DeleteEventFilter(this))->setView(ui->xy);
+    (new DeleteEventFilter(this))->setView(ui->distribution);
 
-    setDefaultColors();
+    setDefaultColorsXYPlot();
+    setDefaultColorsDistributionPlot();
 
-    connect(xyModel,SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)),this,SLOT(onModelDataChanged(QModelIndex,QModelIndex,QVector<int>)));
-    connect(mAppender,SIGNAL(rowInserted(int)),this,SLOT(setDefaultColors()));
+    //connect(ui->distribution,SIGNAL(currentIndexChanged(QString)),this,SLOT(onDistributionCurrentIndexChanged(QString)));
+
+    /*ui->distribution->clear();
+    ui->distribution->addItems(header);*/
+
 }
 
-void DataPlot::onModelDataChanged(QModelIndex,QModelIndex,QVector<int>) {
+QStringList DataPlot::modelHeader() {
+    return toLower(headerData(mModel,Qt::Horizontal));
+}
 
-    QAbstractItemModel* model = ui->xy->model();
 
-    QStringList header = headerData(mModel,Qt::Horizontal);
+Qt::GlobalColor toGlobalColor(const QString& color) {
+    auto colors = getColors();
+    return colors.value(color,Qt::transparent);
+}
 
-    QList<QStringList> xy;
-    for(int row=0;row<model->rowCount();row++) {
-        RowValueGetter g(model,row);
-        QString x = g(col_x).toString();
-        QString y = g(col_y).toString();
-        QString line = g(col_line).toString();
-        QString marker = g(col_marker).toString();
-        if (/*x.isEmpty() ||*/ y.isEmpty() /*|| !header.contains(x)*/ || !header.contains(y)) {
-            continue;
-        }
-        xy << sl(x,y,line,marker);
-    }
-    if (/*!equal(xy,mXy)*/xy != mXy) {
+void DataPlot::onXYModelDataChanged(QModelIndex,QModelIndex,QVector<int>) {
 
-        qDebug() << "xy != mXy";
+    XYPlotModel* model = qobject_cast<XYPlotModel*>(ui->xy->model());
 
-        QList<QwtPlotCurve*> curves = ::curves(ui->plot);
+    QStringList header = modelHeader();
+
+    QList<XYPlotModelItem> xy = model->items(header);
+
+    if (xy != mXy) {
+
+        //qDebug() << "xy != mXy";
+
+        QList<QwtPlotCurve*> curves = ::curves(ui->xyPlot);
         int attached = curves.size();
         while(curves.size() < xy.size()) {
             curves.append(new QwtPlotCurve());
         }
 
-        auto colors = getColors();
+        //auto colors = getColors();
 
         for(int i=0;i<xy.size();i++) {
-            int x = header.indexOf(xy[i][0]);
-            int y = header.indexOf(xy[i][1]);
-            Qt::GlobalColor line = colors[xy[i][2]];
-            Qt::GlobalColor marker = colors[xy[i][3]];
+
+            const XYPlotModelItem& item = xy[i];
+
+            int x = item.x();
+            int y = item.y();
+            Qt::GlobalColor line = toGlobalColor(item.line());
+            Qt::GlobalColor marker = toGlobalColor(item.marker());
 
             QPolygonF polygon = toPolygon(filterNull(zipToPairList(columnData(mModel,x),columnData(mModel,y))));
             curves[i]->setSamples(polygon);
@@ -248,14 +425,8 @@ void DataPlot::onModelDataChanged(QModelIndex,QModelIndex,QVector<int>) {
             curves[i]->setSymbol(symbol);
         }
         for(int i=attached;i<curves.size();i++) {
-            curves[i]->attach(ui->plot);
-            //curves[i]->setPen(Qt::red, 2);
+            curves[i]->attach(ui->xyPlot);
             curves[i]->setRenderHint(QwtPlotItem::RenderAntialiased, true);
-
-            /*QwtSymbol *symbol = new QwtSymbol( QwtSymbol::Ellipse,
-                    QBrush( Qt::red ), QPen( Qt::red, 2 ), QSize( 8, 8 ) );
-
-            curves[i]->setSymbol(symbol);*/
         }
 
         for(int i=xy.size();i<curves.size();i++) {
@@ -263,8 +434,145 @@ void DataPlot::onModelDataChanged(QModelIndex,QModelIndex,QVector<int>) {
             delete curves[i];
         }
 
-        ui->plot->replot();
+        ui->xyPlot->replot();
         mXy = xy;
     }
 
 }
+
+QVector<double> toDoubleVector(const QVariantList& vs) {
+    QVector<double> res;
+    QVariant v;
+    foreach(v,vs) {
+        res.append(v.toDouble());
+    }
+    return res;
+}
+
+QList<double> toDouble(const QVariantList& vs) {
+    QList<double> res;
+    QVariant v;
+    foreach(v,vs) {
+        res.append(v.toDouble());
+    }
+    return res;
+}
+
+
+
+void DataPlot::updateDistribution() {
+
+    int numBars = mDistribution.size();
+    int bins = ui->bins->value();
+    if (bins < 1 || numBars < 1) {
+        return;
+    }
+
+    QStringList header = modelHeader();
+
+    QList<QList<double> > values;
+
+    for(int i=0;i<numBars;i++) {
+
+        const DistributionPlotItem& item = mDistribution[i];
+
+        QList<double> values_ = toDouble(filterNumeric(columnData(mModel,item.column())));
+        if (values_.isEmpty()) {
+            values_.append(0.0);
+        }
+        values.append(values_);
+    }
+
+    double min = values[0][0];
+    double max = values[0][0];
+
+    for(int i=0;i<numBars;i++) {
+        const QList<double> values_ = values[i];
+        double min_ = *std::min_element(values_.begin(),values_.end());
+        double max_ = *std::max_element(values_.begin(),values_.end());
+        min = qMin(min_, min);
+        max = qMax(max_, max);
+    }
+
+    double w = max - min;
+
+    QList<QVector<double> > hist;
+    while(hist.size() < bins) {
+        QVector<double> zeros;
+        while(zeros.size() < numBars) {
+            zeros.append(0.0);
+        }
+        hist.append(zeros);
+    }
+
+    for(int i=0;i<numBars;i++) {
+        const QList<double> values_ = values[i];
+        foreach(double v, values_) {
+            int index = qMin((int)((v - min) * (double) bins / w), hist.size() - 1);
+            hist[index][i] += 1.0;
+        }
+    }
+
+    QList<QwtPlotMultiBarChart*> barCharts = multibarCharts(ui->distributionPlot);
+
+    QwtPlotMultiBarChart* chart = barCharts[0];
+
+        QList<QwtText> titles;
+        for ( int i = 0; i < numBars; i++ )
+        {
+            const DistributionPlotItem& item = mDistribution[i];
+            titles.append(header.value(item.column()));
+        }
+        chart->setBarTitles(titles);
+
+        chart->setLegendIconSize( QSize( 10, 14 ) );
+
+        for ( int i = 0; i < numBars; i++ )
+        {
+            const DistributionPlotItem& item = mDistribution[i];
+            QwtColumnSymbol *symbol = new QwtColumnSymbol( QwtColumnSymbol::Box );
+            symbol->setLineWidth( 2 );
+            symbol->setFrameStyle( QwtColumnSymbol::Raised );
+            symbol->setPalette( QPalette( toGlobalColor(item.color()) ) );
+            chart->setSymbol( i, symbol );
+        }
+
+
+        QVector<QwtSetSample> samples;
+
+        for(int i=0;i<hist.size();i++) {
+            samples += QwtSetSample(min + (w * ((double)i + 0.5)) / bins, hist[i]);
+        }
+
+        //samples += QwtSetSample(3.0, hist);
+
+    chart->setSamples( samples );
+
+    //setDistributionPlotOrientation(d_barChartItem, 0);
+
+}
+
+
+void DataPlot::onBinsValueChanged(int) {
+    updateDistribution();
+}
+
+void DataPlot::onDistributionCurrentIndexChanged(QString) {
+    updateDistribution();
+}
+
+void DataPlot::setDefaultColorsXYPlot() {
+    setDefaultColors(mAppenderXYPlot,
+                     ui->xy->model(),
+                     il(XYPlotModel::col_x, XYPlotModel::col_y),
+                     il(XYPlotModel::col_line),
+                     il(XYPlotModel::col_marker));
+}
+void DataPlot::setDefaultColorsDistributionPlot() {
+    setDefaultColors(mAppenderDistribution,
+                     ui->distribution->model(),
+                     il(DistributionPlotModel::col_x),
+                     il(DistributionPlotModel::col_color),
+                     il());
+}
+

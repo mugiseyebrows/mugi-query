@@ -285,7 +285,6 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
     SessionTab* tab = new SessionTab(connectionName, name, ui->sessionTabs);
 
     connect(tab,SIGNAL(showQueryHistory()),this,SLOT(onShowQueryHistory()));
-    connect(tab,SIGNAL(addSessionWithQuery(QString)),this,SLOT(onAddSessionWithQuery(QString)));
 
     ui->sessionTabs->insertTab(index+1,tab,name);
     connect(tab,SIGNAL(query(QString)),this,SLOT(onQuery(QString)));
@@ -301,10 +300,6 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
 
 }
 
-void MainWindow::onAddSessionWithQuery(QString query) {
-    mQuery = query;
-    on_addSession_triggered();
-}
 
 void MainWindow::onAppendQuery(const QString& connectionName, QString query)
 {

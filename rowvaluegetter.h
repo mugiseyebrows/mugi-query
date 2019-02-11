@@ -6,11 +6,11 @@ class QAbstractItemModel;
 
 class RowValueGetter {
 public:
-    RowValueGetter(QAbstractItemModel* model, int row);
+    RowValueGetter(const QAbstractItemModel* model, int row);
     virtual ~RowValueGetter();
-    virtual QVariant operator()(int col) ;
+    virtual QVariant operator()(int col) const ;
 protected:
-    QAbstractItemModel* mModel;
+    const QAbstractItemModel* mModel;
     int mRow;
 };
 

@@ -72,7 +72,13 @@ SOURCES += main.cpp\
     automation.cpp \
     lit.cpp \
     deleteeventfilter.cpp \
-    action.cpp
+    action.cpp \
+    intlineedit.cpp \
+    distributionplotmodel.cpp \
+    xyplotmodel.cpp \
+    xyplotmodelitem.cpp \
+    setheaderdata.cpp \
+    distributionplotitem.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -121,7 +127,13 @@ HEADERS  += mainwindow.h \
     automation.h \
     lit.h \
     deleteeventfilter.h \
-    action.h
+    action.h \
+    intlineedit.h \
+    distributionplotmodel.h \
+    xyplotmodel.h \
+    xyplotmodelitem.h \
+    setheaderdata.h \
+    distributionplotitem.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \

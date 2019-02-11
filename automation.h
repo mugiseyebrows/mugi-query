@@ -21,6 +21,7 @@ public:
     void addDatabaseFromHistory(const QString& connectionName);
     void query(const QString &connectionName, const QString &query);
     void showSaveDataDialog();
+    void showDataPlot();
 
     void beforeDialog(DatabaseHistoryDialog* dialog);
     void beforeDialog(AddDatabaseDialog *dialog);

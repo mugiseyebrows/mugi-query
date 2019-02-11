@@ -101,7 +101,7 @@ Highlighter::Highlighter(const Tokens &tokens, QTextDocument *parent) : QSyntaxH
     commentStartExpression = QRegularExpression("/\\*");
     commentEndExpression = QRegularExpression("\\*/");
 
-    qDebug() << highlightingRules.size() << "rules";
+    //qDebug() << highlightingRules.size() << "rules";
 
 }
 
