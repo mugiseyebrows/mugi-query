@@ -22,6 +22,9 @@
 #include "distributionplotitem.h"
 #include <qwt_column_symbol.h>
 #include <qwt_legend.h>
+#include "setdefaultcolors.h"
+
+#include "qisnumerictype.h"
 
 using namespace Lit;
 
@@ -39,7 +42,7 @@ QList<T*> filterItems(QwtPlot* plot, int rtti) {
     }
     return result;
 }
-
+#if 0
 QList<QwtPlotMultiBarChart*> multibarCharts(QwtPlot* plot) {
     return filterItems<QwtPlotMultiBarChart>(plot, QwtPlotItem::Rtti_PlotMultiBarChart);
 }
@@ -48,7 +51,6 @@ QList<QwtPlotCurve*> curves(QwtPlot* plot) {
     return filterItems<QwtPlotCurve>(plot, QwtPlotItem::Rtti_PlotCurve);
 }
 
-#if 0
 QList<QwtPlotMultiBarChart*> mutibarCharts(QwtPlot* plot) {
     QList<QwtPlotMultiBarChart*> result;
     QwtPlotItemList items = plot->itemList();
@@ -92,6 +94,9 @@ QStringList toLower(const QStringList& vs) {
     return result;
 }
 
+
+
+#if 0
 QVariantList columnData(const QAbstractItemModel* model,int column) {
     QVariantList result;
     if (column < 0) {
@@ -104,26 +109,6 @@ QVariantList columnData(const QAbstractItemModel* model,int column) {
         }
     }
     return result;
-}
-
-bool qIsNumericType(uint tp)
-{
-    static const qulonglong numericTypeBits =
-            Q_UINT64_C(1) << QMetaType::Bool |
-            Q_UINT64_C(1) << QMetaType::Double |
-            Q_UINT64_C(1) << QMetaType::Float |
-            Q_UINT64_C(1) << QMetaType::Char |
-            Q_UINT64_C(1) << QMetaType::SChar |
-            Q_UINT64_C(1) << QMetaType::UChar |
-            Q_UINT64_C(1) << QMetaType::Short |
-            Q_UINT64_C(1) << QMetaType::UShort |
-            Q_UINT64_C(1) << QMetaType::Int |
-            Q_UINT64_C(1) << QMetaType::UInt |
-            Q_UINT64_C(1) << QMetaType::Long |
-            Q_UINT64_C(1) << QMetaType::ULong |
-            Q_UINT64_C(1) << QMetaType::LongLong |
-            Q_UINT64_C(1) << QMetaType::ULongLong;
-    return tp < (CHAR_BIT * sizeof numericTypeBits) ? numericTypeBits & (Q_UINT64_C(1) << tp) : false;
 }
 
 QVariantList filterNumeric(const QVariantList& data) {
@@ -154,6 +139,7 @@ QPolygonF toPolygon(const QList<QPair<QVariant,QVariant> >& data) {
     }
     return result;
 }
+#endif
 
 #if 0
 bool equal(const QList<QStringList>& vs1, const QList<QStringList>& vs2) {
@@ -169,10 +155,11 @@ bool equal(const QList<QStringList>& vs1, const QList<QStringList>& vs2) {
 }
 #endif
 
+#if 0
 QString getColor(int i) {
-    static QStringList colors;
-    if (colors.isEmpty()) {
-        colors << "red"
+    static QStringList palette;
+    if (palette.isEmpty()) {
+        palette << "red"
                << "green"
                << "blue"
                << "cyan"
@@ -185,8 +172,9 @@ QString getColor(int i) {
                << "darkMagenta"
                << "darkYellow";
     }
-    return colors[i % colors.size()];
+    return palette[i % palette.size()];
 }
+#endif
 
 QMap<QString, Qt::GlobalColor> getColors() {
     static QMap<QString, Qt::GlobalColor> colors;
@@ -291,38 +279,6 @@ DataPlot::~DataPlot()
     delete ui;
 }
 
-void setDefaultColors(ModelAppender* appender, QAbstractItemModel* model,
-                                const QList<int>& nonEmpty, const QList<int>& nthColor,
-                                const QList<int>& noneColor) {
-    appender->setActive(false);
-
-    for(int row = 0; row < model->rowCount() - 1; row++) {
-        RowValueGetter g(model,row);
-        RowValueSetter s(model,row);
-        bool ok = nonEmpty.size() == 0;
-        foreach(int column, nonEmpty) {
-            if (!g(column).isNull()) {
-                ok = true;
-            }
-        }
-        if (!ok) {
-            continue;
-        }
-        foreach(int column, nthColor) {
-            if (g(column).isNull()) {
-                s(column,getColor(row));
-            }
-        }
-        foreach(int column, noneColor) {
-            if (g(column).isNull()) {
-                s(column,"none");
-            }
-        }
-    }
-
-    appender->setActive(true);
-}
-
 #if 0
 void DataPlot::setDefaultColors() {
     mAppender->setActive(false);
@@ -384,6 +340,10 @@ Qt::GlobalColor toGlobalColor(const QString& color) {
     return colors.value(color,Qt::transparent);
 }
 
+#include "filterplotitem.h"
+#include "datautils.h"
+using namespace DataUtils;
+
 void DataPlot::onXYModelDataChanged(QModelIndex,QModelIndex,QVector<int>) {
 
     XYPlotModel* model = qobject_cast<XYPlotModel*>(ui->xy->model());
@@ -396,7 +356,7 @@ void DataPlot::onXYModelDataChanged(QModelIndex,QModelIndex,QVector<int>) {
 
         //qDebug() << "xy != mXy";
 
-        QList<QwtPlotCurve*> curves = ::curves(ui->xyPlot);
+        QList<QwtPlotCurve*> curves = filterCurves(ui->xyPlot);
         int attached = curves.size();
         while(curves.size() < xy.size()) {
             curves.append(new QwtPlotCurve());
@@ -413,7 +373,7 @@ void DataPlot::onXYModelDataChanged(QModelIndex,QModelIndex,QVector<int>) {
             Qt::GlobalColor line = toGlobalColor(item.line());
             Qt::GlobalColor marker = toGlobalColor(item.marker());
 
-            QPolygonF polygon = toPolygon(filterNull(zipToPairList(columnData(mModel,x),columnData(mModel,y))));
+            QPolygonF polygon = toPolygon(filterNumeric(zipToPairList(columnData(mModel,x),columnData(mModel,y))));
             curves[i]->setSamples(polygon);
 
             curves[i]->setStyle(line == Qt::transparent ? QwtPlotCurve::NoCurve : QwtPlotCurve::Lines);
@@ -439,7 +399,7 @@ void DataPlot::onXYModelDataChanged(QModelIndex,QModelIndex,QVector<int>) {
     }
 
 }
-
+#if 0
 QVector<double> toDoubleVector(const QVariantList& vs) {
     QVector<double> res;
     QVariant v;
@@ -449,6 +409,7 @@ QVector<double> toDoubleVector(const QVariantList& vs) {
     return res;
 }
 
+
 QList<double> toDouble(const QVariantList& vs) {
     QList<double> res;
     QVariant v;
@@ -457,7 +418,7 @@ QList<double> toDouble(const QVariantList& vs) {
     }
     return res;
 }
-
+#endif
 
 
 void DataPlot::updateDistribution() {
@@ -513,7 +474,7 @@ void DataPlot::updateDistribution() {
         }
     }
 
-    QList<QwtPlotMultiBarChart*> barCharts = multibarCharts(ui->distributionPlot);
+    QList<QwtPlotMultiBarChart*> barCharts = filterMultiBarCharts(ui->distributionPlot);
 
     QwtPlotMultiBarChart* chart = barCharts[0];
 
@@ -557,9 +518,11 @@ void DataPlot::onBinsValueChanged(int) {
     updateDistribution();
 }
 
+/*
 void DataPlot::onDistributionCurrentIndexChanged(QString) {
     updateDistribution();
 }
+*/
 
 void DataPlot::setDefaultColorsXYPlot() {
     setDefaultColors(mAppenderXYPlot,

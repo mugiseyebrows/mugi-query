@@ -9,5 +9,6 @@ namespace SplitterUtil {
     bool setRatio(QSplitter *splitter, double r0, double r1, double r2);
     bool setRatio(QSplitter *splitter, double r0, double r1, double r2, double r3);
     bool setRatio(QSplitter *splitter, double r0, double r1, double r2, double r3, double r4);
+    bool setFixed(QSplitter *splitter, int r0, int r1);
 } // namespace SplitterUtil
 #endif // SPLITTERUTIL_H

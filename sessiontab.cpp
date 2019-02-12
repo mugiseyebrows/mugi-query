@@ -20,6 +20,8 @@
 #include "tokens.h"
 #include "highlighter.h"
 
+#include "statview.h"
+
 SessionTab::SessionTab(const QString &connectionName, const QString name, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SessionTab), mConnectionName(connectionName), mName(name), mFirstQuery(true)
@@ -27,8 +29,16 @@ SessionTab::SessionTab(const QString &connectionName, const QString name, QWidge
     ui->setupUi(this);
     cleanTabs();
     connect(ui->query,SIGNAL(submit()),this,SLOT(on_execute_clicked()));
+
+    StatView* view = new StatView(this);
+    ui->resultTabs->insertTab(ui->resultTabs->count(),view,"stat");
+    view->verticalHeader()->setDefaultSectionSize(40);
+    view->horizontalHeader()->setStretchLastSection(true);
 }
 
+StatView* SessionTab::statView() {
+    return qobject_cast<StatView*>(ui->resultTabs->widget(ui->resultTabs->count()-1));
+}
 
 SessionTab::~SessionTab()
 {
@@ -45,57 +55,48 @@ QString SessionTab::name() const
     return mName;
 }
 
-void resizeColumnsToContents(QTableView* view, int maxWidth) {
-    QAbstractItemModel* model = view->model();
-    if (!model) {
-        return;
+
+#include "querymodelview.h"
+
+QueryModelView* SessionTab::tab(int index, bool* insert) {
+    QueryModelView* tab = qobject_cast<QueryModelView*>(ui->resultTabs->widget(index));
+    *insert = false;
+    if (!tab) {
+        tab = new QueryModelView();
+        *insert = true;
     }
-    view->resizeColumnsToContents();
-    for(int c=0; c<model->columnCount(); c++) {
-        if (view->columnWidth(c) > maxWidth)
-            view->setColumnWidth(c,maxWidth);
-    }
+    return tab;
 }
 
 void SessionTab::setResult(const QStringList& queries, const QStringList errors, const QList<QSqlQueryModel *> models, const QList<int> &perf, const QList<int> &rowsAffected)
 {
-    cleanTabs();
-
     int i = 0;
-
     foreach(QSqlQueryModel * model, models) {
         if (model) {
-            QTableView* view = new QTableView();
+            bool insert = false;
+            QueryModelView* view = tab(i,&insert);
+
             view->setModel(model);
-            QString title = QString("res %1").arg(++i);
-            ui->resultTabs->insertTab(ui->resultTabs->count(),view,title);
-
-            CopyEventFilter* filter = new CopyEventFilter(view);
-            filter->setView(view);
-
-            ItemDelegate* delegate = new ItemDelegate(view);
-            view->setItemDelegate(delegate);
-
-            resizeColumnsToContents(view,this->width()/2);
+            QString title = QString("res %1").arg(i + 1);
+            if (insert) {
+                ui->resultTabs->insertTab(ui->resultTabs->count() - 1,view,title);
+            }
+            i++;
         }
     }
 
-    QTableView* view = new QTableView();
-    view->verticalHeader()->setDefaultSectionSize(40);
-    view->horizontalHeader()->setStretchLastSection(true);
+    //QTableView* view = new QTableView();
 
+    StatView* view = statView();
     QueriesStatModel* model = new QueriesStatModel(queries, errors,perf,rowsAffected,view);
     view->setModel(model);
 
     int columnWidth = (this->width() - 60 - view->horizontalHeader()->defaultSectionSize() * (model->hasErrors() ? 2 : 3)) / (model->hasErrors() ? 2 : 1);
-
     view->setColumnWidth(0,columnWidth);
-
-    QString title = "stat";
-    ui->resultTabs->insertTab(ui->resultTabs->count(),view,title);
 
     if (mFirstQuery) {
         SplitterUtil::setRatio(ui->splitter,1,5);
+        ui->resultTabs->setCurrentIndex(0);
     }
     mFirstQuery = false;
 }

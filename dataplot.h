@@ -49,7 +49,7 @@ protected slots:
     void setDefaultColorsXYPlot();
     void setDefaultColorsDistributionPlot();
     void onBinsValueChanged(int bins);
-    void onDistributionCurrentIndexChanged(QString);
+    //void onDistributionCurrentIndexChanged(QString);
     void onDistributionPlotModelChanged(QModelIndex, QModelIndex, QVector<int>);
 };
 

@@ -35,6 +35,8 @@
 
 #include <QThread>
 #include "dataplot.h"
+#include "datautils.h"
+using namespace DataUtils;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -143,10 +145,6 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
 void MainWindow::onAdjustSplitter() {
     SplitterUtil::setRatio(ui->splitter,1,4);
-
-    /*DataPlot* plot = new DataPlot();
-    plot->show();*/
-
 }
 
 void MainWindow::onTreeCurrentChanged(QModelIndex index,QModelIndex) {
@@ -227,16 +225,6 @@ int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
 
 namespace {
 
-QStringList filterEmpty(const QStringList& items) {
-    QStringList res;
-    foreach(const QString& item, items) {
-        if (!item.isEmpty()) {
-            res << item;
-        }
-    }
-    return res;
-}
-
 void showOnTop(QWidget* widget) {
     widget->show();
     widget->activateWindow();
@@ -308,23 +296,6 @@ void MainWindow::onAppendQuery(const QString& connectionName, QString query)
     selectDatabase(connectionName);
     on_addSession_triggered();
     showOnTop(this);
-
-    /*
-    SessionTab* tab = currentTab();
-    if (!tab) {
-        return;
-    }
-    if (tab->connectionName() != connectionName) {
-        int index = lastTabIndex(connectionName);
-        if (index < 0) {
-            return;
-        }
-        ui->sessionTabs->setCurrentIndex(index);
-        tab = this->tab(index);
-    }
-
-    tab->appendQuery(query);
-    showOnTop(this);*/
 }
 
 void MainWindow::onShowQueryHistory() {

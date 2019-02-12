@@ -48,3 +48,27 @@ bool SplitterUtil::setRatio(QSplitter *splitter, double r0, double r1, double r2
     ratios << r0 << r1 << r2 << r3 << r4;
     return setRatio(splitter, ratios);
 }
+
+#include <QDebug>
+
+bool SplitterUtil::setFixed(QSplitter *splitter, int r0, int r1)
+{
+    QList<int> sizes = splitter->sizes();
+    if (sizes.size() != 2) {
+        return false;
+    }
+    double sizes_sum = sum(sizes);
+    QList<int> result;
+    if (r0 < 0) {
+        result << (sizes_sum - r1) << r1;
+    } else if (r1 < 0) {
+        result << r0 << (sizes_sum - r0);
+    }
+
+    //qDebug() << "setFixed" << result;
+
+    splitter->setSizes(result);
+    return true;
+}
+
+

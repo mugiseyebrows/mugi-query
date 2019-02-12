@@ -78,7 +78,16 @@ SOURCES += main.cpp\
     xyplotmodel.cpp \
     xyplotmodelitem.cpp \
     setheaderdata.cpp \
-    distributionplotitem.cpp
+    distributionplotitem.cpp \
+    querymodelview.cpp \
+    xyplot.cpp \
+    colorpalette.cpp \
+    setdefaultcolors.cpp \
+    filterplotitem.cpp \
+    datautils.cpp \
+    qisnumerictype.cpp \
+    distributionplot.cpp \
+    statview.cpp
 
 HEADERS  += mainwindow.h \
     sessionmodel.h \
@@ -133,7 +142,16 @@ HEADERS  += mainwindow.h \
     xyplotmodel.h \
     xyplotmodelitem.h \
     setheaderdata.h \
-    distributionplotitem.h
+    distributionplotitem.h \
+    querymodelview.h \
+    xyplot.h \
+    colorpalette.h \
+    setdefaultcolors.h \
+    filterplotitem.h \
+    datautils.h \
+    qisnumerictype.h \
+    distributionplot.h \
+    statview.h
 
 FORMS    += mainwindow.ui \
     sessiontab.ui \
@@ -146,7 +164,10 @@ FORMS    += mainwindow.ui \
     joinhelperwidget.ui \
     settingsdialog.ui \
     joinhelperwidgets.ui \
-    dataplot.ui
+    dataplot.ui \
+    querymodelview.ui \
+    xyplot.ui \
+    distributionplot.ui
 
 RC_ICONS += mugi-query.ico
 

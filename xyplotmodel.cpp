@@ -6,7 +6,7 @@
 
 XYPlotModel::XYPlotModel(QObject *parent) : QStandardItemModel(1,cols_size,parent)
 {
-    ::setHeaderData(this,Qt::Horizontal,Lit::sl("X","Y","Line Color","Symbol Color"));
+    ::setHeaderData(this,Qt::Horizontal,Lit::sl("X","Y","Line","Symbol"));
 }
 
 QList<XYPlotModelItem> XYPlotModel::items(const QStringList& header) const

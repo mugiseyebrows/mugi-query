@@ -20,6 +20,7 @@ copyeventfilter: refactor
 textedit: 
     functions arguments popup
     alias tokens
+    autocomplete after '(' and before '),'
 relations: 
     fix double join
     refactor
@@ -37,10 +38,19 @@ adddatabase:
 fix save data to clipboard
 fix save data 'select * from (((foo)))'
 automation for tests
-qsharedpointer for query results
+qsharedpointer for query models
 csv/tsv to sql
 code layout
     models
     widgets
     generated
     utilities
+plot:
+    detachable
+    x range filter: auto, manual
+    title, axis titles
+    clickable bars
+    clickable points
+    xy plot zoom and pan
+    cursor values
+    

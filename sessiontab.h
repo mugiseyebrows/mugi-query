@@ -14,6 +14,8 @@ class QTableView;
 class Highlighter;
 class QTextDocument;
 class Tokens;
+class StatView;
+class QueryModelView;
 
 class SessionTab : public QWidget
 {
@@ -46,16 +48,22 @@ public:
 
     void quoteQuery();
     void unquoteQuery();
+
 signals:
     void query(QString);
     void showQueryHistory();
     void appendQuery(QString);
     
 protected:
+
+    StatView *statView();
+    QueryModelView *tab(int index, bool *insert);
+
     Ui::SessionTab *ui;
     QString mConnectionName;
     QString mName;
     bool mFirstQuery;
+
 
 public slots:
     void on_execute_clicked();
