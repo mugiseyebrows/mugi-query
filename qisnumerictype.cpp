@@ -1,6 +1,6 @@
 #include "qisnumerictype.h"
 
-#include <QMetaType>
+#include <QVariant>
 
 bool qIsNumericType(uint tp)
 {

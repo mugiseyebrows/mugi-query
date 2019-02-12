@@ -47,7 +47,7 @@ void DistributionPlot::init() {
 
     ui->plot->setAutoReplot( true );
 
-    ui->bins->setValue(12);
+    ui->bins->setValue(10);
 
     //ui->distributionPlot->insertLegend(new QwtLegend());
 

@@ -53,4 +53,4 @@ plot:
     clickable points
     xy plot zoom and pan
     cursor values
-    
+

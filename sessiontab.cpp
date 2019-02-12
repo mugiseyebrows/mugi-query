@@ -62,8 +62,12 @@ QueryModelView* SessionTab::tab(int index, bool* insert) {
     QueryModelView* tab = qobject_cast<QueryModelView*>(ui->resultTabs->widget(index));
     *insert = false;
     if (!tab) {
-        tab = new QueryModelView();
         *insert = true;
+        if (!mTabs.isEmpty()) {
+            tab = mTabs.takeFirst();
+            return tab;
+        }
+        tab = new QueryModelView();
     }
     return tab;
 }
@@ -83,6 +87,28 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
             }
             i++;
         }
+    }
+
+    QWidget* current = ui->resultTabs->currentWidget();
+
+    bool removed = false;
+    while(i < ui->resultTabs->count()) {
+        QWidget* widget = ui->resultTabs->widget(i);
+        QueryModelView* tab = qobject_cast<QueryModelView*>(widget);
+        if (tab) {
+            mTabs.append(tab);
+            ui->resultTabs->removeTab(i);
+            i--;
+            removed = true;
+            if (current == widget) {
+                int index = ui->resultTabs->count() - 2;
+                current = ui->resultTabs->widget(index > -1 ? index : 0);
+            }
+        }
+        i++;
+    }
+    if (removed) {
+        ui->resultTabs->setCurrentWidget(current);
     }
 
     //QTableView* view = new QTableView();

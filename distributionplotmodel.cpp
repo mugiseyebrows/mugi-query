@@ -3,7 +3,7 @@
 #include "setheaderdata.h"
 #include "lit.h"
 
-DistributionPlotModel::DistributionPlotModel(QObject *parent) : QStandardItemModel(1,cols_size)
+DistributionPlotModel::DistributionPlotModel(QObject *parent) : QStandardItemModel(1,cols_size,parent)
 {
     ::setHeaderData(this,Qt::Horizontal,Lit::sl("V","Color"));
 }

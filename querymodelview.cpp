@@ -70,6 +70,9 @@ bool QueryModelView::hasCurves() const
 
 void QueryModelView::on_tabs_currentChanged(int index)
 {
+
+    qDebug() << "on_tabs_currentChanged" << this << index;
+
     QSplitter* splitter = ui->splitter;
 
     int height = ui->tabs->tabBar()->height();

@@ -63,6 +63,7 @@ protected:
     QString mConnectionName;
     QString mName;
     bool mFirstQuery;
+    QList<QueryModelView*> mTabs;
 
 
 public slots:
