@@ -2,14 +2,13 @@ edit schema dialog
 users helper
 save data:
     values(),(),()
-    backticks
+    backticks (mysql)
 editable shortcuts
 beautify query
 upcase keywords
 query history: 
     save not executed on close session?
     exec and error columns?
-    button copy to new session
     highlight
     search tables table insert/select/update/delete/alter/any filters
 find-static-functions.py
@@ -19,8 +18,8 @@ tokens:
 copyeventfilter: refactor
 textedit: 
     functions arguments popup
-    alias tokens
-    autocomplete after '(' and before '),'
+    alias tokens (subqueries)
+    autocomplete after '(' and before '),;'
 relations: 
     fix double join
     refactor
@@ -37,8 +36,7 @@ adddatabase:
     search filters
 fix save data to clipboard
 fix save data 'select * from (((foo)))'
-automation for tests
-qsharedpointer for query models
+qsharedpointer for query models?
 csv/tsv to sql
 code layout
     models

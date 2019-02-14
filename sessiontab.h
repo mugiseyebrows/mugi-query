@@ -43,7 +43,7 @@ public:
     void saveData();
 
     void copySelected(bool asList);
-    QTableView *currentView();
+    QueryModelView *currentView();
     QTextDocument *document() const;
 
     void quoteQuery();
@@ -69,6 +69,8 @@ protected:
 public slots:
     void on_execute_clicked();
     void on_history_clicked();
+protected slots:
+    void on_resultTabs_currentChanged(int);
 };
 
 #endif // SESSIONTAB_H

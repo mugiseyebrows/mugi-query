@@ -42,12 +42,13 @@ public:
 
 
     void selectTab(const QString &name);
+    QMenu* selectionMenu() const;
+
 protected:
     void closeEvent(QCloseEvent *event);
     History* mHistory;
     QueryHistoryWidget* mQueryHistory;
     QMap<QString,Tokens> mTokens;
-    //QMap<QString,JoinHelperWidget*> mJoinHelpers;
     JoinHelperWidgets* mJoinHelpers;
 
     QString mQuery;
@@ -77,7 +78,6 @@ public slots:
     void on_reconnect_triggered();
     void on_queryHelp_triggered();
     void on_dataSave_triggered();
-    void on_queryCreateUser_triggered();
     void on_queryJoin_triggered();
     void on_selectionCopy_triggered();
     void on_selectionCopyAsList_triggered();

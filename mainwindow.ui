@@ -68,7 +68,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatabase">
@@ -87,7 +87,6 @@
     <addaction name="queryHistory"/>
     <addaction name="queryHelp"/>
     <addaction name="separator"/>
-    <addaction name="queryCreateUser"/>
     <addaction name="queryJoin"/>
     <addaction name="queryQuote"/>
     <addaction name="queryUnquote"/>
@@ -106,7 +105,7 @@
     <addaction name="dataPlot"/>
     <addaction name="dataSave"/>
    </widget>
-   <widget class="QMenu" name="menuS_election">
+   <widget class="QMenu" name="menuSelection">
     <property name="title">
      <string>S&amp;election</string>
     </property>
@@ -123,7 +122,7 @@
    <addaction name="menuQuery"/>
    <addaction name="menuSession"/>
    <addaction name="menuData"/>
-   <addaction name="menuS_election"/>
+   <addaction name="menuSelection"/>
    <addaction name="menuSettings"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">

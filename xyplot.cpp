@@ -92,11 +92,6 @@ QSize XYPlot::minimumSizeHint() const
     return QSize();
 }
 
-bool XYPlot::hasCurves() const
-{
-    return !mItems.isEmpty();
-}
-
 void XYPlot::setDefaultColors() {
     ::setDefaultColors(mAppender,
                      ui->table->model(),

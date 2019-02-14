@@ -56,8 +56,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mHistory = new History(this);
 
-    //Settings::instance()->setDateTimeFormat(Settings::DateTimeFormatWithSeconds);
-
     SessionModel* m = new SessionModel(ui->sessionTree);
     ui->sessionTree->setModel(m);
 
@@ -166,6 +164,11 @@ void MainWindow::onTreeCurrentChanged(QModelIndex index,QModelIndex) {
 
 void MainWindow::selectTab(const QString& name) {
     selectTab(ui->sessionTabs,name);
+}
+
+QMenu *MainWindow::selectionMenu() const
+{
+    return ui->menuSelection;
 }
 
 void MainWindow::selectTab(QTabWidget* widget, const QString& name) {
@@ -551,11 +554,13 @@ void MainWindow::on_queryHelp_triggered()
 
 void MainWindow::on_selectionCopy_triggered()
 {
+    //qDebug() << "on_selectionCopy_triggered";
     copySelected(false);
 }
 
 void MainWindow::on_selectionCopyAsList_triggered()
 {
+    //qDebug() << "on_selectionCopyAsList_triggered";
     copySelected(true);
 }
 
@@ -576,11 +581,6 @@ void MainWindow::on_dataSave_triggered()
         return;
     }
     tab->saveData();
-}
-
-void MainWindow::on_queryCreateUser_triggered()
-{
-
 }
 
 void MainWindow::on_queryJoin_triggered()

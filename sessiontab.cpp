@@ -19,8 +19,42 @@
 #include <QClipboard>
 #include "tokens.h"
 #include "highlighter.h"
+#include "querymodelview.h"
 
 #include "statview.h"
+
+namespace {
+
+void deleteLaterModel(QTableView* view) {
+    QAbstractItemModel* model = view->model();
+    view->setModel(0);
+    if (model) {
+        model->deleteLater();
+    }
+}
+
+QStringList quote(const QStringList& items) {
+    QStringList res;
+    foreach(const QString& item, items) {
+        res << "\"" + item + " \"";
+    }
+    return res;
+}
+
+QStringList unquote(const QStringList& items) {
+    QStringList res;
+    foreach(const QString& item, items) {
+        QRegExp rx("^\\s*[\"](.*)[\"]\\s*$");
+        if (item.indexOf(rx) > -1) {
+            res << rx.cap(1).trimmed();
+        } else {
+            res << item;
+        }
+    }
+    return res;
+}
+
+}
 
 SessionTab::SessionTab(const QString &connectionName, const QString name, QWidget *parent) :
     QWidget(parent),
@@ -34,6 +68,12 @@ SessionTab::SessionTab(const QString &connectionName, const QString name, QWidge
     ui->resultTabs->insertTab(ui->resultTabs->count(),view,"stat");
     view->verticalHeader()->setDefaultSectionSize(40);
     view->horizontalHeader()->setStretchLastSection(true);
+}
+
+void SessionTab::on_resultTabs_currentChanged(int index) {
+    if (QueryModelView* tab = qobject_cast<QueryModelView*>(ui->resultTabs->widget(index))) {
+        tab->updateSplitter();
+    }
 }
 
 StatView* SessionTab::statView() {
@@ -55,9 +95,6 @@ QString SessionTab::name() const
     return mName;
 }
 
-
-#include "querymodelview.h"
-
 QueryModelView* SessionTab::tab(int index, bool* insert) {
     QueryModelView* tab = qobject_cast<QueryModelView*>(ui->resultTabs->widget(index));
     *insert = false;
@@ -65,12 +102,13 @@ QueryModelView* SessionTab::tab(int index, bool* insert) {
         *insert = true;
         if (!mTabs.isEmpty()) {
             tab = mTabs.takeFirst();
-            return tab;
+        } else {
+            tab = new QueryModelView();
         }
-        tab = new QueryModelView();
     }
     return tab;
 }
+
 
 void SessionTab::setResult(const QStringList& queries, const QStringList errors, const QList<QSqlQueryModel *> models, const QList<int> &perf, const QList<int> &rowsAffected)
 {
@@ -79,11 +117,10 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
         if (model) {
             bool insert = false;
             QueryModelView* view = tab(i,&insert);
-
             view->setModel(model);
             QString title = QString("res %1").arg(i + 1);
             if (insert) {
-                ui->resultTabs->insertTab(ui->resultTabs->count() - 1,view,title);
+                ui->resultTabs->insertTab(ui->resultTabs->count() - 1, view, title);
             }
             i++;
         }
@@ -111,10 +148,9 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
         ui->resultTabs->setCurrentWidget(current);
     }
 
-    //QTableView* view = new QTableView();
-
     StatView* view = statView();
     QueriesStatModel* model = new QueriesStatModel(queries, errors,perf,rowsAffected,view);
+    deleteLaterModel(view);
     view->setModel(model);
 
     int columnWidth = (this->width() - 60 - view->horizontalHeader()->defaultSectionSize() * (model->hasErrors() ? 2 : 3)) / (model->hasErrors() ? 2 : 1);
@@ -140,6 +176,10 @@ void SessionTab::cleanTabs()
         ui->resultTabs->widget(0)->deleteLater();
         ui->resultTabs->removeTab(0);
     }
+    foreach (QueryModelView* view, mTabs) {
+        view->deleteLater();
+    }
+    mTabs.clear();
 }
 
 void SessionTab::setQuery(const QString &query)
@@ -147,36 +187,18 @@ void SessionTab::setQuery(const QString &query)
     ui->query->setPlainText(query);
 }
 
-#if 0
-void SessionTab::onAppendQuery(QString query) {
-    /*QString prev = ui->query->toPlainText();
-    if (prev.trimmed().isEmpty()) {
-        setQuery(query);
-        return;
-    }
-
-    QRegularExpression exp(";\\s+$",QRegularExpression::MultilineOption | QRegularExpression::CaseInsensitiveOption);
-    if (exp.match(prev).hasMatch()) {
-        setQuery(prev + "\n" + query);
-    } else {
-        setQuery(prev + ";\n" + query);
-    }*/
-    setQuery(query);
-}
-#endif
-
 void SessionTab::focusQuery()
 {
     ui->query->setFocus();
 }
 
-QTableView* SessionTab::currentView() {
-    return qobject_cast<QTableView*>(ui->resultTabs->currentWidget());
+QueryModelView* SessionTab::currentView() {
+    return qobject_cast<QueryModelView*>(ui->resultTabs->currentWidget());
 }
 
 QSqlQueryModel *SessionTab::currentModel()
 {
-    QTableView* view = currentView();
+    QueryModelView* view = currentView();
     if (!view) {
         return 0;
     }
@@ -280,32 +302,6 @@ void SessionTab::on_execute_clicked()
 void SessionTab::on_history_clicked()
 {
     emit showQueryHistory();
-}
-
-namespace {
-
-
-QStringList quote(const QStringList& items) {
-    QStringList res;
-    foreach(const QString& item, items) {
-        res << "\"" + item + " \"";
-    }
-    return res;
-}
-
-QStringList unquote(const QStringList& items) {
-    QStringList res;
-    foreach(const QString& item, items) {
-        QRegExp rx("^\\s*[\"](.*)[\"]\\s*$");
-        if (item.indexOf(rx) > -1) {
-            res << rx.cap(1).trimmed();
-        } else {
-            res << item;
-        }
-    }
-    return res;
-}
-
 }
 
 void SessionTab::quoteQuery() {

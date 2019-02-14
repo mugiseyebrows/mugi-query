@@ -22,8 +22,6 @@ public:
 
     QSize minimumSizeHint() const override;
 
-    bool hasCurves() const;
-
 protected:
     QStringList modelHeader();
     void init();

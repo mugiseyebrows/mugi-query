@@ -11,12 +11,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 win32 {
 
 CONFIG(debug, debug|release) {
-    LIBS += -LC:/qwt6/lib -lqwtd
+    LIBS += -LC:/Qwt-6.1.4/lib -lqwtd
 } else {
-    LIBS += -LC:/qwt6/lib -lqwt
+    LIBS += -LC:/Qwt-6.1.4/lib -lqwt
 }
 
-INCLUDEPATH += C:/qwt6/src
+INCLUDEPATH += C:/Qwt-6.1.4/include
 
 }
 

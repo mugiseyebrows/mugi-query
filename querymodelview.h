@@ -4,6 +4,7 @@
 #include <QWidget>
 
 class QAbstractItemModel;
+class QItemSelectionModel;
 
 namespace Ui {
 class QueryModelView;
@@ -19,14 +20,21 @@ public:
 
     void setModel(QAbstractItemModel* model);
 
-    bool hasCurves() const;
+    QAbstractItemModel* model() const;
 
-private slots:
+    QItemSelectionModel *selectionModel() const;
+public slots:
+    void updateSplitter();
+
+protected slots:
+
     void on_tabs_currentChanged(int index);
+    void onTableCustomContextMenuRequested(const QPoint &pos);
 
 private:
     Ui::QueryModelView *ui;
     int mTabHeight;
+    bool mSplitterUpdated;
 };
 
 #endif // QUERYMODELVIEW_H
