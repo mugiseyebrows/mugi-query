@@ -50,11 +50,6 @@ void Automation::showSaveDataDialog()
     mQueued.append(Action(Action::ActionShowSaveDataDialog));
 }
 
-void Automation::showDataPlot()
-{
-    mQueued.append(Action(Action::ActionShowDataPlot));
-}
-
 void Automation::afterDialog(AddDatabaseDialog *) {
 
 }
@@ -91,9 +86,6 @@ void Automation::onStart() {
             next();
         } else if (mAction.type() == Action::ActionShowSaveDataDialog) {
             mainWindow()->on_dataSave_triggered();
-            next();
-        } else if (mAction.type() == Action::ActionShowDataPlot) {
-            mainWindow()->on_dataPlot_triggered();
             next();
         }
     } else {

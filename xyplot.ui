@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>518</width>
+    <height>432</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,11 +31,7 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QTableView" name="table">
-      <attribute name="horizontalHeaderDefaultSectionSize">
-       <number>60</number>
-      </attribute>
-     </widget>
+     <widget class="QTableView" name="table"/>
      <widget class="QwtPlot" name="plot"/>
     </widget>
    </item>

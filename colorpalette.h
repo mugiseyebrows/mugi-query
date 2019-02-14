@@ -4,6 +4,7 @@
 #include <qnamespace.h>
 #include <QStringList>
 #include <QMap>
+#include <QColor>
 
 class ColorPalette
 {
@@ -12,17 +13,18 @@ public:
     static ColorPalette* mInstance;
     static ColorPalette* instance();
 
-    Qt::GlobalColor toGlobalColor(const QString& color) const;
+    QColor toColor(const QString& name) const;
 
     QStringList names() const;
 
     QString color(int row);
 
+    bool isTransparent(const QString &name) const;
 protected:
 
     ColorPalette();
 
-    QMap<QString, Qt::GlobalColor> colors;
+    QStringList colors;
     QStringList palette;
 
 };

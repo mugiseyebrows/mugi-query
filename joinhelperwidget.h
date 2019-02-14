@@ -50,8 +50,6 @@ private slots:
 
     void on_joinType_currentIndexChanged(int index);
 
-    //void on_copyToNewSession_clicked();
-
 private:
     Ui::JoinHelperWidget *ui;
     QString mConnectionName;

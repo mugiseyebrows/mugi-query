@@ -4,12 +4,12 @@
 
 class XYPlotModelItem {
 public:
-    XYPlotModelItem(int x, int y, const QString& line, const QString& marker);
+    XYPlotModelItem(const QString& x, const QString& y, const QString& line, const QString& marker);
     XYPlotModelItem();
-    int x() const;
-    void setX(int x);
-    int y() const;
-    void setY(int y);
+    QString x() const;
+    void setX(const QString& x);
+    QString y() const;
+    void setY(const QString& y);
     QString line() const;
     void setLine(const QString& line);
     QString marker() const;
@@ -18,8 +18,8 @@ public:
     bool operator!=(const XYPlotModelItem& rhs) const;
 
 protected:
-    int mX;
-    int mY;
+    QString mX;
+    QString mY;
     QString mLine;
     QString mMarker;
 };

@@ -68,6 +68,7 @@ QueryModelView::QueryModelView(QWidget *parent) :
 
 QueryModelView::~QueryModelView()
 {
+    qDebug() << "~QueryModelView";
     delete ui;
 }
 

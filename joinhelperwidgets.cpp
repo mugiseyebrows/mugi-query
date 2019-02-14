@@ -51,7 +51,7 @@ void JoinHelperWidgets::update(const QString &connectionName, const Tokens& toke
         w->init(connectionName);
         index = ui->tabs->count();
         ui->tabs->insertTab(index,w,connectionName);
-        connect(w,&JoinHelperWidget::appendQuery,[this,connectionName](QString query){
+        connect(w,&JoinHelperWidget::appendQuery,[=](QString query){
             emit appendQuery(connectionName,query);
         });
     }

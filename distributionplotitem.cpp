@@ -1,18 +1,18 @@
 #include "distributionplotitem.h"
 
-DistributionPlotItem::DistributionPlotItem(int column, const QString& color)
-    : mColumn(column), mColor(color) {
+DistributionPlotItem::DistributionPlotItem(const QString& v, const QString& color)
+    : mV(v), mColor(color) {
 }
 
 DistributionPlotItem::DistributionPlotItem() {
 }
 
-int DistributionPlotItem::column() const {
-    return mColumn;
+QString DistributionPlotItem::v() const {
+    return mV;
 }
 
-void DistributionPlotItem::setColumn(int column) {
-    mColumn = column;
+void DistributionPlotItem::setV(const QString& v) {
+    mV = v;
 }
 
 QString DistributionPlotItem::color() const {
@@ -24,7 +24,7 @@ void DistributionPlotItem::setColor(const QString& color) {
 }
 
 bool DistributionPlotItem::operator==(const DistributionPlotItem& rhs) const {
-    return mColumn == rhs.column() && mColor == rhs.color();
+    return mV == rhs.v() && mColor == rhs.color();
 }
 
 bool DistributionPlotItem::operator!=(const DistributionPlotItem& rhs) const {

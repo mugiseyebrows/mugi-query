@@ -203,11 +203,3 @@ void JoinHelperWidget::on_joinType_currentIndexChanged(int)
 {
     findPath();
 }
-
-#if 0
-void JoinHelperWidget::on_copyToNewSession_clicked()
-{
-    saveRelationsModel();
-    emit appendQuery(ui->query->toPlainText());
-}
-#endif

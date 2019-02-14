@@ -132,19 +132,21 @@ void XYPlot::onDataChanged(QModelIndex,QModelIndex,QVector<int>) {
 
         const XYPlotModelItem& item = items[i];
 
-        int x = item.x();
-        int y = item.y();
-        Qt::GlobalColor line = ColorPalette::instance()->toGlobalColor(item.line());
-        Qt::GlobalColor marker = ColorPalette::instance()->toGlobalColor(item.marker());
+        int x = header.indexOf(item.x());
+        int y = header.indexOf(item.y());
+        QString line = item.line();
+        QString marker = item.marker();
+
+        ColorPalette* palette = ColorPalette::instance();
 
         QPolygonF polygon = toPolygon(filterNumeric(zipToPairList(columnData(mModel,x),columnData(mModel,y))));
         curves[i]->setSamples(polygon);
 
-        curves[i]->setStyle(line == Qt::transparent ? QwtPlotCurve::NoCurve : QwtPlotCurve::Lines);
-        curves[i]->setPen(line, 2);
+        curves[i]->setStyle(palette->isTransparent(line) ? QwtPlotCurve::NoCurve : QwtPlotCurve::Lines);
+        curves[i]->setPen(palette->toColor(line), 2);
         QwtSymbol *symbol = 0;
-        if (marker != Qt::transparent) {
-            symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(marker), QPen(Qt::NoPen), QSize(6, 6));
+        if (!palette->isTransparent(marker)) {
+            symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(palette->toColor(marker)), QPen(Qt::NoPen), QSize(5, 5));
         }
         curves[i]->setSymbol(symbol);
     }

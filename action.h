@@ -10,8 +10,7 @@ public:
         ActionAddDatabaseFromHistory,
         ActionAppendQuery,
         ActionExecuteCurrentQuery,
-        ActionShowSaveDataDialog,
-        ActionShowDataPlot
+        ActionShowSaveDataDialog
     };
     Action();
     Action(Type type, const QVariantList& args = QVariantList());

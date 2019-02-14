@@ -90,7 +90,7 @@ void DistributionPlot::setModel(QAbstractItemModel *model)
 
     ItemDelegateWithCompleter* xyCompleter = new ItemDelegateWithCompleter(header);
 
-    ui->table->setItemDelegateForColumn(DistributionPlotModel::col_x,xyCompleter);
+    ui->table->setItemDelegateForColumn(DistributionPlotModel::col_v,xyCompleter);
 
     setDefaultColors();
 
@@ -111,7 +111,7 @@ void DistributionPlot::onDataChanged(QModelIndex,QModelIndex,QVector<int>) {
 void DistributionPlot::setDefaultColors() {
     ::setDefaultColors(mAppender,
                      ui->table->model(),
-                     il(DistributionPlotModel::col_x),
+                     il(DistributionPlotModel::col_v),
                      il(DistributionPlotModel::col_color),
                      il());
 }
@@ -143,7 +143,7 @@ void DistributionPlot::updateSeries() {
 
     for(int i=0;i<numBars;i++) {
         const DistributionPlotItem& item = mItems[i];
-        QList<double> values_ = toDouble(filterNumeric(columnData(mModel,item.column())));
+        QList<double> values_ = toDouble(filterNumeric(columnData(mModel,header.indexOf(item.v()))));
         values.append(values_);
     }
 
@@ -197,7 +197,7 @@ void DistributionPlot::updateSeries() {
     for ( int i = 0; i < numBars; i++ )
     {
         const DistributionPlotItem& item = mItems[i];
-        titles.append(header.value(item.column()));
+        titles.append(item.v());
     }
     chart->setBarTitles(titles);
 
@@ -208,8 +208,8 @@ void DistributionPlot::updateSeries() {
         const DistributionPlotItem& item = mItems[i];
         QwtColumnSymbol *symbol = new QwtColumnSymbol( QwtColumnSymbol::Box );
         symbol->setLineWidth( 2 );
-        symbol->setFrameStyle( QwtColumnSymbol::Raised );
-        symbol->setPalette(QPalette(ColorPalette::instance()->toGlobalColor(item.color())));
+        symbol->setFrameStyle(QwtColumnSymbol::NoFrame);
+        symbol->setPalette(QPalette(ColorPalette::instance()->toColor(item.color())));
         chart->setSymbol(i, symbol);
     }
 

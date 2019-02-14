@@ -4,17 +4,17 @@
 
 class DistributionPlotItem {
 public:
-    DistributionPlotItem(int column, const QString& color);
+    DistributionPlotItem(const QString& v, const QString& color);
     DistributionPlotItem();
-    int column() const;
-    void setColumn(int column);
+    QString v() const;
+    void setV(const QString& v);
     QString color() const;
     void setColor(const QString& color);
     bool operator==(const DistributionPlotItem& rhs) const;
     bool operator!=(const DistributionPlotItem& rhs) const;
 
 protected:
-    int mColumn;
+    QString mV;
     QString mColor;
 };
 #endif // DISTRIBUTIONPLOTITEM_H

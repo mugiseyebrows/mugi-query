@@ -34,7 +34,6 @@
 #include "automation.h"
 
 #include <QThread>
-#include "dataplot.h"
 #include "datautils.h"
 using namespace DataUtils;
 
@@ -427,6 +426,7 @@ void MainWindow::onSessionRemoved(QString connectionName, QString name) {
     for(int i=0;i<ui->sessionTabs->count();i++) {
         SessionTab* tab = this->tab(i);
         if (tab->connectionName() == connectionName && tab->name() == name) {
+            ui->sessionTabs->widget(i)->deleteLater();
             ui->sessionTabs->removeTab(i);
             return;
         }
@@ -625,19 +625,4 @@ void MainWindow::on_settingsFormat_triggered()
     if (dialog.exec() == QDialog::Accepted) {
 
     }
-}
-
-void MainWindow::on_dataPlot_triggered()
-{
-    SessionTab* tab = currentTab();
-    if (!tab) {
-        return;
-    }
-    QSqlQueryModel* model = tab->currentModel();
-    if (!model) {
-        return;
-    }
-    DataPlot* dataPlot = new DataPlot();
-    dataPlot->setModel(model);
-    showOnTop(dataPlot);
 }

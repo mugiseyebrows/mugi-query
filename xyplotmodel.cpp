@@ -21,7 +21,7 @@ QList<XYPlotModelItem> XYPlotModel::items(const QStringList& header) const
         if (y.isEmpty() || (!x.isEmpty() && y.isEmpty()) || !header.contains(y)) {
             continue;
         }
-        result.append(XYPlotModelItem(header.indexOf(x),header.indexOf(y),line,marker));
+        result.append(XYPlotModelItem(x,y,line,marker));
     }
     return result;
 }

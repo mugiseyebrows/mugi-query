@@ -19,7 +19,7 @@ copyeventfilter: refactor
 textedit: 
     functions arguments popup
     alias tokens (subqueries)
-    autocomplete after '(' and before '),;'
+    autocomplete before and after '(),;'
 relations: 
     fix double join
     refactor
@@ -29,12 +29,12 @@ dialogs:
 join helper:
     relations, tables: copy/paste/delete event filter
     reorder tables buttons
+    deduce relations %table_name%_id
 plot data
 result tab:
     context menu: selection menu
 adddatabase:
     search filters
-fix save data to clipboard
 fix save data 'select * from (((foo)))'
 qsharedpointer for query models?
 csv/tsv to sql
@@ -51,4 +51,7 @@ plot:
     clickable points
     xy plot zoom and pan
     cursor values
-
+    xy plot x as datatime
+memleaks
+clean disconnect
+more colors

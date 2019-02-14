@@ -13,10 +13,11 @@ QList<DistributionPlotItem> DistributionPlotModel::items(const QStringList& head
     QList<DistributionPlotItem> result;
     for(int row=0; row < rowCount(); row++) {
         RowValueGetter g(this,row);
+        QString v = g(col_v).toString();
         QString color = g(col_color).toString();
-        int column = header.indexOf(g(col_x).toString());
+        int column = header.indexOf(v);
         if (column > -1 && !color.isEmpty()) {
-            result.append(DistributionPlotItem(column, color));
+            result.append(DistributionPlotItem(v, color));
         }
     }
     return result;

@@ -10,7 +10,7 @@ class DistributionPlotModel : public QStandardItemModel
     Q_OBJECT
 public:
     enum cols {
-        col_x,
+        col_v,
         col_color,
         cols_size,
     };

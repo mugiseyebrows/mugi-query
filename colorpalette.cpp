@@ -12,25 +12,154 @@ ColorPalette *ColorPalette::instance()
 
 ColorPalette::ColorPalette()
 {
-    colors["black"] = Qt::black;
-    colors["white"] = Qt::white;
-    colors["darkGray"] = Qt::darkGray;
-    colors["gray"] = Qt::gray;
-    colors["lightGray"] = Qt::lightGray;
-    colors["red"] = Qt::red;
-    colors["green"] = Qt::green;
-    colors["blue"] = Qt::blue;
-    colors["cyan"] = Qt::cyan;
-    colors["magenta"] = Qt::magenta;
-    colors["yellow"] = Qt::yellow;
-    colors["darkRed"] = Qt::darkRed;
-    colors["darkGreen"] = Qt::darkGreen;
-    colors["darkBlue"] = Qt::darkBlue;
-    colors["darkCyan"] = Qt::darkCyan;
-    colors["darkMagenta"] = Qt::darkMagenta;
-    colors["darkYellow"] = Qt::darkYellow;
-    colors["transparent"] = Qt::transparent;
-    colors["none"] = Qt::transparent;
+    colors << "aliceblue"
+           << "antiquewhite"
+           << "aqua"
+           << "aquamarine"
+           << "azure"
+           << "beige"
+           << "bisque"
+           << "black"
+           << "blanchedalmond"
+           << "blue"
+           << "blueviolet"
+           << "brown"
+           << "burlywood"
+           << "cadetblue"
+           << "chartreuse"
+           << "chocolate"
+           << "coral"
+           << "cornflowerblue"
+           << "cornsilk"
+           << "crimson"
+           << "cyan"
+           << "darkblue"
+           << "darkcyan"
+           << "darkgoldenrod"
+           << "darkgray"
+           << "darkgreen"
+           << "darkgrey"
+           << "darkkhaki"
+           << "darkmagenta"
+           << "darkolivegreen"
+           << "darkorange"
+           << "darkorchid"
+           << "darkred"
+           << "darksalmon"
+           << "darkseagreen"
+           << "darkslateblue"
+           << "darkslategray"
+           << "darkslategrey"
+           << "darkturquoise"
+           << "darkviolet"
+           << "deeppink"
+           << "deepskyblue"
+           << "dimgray"
+           << "dimgrey"
+           << "dodgerblue"
+           << "firebrick"
+           << "floralwhite"
+           << "forestgreen"
+           << "fuchsia"
+           << "gainsboro"
+           << "ghostwhite"
+           << "gold"
+           << "goldenrod"
+           << "gray"
+           << "green"
+           << "greenyellow"
+           << "grey"
+           << "honeydew"
+           << "hotpink"
+           << "indianred"
+           << "indigo"
+           << "ivory"
+           << "khaki"
+           << "lavender"
+           << "lavenderblush"
+           << "lawngreen"
+           << "lemonchiffon"
+           << "lightblue"
+           << "lightcoral"
+           << "lightcyan"
+           << "lightgoldenrodyellow"
+           << "lightgray"
+           << "lightgreen"
+           << "lightgrey"
+           << "lightpink"
+           << "lightsalmon"
+           << "lightseagreen"
+           << "lightskyblue"
+           << "lightslategray"
+           << "lightslategrey"
+           << "lightsteelblue"
+           << "lightyellow"
+           << "lime"
+           << "limegreen"
+           << "linen"
+           << "magenta"
+           << "maroon"
+           << "mediumaquamarine"
+           << "mediumblue"
+           << "mediumorchid"
+           << "mediumpurple"
+           << "mediumseagreen"
+           << "mediumslateblue"
+           << "mediumspringgreen"
+           << "mediumturquoise"
+           << "mediumvioletred"
+           << "midnightblue"
+           << "mintcream"
+           << "mistyrose"
+           << "moccasin"
+           << "navajowhite"
+           << "navy"
+           << "oldlace"
+           << "olive"
+           << "olivedrab"
+           << "orange"
+           << "orangered"
+           << "orchid"
+           << "palegoldenrod"
+           << "palegreen"
+           << "paleturquoise"
+           << "palevioletred"
+           << "papayawhip"
+           << "peachpuff"
+           << "peru"
+           << "pink"
+           << "plum"
+           << "powderblue"
+           << "purple"
+           << "red"
+           << "rosybrown"
+           << "royalblue"
+           << "saddlebrown"
+           << "salmon"
+           << "sandybrown"
+           << "seagreen"
+           << "seashell"
+           << "sienna"
+           << "silver"
+           << "skyblue"
+           << "slateblue"
+           << "slategray"
+           << "slategrey"
+           << "snow"
+           << "springgreen"
+           << "steelblue"
+           << "tan"
+           << "teal"
+           << "thistle"
+           << "tomato"
+           << "transparent"
+           << "turquoise"
+           << "violet"
+           << "wheat"
+           << "white"
+           << "whitesmoke"
+           << "yellow"
+           << "yellowgreen";
 
     palette << "red"
             << "green"
@@ -46,14 +175,21 @@ ColorPalette::ColorPalette()
             << "darkYellow";
 }
 
-Qt::GlobalColor ColorPalette::toGlobalColor(const QString &color) const
+bool ColorPalette::isTransparent(const QString &name) const {
+    return name == "none" || name == "transparent";
+}
+
+QColor ColorPalette::toColor(const QString &name) const
 {
-    return colors.value(color,Qt::transparent);
+    if (isTransparent(name)) {
+        return QColor(Qt::transparent);
+    }
+    return QColor(name);
 }
 
 QStringList ColorPalette::names() const
 {
-    return colors.keys();
+    return colors;
 }
 
 QString ColorPalette::color(int row)

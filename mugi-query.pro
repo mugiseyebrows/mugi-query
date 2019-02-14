@@ -68,7 +68,6 @@ SOURCES += main.cpp\
     tests.cpp \
     jointokenlist.cpp \
     splitterutil.cpp \
-    dataplot.cpp \
     automation.cpp \
     lit.cpp \
     deleteeventfilter.cpp \
@@ -132,7 +131,6 @@ HEADERS  += mainwindow.h \
     jointokenlist.h \
     zipunzip.h \
     splitterutil.h \
-    dataplot.h \
     automation.h \
     lit.h \
     deleteeventfilter.h \
@@ -164,7 +162,6 @@ FORMS    += mainwindow.ui \
     joinhelperwidget.ui \
     settingsdialog.ui \
     joinhelperwidgets.ui \
-    dataplot.ui \
     querymodelview.ui \
     xyplot.ui \
     distributionplot.ui
@@ -173,4 +170,7 @@ RC_ICONS += mugi-query.ico
 
 DISTFILES += \
     todo.txt
+
+target.path = /usr/local/bin
+INSTALLS += target
 

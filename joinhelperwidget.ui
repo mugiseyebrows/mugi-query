@@ -91,21 +91,6 @@
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="copyToNewSession">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>copy
-to new
-session</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
          <item>

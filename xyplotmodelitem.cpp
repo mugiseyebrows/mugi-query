@@ -1,25 +1,26 @@
 #include "xyplotmodelitem.h"
 
-XYPlotModelItem::XYPlotModelItem(int x, int y, const QString& line, const QString& marker)
+XYPlotModelItem::XYPlotModelItem(const QString& x, const QString& y, const QString& line,
+                                 const QString& marker)
     : mX(x), mY(y), mLine(line), mMarker(marker) {
 }
 
 XYPlotModelItem::XYPlotModelItem() {
 }
 
-int XYPlotModelItem::x() const {
+QString XYPlotModelItem::x() const {
     return mX;
 }
 
-void XYPlotModelItem::setX(int x) {
+void XYPlotModelItem::setX(const QString& x) {
     mX = x;
 }
 
-int XYPlotModelItem::y() const {
+QString XYPlotModelItem::y() const {
     return mY;
 }
 
-void XYPlotModelItem::setY(int y) {
+void XYPlotModelItem::setY(const QString& y) {
     mY = y;
 }
 

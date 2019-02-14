@@ -64,7 +64,7 @@ SessionTab::SessionTab(const QString &connectionName, const QString name, QWidge
     cleanTabs();
     connect(ui->query,SIGNAL(submit()),this,SLOT(on_execute_clicked()));
 
-    StatView* view = new StatView(this);
+    StatView* view = new StatView(ui->resultTabs);
     ui->resultTabs->insertTab(ui->resultTabs->count(),view,"stat");
     view->verticalHeader()->setDefaultSectionSize(40);
     view->horizontalHeader()->setStretchLastSection(true);
@@ -82,6 +82,7 @@ StatView* SessionTab::statView() {
 
 SessionTab::~SessionTab()
 {
+    qDebug() << "~SessionTab";
     delete ui;
 }
 
@@ -103,7 +104,7 @@ QueryModelView* SessionTab::tab(int index, bool* insert) {
         if (!mTabs.isEmpty()) {
             tab = mTabs.takeFirst();
         } else {
-            tab = new QueryModelView();
+            tab = new QueryModelView(ui->resultTabs);
         }
     }
     return tab;
