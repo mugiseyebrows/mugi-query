@@ -159,7 +159,8 @@ ColorPalette::ColorPalette()
            << "white"
            << "whitesmoke"
            << "yellow"
-           << "yellowgreen";
+           << "yellowgreen"
+           << "none";
 
     palette << "red"
             << "green"
@@ -176,7 +177,7 @@ ColorPalette::ColorPalette()
 }
 
 bool ColorPalette::isTransparent(const QString &name) const {
-    return name == "none" || name == "transparent";
+    return name == "none" || name == "transparent" || name == "";
 }
 
 QColor ColorPalette::toColor(const QString &name) const
