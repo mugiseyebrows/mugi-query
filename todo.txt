@@ -12,7 +12,7 @@ query history:
     highlight
     search tables table insert/select/update/delete/alter/any filters
 find-static-functions.py
-tokens: 
+tokens:
     ms access functions and types
     store in file
 copyeventfilter: refactor
@@ -24,7 +24,6 @@ relations:
     fix double join
     refactor
 dialogs:
-    this->adjustSize();
     tab order
 join helper:
     relations, tables: copy/paste/delete event filter
@@ -38,20 +37,28 @@ adddatabase:
 fix save data 'select * from (((foo)))'
 qsharedpointer for query models?
 csv/tsv to sql
-code layout
-    models
-    widgets
-    generated
-    utilities
+code layout:
+    src/
+    src/model    
+    src/widget
 plot:
-    detachable
-    x range filter: auto, manual
-    title, axis titles
-    clickable bars
-    clickable points
-    xy plot zoom and pan
-    cursor values
-    xy plot x as datatime
+    both:
+        detachable
+        title, axis titles
+        show text on hover
+        x as datatime
+    xy:
+        zoom and pan
+        legend
+    distribution:
+        x range filter: auto, manual
+        clickable bars
+        sigm, m0, gauss curve
+        y in percent
 memleaks
 clean disconnect
-more colors
+color input delegate
+combobox delegates with autocompletion instead of lineedit (optional)
+class Histogram
+save data table name + '.sql' = filename 
+preview save data
