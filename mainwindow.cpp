@@ -279,6 +279,10 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
     ui->sessionTabs->insertTab(index+1,tab,name);
     connect(tab,SIGNAL(query(QString)),this,SLOT(onQuery(QString)));
 
+    connect(tab,&SessionTab::appendQuery,[=](QString query){
+        onAppendQuery(connectionName,query);
+    });
+
     tab->setTokens(mTokens[connectionName]);
 
     ui->sessionTabs->setCurrentIndex(ui->sessionTabs->indexOf(tab));

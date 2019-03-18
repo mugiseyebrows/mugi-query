@@ -218,6 +218,8 @@ void SessionTab::saveData()
         return;
     }
 
+    qDebug() << "dialog.output()" << dialog.output();
+
     QFile* file = 0;
     QTextStream* stream = 0;
     QString output;
