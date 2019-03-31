@@ -11,6 +11,7 @@ query history:
     exec and error columns?
     highlight
     search tables table insert/select/update/delete/alter/any filters
+    copy many
 find-static-functions.py
 tokens:
     ms access functions and types
@@ -29,11 +30,9 @@ join helper:
     relations, tables: copy/paste/delete event filter
     reorder tables buttons
     deduce relations %table_name%_id
-plot data
-result tab:
-    context menu: selection menu
 adddatabase:
     search filters
+    pick file for odbc and sqlite drivers
 fix save data 'select * from (((foo)))'
 qsharedpointer for query models?
 csv/tsv to sql
@@ -61,4 +60,5 @@ color input delegate
 combobox delegates with autocompletion instead of lineedit (optional)
 class Histogram
 save data table name + '.sql' = filename 
-preview save data
+save data:
+    preview
