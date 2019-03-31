@@ -50,8 +50,5 @@ bool XYPlotModelItem::operator!=(const XYPlotModelItem& rhs) const {
 
 QString XYPlotModelItem::title() const
 {
-    if (mX.isEmpty()) {
-        return mY;
-    }
-    return mX;
+    return mY;
 }
