@@ -5,6 +5,8 @@
 
 class QAbstractItemModel;
 class ModelAppender;
+class QwtPlotZoomer;
+class PlotPicker;
 #include "xyplotmodelitem.h"
 #include <QModelIndex>
 
@@ -22,6 +24,7 @@ public:
 
     QSize minimumSizeHint() const override;
 
+    QAbstractItemModel *tableModel() const;
 protected:
     QStringList modelHeader();
     void init();
@@ -30,7 +33,8 @@ protected:
     ModelAppender* mAppender;
     QList<XYPlotModelItem> mItems;
     bool mSplitterAdjusted;
-
+    QwtPlotZoomer* mZoomer;
+    PlotPicker* mPicker;
 
 protected slots:
     void onDataChanged(QModelIndex, QModelIndex, QVector<int>);

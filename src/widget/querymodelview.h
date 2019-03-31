@@ -5,6 +5,8 @@
 
 class QAbstractItemModel;
 class QItemSelectionModel;
+class DistributionPlot;
+class XYPlot;
 
 namespace Ui {
 class QueryModelView;
@@ -23,6 +25,8 @@ public:
     QAbstractItemModel* model() const;
 
     QItemSelectionModel *selectionModel() const;
+    XYPlot *xyPlot() const;
+    DistributionPlot *distributionPlot() const;
 public slots:
     void updateSplitter();
 

@@ -21,6 +21,7 @@ public:
     void addDatabaseFromHistory(const QString& connectionName);
     void query(const QString &connectionName, const QString &query);
     void showSaveDataDialog();
+    void setXYPlot(int row, const QString& x, const QString& y, const QString& line, const QString& marker);
 
     void beforeDialog(DatabaseHistoryDialog* dialog);
     void beforeDialog(AddDatabaseDialog *dialog);

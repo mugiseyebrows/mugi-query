@@ -99,7 +99,8 @@ HEADERS += \
     src/widget/statview.h \
     src/widget/textedit.h \
     src/widget/userhelperdialog.h \
-    src/widget/xyplot.h
+    src/widget/xyplot.h \
+    src/plotpicker.h
 
 SOURCES += \
     src/action.cpp \
@@ -161,7 +162,8 @@ SOURCES += \
     src/widget/statview.cpp \
     src/widget/textedit.cpp \
     src/widget/userhelperdialog.cpp \
-    src/widget/xyplot.cpp
+    src/widget/xyplot.cpp \
+    src/plotpicker.cpp
 
 FORMS += \
     src/widget/adddatabasedialog.ui \

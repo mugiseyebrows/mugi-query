@@ -10,6 +10,10 @@
 #include <QDebug>
 #include "lit.h"
 #include "sessiontab.h"
+#include "xyplot.h"
+#include "querymodelview.h"
+#include "rowvaluesetter.h"
+#include "xyplotmodel.h"
 
 using namespace Lit;
 
@@ -47,7 +51,12 @@ void Automation::query(const QString &connectionName, const QString &query) {
 
 void Automation::showSaveDataDialog()
 {
-    mQueued.append(Action(Action::ActionShowSaveDataDialog));
+    mQueued.enqueue(Action(Action::ActionShowSaveDataDialog));
+}
+
+void Automation::setXYPlot(int row, const QString &x, const QString &y, const QString &line, const QString &marker)
+{
+    mQueued.enqueue(Action(Action::ActionSetXYPlot,vl(row,x,y,line,marker)));
 }
 
 void Automation::afterDialog(AddDatabaseDialog *) {
@@ -86,6 +95,31 @@ void Automation::onStart() {
             next();
         } else if (mAction.type() == Action::ActionShowSaveDataDialog) {
             mainWindow()->on_dataSave_triggered();
+            next();
+        } else if (mAction.type() == Action::ActionSetXYPlot) {
+            int row = mAction.arg(0).toInt();
+            QString x = mAction.arg(1).toString();
+            QString y = mAction.arg(2).toString();
+            QString line = mAction.arg(3).toString();
+            QString marker = mAction.arg(4).toString();
+
+            SessionTab* tab = mainWindow()->currentTab();
+            QueryModelView* view = tab->tab(0);
+            XYPlot* plot = view->xyPlot();
+            QAbstractItemModel* model = plot->tableModel();
+            RowValueSetter s(model,row);
+            if (!x.isEmpty()) {
+                s(XYPlotModel::col_x,x);
+            }
+            if (!y.isEmpty()) {
+                s(XYPlotModel::col_y,y);
+            }
+            if (!line.isEmpty()) {
+                s(XYPlotModel::col_line,line);
+            }
+            if (!marker.isEmpty()) {
+                s(XYPlotModel::col_marker,marker);
+            }
             next();
         }
     } else {

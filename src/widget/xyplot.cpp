@@ -10,10 +10,13 @@
 #include "xyplotmodel.h"
 #include "modelappender.h"
 #include <qwt_plot_curve.h>
+#include "datautils.h"
 #include "filterplotitem.h"
 #include "zipunzip.h"
-#include "datautils.h"
 #include <qwt_symbol.h>
+#include <qwt_plot_zoomer.h>
+#include <qwt_plot_panner.h>
+#include "plotpicker.h"
 #include <QDebug>
 #include "splitterutil.h"
 #include <QTimer>
@@ -35,6 +38,10 @@ XYPlot::~XYPlot()
     delete ui;
 }
 
+QAbstractItemModel* XYPlot::tableModel() const {
+    return ui->table->model();
+}
+
 void XYPlot::init() {
     (new DeleteEventFilter(this))->setView(ui->table);
 
@@ -54,6 +61,20 @@ void XYPlot::init() {
 
     ui->table->setItemDelegateForColumn(XYPlotModel::col_line,colorCompleter);
     ui->table->setItemDelegateForColumn(XYPlotModel::col_marker,colorCompleter);
+
+    mZoomer = new QwtPlotZoomer(ui->plot->canvas());
+    mZoomer->setRubberBandPen( QColor( Qt::black ) );
+    mZoomer->setTrackerPen( QColor( Qt::black ) );
+    mZoomer->setMousePattern( QwtEventPattern::MouseSelect2,
+        Qt::RightButton, Qt::ControlModifier );
+    mZoomer->setMousePattern( QwtEventPattern::MouseSelect3,
+        Qt::RightButton );
+
+    mPicker = new PlotPicker(ui->plot->canvas());
+
+    QwtPlotPanner *panner = new QwtPlotPanner(ui->plot->canvas());
+    panner->setMouseButton( Qt::MidButton );
+
 }
 
 
@@ -120,13 +141,15 @@ void XYPlot::onDataChanged(QModelIndex,QModelIndex,QVector<int>) {
         curves.append(new QwtPlotCurve());
     }
 
+    qDebug() << curves.size() << "curves";
+
     if (!items.isEmpty()) {
         while (mModel->canFetchMore(QModelIndex())) {
             mModel->fetchMore(QModelIndex());
         }
     }
 
-    qDebug() << "rowCount" << mModel->rowCount();
+    //qDebug() << "rowCount" << mModel->rowCount();
 
     for(int i=0;i<items.size();i++) {
 
@@ -151,15 +174,22 @@ void XYPlot::onDataChanged(QModelIndex,QModelIndex,QVector<int>) {
         curves[i]->setSymbol(symbol);
     }
     for(int i=attached;i<curves.size();i++) {
+        qDebug() << "curve->attach()";
         curves[i]->attach(ui->plot);
         curves[i]->setRenderHint(QwtPlotItem::RenderAntialiased, true);
     }
 
     for(int i=items.size();i<curves.size();i++) {
+        qDebug() << "curve->detach()";
         curves[i]->detach();
         delete curves[i];
     }
 
-    ui->plot->replot();
+    //mZoomer->zoom(0);
 
+    ui->plot->setAxisAutoScale(QwtPlot::xBottom);
+    ui->plot->setAxisAutoScale(QwtPlot::yLeft);
+    ui->plot->updateAxes();
+
+    mZoomer->setZoomBase(true);
 }

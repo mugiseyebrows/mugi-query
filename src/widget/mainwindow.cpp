@@ -64,24 +64,6 @@ MainWindow::MainWindow(QWidget *parent) :
             SLOT(onSessionAdded(QString,QString,QString)));
     connect(m,SIGNAL(sessionRemoved(QString,QString)),this,SLOT(onSessionRemoved(QString,QString)));
 
-    //connect(m,SIGNAL(database))
-
-    /*
-    m->addDatabase("foo");
-    m->addSession(m->index(0,0));
-    m->addDatabase("bar");
-    m->addSession(m->index(1,0));
-    m->addSession(m->index(1,0));
-    */
-
-    /*m->addDatabase("foo");
-    m->addSession(m->index(0,0));
-    m->addSession(m->index(0,0));
-    m->removeRow(0,m->index(0,0));*/
-
-    //m->addDatabase("_history");
-    //updateCompleter("_history");
-
     connect(ui->sessionTree->selectionModel(),
             SIGNAL(currentChanged(QModelIndex,QModelIndex)),
             this,

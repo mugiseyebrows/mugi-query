@@ -49,6 +49,8 @@ public:
     void quoteQuery();
     void unquoteQuery();
 
+    QueryModelView *tab(int index);
+
 signals:
     void query(QString);
     void showQueryHistory();

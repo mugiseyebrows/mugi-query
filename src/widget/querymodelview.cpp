@@ -72,6 +72,14 @@ QueryModelView::~QueryModelView()
     delete ui;
 }
 
+XYPlot* QueryModelView::xyPlot() const {
+    return ui->xy;
+}
+
+DistributionPlot* QueryModelView::distributionPlot() const {
+    return ui->distribution;
+}
+
 void QueryModelView::setModel(QAbstractItemModel *model)
 {
     ui->table->setModel(model);

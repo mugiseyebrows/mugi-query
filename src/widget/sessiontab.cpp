@@ -316,3 +316,8 @@ void SessionTab::unquoteQuery() {
     TextEdit* edit = ui->query;
     edit->setPlainText(unquote(edit->toPlainText().split("\n")).join("\n"));
 }
+
+QueryModelView *SessionTab::tab(int index)
+{
+    return qobject_cast<QueryModelView*>(ui->resultTabs->widget(index));
+}
