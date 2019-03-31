@@ -36,10 +36,6 @@ adddatabase:
 fix save data 'select * from (((foo)))'
 qsharedpointer for query models?
 csv/tsv to sql
-code layout:
-    src/
-    src/model    
-    src/widget
 plot:
     both:
         detachable
