@@ -16,6 +16,7 @@
 #include <qwt_symbol.h>
 #include <qwt_plot_zoomer.h>
 #include <qwt_plot_panner.h>
+#include <qwt_plot_legenditem.h>
 #include "plotpicker.h"
 #include <QDebug>
 #include "splitterutil.h"
@@ -75,6 +76,10 @@ void XYPlot::init() {
     QwtPlotPanner *panner = new QwtPlotPanner(ui->plot->canvas());
     panner->setMouseButton( Qt::MidButton );
 
+    QwtPlotLegendItem* legend = new QwtPlotLegendItem();
+    legend->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    legend->setMaxColumns(1);
+    legend->attach(ui->plot);
 }
 
 
@@ -159,6 +164,7 @@ void XYPlot::onDataChanged(QModelIndex,QModelIndex,QVector<int>) {
         int y = header.indexOf(item.y());
         QString line = item.line();
         QString marker = item.marker();
+        QString title = item.title();
 
         ColorPalette* palette = ColorPalette::instance();
 
@@ -172,6 +178,7 @@ void XYPlot::onDataChanged(QModelIndex,QModelIndex,QVector<int>) {
             symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(palette->toColor(marker)), QPen(Qt::NoPen), QSize(5, 5));
         }
         curves[i]->setSymbol(symbol);
+        curves[i]->setTitle(title);
     }
     for(int i=attached;i<curves.size();i++) {
         qDebug() << "curve->attach()";

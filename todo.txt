@@ -43,8 +43,6 @@ plot:
         show text on hover
         x as datatime
     xy:
-        zoom and pan
-        legend
     distribution:
         x range filter: auto, manual
         clickable bars

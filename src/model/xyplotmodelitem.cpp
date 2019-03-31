@@ -47,3 +47,11 @@ bool XYPlotModelItem::operator==(const XYPlotModelItem& rhs) const {
 bool XYPlotModelItem::operator!=(const XYPlotModelItem& rhs) const {
     return !operator==(rhs);
 }
+
+QString XYPlotModelItem::title() const
+{
+    if (mX.isEmpty()) {
+        return mY;
+    }
+    return mX;
+}

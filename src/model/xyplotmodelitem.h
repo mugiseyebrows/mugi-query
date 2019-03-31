@@ -17,6 +17,8 @@ public:
     bool operator==(const XYPlotModelItem& rhs) const;
     bool operator!=(const XYPlotModelItem& rhs) const;
 
+    QString title() const;
+
 protected:
     QString mX;
     QString mY;
