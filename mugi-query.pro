@@ -100,7 +100,9 @@ HEADERS += \
     src/widget/textedit.h \
     src/widget/userhelperdialog.h \
     src/widget/xyplot.h \
-    src/plotpicker.h
+    src/plotpicker.h \
+    src/canvaspicker.h \
+    src/plotmultibarchart.h
 
 SOURCES += \
     src/action.cpp \
@@ -163,7 +165,9 @@ SOURCES += \
     src/widget/textedit.cpp \
     src/widget/userhelperdialog.cpp \
     src/widget/xyplot.cpp \
-    src/plotpicker.cpp
+    src/plotpicker.cpp \
+    src/canvaspicker.cpp \
+    src/plotmultibarchart.cpp
 
 FORMS += \
     src/widget/adddatabasedialog.ui \

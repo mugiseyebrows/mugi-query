@@ -22,6 +22,7 @@ public:
     void query(const QString &connectionName, const QString &query);
     void showSaveDataDialog();
     void setXYPlot(int row, const QString& x, const QString& y, const QString& line, const QString& marker);
+    void setDistributionPlot(int row, const QString& v, const QString& color);
 
     void beforeDialog(DatabaseHistoryDialog* dialog);
     void beforeDialog(AddDatabaseDialog *dialog);

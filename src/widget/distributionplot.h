@@ -4,6 +4,7 @@
 #include <QWidget>
 class QAbstractItemModel;
 class ModelAppender;
+class CanvasPicker;
 
 namespace Ui {
 class DistributionPlot;
@@ -23,12 +24,15 @@ public:
 
     QSize minimumSizeHint() const override;
 
+    QAbstractItemModel* tableModel() const;
+
 protected:
     void init();
     ModelAppender* mAppender;
     QList<DistributionPlotItem> mItems;
     QAbstractItemModel* mModel;
     QStringList modelHeader();
+    //CanvasPicker* mPicker;
 protected slots:
     void onDataChanged(QModelIndex, QModelIndex, QVector<int>);
     void setDefaultColors();

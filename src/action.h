@@ -12,6 +12,7 @@ public:
         ActionExecuteCurrentQuery,
         ActionShowSaveDataDialog,
         ActionSetXYPlot,
+        ActionSetDistributionPlot
     };
     Action();
     Action(Type type, const QVariantList& args = QVariantList());

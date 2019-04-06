@@ -14,6 +14,8 @@
 #include "querymodelview.h"
 #include "rowvaluesetter.h"
 #include "xyplotmodel.h"
+#include "distributionplotmodel.h"
+#include "distributionplot.h"
 
 using namespace Lit;
 
@@ -59,6 +61,11 @@ void Automation::setXYPlot(int row, const QString &x, const QString &y, const QS
     mQueued.enqueue(Action(Action::ActionSetXYPlot,vl(row,x,y,line,marker)));
 }
 
+void Automation::setDistributionPlot(int row, const QString &v, const QString &color)
+{
+    mQueued.enqueue(Action(Action::ActionSetDistributionPlot,vl(row,v,color)));
+}
+
 void Automation::afterDialog(AddDatabaseDialog *) {
 
 }
@@ -97,6 +104,7 @@ void Automation::onStart() {
             mainWindow()->on_dataSave_triggered();
             next();
         } else if (mAction.type() == Action::ActionSetXYPlot) {
+
             int row = mAction.arg(0).toInt();
             QString x = mAction.arg(1).toString();
             QString y = mAction.arg(2).toString();
@@ -107,19 +115,29 @@ void Automation::onStart() {
             QueryModelView* view = tab->tab(0);
             XYPlot* plot = view->xyPlot();
             QAbstractItemModel* model = plot->tableModel();
-            RowValueSetter s(model,row);
-            if (!x.isEmpty()) {
-                s(XYPlotModel::col_x,x);
-            }
-            if (!y.isEmpty()) {
-                s(XYPlotModel::col_y,y);
-            }
-            if (!line.isEmpty()) {
-                s(XYPlotModel::col_line,line);
-            }
-            if (!marker.isEmpty()) {
-                s(XYPlotModel::col_marker,marker);
-            }
+            RowValueNotEmptySetter s(model,row);
+
+            s(XYPlotModel::col_x,x);
+            s(XYPlotModel::col_y,y);
+            s(XYPlotModel::col_line,line);
+            s(XYPlotModel::col_marker,marker);
+
+            next();
+        } else if (mAction.type() == Action::ActionSetDistributionPlot) {
+
+            int row = mAction.arg(0).toInt();
+            QString v = mAction.arg(1).toString();
+            QString color = mAction.arg(2).toString();
+
+            SessionTab* tab = mainWindow()->currentTab();
+            QueryModelView* view = tab->tab(0);
+            DistributionPlot* plot = view->distributionPlot();
+            QAbstractItemModel* model = plot->tableModel();
+            RowValueNotEmptySetter s(model,row);
+
+            s(DistributionPlotModel::col_v,v);
+            s(DistributionPlotModel::col_color,color);
+
             next();
         }
     } else {

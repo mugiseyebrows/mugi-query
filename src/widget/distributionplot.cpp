@@ -15,6 +15,7 @@
 #include "colorpalette.h"
 #include "filterplotitem.h"
 #include <qwt_column_symbol.h>
+#include "canvaspicker.h"
 
 using namespace DataUtils;
 using namespace Lit;
@@ -37,6 +38,13 @@ QSize DistributionPlot::minimumSizeHint() const
 {
     return QSize();
 }
+
+QAbstractItemModel *DistributionPlot::tableModel() const
+{
+    return ui->table->model();
+}
+
+#include "plotmultibarchart.h"
 
 void DistributionPlot::init() {
     QwtPlotMultiBarChart* chart = new QwtPlotMultiBarChart();
@@ -74,6 +82,8 @@ void DistributionPlot::init() {
 
     connect(mAppender,SIGNAL(rowInserted(int)),this,SLOT(setDefaultColors()));
     connect(ui->bins,SIGNAL(valueChanged(int)),this,SLOT(onBinsValueChanged(int)));
+
+    //mPicker = new CanvasPicker(ui->plot);
 }
 
 
@@ -219,6 +229,11 @@ void DistributionPlot::updateSeries() {
     }
 
     chart->setSamples( samples );
+
+    QwtSetSample s = chart->sample(1);
+    int n = chart->dataSize();
+
+    qDebug() << n;
 
     ui->plot->replot();
 }
