@@ -12,7 +12,8 @@ public:
         ActionExecuteCurrentQuery,
         ActionShowSaveDataDialog,
         ActionSetXYPlot,
-        ActionSetDistributionPlot
+        ActionSetDistributionPlot,
+        ActionShowJoinHelper
     };
     Action();
     Action(Type type, const QVariantList& args = QVariantList());

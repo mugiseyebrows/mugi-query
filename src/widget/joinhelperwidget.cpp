@@ -25,6 +25,17 @@
 #include <QTimer>
 #include "lit.h"
 #include "stringlistmodelwithheader.h"
+#include "copyeventfilter.h"
+#include "clipboard.h"
+#include "error.h"
+#include <QClipboard>
+
+namespace  {
+
+QModelIndex firstColumn(const QModelIndex& index) {
+    return index.model()->index(index.row(),0);
+}
+}
 
 using namespace Lit;
 
@@ -51,7 +62,24 @@ JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
     mTablesAppender = new ModelAppender(this);
     mTablesAppender->setModel(tables);
 
+    CopyEventFilter* filter = new CopyEventFilter();
+    filter->setView(ui->relations);
+    connect(filter,SIGNAL(copy()),this,SLOT(onRelationsCopy()));
+    connect(filter,SIGNAL(paste()),this,SLOT(onRelationsPaste()));
+    connect(filter,SIGNAL(delete_()),filter,SLOT(onDeleteSelected()));
+
     QTimer::singleShot(0,this,SLOT(onAdjustSplitters()));
+}
+
+void JoinHelperWidget::onRelationsCopy() {
+    QString error;
+    Clipboard::copySelected(ui->relations->model(),ui->relations->selectionModel()->selection(), DataFormat::Csv, "\t", locale(), error);
+    Error::show(this,error);
+}
+
+void JoinHelperWidget::onRelationsPaste() {
+
+    Clipboard::pasteTsv(ui->relations->model(), firstColumn(ui->relations->currentIndex()));
 }
 
 void JoinHelperWidget::update(const Tokens& tokens) {

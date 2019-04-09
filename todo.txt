@@ -16,7 +16,6 @@ find-static-functions.py
 tokens:
     ms access functions and types
     store in file
-copyeventfilter: refactor
 textedit: 
     functions arguments popup
     alias tokens (subqueries)

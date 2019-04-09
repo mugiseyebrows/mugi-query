@@ -23,26 +23,17 @@ public:
      */
     void setView(QTableView* view);
     
-    static void copySelected(QAbstractItemModel *model, const QItemSelection& selection,
-                             DataFormat::Format format, const QString& separator,
-                             const QLocale &locale, QString &error);
-
-    static void copySelectedAsList(QAbstractItemModel *model,
-                                   const QItemSelection& selection,
-                                   const QLocale &locale, QString &error);
-
-    static void streamRange(QTextStream &stream, const QItemSelectionRange &rng,
-                            DataFormat::Format format, const QString &separator,
-                            DataFormat::ActionType action, const QLocale &locale, QString &error);
 protected:
 
     bool eventFilter(QObject* object, QEvent *event);
     QTableView* mView;
 
 signals:
-    
+    void copy();
+    void paste();
+    void delete_();
 public slots:
-
+    void onDeleteSelected();
 
 };
 

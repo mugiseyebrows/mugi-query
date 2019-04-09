@@ -66,6 +66,11 @@ void Automation::setDistributionPlot(int row, const QString &v, const QString &c
     mQueued.enqueue(Action(Action::ActionSetDistributionPlot,vl(row,v,color)));
 }
 
+void Automation::showJoinHelper()
+{
+    mQueued.enqueue(Action(Action::ActionShowJoinHelper));
+}
+
 void Automation::afterDialog(AddDatabaseDialog *) {
 
 }
@@ -138,6 +143,9 @@ void Automation::onStart() {
             s(DistributionPlotModel::col_v,v);
             s(DistributionPlotModel::col_color,color);
 
+            next();
+        } else if (mAction.type() == Action::ActionShowJoinHelper) {
+            mainWindow()->on_queryJoin_triggered();
             next();
         }
     } else {

@@ -22,6 +22,7 @@
 #include "querymodelview.h"
 
 #include "statview.h"
+#include "clipboard.h"
 
 namespace {
 
@@ -286,11 +287,11 @@ void SessionTab::copySelected(bool asList)
     QString error;
     QItemSelection selection = currentView()->selectionModel()->selection();
     if (asList) {
-        CopyEventFilter::copySelectedAsList(model, selection, locale(), error);
+        Clipboard::copySelectedAsList(model, selection, locale(), error);
     } else {
         QString separator = "\t";
         DataFormat::Format format = DataFormat::Csv;
-        CopyEventFilter::copySelected(model, selection, format, separator, locale(), error);
+        Clipboard::copySelected(model, selection, format, separator, locale(), error);
     }
     if (!error.isEmpty()) {
         QMessageBox::critical(this,"Error",error);

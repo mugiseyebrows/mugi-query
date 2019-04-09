@@ -102,7 +102,9 @@ HEADERS += \
     src/widget/xyplot.h \
     src/plotpicker.h \
     src/canvaspicker.h \
-    src/plotmultibarchart.h
+    src/plotmultibarchart.h \
+    src/clipboard.h \
+    src/error.h
 
 SOURCES += \
     src/action.cpp \
@@ -167,7 +169,9 @@ SOURCES += \
     src/widget/xyplot.cpp \
     src/plotpicker.cpp \
     src/canvaspicker.cpp \
-    src/plotmultibarchart.cpp
+    src/plotmultibarchart.cpp \
+    src/clipboard.cpp \
+    src/error.cpp
 
 FORMS += \
     src/widget/adddatabasedialog.ui \

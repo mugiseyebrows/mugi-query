@@ -11,6 +11,8 @@
 #include "xyplot.h"
 #include <QMenu>
 #include "mainwindow.h"
+#include <QMessageBox>
+#include "clipboard.h"
 
 namespace {
 
@@ -54,6 +56,7 @@ QueryModelView::QueryModelView(QWidget *parent) :
 
     CopyEventFilter* filter = new CopyEventFilter(view);
     filter->setView(view);
+    connect(filter,SIGNAL(copy()),this,SLOT(onCopy()));
 
     ItemDelegate* delegate = new ItemDelegate(view);
     view->setItemDelegate(delegate);
@@ -146,4 +149,21 @@ void QueryModelView::onTableCustomContextMenuRequested(const QPoint &)
 
     QMenu* menu = mainWindow->selectionMenu();
     menu->exec(QCursor::pos());
+}
+
+void QueryModelView::onCopy() {
+
+    QTableView* view = ui->table;
+
+    QAbstractItemModel* model = view->model();
+    if (!model) {
+        return;
+    }
+    QItemSelection selection = view->selectionModel()->selection();
+    QString error;
+    Clipboard::copySelected(model, selection, DataFormat::Csv, "\t", view->locale(), error);
+    if (!error.isEmpty()) {
+        QMessageBox::critical(this,"Error",error);
+        return;
+    }
 }

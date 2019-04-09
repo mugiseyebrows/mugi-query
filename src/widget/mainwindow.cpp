@@ -37,6 +37,14 @@
 #include "datautils.h"
 using namespace DataUtils;
 
+#if 0
+#include "automate_p.cpp"
+#else
+void automate(QWidget* widget) {
+
+}
+#endif
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     mQueryHistory(nullptr),
@@ -72,6 +80,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->sessionTabs,SIGNAL(currentChanged(int)),this,SLOT(onTabsCurrentChanged(int)));
 
     QTimer::singleShot(0,this,SLOT(onAdjustSplitter()));
+
+    automate(this);
 }
 
 QAction* cloneAction(QAction* src, const QString& text, QObject* parent) {

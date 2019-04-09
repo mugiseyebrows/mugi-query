@@ -42,6 +42,8 @@ signals:
 protected slots:
     void onTablesRowInserted(int);
     void onSelectLastTablesRow();
+    void onRelationsCopy();
+    void onRelationsPaste();
 private slots:
 
     void onAdjustSplitters();

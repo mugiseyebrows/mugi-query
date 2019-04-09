@@ -35,6 +35,8 @@ protected slots:
     void on_tabs_currentChanged(int index);
     void onTableCustomContextMenuRequested(const QPoint &pos);
 
+private slots:
+    void onCopy();
 private:
     Ui::QueryModelView *ui;
     int mTabHeight;

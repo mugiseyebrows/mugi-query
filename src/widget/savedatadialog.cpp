@@ -5,6 +5,7 @@
 #include <QSqlQueryModel>
 #include <QSqlQuery>
 #include <QMessageBox>
+#include "error.h"
 
 SaveDataDialog::SaveDataDialog(QSqlQueryModel* model, QWidget *parent) :
     QDialog(parent),
@@ -79,12 +80,12 @@ OutputType::Type SaveDataDialog::output() const
 void SaveDataDialog::accept()
 {
     if (!dataModel()->hasAnyChecked()) {
-        QMessageBox::critical(this,"Error","You need to check at least one data field");
+        Error::show(this,"You need to check at least one data field");
         return;
     }
     if (format() == DataFormat::SqlUpdate) {
         if (!keysModel()->hasAnyChecked()) {
-            QMessageBox::critical(this,"Error","You need to check at least one field for where clause");
+            Error::show(this,"You need to check at least one field for where clause");
             return;
         }
     }
