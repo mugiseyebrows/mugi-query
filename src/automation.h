@@ -5,7 +5,7 @@
 #include <QQueue>
 #include <QVariantList>
 class MainWindow;
-class AddDatabaseDialog;
+class DatabaseConnectDialog;
 class DatabaseHistoryDialog;
 
 #include "action.h"
@@ -26,9 +26,9 @@ public:
     void showJoinHelper();
 
     void beforeDialog(DatabaseHistoryDialog* dialog);
-    void beforeDialog(AddDatabaseDialog *dialog);
+    void beforeDialog(DatabaseConnectDialog *dialog);
 
-    void afterDialog(AddDatabaseDialog *dialog);
+    void afterDialog(DatabaseConnectDialog *dialog);
     void afterDialog(DatabaseHistoryDialog *dialog);
 
     void start();
@@ -43,7 +43,7 @@ protected:
 
     Automation(QObject* parent = 0);
 
-    AddDatabaseDialog* mAddDatabaseDialog;
+    DatabaseConnectDialog* mAddDatabaseDialog;
     DatabaseHistoryDialog* mDatabaseHistoryDialog;
 
 protected slots:

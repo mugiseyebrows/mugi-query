@@ -2,7 +2,7 @@
 
 #include <QTimer>
 #include "mainwindow.h"
-#include "adddatabasedialog.h"
+#include "databaseconnectdialog.h"
 #include "databasehistorydialog.h"
 
 #include <QApplication>
@@ -71,7 +71,7 @@ void Automation::showJoinHelper()
     mQueued.enqueue(Action(Action::ActionShowJoinHelper));
 }
 
-void Automation::afterDialog(AddDatabaseDialog *) {
+void Automation::afterDialog(DatabaseConnectDialog *) {
 
 }
 
@@ -96,7 +96,7 @@ void Automation::onStart() {
     if (!mQueued.isEmpty()) {
         mAction = mQueued.dequeue();
         if (mAction.type() == Action::ActionAddDatabaseFromHistory) {
-            mainWindow()->addDatabase(true);
+            mainWindow()->databaseConnect(true);
         } else if (mAction.type() == Action::ActionAppendQuery) {
             QString connectionName = mAction.arg(0).toString();
             QString query = mAction.arg(1).toString();
@@ -153,7 +153,7 @@ void Automation::onStart() {
     }
 }
 
-void Automation::beforeDialog(AddDatabaseDialog *dialog)
+void Automation::beforeDialog(DatabaseConnectDialog *dialog)
 {
     qDebug() << "beforeDialog(AddDatabaseDialog *dialog)";
     mAddDatabaseDialog = dialog;
@@ -169,7 +169,7 @@ void Automation::beforeDialog(DatabaseHistoryDialog *dialog)
 
 void Automation::onAddDatabaseFromHistory()
 {
-    mainWindow()->addDatabase(true);
+    mainWindow()->databaseConnect(true);
 }
 
 void Automation::onAddDatabaseDialog() {

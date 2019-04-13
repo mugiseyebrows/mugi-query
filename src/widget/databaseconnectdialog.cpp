@@ -1,5 +1,5 @@
-#include "adddatabasedialog.h"
-#include "ui_adddatabasedialog.h"
+#include "databaseconnectdialog.h"
+#include "ui_databaseconnectdialog.h"
 
 #include <QSqlDatabase>
 #include <QMessageBox>
@@ -14,9 +14,9 @@
 
 #include <QThread>
 
-AddDatabaseDialog::AddDatabaseDialog(bool showHistory, QWidget *parent) :
+DatabaseConnectDialog::DatabaseConnectDialog(bool showHistory, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::AddDatabaseDialog)
+    ui(new Ui::DatabaseConnectDialog)
 {
     ui->setupUi(this);
     ui->driver->addItems(QSqlDatabase::drivers());
@@ -30,40 +30,40 @@ AddDatabaseDialog::AddDatabaseDialog(bool showHistory, QWidget *parent) :
     ui->savePassword->setChecked(Settings::instance()->savePasswords());
 }
 
-AddDatabaseDialog::~AddDatabaseDialog()
+DatabaseConnectDialog::~DatabaseConnectDialog()
 {
     delete ui;
 }
 
-QString AddDatabaseDialog::connectionName() {
+QString DatabaseConnectDialog::connectionName() {
     return ui->connectionName->text();
 }
 
-QString AddDatabaseDialog::driver() {
+QString DatabaseConnectDialog::driver() {
     return ui->driver->currentText();
 }
 
-QString AddDatabaseDialog::host()
+QString DatabaseConnectDialog::host()
 {
     return ui->host->text();
 }
 
-QString AddDatabaseDialog::user()
+QString DatabaseConnectDialog::user()
 {
     return ui->user->text();
 }
 
-QString AddDatabaseDialog::password()
+QString DatabaseConnectDialog::password()
 {
     return ui->password->text();
 }
 
-QString AddDatabaseDialog::database()
+QString DatabaseConnectDialog::database()
 {
     return ui->database->text();
 }
 
-int AddDatabaseDialog::port()
+int DatabaseConnectDialog::port()
 {
     QString port = ui->port->text();
     if (!port.isEmpty()) {
@@ -76,7 +76,7 @@ int AddDatabaseDialog::port()
     return -1;
 }
 
-void AddDatabaseDialog::accept()
+void DatabaseConnectDialog::accept()
 {
     //qDebug() << "AddDatabaseDialog::accept()" << QThread::currentThreadId();
 
@@ -118,7 +118,7 @@ void AddDatabaseDialog::accept()
 
 
 
-void AddDatabaseDialog::on_history_clicked()
+void DatabaseConnectDialog::on_history_clicked()
 {
     DatabaseHistoryDialog dialog;
 
@@ -140,7 +140,7 @@ void AddDatabaseDialog::on_history_clicked()
     Automation::instance()->afterDialog(&dialog);
 }
 
-void AddDatabaseDialog::on_savePassword_clicked(bool checked)
+void DatabaseConnectDialog::on_savePassword_clicked(bool checked)
 {
     if (checked) {
         QString msg("Storing passwords is not secure, are you sure?");

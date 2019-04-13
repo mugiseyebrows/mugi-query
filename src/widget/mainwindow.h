@@ -36,7 +36,7 @@ public:
     void updateTokens(const QString &connectionName);
     void pushTokens(const QString &connectionName);
 
-    void addDatabase(bool showHistory = false);
+    void databaseConnect(bool showHistory = false);
 
     QString connectionName() const;
 
@@ -58,7 +58,28 @@ protected:
     int lastTabIndex(const QString &connectionName);
     void selectDatabase(const QString &connectionName);
 public slots:
-    void on_addDatabase_triggered();
+
+    void on_databaseConnect_triggered();
+    void on_databaseDisconnect_triggered();
+    void on_databaseReconnect_triggered();
+    void on_databaseHistory_triggered();
+
+    void on_sessionAdd_triggered();
+    void on_sessionRemove_triggered();
+
+    void on_queryQuote_triggered();
+    void on_queryUnquote_triggered();
+    void on_queryHistory_triggered();
+    void on_queryHelp_triggered();
+    void on_queryJoin_triggered();
+
+    void on_dataSave_triggered();
+
+    void on_selectionCopy_triggered();
+    void on_selectionCopyAsList_triggered();
+
+    void on_settingsFormat_triggered();
+
     void on_sessionTree_customContextMenuRequested(QPoint pos);
     void onTreeCurrentChanged(QModelIndex, QModelIndex);
     void onSessionAdded(QString connectionName, QString name, QString namePrev);
@@ -70,20 +91,7 @@ public slots:
     //void onAddSessionWithQuery(QString);
     void onAppendQuery(const QString &connectionName, QString);
 
-    void on_databaseHistory_triggered();
-    void on_queryHistory_triggered();
-    void on_addSession_triggered();
-    void on_removeSession_triggered();
-    void on_removeDatabase_triggered();
-    void on_reconnect_triggered();
-    void on_queryHelp_triggered();
-    void on_dataSave_triggered();
-    void on_queryJoin_triggered();
-    void on_selectionCopy_triggered();
-    void on_selectionCopyAsList_triggered();
-    void on_queryQuote_triggered();
-    void on_queryUnquote_triggered();
-    void on_settingsFormat_triggered();
+protected slots:
 
 private:
     Ui::MainWindow *ui;

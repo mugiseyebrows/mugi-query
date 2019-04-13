@@ -68,16 +68,16 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatabase">
     <property name="title">
      <string>&amp;Database</string>
     </property>
-    <addaction name="addDatabase"/>
-    <addaction name="reconnect"/>
-    <addaction name="removeDatabase"/>
+    <addaction name="databaseConnect"/>
+    <addaction name="databaseReconnect"/>
+    <addaction name="databaseDisconnect"/>
     <addaction name="databaseHistory"/>
    </widget>
    <widget class="QMenu" name="menuQuery">
@@ -95,8 +95,8 @@
     <property name="title">
      <string>&amp;Session</string>
     </property>
-    <addaction name="addSession"/>
-    <addaction name="removeSession"/>
+    <addaction name="sessionAdd"/>
+    <addaction name="sessionRemove"/>
    </widget>
    <widget class="QMenu" name="menuData">
     <property name="title">
@@ -118,8 +118,8 @@
     <addaction name="settingsFormat"/>
    </widget>
    <addaction name="menuDatabase"/>
-   <addaction name="menuQuery"/>
    <addaction name="menuSession"/>
+   <addaction name="menuQuery"/>
    <addaction name="menuData"/>
    <addaction name="menuSelection"/>
    <addaction name="menuSettings"/>
@@ -133,9 +133,9 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="addDatabase">
+  <action name="databaseConnect">
    <property name="text">
-    <string>&amp;Add</string>
+    <string>&amp;Connect</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -165,7 +165,7 @@
     <string>Ctrl+H</string>
    </property>
   </action>
-  <action name="addSession">
+  <action name="sessionAdd">
    <property name="text">
     <string>&amp;Add</string>
    </property>
@@ -173,7 +173,7 @@
     <string>Ctrl+T</string>
    </property>
   </action>
-  <action name="removeSession">
+  <action name="sessionRemove">
    <property name="text">
     <string>&amp;Remove</string>
    </property>
@@ -181,12 +181,12 @@
     <string>Ctrl+W</string>
    </property>
   </action>
-  <action name="removeDatabase">
+  <action name="databaseDisconnect">
    <property name="text">
-    <string>&amp;Remove</string>
+    <string>&amp;Disconnect</string>
    </property>
   </action>
-  <action name="reconnect">
+  <action name="databaseReconnect">
    <property name="text">
     <string>Re&amp;connect</string>
    </property>

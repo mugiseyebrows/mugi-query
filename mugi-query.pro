@@ -83,7 +83,6 @@ HEADERS += \
     src/model/stringlistmodelwithheader.h \
     src/model/xyplotmodel.h \
     src/model/xyplotmodelitem.h \
-    src/widget/adddatabasedialog.h \
     src/widget/databasehistorydialog.h \
     src/widget/distributionplot.h \
     src/widget/intlineedit.h \
@@ -92,7 +91,6 @@ HEADERS += \
     src/widget/mainwindow.h \
     src/widget/queryhistorywidget.h \
     src/widget/querymodelview.h \
-    src/widget/removedatabasedialog.h \
     src/widget/savedatadialog.h \
     src/widget/sessiontab.h \
     src/widget/settingsdialog.h \
@@ -104,7 +102,8 @@ HEADERS += \
     src/canvaspicker.h \
     src/plotmultibarchart.h \
     src/clipboard.h \
-    src/error.h
+    src/error.h \
+    src/widget/databaseconnectdialog.h
 
 SOURCES += \
     src/action.cpp \
@@ -150,7 +149,6 @@ SOURCES += \
     src/model/stringlistmodelwithheader.cpp \
     src/model/xyplotmodel.cpp \
     src/model/xyplotmodelitem.cpp \
-    src/widget/adddatabasedialog.cpp \
     src/widget/databasehistorydialog.cpp \
     src/widget/distributionplot.cpp \
     src/widget/intlineedit.cpp \
@@ -159,7 +157,6 @@ SOURCES += \
     src/widget/mainwindow.cpp \
     src/widget/queryhistorywidget.cpp \
     src/widget/querymodelview.cpp \
-    src/widget/removedatabasedialog.cpp \
     src/widget/savedatadialog.cpp \
     src/widget/sessiontab.cpp \
     src/widget/settingsdialog.cpp \
@@ -171,10 +168,10 @@ SOURCES += \
     src/canvaspicker.cpp \
     src/plotmultibarchart.cpp \
     src/clipboard.cpp \
-    src/error.cpp
+    src/error.cpp \
+    src/widget/databaseconnectdialog.cpp
 
 FORMS += \
-    src/widget/adddatabasedialog.ui \
     src/widget/databasehistorydialog.ui \
     src/widget/distributionplot.ui \
     src/widget/joinhelperwidget.ui \
@@ -182,10 +179,10 @@ FORMS += \
     src/widget/mainwindow.ui \
     src/widget/queryhistorywidget.ui \
     src/widget/querymodelview.ui \
-    src/widget/removedatabasedialog.ui \
     src/widget/savedatadialog.ui \
     src/widget/sessiontab.ui \
     src/widget/settingsdialog.ui \
     src/widget/userhelperdialog.ui \
-    src/widget/xyplot.ui
+    src/widget/xyplot.ui \
+    src/widget/databaseconnectdialog.ui
 

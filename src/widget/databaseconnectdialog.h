@@ -4,16 +4,16 @@
 #include <QDialog>
 
 namespace Ui {
-class AddDatabaseDialog;
+class DatabaseConnectDialog;
 }
 
-class AddDatabaseDialog : public QDialog
+class DatabaseConnectDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit AddDatabaseDialog(bool showHistory, QWidget *parent = 0);
-    ~AddDatabaseDialog();
+    explicit DatabaseConnectDialog(bool showHistory, QWidget *parent = 0);
+    ~DatabaseConnectDialog();
 
     QString connectionName();
     QString driver();
@@ -33,7 +33,7 @@ private slots:
     void on_savePassword_clicked(bool checked);
 
 private:
-    Ui::AddDatabaseDialog *ui;
+    Ui::DatabaseConnectDialog *ui;
 };
 
 #endif // ADDDATABASEDIALOG_H

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddDatabaseDialog</class>
- <widget class="QDialog" name="AddDatabaseDialog">
+ <class>DatabaseConnectDialog</class>
+ <widget class="QDialog" name="DatabaseConnectDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Add Database</string>
+   <string>Connect</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -144,7 +144,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>AddDatabaseDialog</receiver>
+   <receiver>DatabaseConnectDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -160,7 +160,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>AddDatabaseDialog</receiver>
+   <receiver>DatabaseConnectDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

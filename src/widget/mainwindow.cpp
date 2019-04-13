@@ -20,8 +20,7 @@
 
 #include "sessionmodel.h"
 #include "sessiontab.h"
-#include "adddatabasedialog.h"
-#include "removedatabasedialog.h"
+#include "databaseconnectdialog.h"
 #include "history.h"
 #include "queryparser.h"
 #include "queryhistorywidget.h"
@@ -98,32 +97,32 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 
     QMenu menu(this);
 
-    QAction* addDatabase = cloneAction(ui->addDatabase,"&Add database",&menu);
-    QAction* removeDatabase = cloneAction(ui->removeDatabase,"&Remove database",&menu);
-    QAction* reconnect = ui->reconnect;
-    QAction* addSession = cloneAction(ui->addSession,"Add &session",&menu);
-    QAction* removeSession = cloneAction(ui->removeSession,"&Remove session",&menu);
+    QAction* databaseConnect = cloneAction(ui->databaseConnect,"&Connect",&menu);
+    QAction* databaseDisconnect = cloneAction(ui->databaseDisconnect,"&Disconnect",&menu);
+    QAction* databaseReconnect = ui->databaseReconnect;
+    QAction* sessionAdd = cloneAction(ui->sessionAdd,"Add &session",&menu);
+    QAction* sessionRemove = cloneAction(ui->sessionRemove,"&Remove session",&menu);
 
     SessionModel* m = this->model();
 
     if (!index.isValid()) {
 
-        menu.addAction(addDatabase);
+        menu.addAction(databaseConnect);
 
     } else if (m->isDatabase(index)) {
 
-        menu.addAction(addSession);
+        menu.addAction(sessionAdd);
         menu.addSeparator();
-        menu.addAction(addDatabase);
-        menu.addAction(removeDatabase);
-        menu.addAction(reconnect);
+        menu.addAction(databaseConnect);
+        menu.addAction(databaseDisconnect);
+        menu.addAction(databaseReconnect);
 
     } else if (m->isSession(index)) {
 
-        menu.addAction(addSession);
-        menu.addAction(removeSession);
+        menu.addAction(sessionAdd);
+        menu.addAction(sessionRemove);
         menu.addSeparator();
-        menu.addAction(addDatabase);
+        menu.addAction(databaseConnect);
 
     }
 
@@ -292,7 +291,7 @@ void MainWindow::onAppendQuery(const QString& connectionName, QString query)
 
     mQuery = query;
     selectDatabase(connectionName);
-    on_addSession_triggered();
+    on_sessionAdd_triggered();
     showOnTop(this);
 }
 
@@ -390,10 +389,10 @@ void MainWindow::pushTokens(const QString &connectionName)
 
 
 
-void MainWindow::addDatabase(bool showHistory)
+void MainWindow::databaseConnect(bool showHistory)
 {
     SessionModel* m = model();
-    AddDatabaseDialog dialog(showHistory, this);
+    DatabaseConnectDialog dialog(showHistory, this);
     QString connectionName;
 
     Automation::instance()->beforeDialog(&dialog);
@@ -406,14 +405,14 @@ void MainWindow::addDatabase(bool showHistory)
     mHistory->addDatabase(connectionName,dialog.driver(),dialog.host(),dialog.user(),dialog.password(),dialog.database(),dialog.port());
     updateTokens(connectionName);
     ui->sessionTree->setCurrentIndex(m->index(m->rowCount()-1,0));
-    on_addSession_triggered();
+    on_sessionAdd_triggered();
 
     Automation::instance()->afterDialog(&dialog);
 }
 
-void MainWindow::on_addDatabase_triggered()
+void MainWindow::on_databaseConnect_triggered()
 {
-    addDatabase(false);
+    databaseConnect(false);
 }
 
 void MainWindow::onSessionRemoved(QString connectionName, QString name) {
@@ -441,7 +440,7 @@ SessionModel *MainWindow::model() const
 
 void MainWindow::on_databaseHistory_triggered()
 {
-    addDatabase(true);
+    databaseConnect(true);
 }
 
 void MainWindow::on_queryHistory_triggered()
@@ -449,7 +448,7 @@ void MainWindow::on_queryHistory_triggered()
     onShowQueryHistory();
 }
 
-void MainWindow::on_addSession_triggered()
+void MainWindow::on_sessionAdd_triggered()
 {
     SessionModel* m = model();
     QModelIndex index = ui->sessionTree->currentIndex();
@@ -460,7 +459,7 @@ void MainWindow::on_addSession_triggered()
     ui->sessionTree->expandAll();
 }
 
-void MainWindow::on_removeSession_triggered()
+void MainWindow::on_sessionRemove_triggered()
 {
     SessionModel* m = model();
     QModelIndex index = ui->sessionTree->currentIndex();
@@ -470,7 +469,7 @@ void MainWindow::on_removeSession_triggered()
     m->removeSession(index);
 }
 
-void MainWindow::on_removeDatabase_triggered()
+void MainWindow::on_databaseDisconnect_triggered()
 {
     QModelIndex index = ui->sessionTree->currentIndex();
     if (!index.isValid()) {
@@ -479,14 +478,21 @@ void MainWindow::on_removeDatabase_triggered()
 
     SessionModel* m = model();
     QString connectionName = m->connectionName(index);
-    RemoveDatabaseDialog dialog(connectionName,this);
-    if (dialog.exec() != QDialog::Accepted) {
+    QString question = QString("Disconnect from %1?").arg(connectionName);
+
+    if (QMessageBox::question(this,"Disconnect",question,QMessageBox::Yes, QMessageBox::Cancel) != QMessageBox::Yes) {
         return;
     }
+
+    QSqlDatabase db = QSqlDatabase::database(connectionName);
+    db.close();
+    QSqlDatabase::removeDatabase(connectionName);
+
     m->removeDatabase(index);
     if (mJoinHelpers) {
         mJoinHelpers->closeTab(connectionName);
     }
+
 }
 
 QString MainWindow::connectionName() const {
@@ -514,7 +520,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     QMainWindow::closeEvent(event);
 }
 
-void MainWindow::on_reconnect_triggered()
+void MainWindow::on_databaseReconnect_triggered()
 {
     QString connectionName = this->connectionName();
     if (connectionName.isEmpty()) {
