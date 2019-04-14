@@ -8,14 +8,14 @@ plugins = [p for p in [
 
 conf = {
     'AppName' : 'mugi-query',
-    'AppVersion' : '1.0.0',
+    'AppVersion' : '1.0.1',
     'Binaries' : [{'Source': 'D:\\dev\\mugi-query\\release\\mugi-query.exe', 'Dest': ''}],
 
     'BuildDir' : 'D:\\dev\\mugi-query',
      'BuildActions': [{
         'cmds': [
             ['qmake'],
-            #['mingw32-make.exe', 'clean', '-j4'],
+            ['mingw32-make.exe', 'clean'],
             ['mingw32-make.exe', 'release', '-j4']
         ],
         'cwd': 'D:\\dev\\mugi-query'
@@ -23,8 +23,9 @@ conf = {
     
     'Arch': 'win32',
     'VersionUpdater': 'QtVersionUpdater',
+    'Builder': 'QtBuilder',
     'Packer': 'SimplePacker',
-    'Packer': 'SimplePacker',
+    'VersionHeader': 'D:\\dev\\mugi-query\\src\\version.h',
     
     'Data': [],
     
