@@ -103,7 +103,9 @@ HEADERS += \
     src/plotmultibarchart.h \
     src/clipboard.h \
     src/error.h \
-    src/widget/databaseconnectdialog.h
+    src/widget/databaseconnectdialog.h \
+    src/model/schemamodel.h \
+    src/model/schemaitem.h
 
 SOURCES += \
     src/action.cpp \
@@ -169,7 +171,9 @@ SOURCES += \
     src/plotmultibarchart.cpp \
     src/clipboard.cpp \
     src/error.cpp \
-    src/widget/databaseconnectdialog.cpp
+    src/widget/databaseconnectdialog.cpp \
+    src/model/schemamodel.cpp \
+    src/model/schemaitem.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

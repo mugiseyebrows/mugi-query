@@ -28,14 +28,20 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QSplitter" name="splitter">
+     <widget class="QSplitter" name="horizontalSplitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QTreeView" name="sessionTree">
-       <property name="contextMenuPolicy">
-        <enum>Qt::CustomContextMenu</enum>
+      <widget class="QSplitter" name="verticalSplitter">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
        </property>
+       <widget class="QTreeView" name="sessionTree">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
+       </widget>
+       <widget class="QTreeView" name="schemaTree"/>
       </widget>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -68,7 +74,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatabase">
@@ -84,6 +90,7 @@
     <property name="title">
      <string>&amp;Query</string>
     </property>
+    <addaction name="queryExecute"/>
     <addaction name="queryHistory"/>
     <addaction name="queryHelp"/>
     <addaction name="separator"/>
@@ -159,7 +166,7 @@
   </action>
   <action name="queryHistory">
    <property name="text">
-    <string>&amp;HIstory</string>
+    <string>&amp;History</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+H</string>
@@ -206,7 +213,10 @@
   </action>
   <action name="queryHelp">
    <property name="text">
-    <string>H&amp;elp</string>
+    <string>He&amp;lp</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
    </property>
   </action>
   <action name="queryCreateUser">
@@ -216,7 +226,7 @@
   </action>
   <action name="queryJoin">
    <property name="text">
-    <string>Join</string>
+    <string>&amp;Join</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+J</string>
@@ -242,12 +252,12 @@
   </action>
   <action name="queryQuote">
    <property name="text">
-    <string>Quote</string>
+    <string>&amp;Quote</string>
    </property>
   </action>
   <action name="queryUnquote">
    <property name="text">
-    <string>Unquote</string>
+    <string>&amp;Unquote</string>
    </property>
   </action>
   <action name="settingsFormat">
@@ -258,6 +268,16 @@
   <action name="dataPlot">
    <property name="text">
     <string>&amp;Plot</string>
+   </property>
+  </action>
+  <action name="queryExecute">
+   <property name="text">
+    <string>&amp;Execute</string>
+   </property>
+  </action>
+  <action name="queryTables">
+   <property name="text">
+    <string>&amp;Tables</string>
    </property>
   </action>
  </widget>

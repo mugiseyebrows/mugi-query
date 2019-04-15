@@ -252,6 +252,26 @@ QStringList Tokens::fields(const QString& tableName, const QString& alias) const
     return res;
 }
 
+QStringList Tokens::fields(const QString &tableName, bool dotted) const
+{
+    QStringList res;
+    foreach(const Table& table, mTables) {
+        if (table.table != tableName) {
+            continue;
+        }
+        if (dotted) {
+            foreach(const QString& field, table.fields) {
+                res << (table.table + "." + field);
+            }
+        } else {
+            foreach(const QString& field, table.fields) {
+                res << field;
+            }
+        }
+    }
+    return res;
+}
+
 QStringList Tokens::fields(bool doted) const
 {
     QStringList res;

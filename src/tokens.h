@@ -27,6 +27,9 @@ public:
     QStringList tables() const;
 
     QStringList fields(const QString &table, const QString &alias) const;
+
+    QStringList fields(const QString &table, bool dotted) const;
+
 protected:
     struct Table {
         QString table;

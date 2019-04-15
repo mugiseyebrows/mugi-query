@@ -11,6 +11,7 @@ class QueryHistoryWidget;
 class QCompleter;
 class Highlighter;
 class JoinHelperWidgets;
+class SchemaModel;
 
 #include "tokens.h"
 
@@ -57,6 +58,7 @@ protected:
 
     int lastTabIndex(const QString &connectionName);
     void selectDatabase(const QString &connectionName);
+    void updateSchemaModel();
 public slots:
 
     void on_databaseConnect_triggered();
@@ -72,6 +74,7 @@ public slots:
     void on_queryHistory_triggered();
     void on_queryHelp_triggered();
     void on_queryJoin_triggered();
+    void on_queryExecute_triggered();
 
     void on_dataSave_triggered();
 
@@ -90,8 +93,6 @@ public slots:
     void onShowQueryHistory();
     //void onAddSessionWithQuery(QString);
     void onAppendQuery(const QString &connectionName, QString);
-
-protected slots:
 
 private:
     Ui::MainWindow *ui;

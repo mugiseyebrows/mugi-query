@@ -31,10 +31,21 @@
 #include "settingsdialog.h"
 #include "joinhelperwidgets.h"
 #include "automation.h"
+#include "model/schemamodel.h"
 
 #include <QThread>
 #include "datautils.h"
 using namespace DataUtils;
+
+namespace {
+
+void showOnTop(QWidget* widget) {
+    widget->show();
+    widget->activateWindow();
+    widget->raise();
+}
+
+}
 
 #if 0
 #include "automate_p.cpp"
@@ -62,14 +73,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mHistory = new History(this);
 
-    SessionModel* m = new SessionModel(ui->sessionTree);
-    ui->sessionTree->setModel(m);
+    SessionModel* sessionModel = new SessionModel(ui->sessionTree);
+    ui->sessionTree->setModel(sessionModel);
 
-    connect(m,
+    ui->schemaTree->setModel(new SchemaModel(ui->schemaTree));
+
+    connect(sessionModel,
             SIGNAL(sessionAdded(QString,QString,QString)),
             this,
             SLOT(onSessionAdded(QString,QString,QString)));
-    connect(m,SIGNAL(sessionRemoved(QString,QString)),this,SLOT(onSessionRemoved(QString,QString)));
+    connect(sessionModel,
+            SIGNAL(sessionRemoved(QString,QString)),
+            this,
+            SLOT(onSessionRemoved(QString,QString)));
 
     connect(ui->sessionTree->selectionModel(),
             SIGNAL(currentChanged(QModelIndex,QModelIndex)),
@@ -127,12 +143,11 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
     }
 
     menu.exec(QCursor::pos());
-
 }
 
-
 void MainWindow::onAdjustSplitter() {
-    SplitterUtil::setRatio(ui->splitter,1,4);
+    SplitterUtil::setRatio(ui->horizontalSplitter,1,4);
+    SplitterUtil::setRatio(ui->verticalSplitter,1,3);
 }
 
 void MainWindow::onTreeCurrentChanged(QModelIndex index,QModelIndex) {
@@ -201,9 +216,16 @@ SessionTab *MainWindow::currentTab()
     return tab(index);
 }
 
+void MainWindow::updateSchemaModel() {
+    SchemaModel* model = qobject_cast<SchemaModel*>(ui->schemaTree->model());
+    model->update(mTokens);
+    ui->schemaTree->expandToDepth(0);
+}
+
 void MainWindow::updateTokens(const QString &connectionName)
 {
     mTokens[connectionName] = Tokens(QSqlDatabase::database(connectionName));
+    updateSchemaModel();
 }
 
 int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
@@ -214,16 +236,6 @@ int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
         }
     }
     return -1;
-}
-
-namespace {
-
-void showOnTop(QWidget* widget) {
-    widget->show();
-    widget->activateWindow();
-    widget->raise();
-}
-
 }
 
 void MainWindow::onTabsCurrentChanged(int tabIndex) {
@@ -493,6 +505,8 @@ void MainWindow::on_databaseDisconnect_triggered()
         mJoinHelpers->closeTab(connectionName);
     }
 
+    mTokens.remove(connectionName);
+    updateSchemaModel();
 }
 
 QString MainWindow::connectionName() const {
@@ -619,12 +633,19 @@ void MainWindow::on_queryUnquote_triggered()
     tab->unquoteQuery();
 }
 
-
-
 void MainWindow::on_settingsFormat_triggered()
 {
     SettingsDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
 
     }
+}
+
+void MainWindow::on_queryExecute_triggered()
+{
+    SessionTab* tab = currentTab();
+    if (!tab) {
+        return;
+    }
+    tab->on_execute_clicked();
 }
