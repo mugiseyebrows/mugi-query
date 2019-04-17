@@ -45,6 +45,7 @@ public:
     void selectTab(const QString &name);
     QMenu* selectionMenu() const;
 
+    SchemaModel *schemaModel();
 protected:
     void closeEvent(QCloseEvent *event);
     History* mHistory;

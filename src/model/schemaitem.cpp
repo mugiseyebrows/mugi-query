@@ -50,7 +50,6 @@ void SchemaItem::setData(const QString& data) {
 
 void SchemaItem::appendChild(SchemaItem *child)
 {
-    qDebug() << this << "appendChild";
     mChildren.append(child);
 }
 

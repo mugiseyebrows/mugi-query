@@ -127,3 +127,14 @@ QModelIndex SchemaModel::index(int row, int column, const QModelIndex &parent) c
     else
         return QModelIndex();
 }
+
+QModelIndex SchemaModel::find(const QString &connectionName)
+{
+    for(int row=0;row<rowCount();row++) {
+        QModelIndex index = this->index(row,0);
+        if (data(index).toString() == connectionName) {
+            return index;
+        }
+    }
+    return QModelIndex();
+}

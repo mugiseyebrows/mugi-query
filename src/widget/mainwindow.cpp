@@ -217,9 +217,8 @@ SessionTab *MainWindow::currentTab()
 }
 
 void MainWindow::updateSchemaModel() {
-    SchemaModel* model = qobject_cast<SchemaModel*>(ui->schemaTree->model());
-    model->update(mTokens);
-    ui->schemaTree->expandToDepth(0);
+    SchemaModel* schemaModel = this->schemaModel();
+    schemaModel->update(mTokens);
 }
 
 void MainWindow::updateTokens(const QString &connectionName)
@@ -262,6 +261,16 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
 
     tab(tabIndex)->focusQuery();
 
+    SchemaModel* schemaModel = this->schemaModel();
+    QModelIndex rootIndex = schemaModel->find(connectionName);
+    if (rootIndex != ui->schemaTree->rootIndex()) {
+        ui->schemaTree->setRootIndex(rootIndex);
+    }
+
+}
+
+SchemaModel* MainWindow::schemaModel() {
+    return qobject_cast<SchemaModel*>(ui->schemaTree->model());
 }
 
 void MainWindow::onSessionAdded(QString connectionName, QString name, QString namePrev) {

@@ -24,6 +24,8 @@ public:
 
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
 
+    QModelIndex find(const QString& connectionName);
+
     QModelIndex parent(const QModelIndex &child) const;
 
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
