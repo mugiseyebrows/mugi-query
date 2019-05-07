@@ -5,6 +5,7 @@
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QDebug>
+#include <QTextCodec>
 #include "queriesstatmodel.h"
 #include "savedatadialog.h"
 #include <QFileDialog>
@@ -247,6 +248,10 @@ void SessionTab::saveData()
         stream = new QTextStream(file);
     } else {
         stream = new QTextStream(&output,QIODevice::WriteOnly);
+    }
+
+    if (stream) {
+        stream->setCodec(QTextCodec::codecForName("UTF-8"));
     }
 
     QString error;

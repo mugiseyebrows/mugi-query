@@ -9,6 +9,55 @@
 
 #include "settings.h"
 
+namespace {
+
+QString escapeChars(const QString& value) {
+    QString result = value;
+    result.replace("'","''").replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace("\t","\\t");
+    return result;
+}
+
+QStringList filterHeader(QSqlQueryModel *model, const QList<bool>& filter) {
+    QStringList res;
+    for(int c=0; c<model->columnCount(); c++) {
+        if (filter[c]) {
+            res << model->headerData(c,Qt::Horizontal).toString();
+        }
+    }
+    return res;
+}
+
+QVariantList filterData(QSqlQueryModel *model, int row, const QList<bool>& filter) {
+    QVariantList res;
+    for(int c=0; c<model->columnCount(); c++) {
+        if (filter[c]) {
+            res << model->data(model->index(row,c));
+        }
+    }
+    return res;
+}
+
+QStringList zipJoin(const QStringList& vs1, const QString& glue, const QStringList vs2) {
+    QStringList res;
+    for(int i=0;i<vs1.size();i++) {
+        res << vs1[i] + glue + vs2[i];
+    }
+    return res;
+}
+
+QStringList zipJoinNull(const QStringList& vs1, const QStringList vs2) {
+    QStringList res;
+    for(int i=0;i<vs1.size();i++) {
+        if (vs2[i] == "null") {
+            res << vs1[i] + " is " + vs2[i];
+        } else {
+            res << vs1[i] + "=" + vs2[i];
+        }
+    }
+    return res;
+}
+
+}
 
 QStringList DataStreamer::variantListToStringList(const QVariantList& values,
                                                   DataFormat::Format format,
@@ -108,7 +157,7 @@ QString DataStreamer::variantToString(const QVariant& value,
         case QVariant::DateTime:
             return "'" + value.toDateTime().toString("yyyy-MM-dd hh:mm:ss") + "'";
         case QVariant::String:
-            return "'" + value.toString().replace("'","''").replace("\\","\\\\") + "'";
+            return "'" + escapeChars(value.toString()) + "'";
         case QVariant::ByteArray:
             return "0x" + value.toByteArray().toHex();
         default:
@@ -120,50 +169,6 @@ QString DataStreamer::variantToString(const QVariant& value,
         return QString();
     }
     return QString();
-}
-
-namespace {
-
-QStringList filterHeader(QSqlQueryModel *model, const QList<bool>& filter) {
-    QStringList res;
-    for(int c=0; c<model->columnCount(); c++) {
-        if (filter[c]) {
-            res << model->headerData(c,Qt::Horizontal).toString();
-        }
-    }
-    return res;
-}
-
-QVariantList filterData(QSqlQueryModel *model, int row, const QList<bool>& filter) {
-    QVariantList res;
-    for(int c=0; c<model->columnCount(); c++) {
-        if (filter[c]) {
-            res << model->data(model->index(row,c));
-        }
-    }
-    return res;
-}
-
-QStringList zipJoin(const QStringList& vs1, const QString& glue, const QStringList vs2) {
-    QStringList res;
-    for(int i=0;i<vs1.size();i++) {
-        res << vs1[i] + glue + vs2[i];
-    }
-    return res;
-}
-
-QStringList zipJoinNull(const QStringList& vs1, const QStringList vs2) {
-    QStringList res;
-    for(int i=0;i<vs1.size();i++) {
-        if (vs2[i] == "null") {
-            res << vs1[i] + " is " + vs2[i];
-        } else {
-            res << vs1[i] + "=" + vs2[i];
-        }
-    }
-    return res;
-}
-
 }
 
 void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model, DataFormat::Format format,

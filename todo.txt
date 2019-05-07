@@ -3,6 +3,7 @@ users helper
 save data:
     values(),(),()
     backticks (mysql)
+    remember format and output
 editable shortcuts
 beautify query
 upcase keywords
@@ -29,9 +30,11 @@ join helper:
     relations, tables: copy/paste/delete event filter
     reorder tables buttons
     deduce relations %table_name%_id
-adddatabase:
-    search filters
+connect database:
     pick file for odbc and sqlite drivers
+    drag reorder eventfilter
+database history:
+    search filters
 fix save data 'select * from (((foo)))'
 qsharedpointer for query models?
 csv/tsv to sql
@@ -44,7 +47,6 @@ plot:
     xy:
     distribution:
         x range filter: auto, manual
-        clickable bars
         sigm, m0, gauss curve
         y in percent
 memleaks
@@ -52,6 +54,9 @@ clean disconnect
 color input delegate
 combobox delegates with autocompletion instead of lineedit (optional)
 class Histogram
-save data table name + '.sql' = filename 
 save data:
     preview
+    table name + '.sql' = filename 
+    insert ignore (mysql, psql)
+execute file
+fetchmore on column select
