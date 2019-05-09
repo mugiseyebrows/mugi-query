@@ -1,6 +1,8 @@
 #include "splitterutil.h"
 #include <QSplitter>
 #include <numeric>
+#include <QDebug>
+
 namespace {
     double sum(const QList<double> &vs) {
         return std::accumulate(vs.begin(), vs.end(), 0.0);
@@ -49,7 +51,28 @@ bool SplitterUtil::setRatio(QSplitter *splitter, double r0, double r1, double r2
     return setRatio(splitter, ratios);
 }
 
-#include <QDebug>
+bool SplitterUtil::setRatioWithMinSize(QSplitter *splitter, double r0, double r1, int m0, int m1) {
+
+    QList<int> sizes_ = splitter->sizes();
+    QList<double> ratios;
+    ratios << r0 << r1;
+    QList<int> sizes = SplitterUtil::proportional(sizes_,ratios);
+    if (m0 > 0) {
+        if (sizes[0] < m0) {
+            sizes[0] = m0;
+            sizes[1] = sum(sizes_) - m0;
+        }
+    }
+    if (m1 > 0) {
+        if (sizes[1] < m1) {
+            sizes[1] = m1;
+            sizes[0] = sum(sizes_) - m1;
+        }
+    }
+    //qDebug() << "setRatioWithMinSize" << sizes << sizes_;
+    splitter->setSizes(sizes);
+    return true;
+}
 
 bool SplitterUtil::setFixed(QSplitter *splitter, int r0, int r1)
 {

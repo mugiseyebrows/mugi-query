@@ -47,7 +47,7 @@ void showOnTop(QWidget* widget) {
 
 }
 
-#if 1
+#if 0
 #include "automate_p.cpp"
 #else
 void automate(QWidget* widget) {

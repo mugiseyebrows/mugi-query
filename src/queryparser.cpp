@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QRegularExpression>
+#include <QQueue>
 #include "zipunzip.h"
 
 QueryParser::QueryParser()
@@ -141,36 +142,9 @@ QPair<IntPairList,IntPairList> parenthesis(const QString& query) {
     return QPair<IntPairList,IntPairList>(open,close);
 }
 
-#include <QQueue>
+
 
 QStringList QueryParser::flatQueries(const QString& query_) {
-
-
-#if 0
-    IntPairList open;
-    IntPairList close;
-
-    int level = 0;
-    for(int i=0;i<query.size();i++) {
-        QChar c = query[i];
-        if (c == '(') {
-            open << IntPair(i,level++);
-        } else if (c == ')') {
-            close << IntPair(i,--level);
-        }
-    }
-
-    if (open.size() != close.size()) {
-        return result;
-    }
-
-    QList<int> open0 = filterLevel(open,0);
-    QList<int> close0 = filterLevel(close,0);
-
-    QString outer = outerQuery(query,open0,close0);
-
-    result << outer;
-#endif
 
     QStringList result;
 
@@ -194,36 +168,6 @@ QStringList QueryParser::flatQueries(const QString& query_) {
 
 
 namespace {
-
-
-void appendIfHasMatch(QList<QRegularExpressionMatch>& ms, const QRegularExpressionMatch& m) {
-    if (m.hasMatch()) {
-        ms.append(m);
-    }
-}
-
-#if 0
-QList<QRegularExpressionMatch> matched(const QRegularExpressionMatch& m1, const QRegularExpressionMatch& m2, const QRegularExpressionMatch& m3) {
-    QList<QRegularExpressionMatch> res;
-    appendIfHasMatch(res,m1);
-    appendIfHasMatch(res,m2);
-    appendIfHasMatch(res,m3);
-    return res;
-}
-#endif
-
-
-#if 0
-QList<QRegularExpressionMatch> filterHasMatch(const QList<QRegularExpressionMatch>& ms) {
-    QList<QRegularExpressionMatch> res;
-    foreach (const QRegularExpressionMatch&m, ms) {
-        if (m.hasMatch()) {
-            res << m;
-        }
-    }
-    return res;
-}
-#endif
 
 bool goesFirst(const QRegularExpressionMatch& m1, const QList<QRegularExpressionMatch>& ms) {
 

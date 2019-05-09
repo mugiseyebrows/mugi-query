@@ -20,22 +20,24 @@ public:
 
     explicit DirstibutionPlotOptionsEdit(QWidget *parent = 0);
     ~DirstibutionPlotOptionsEdit();
-    void init(int bins, double vmin, double vmax);
+    void init(int bins, double min, double max);
     void onValuesChanged(Sender sender);
 
     bool autoRange() const;
 
     int bins(bool *ok = 0) const;
-    double vmin(bool *ok = 0) const;
-    double vmax(bool *ok = 0) const;
+    double min(bool *ok = 0) const;
+    double max(bool *ok = 0) const;
+
+protected:
+    bool mSwitchMode;
 
 signals:
     void valuesChanged(int,double,double);
 
-private slots:
-    void on_rangeAuto_clicked();
-
-    void on_rangeManual_clicked();
+protected slots:
+    void on_autoRange_clicked();
+    void on_manualRange_clicked();
 
 private:
     Ui::DirstibutionPlotOptionsEdit *ui;

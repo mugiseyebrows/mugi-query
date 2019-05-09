@@ -11,6 +11,7 @@ class DistributionPlot;
 }
 
 #include "distributionplotitem.h"
+#include "distributiondataset.h"
 #include <QModelIndex>
 
 class DistributionPlot : public QWidget
@@ -28,16 +29,21 @@ public:
 
 protected:
     void init();
+    QStringList modelHeader() const;
+
     ModelAppender* mAppender;
     QList<DistributionPlotItem> mItems;
     QAbstractItemModel* mModel;
-    QStringList modelHeader();
+    DistributionDataset mDataset;
+
     //CanvasPicker* mPicker;
 protected slots:
     void onDataChanged(QModelIndex, QModelIndex, QVector<int>);
     void setDefaultColors();
     void onBinsValueChanged(int);
     void updateSeries();
+    void updateDataset();
+    void onOptionsChanged(int bins, double min, double max);
 private:
     Ui::DistributionPlot *ui;
 };

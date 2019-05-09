@@ -22,20 +22,6 @@
      <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Bins</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="IntLineEdit" name="bins"/>
-         </item>
-        </layout>
-       </item>
-       <item>
         <widget class="DirstibutionPlotOptionsEdit" name="options" native="true"/>
        </item>
        <item>
@@ -54,11 +40,6 @@
    <extends>QFrame</extends>
    <header>qwt_plot.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>IntLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>intlineedit.h</header>
   </customwidget>
   <customwidget>
    <class>DirstibutionPlotOptionsEdit</class>

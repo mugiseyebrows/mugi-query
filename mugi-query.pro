@@ -108,7 +108,8 @@ HEADERS += \
     src/model/schemaitem.h \
     src/widget/doublelineedit.h \
     src/widget/dirstibutionplotoptionsedit.h \
-    src/histogram.h
+    src/histogram.h \
+    src/distributiondataset.h
 
 SOURCES += \
     src/action.cpp \
@@ -179,7 +180,8 @@ SOURCES += \
     src/model/schemaitem.cpp \
     src/widget/doublelineedit.cpp \
     src/widget/dirstibutionplotoptionsedit.cpp \
-    src/histogram.cpp
+    src/histogram.cpp \
+    src/distributiondataset.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

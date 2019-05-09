@@ -26,9 +26,9 @@ using namespace Lit;
 
 XYPlot::XYPlot(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::XYPlot),
     mAppender(new ModelAppender(this)),
-    mSplitterAdjusted(false)
+    mSplitterAdjusted(false),
+    ui(new Ui::XYPlot)
 {
     ui->setupUi(this);
     init();

@@ -103,17 +103,8 @@ void QueryModelView::on_tabs_currentChanged(int index)
 
     QSplitter* splitter = ui->splitter;
 
-    //height = 10;
-
-    /*qDebug() << "height" << height;
-
-    qDebug() << ui->tab->minimumSizeHint()
-             << ui->tab_2->minimumSizeHint()
-             << ui->tab_3->minimumSizeHint();*/
-
     if (index == 0) {
         int height = ui->tabs->tabBar()->height();
-        //qDebug() << height;
         if (height > 0) {
             SplitterUtil::setFixed(splitter,-1,height);
         }
@@ -121,12 +112,10 @@ void QueryModelView::on_tabs_currentChanged(int index)
         QList<int> sizes = splitter->sizes();
         //qDebug() << sizes;
         if (sizes[1] < 100) {
-            SplitterUtil::setRatio(splitter, 1.0, 1.0);
+            SplitterUtil::setRatioWithMinSize(splitter, 1.0, 1.0, -1, 260);
         }
     }
-
 }
-
 
 void QueryModelView::updateSplitter()
 {

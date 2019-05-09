@@ -5,24 +5,23 @@
 #include "distributionplotitem.h"
 #include <qwt_samples.h>
 
+#include "distributiondataset.h"
+
 class QAbstractItemModel;
 
 class Histogram {
 public:
-    Histogram(int bins, const QList<DistributionPlotItem>& items, const QStringList& header,
-              QAbstractItemModel* mModel, double vmin, double vmax);
+    Histogram(int bins, const DistributionDataset& dataset, double min, double max);
 
     QList<QwtText> titles() const;
 
     QVector<QwtSetSample> samples() const;
 
-    static QPair<double,double> range(const QList<DistributionPlotItem>& items, const QStringList& header, QAbstractItemModel* mModel, bool *ok);
-
 protected:
 
+    int mBins;
     double mMin;
     double mMax;
-    int mBins;
 
     QList<DistributionPlotItem> mItems;
     QList<QVector<double> > hist;

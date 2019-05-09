@@ -17,14 +17,16 @@
 #include <qwt_column_symbol.h>
 #include "canvaspicker.h"
 #include "histogram.h"
+#include "distributiondataset.h"
+//#include "plotmultibarchart.h"
 
 using namespace DataUtils;
 using namespace Lit;
 
 DistributionPlot::DistributionPlot(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::DistributionPlot),
-    mAppender(new ModelAppender(this))
+    mAppender(new ModelAppender(this)),
+    ui(new Ui::DistributionPlot)
 {
     ui->setupUi(this);    
     init();
@@ -45,18 +47,15 @@ QAbstractItemModel *DistributionPlot::tableModel() const
     return ui->table->model();
 }
 
-#include "plotmultibarchart.h"
-
 void DistributionPlot::init() {
     QwtPlotMultiBarChart* chart = new QwtPlotMultiBarChart();
     chart->setLayoutPolicy( QwtPlotMultiBarChart::AutoAdjustSamples );
-    chart->setSpacing( 3 );
-    chart->setMargin( 3 );
+    chart->setSpacing(3);
+    chart->setMargin(3);
+    chart->setLegendIconSize(QSize(10, 14));
     chart->attach(ui->plot);
 
     ui->plot->setAutoReplot( true );
-
-    ui->bins->setValue(10);
 
     //ui->distributionPlot->insertLegend(new QwtLegend());
 
@@ -82,13 +81,14 @@ void DistributionPlot::init() {
     ui->table->setItemDelegateForColumn(DistributionPlotModel::col_color,colorCompleter);
 
     connect(mAppender,SIGNAL(rowInserted(int)),this,SLOT(setDefaultColors()));
-    connect(ui->bins,SIGNAL(valueChanged(int)),this,SLOT(onBinsValueChanged(int)));
+
+    connect(ui->options,SIGNAL(valuesChanged(int,double,double)),this,SLOT(onOptionsChanged(int,double,double)));
 
     //mPicker = new CanvasPicker(ui->plot);
 }
 
 
-QStringList DistributionPlot::modelHeader() {
+QStringList DistributionPlot::modelHeader() const {
     return toLower(headerData(mModel,Qt::Horizontal));
 }
 
@@ -96,18 +96,13 @@ QStringList DistributionPlot::modelHeader() {
 void DistributionPlot::setModel(QAbstractItemModel *model)
 {
     mModel = model;
-
     QStringList header = modelHeader();
-
     ItemDelegateWithCompleter* xyCompleter = new ItemDelegateWithCompleter(header);
-
     ui->table->setItemDelegateForColumn(DistributionPlotModel::col_v,xyCompleter);
-
     setDefaultColors();
-
+    updateDataset();
     updateSeries();
 }
-
 
 void DistributionPlot::onDataChanged(QModelIndex,QModelIndex,QVector<int>) {
     DistributionPlotModel* model = qobject_cast<DistributionPlotModel*>(ui->table->model());
@@ -116,6 +111,7 @@ void DistributionPlot::onDataChanged(QModelIndex,QModelIndex,QVector<int>) {
         return;
     }
     mItems = items;
+    updateDataset();
     updateSeries();
 }
 
@@ -134,26 +130,37 @@ void DistributionPlot::onBinsValueChanged(int) {
 
 
 void DistributionPlot::updateSeries() {
+    int bins = ui->options->bins();
+    double min = ui->options->min();
+    double max = ui->options->max();
+    onOptionsChanged(bins, min, max);
+}
 
-    int numBars = mItems.size();
-    int bins = ui->bins->value();
-    if (bins < 1 || numBars < 1) {
+void DistributionPlot::updateDataset()
+{
+    mDataset.update(mItems,mModel);
+    if (mDataset.isEmpty()) {
+        return;
+    }
+    ui->options->init(12,mDataset.min(),mDataset.max());
+}
+
+void DistributionPlot::onOptionsChanged(int bins, double min, double max) {
+
+    QList<QwtPlotMultiBarChart*> barCharts = filterMultiBarCharts(ui->plot);
+    QwtPlotMultiBarChart* chart = barCharts[0];
+
+    if (mDataset.isEmpty() || bins < 2) {
+        chart->setSamples(QVector<QwtSetSample>());
+        chart->setBarTitles(QList<QwtText>());
+        ui->plot->replot();
         return;
     }
 
-    bool ok;
-    QPair<double,double> range = Histogram::range(mItems,modelHeader(),mModel,&ok);
-    if (ok) {
-        ui->options->init(12,range.first,range.second);
-    }
-
-    Histogram hist(ui->options->bins(), mItems, modelHeader(), mModel, ui->options->vmin(), ui->options->vmax());
-    QList<QwtPlotMultiBarChart*> barCharts = filterMultiBarCharts(ui->plot);
-    QwtPlotMultiBarChart* chart = barCharts[0];
+    Histogram hist(bins, mDataset, min, max);
     chart->setBarTitles(hist.titles());
-    chart->setLegendIconSize(QSize(10, 14));
 
-    for (int i = 0; i < numBars; i++)
+    for (int i=0; i<mItems.size(); i++)
     {
         const DistributionPlotItem& item = mItems[i];
         QwtColumnSymbol *symbol = new QwtColumnSymbol(QwtColumnSymbol::Box);
@@ -163,7 +170,6 @@ void DistributionPlot::updateSeries() {
         chart->setSymbol(i, symbol);
     }
     chart->setSamples(hist.samples());
-
     ui->plot->replot();
 }
 

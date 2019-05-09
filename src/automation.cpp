@@ -177,14 +177,14 @@ void Automation::onStart() {
 
 void Automation::beforeDialog(DatabaseConnectDialog *dialog)
 {
-    qDebug() << "beforeDialog(AddDatabaseDialog *dialog)";
+    //qDebug() << "beforeDialog(AddDatabaseDialog *dialog)";
     mAddDatabaseDialog = dialog;
     QTimer::singleShot(0,this,SLOT(onAddDatabaseDialog()));
 }
 
 void Automation::beforeDialog(DatabaseHistoryDialog *dialog)
 {
-    qDebug() << "beforeDialog(DatabaseHistoryDialog *dialog)";
+    //qDebug() << "beforeDialog(DatabaseHistoryDialog *dialog)";
     mDatabaseHistoryDialog = dialog;
     QTimer::singleShot(0,this,SLOT(onDatabaseHistoryDialog()));
 }
