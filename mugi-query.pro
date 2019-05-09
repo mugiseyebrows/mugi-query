@@ -105,7 +105,10 @@ HEADERS += \
     src/error.h \
     src/widget/databaseconnectdialog.h \
     src/model/schemamodel.h \
-    src/model/schemaitem.h
+    src/model/schemaitem.h \
+    src/widget/doublelineedit.h \
+    src/widget/dirstibutionplotoptionsedit.h \
+    src/histogram.h
 
 SOURCES += \
     src/action.cpp \
@@ -173,7 +176,10 @@ SOURCES += \
     src/error.cpp \
     src/widget/databaseconnectdialog.cpp \
     src/model/schemamodel.cpp \
-    src/model/schemaitem.cpp
+    src/model/schemaitem.cpp \
+    src/widget/doublelineedit.cpp \
+    src/widget/dirstibutionplotoptionsedit.cpp \
+    src/histogram.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \
@@ -188,5 +194,6 @@ FORMS += \
     src/widget/settingsdialog.ui \
     src/widget/userhelperdialog.ui \
     src/widget/xyplot.ui \
-    src/widget/databaseconnectdialog.ui
+    src/widget/databaseconnectdialog.ui \
+    src/widget/dirstibutionplotoptionsedit.ui
 

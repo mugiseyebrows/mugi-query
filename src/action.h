@@ -7,16 +7,17 @@ class Action {
 public:
     enum Type {
         ActionEmpty,
-        ActionAddDatabaseFromHistory,
+        ActionConnectToDatabaseFromHistory,
         ActionAppendQuery,
         ActionExecuteCurrentQuery,
         ActionShowSaveDataDialog,
         ActionSetXYPlot,
         ActionSetDistributionPlot,
-        ActionShowJoinHelper
+        ActionShowJoinHelper,
+        ActionShowDistributionPlot,
+        ActionShowXYPlot
     };
-    Action();
-    Action(Type type, const QVariantList& args = QVariantList());
+    Action(Type type = ActionEmpty, const QVariantList& args = QVariantList());
     Type type() const;
     QVariantList args() const;
     QVariant arg(int index) const;

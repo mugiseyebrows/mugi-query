@@ -6,25 +6,40 @@ IntLineEdit::IntLineEdit(QWidget *parent) :
     connect(this,SIGNAL(textChanged(QString)),this,SLOT(onTextChanged(QString)));
 }
 
-int IntLineEdit::value() const
+int IntLineEdit::value(bool *ok) const
 {
-    return text().toInt();
+    return text().toInt(ok);
+}
+
+void IntLineEdit::setIfNoValue(int value) {
+    bool ok;
+    this->value(&ok);
+    if (ok) {
+        return;
+    }
+    setValue(value);
 }
 
 void IntLineEdit::setValue(int value)
 {
+    bool ok;
+    if (this->value(&ok) == value) {
+        if (ok) {
+            return;
+        }
+    }
     setText(QString::number(value));
 }
 
-void IntLineEdit::onTextChanged(QString val)
+void IntLineEdit::onTextChanged(QString text)
 {
-    if (val.isEmpty())
+    if (text.isEmpty()) {
         return;
-
+    }
     bool ok;
-    int val_ = val.toInt(&ok);
-    if (!ok)
+    int value = this->value(&ok);
+    if (!ok) {
         return;
-
-    emit valueChanged(val_);
+    }
+    emit valueChanged(value);
 }

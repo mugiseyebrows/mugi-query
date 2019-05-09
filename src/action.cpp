@@ -1,9 +1,5 @@
 #include "action.h"
 
-Action::Action() : mType(ActionEmpty) {
-
-}
-
 Action::Action(Action::Type type, const QVariantList &args) : mType(type), mArgs(args) {
 
 }

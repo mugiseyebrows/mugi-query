@@ -137,6 +137,16 @@ void QueryModelView::updateSplitter()
     mSplitterUpdated = true;
 }
 
+void QueryModelView::showXYPlot()
+{
+    ui->tabs->setCurrentIndex(TabIndexXY);
+}
+
+void QueryModelView::showDistributionPlot()
+{
+    ui->tabs->setCurrentIndex(TabIndexDistribution);
+}
+
 void QueryModelView::onTableCustomContextMenuRequested(const QPoint &)
 {
     QWidget* widget = topWidget(this);

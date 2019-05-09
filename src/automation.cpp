@@ -41,9 +41,9 @@ Automation::Automation(QObject *parent) : QObject(parent), mAddDatabaseDialog(0)
 
 }
 
-void Automation::addDatabaseFromHistory(const QString &connectionName)
+void Automation::connectToDatabaseFromHistory(const QString &connectionName)
 {
-    mQueued.enqueue(Action(Action::ActionAddDatabaseFromHistory, vl(connectionName)));
+    mQueued.enqueue(Action(Action::ActionConnectToDatabaseFromHistory, vl(connectionName)));
 }
 
 void Automation::query(const QString &connectionName, const QString &query) {
@@ -66,6 +66,16 @@ void Automation::setDistributionPlot(int row, const QString &v, const QString &c
     mQueued.enqueue(Action(Action::ActionSetDistributionPlot,vl(row,v,color)));
 }
 
+void Automation::showDistributionPlot()
+{
+    mQueued.enqueue(Action(Action::ActionShowDistributionPlot));
+}
+
+void Automation::showXYPlot()
+{
+    mQueued.enqueue(Action(Action::ActionShowXYPlot));
+}
+
 void Automation::showJoinHelper()
 {
     mQueued.enqueue(Action(Action::ActionShowJoinHelper));
@@ -77,7 +87,7 @@ void Automation::afterDialog(DatabaseConnectDialog *) {
 
 void Automation::afterDialog(DatabaseHistoryDialog *) {
 
-    if (mAction.type() == Action::ActionAddDatabaseFromHistory) {
+    if (mAction.type() == Action::ActionConnectToDatabaseFromHistory) {
         mAddDatabaseDialog->accept();
         next();
     }
@@ -93,63 +103,75 @@ void Automation::next() {
 }
 
 void Automation::onStart() {
-    if (!mQueued.isEmpty()) {
-        mAction = mQueued.dequeue();
-        if (mAction.type() == Action::ActionAddDatabaseFromHistory) {
-            mainWindow()->databaseConnect(true);
-        } else if (mAction.type() == Action::ActionAppendQuery) {
-            QString connectionName = mAction.arg(0).toString();
-            QString query = mAction.arg(1).toString();
-            mainWindow()->onAppendQuery(connectionName,query);
-            next();
-        } else if (mAction.type() == Action::ActionExecuteCurrentQuery) {
-            mainWindow()->currentTab()->on_execute_clicked();
-            next();
-        } else if (mAction.type() == Action::ActionShowSaveDataDialog) {
-            mainWindow()->on_dataSave_triggered();
-            next();
-        } else if (mAction.type() == Action::ActionSetXYPlot) {
 
-            int row = mAction.arg(0).toInt();
-            QString x = mAction.arg(1).toString();
-            QString y = mAction.arg(2).toString();
-            QString line = mAction.arg(3).toString();
-            QString marker = mAction.arg(4).toString();
-
-            SessionTab* tab = mainWindow()->currentTab();
-            QueryModelView* view = tab->tab(0);
-            XYPlot* plot = view->xyPlot();
-            QAbstractItemModel* model = plot->tableModel();
-            RowValueNotEmptySetter s(model,row);
-
-            s(XYPlotModel::col_x,x);
-            s(XYPlotModel::col_y,y);
-            s(XYPlotModel::col_line,line);
-            s(XYPlotModel::col_marker,marker);
-
-            next();
-        } else if (mAction.type() == Action::ActionSetDistributionPlot) {
-
-            int row = mAction.arg(0).toInt();
-            QString v = mAction.arg(1).toString();
-            QString color = mAction.arg(2).toString();
-
-            SessionTab* tab = mainWindow()->currentTab();
-            QueryModelView* view = tab->tab(0);
-            DistributionPlot* plot = view->distributionPlot();
-            QAbstractItemModel* model = plot->tableModel();
-            RowValueNotEmptySetter s(model,row);
-
-            s(DistributionPlotModel::col_v,v);
-            s(DistributionPlotModel::col_color,color);
-
-            next();
-        } else if (mAction.type() == Action::ActionShowJoinHelper) {
-            mainWindow()->on_queryJoin_triggered();
-            next();
-        }
-    } else {
+    if (mQueued.isEmpty()) {
         mAction = Action();
+        return;
+    }
+
+    mAction = mQueued.dequeue();
+    if (mAction.type() == Action::ActionConnectToDatabaseFromHistory) {
+        mainWindow()->databaseConnect(true);
+    } else if (mAction.type() == Action::ActionAppendQuery) {
+        QString connectionName = mAction.arg(0).toString();
+        QString query = mAction.arg(1).toString();
+        mainWindow()->onAppendQuery(connectionName,query);
+        next();
+    } else if (mAction.type() == Action::ActionExecuteCurrentQuery) {
+        mainWindow()->currentTab()->on_execute_clicked();
+        next();
+    } else if (mAction.type() == Action::ActionShowSaveDataDialog) {
+        mainWindow()->on_dataSave_triggered();
+        next();
+    } else if (mAction.type() == Action::ActionSetXYPlot) {
+
+        int row = mAction.arg(0).toInt();
+        QString x = mAction.arg(1).toString();
+        QString y = mAction.arg(2).toString();
+        QString line = mAction.arg(3).toString();
+        QString marker = mAction.arg(4).toString();
+
+        SessionTab* tab = mainWindow()->currentTab();
+        QueryModelView* view = tab->tab(0);
+        XYPlot* plot = view->xyPlot();
+        QAbstractItemModel* model = plot->tableModel();
+        RowValueNotEmptySetter s(model,row);
+
+        s(XYPlotModel::col_x,x);
+        s(XYPlotModel::col_y,y);
+        s(XYPlotModel::col_line,line);
+        s(XYPlotModel::col_marker,marker);
+
+        next();
+    } else if (mAction.type() == Action::ActionSetDistributionPlot) {
+
+        int row = mAction.arg(0).toInt();
+        QString v = mAction.arg(1).toString();
+        QString color = mAction.arg(2).toString();
+
+        SessionTab* tab = mainWindow()->currentTab();
+        QueryModelView* view = tab->tab(0);
+        DistributionPlot* plot = view->distributionPlot();
+        QAbstractItemModel* model = plot->tableModel();
+        RowValueNotEmptySetter s(model,row);
+
+        s(DistributionPlotModel::col_v,v);
+        s(DistributionPlotModel::col_color,color);
+
+        next();
+    } else if (mAction.type() == Action::ActionShowJoinHelper) {
+        mainWindow()->on_queryJoin_triggered();
+        next();
+    } else if (mAction.type() == Action::ActionShowDistributionPlot ||
+               mAction.type() == Action::ActionShowXYPlot) {
+        SessionTab* tab = mainWindow()->currentTab();
+        QueryModelView* view = tab->tab(0);
+        if (mAction.type() == Action::ActionShowDistributionPlot) {
+            view->showDistributionPlot();
+        } else {
+            view->showXYPlot();
+        }
+        next();
     }
 }
 
@@ -178,7 +200,7 @@ void Automation::onAddDatabaseDialog() {
 
 void Automation::onDatabaseHistoryDialog() {
 
-    if (mAction.type() == Action::ActionAddDatabaseFromHistory) {
+    if (mAction.type() == Action::ActionConnectToDatabaseFromHistory) {
         QString connectionName = mAction.args().value(0).toString();
         mDatabaseHistoryDialog->select(connectionName);
     }

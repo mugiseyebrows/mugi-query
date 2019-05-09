@@ -17,6 +17,12 @@ class QueryModelView : public QWidget
     Q_OBJECT
 
 public:
+    enum TabIndex {
+        TabIndexHide,
+        TabIndexXY,
+        TabIndexDistribution
+    };
+
     explicit QueryModelView(QWidget *parent = nullptr);
     ~QueryModelView();
 
@@ -29,6 +35,8 @@ public:
     DistributionPlot *distributionPlot() const;
 public slots:
     void updateSplitter();
+    void showDistributionPlot();
+    void showXYPlot();
 
 protected slots:
 

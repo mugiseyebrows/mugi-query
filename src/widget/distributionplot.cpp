@@ -16,6 +16,7 @@
 #include "filterplotitem.h"
 #include <qwt_column_symbol.h>
 #include "canvaspicker.h"
+#include "histogram.h"
 
 using namespace DataUtils;
 using namespace Lit;
@@ -140,102 +141,29 @@ void DistributionPlot::updateSeries() {
         return;
     }
 
-    while(mModel->canFetchMore(QModelIndex())) {
-        mModel->fetchMore(QModelIndex());
+    bool ok;
+    QPair<double,double> range = Histogram::range(mItems,modelHeader(),mModel,&ok);
+    if (ok) {
+        ui->options->init(12,range.first,range.second);
     }
 
+    Histogram hist(ui->options->bins(), mItems, modelHeader(), mModel, ui->options->vmin(), ui->options->vmax());
     QList<QwtPlotMultiBarChart*> barCharts = filterMultiBarCharts(ui->plot);
     QwtPlotMultiBarChart* chart = barCharts[0];
+    chart->setBarTitles(hist.titles());
+    chart->setLegendIconSize(QSize(10, 14));
 
-    QStringList header = modelHeader();
-
-    QList<QList<double> > values;
-
-    for(int i=0;i<numBars;i++) {
-        const DistributionPlotItem& item = mItems[i];
-        QList<double> values_ = toDouble(filterNumeric(columnData(mModel,header.indexOf(item.v()))));
-        values.append(values_);
-    }
-
-    double min;
-    double max;
-    bool ok = false;
-    for(int i=0;i<values.size();i++) {
-        if (!values[i].isEmpty()) {
-            min = values[i][0];
-            max = values[i][0];
-            ok = true;
-            break;
-        }
-    }
-    if (!ok) {
-        chart->setSamples(QVector<QwtSetSample>());
-        return;
-    }
-
-    for(int i=0;i<numBars;i++) {
-        const QList<double> values_ = values[i];
-        if (values_.isEmpty()) {
-            continue;
-        }
-        double min_ = *std::min_element(values_.begin(),values_.end());
-        double max_ = *std::max_element(values_.begin(),values_.end());
-        min = qMin(min_, min);
-        max = qMax(max_, max);
-    }
-
-    double w = max - min;
-    if (min == max) {
-        chart->setSamples(QVector<QwtSetSample>());
-        return;
-    }
-
-    QList<QVector<double> > hist;
-    while(hist.size() < bins) {
-        hist.append(QVector<double>(numBars, 0.0));
-    }
-
-    for(int i=0;i<numBars;i++) {
-        const QList<double> values_ = values[i];
-        foreach(double v, values_) {
-            int index = qMin((int)((v - min) * (double) bins / w), hist.size() - 1);
-            hist[index][i] += 1.0;
-        }
-    }
-
-    QList<QwtText> titles;
-    for ( int i = 0; i < numBars; i++ )
+    for (int i = 0; i < numBars; i++)
     {
         const DistributionPlotItem& item = mItems[i];
-        titles.append(item.v());
-    }
-    chart->setBarTitles(titles);
-
-    chart->setLegendIconSize( QSize( 10, 14 ) );
-
-    for ( int i = 0; i < numBars; i++ )
-    {
-        const DistributionPlotItem& item = mItems[i];
-        QwtColumnSymbol *symbol = new QwtColumnSymbol( QwtColumnSymbol::Box );
-        symbol->setLineWidth( 2 );
+        QwtColumnSymbol *symbol = new QwtColumnSymbol(QwtColumnSymbol::Box);
+        symbol->setLineWidth(2);
         symbol->setFrameStyle(QwtColumnSymbol::NoFrame);
         symbol->setPalette(QPalette(ColorPalette::instance()->toColor(item.color())));
         chart->setSymbol(i, symbol);
     }
-
-    QVector<QwtSetSample> samples;
-    for(int i=0;i<hist.size();i++) {
-        samples.append(QwtSetSample(min + (w * ((double)i + 0.5)) / bins, hist[i]));
-    }
-
-    chart->setSamples( samples );
-
-    QwtSetSample s = chart->sample(1);
-    int n = chart->dataSize();
-
-    qDebug() << n;
+    chart->setSamples(hist.samples());
 
     ui->plot->replot();
 }
-
 

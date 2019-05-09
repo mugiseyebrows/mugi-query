@@ -9,8 +9,9 @@ class IntLineEdit : public QLineEdit
     Q_PROPERTY(int value READ value WRITE setValue NOTIFY valueChanged)
 public:
     explicit IntLineEdit(QWidget *parent = 0);
-    int value() const;
+    int value(bool* ok = 0) const;
     void setValue(int value);
+    void setIfNoValue(int value);
 signals:
     void valueChanged(int);
 public slots:
