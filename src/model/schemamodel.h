@@ -30,6 +30,11 @@ public:
 
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
+    bool isRoot(const QModelIndex &item) const;
+    bool isDatabase(const QModelIndex &item) const;
+    bool isTable(const QModelIndex &item) const;
+    bool isField(const QModelIndex &item) const;
+
 protected:
 
     void setChildren(const QModelIndex &index, const QStringList &data);

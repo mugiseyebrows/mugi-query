@@ -95,6 +95,9 @@ public slots:
     //void onAddSessionWithQuery(QString);
     void onAppendQuery(const QString &connectionName, QString);
 
+private slots:
+    void on_schemaTree_customContextMenuRequested(const QPoint &pos);
+
 private:
     Ui::MainWindow *ui;
 };

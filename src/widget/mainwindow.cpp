@@ -658,3 +658,35 @@ void MainWindow::on_queryExecute_triggered()
     }
     tab->on_execute_clicked();
 }
+
+void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &pos)
+{
+
+    QMenu menu;
+
+    QAction* alter = new QAction("Alter table",&menu);
+    menu.addAction(alter);
+
+    QAction* result = menu.exec(QCursor::pos());
+
+    if (result == alter) {
+
+        QModelIndex index = ui->schemaTree->currentIndex();
+        SchemaModel* model = qobject_cast<SchemaModel*>(ui->schemaTree->model());
+        if (!model) {
+            qDebug() << __FILE__ << __LINE__;
+            return;
+        }
+        if (!model->isTable(index)) {
+            return;
+        }
+
+        QString connectionName = model->data(index.parent()).toString();
+        QString table = model->data(index).toString();
+
+        qDebug() << connectionName << table;
+
+
+    }
+
+}

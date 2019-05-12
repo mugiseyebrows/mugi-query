@@ -41,7 +41,11 @@
          <enum>Qt::CustomContextMenu</enum>
         </property>
        </widget>
-       <widget class="QTreeView" name="schemaTree"/>
+       <widget class="QTreeView" name="schemaTree">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
+       </widget>
       </widget>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">

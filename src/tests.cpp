@@ -17,6 +17,9 @@ void Tests::run()
     testJoinSplit();
     testAliases();
     testFlatQueries();
+    testClosingBracket();
+    testParseCreateTable();
+    textParseCreateTableCreateDefinition();
 }
 
 namespace {
@@ -47,6 +50,13 @@ QString tokenListAsString(const QList<QPair<JoinToken::JoinToken,QString> >& vs)
     return QString("{%1}").arg(res.join(", "));
 }
 
+void compare(int a, int b) {
+    if (a == b) {
+        return;
+    }
+    qDebug() << "not equal, expected: " << a << ", actual " << b;
+}
+
 void compare(const QMap<QString,QString>& e, const QMap<QString,QString>& a) {
     if (e == a) {
         return;
@@ -70,14 +80,22 @@ void compare(const QList<QPair<JoinToken::JoinToken,QString> >& e, const QList<Q
     qDebug() << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
 }
 
-void compare(const QStringList e, const QStringList a) {
+void compare(const QPair<QString,QStringList>& e, const QPair<QString,QStringList>& a) {
+    if (e == a) {
+        return;
+    }
+    QString e_ = e.first + "{" + e.second.join("|") + "}";
+    QString a_ = a.first + "{" + a.second.join("|") + "}";
+    qDebug() << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
+}
 
+void compare(const QStringList e, const QStringList a) {
     QString e_ = "{" + e.join("|") + "}";
     QString a_ = "{" + a.join("|") + "}";
-
-    if (e_ != a_) {
-        qDebug() << "not equal" << e_.toStdString().c_str() << a_.toStdString().c_str();
+    if (e_ == a_) {
+        return;
     }
+    qDebug() << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
 }
 
 } // namespace
@@ -255,4 +273,95 @@ void Tests::testFlatQueries() {
     compare(e,a);
 
     qDebug() << "testFlatQueries() finished";
+}
+
+void Tests::testClosingBracket() {
+
+    qDebug() << "testClosingBracket() started";
+
+    QString t;
+    int a,e;
+
+    t = "()";
+    a = QueryParser::closingBracket(t,0);
+    e = 1;
+    compare(e,a);
+
+    t = "(())";
+    a = QueryParser::closingBracket(t,0);
+    e = 3;
+    compare(e,a);
+
+    t = "(())";
+    a = QueryParser::closingBracket(t,1);
+    e = 2;
+    compare(e,a);
+
+    t = "create table foo(bar int(11),baz text)";
+    a = QueryParser::closingBracket(t,t.indexOf("("));
+    e = t.lastIndexOf(")");
+    compare(e,a);
+    qDebug() << "testClosingBracket() finished";
+}
+
+void Tests::testParseCreateTable()
+{
+    qDebug() << "testParseCreateTable() started";
+
+    typedef QPair<QString,QStringList> X;
+
+    QString t;
+    X a,e;
+
+    t = "create table foo(a,b)";
+    a = QueryParser::parseCreateTable(t);
+    e = X("foo",sl("a","b"));
+    compare(e,a);
+
+    t = "create temporary table if not exists foo(a,b)";
+    a = QueryParser::parseCreateTable(t);
+    e = X("foo",sl("a","b"));
+    compare(e,a);
+
+    t = "create table foo like bar(a,b)";
+    a = QueryParser::parseCreateTable(t);
+    e = X("foo",sl("a","b"));
+    compare(e,a);
+
+    qDebug() << "testParseCreateTable() finished";
+}
+
+void Tests::textParseCreateTableCreateDefinition() {
+
+    qDebug() << "textParseCreateTableCreateDefinition() started";
+
+    QString t,err;
+    QStringList e,a;
+
+    t = "`foo` int(11) NOT NULL";
+    e = sl("foo","int(11)","NOT NULL","","");
+    a = QueryParser::parseCreateTableCreateDefinition(t,err);
+    compare(e,a);
+
+    t = "`bar` text";
+    e = sl("bar","text","","","");
+    a = QueryParser::parseCreateTableCreateDefinition(t,err);
+    compare(e,a);
+
+    t = "foo int unsigned zerofill null";
+    e = sl("foo","int unsigned zerofill","null","","");
+    a = QueryParser::parseCreateTableCreateDefinition(t,err);
+    compare(e,a);
+
+    t = "`foo` varchar(100) DEFAULT NULL";
+    e = sl("foo","varchar(100)","","DEFAULT NULL","");
+    a = QueryParser::parseCreateTableCreateDefinition(t,err);
+    compare(e,a);
+
+    t = "`bar` int(11) NOT NULL DEFAULT '0'";
+    e = sl("bar","int(11)","NOT NULL","DEFAULT '0'","");
+    a = QueryParser::parseCreateTableCreateDefinition(t,err);
+    compare(e,a);
+
+    qDebug() << "textParseCreateTableCreateDefinition() finished";
 }

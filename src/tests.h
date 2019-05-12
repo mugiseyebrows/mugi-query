@@ -8,6 +8,9 @@ namespace Tests
     void testJoinSplit();
     void testAliases();
     void testFlatQueries();
+    void testClosingBracket();
+    void testParseCreateTable();
+    void textParseCreateTableCreateDefinition();
 }
 
 #endif // TESTS_H

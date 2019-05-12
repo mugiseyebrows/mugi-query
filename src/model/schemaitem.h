@@ -6,6 +6,13 @@
 class SchemaItem
 {
 public:
+    enum ItemType {
+        ItemRoot,
+        ItemDatabase,
+        ItemTable,
+        ItemField
+    };
+
     SchemaItem(const QString& data, SchemaItem* parent = 0);
 
     ~SchemaItem();
@@ -26,6 +33,14 @@ public:
     int childIndex() const;
     void setData(const QString &data);
     SchemaItem *removeChild(int index);
+
+    bool isRoot() const;
+    bool isDatabase() const;
+    bool isTable() const;
+    bool isField() const;
+
+    ItemType type() const;
+
 protected:
     SchemaItem* mParent;
     QList<SchemaItem*> mChildren;

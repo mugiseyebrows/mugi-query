@@ -5,8 +5,21 @@
 #include <QQueue>
 #include "zipunzip.h"
 
-QueryParser::QueryParser()
-{
+namespace  {
+
+QString replace(const QString& s, const QString& subj, const QString& repl) {
+    QString s_ = s;
+    s_.replace(subj,repl);
+    return s_;
+}
+
+QStringList trimmed(const QStringList& vs) {
+    QStringList res;
+    foreach(const QString& s, vs) {
+        res << s.trimmed();
+    }
+    return res;
+}
 
 }
 
@@ -166,6 +179,131 @@ QStringList QueryParser::flatQueries(const QString& query_) {
     return result;
 }
 
+
+
+int QueryParser::closingBracket(const QString& s, int openBracketPos) {
+
+    QMap<QChar,QChar> closing;
+    closing['('] = ')';
+    closing['{'] = '}';
+    closing['['] = ']';
+
+    int level = 0;
+
+    int bracketLevel = -1;
+    QChar openBracket = s[openBracketPos];
+    if (!closing.contains(openBracket)) {
+        return -1;
+    }
+    QChar closingBracket = closing[openBracket];
+
+    for(int i=0;i<s.size();i++) {
+        if (s[i] == openBracket) {
+            if (i == openBracketPos) {
+                bracketLevel = level;
+            }
+            level++;
+        } else if (s[i] == closingBracket) {
+            level--;
+            if (i > openBracketPos && level == bracketLevel) {
+                return i;
+            }
+        }
+    }
+
+    return -1;
+}
+
+QPair<QString,QStringList> splitDefinitions(const QString &query, const QString& name, int openBracketPos) {
+    int closingBracketPos = QueryParser::closingBracket(query,openBracketPos);
+    QStringList createDefinitions = trimmed(query.mid(openBracketPos+1,closingBracketPos-openBracketPos-1).split(","));
+    return QPair<QString,QStringList>(name.trimmed(),createDefinitions);
+}
+
+QPair<QString,QStringList> QueryParser::parseCreateTable(const QString &query)
+{
+    // https://dev.mysql.com/doc/refman/8.0/en/create-table.html
+
+    QRegularExpression rx1(replace("create (temporary)? table (if not exists)? (?<name>[^(]*) [(]"," ","\\s*"), QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression rx2(replace("create (temporary)? table (if not exists)? (?<name>[^(]*) like (?<oldname>[^(]*) [(]"," ","\\s*"), QRegularExpression::CaseInsensitiveOption);
+
+
+    QRegularExpressionMatch rx1m = rx1.match(query);
+    QRegularExpressionMatch rx2m = rx2.match(query);
+
+    if (rx2m.hasMatch()) {
+        int openBracketPos = query.indexOf("(",rx2m.capturedEnd("name"));
+        return splitDefinitions(query, rx2m.captured("name"), openBracketPos);
+    }
+
+    if (rx1m.hasMatch()) {
+        int openBracketPos = query.indexOf("(",rx1m.capturedEnd("name"));
+        return splitDefinitions(query, rx1m.captured("name"), openBracketPos);
+    }
+
+    return QPair<QString,QStringList>();
+}
+
+QStringList QueryParser::parseCreateTableCreateDefinition(const QString& definition, QString& error) {
+
+    QString definition_ = definition.toLower();
+    if (definition_.startsWith("key ") || definition_.startsWith("primary key ")) {
+        return QStringList{};
+    }
+
+/*
+https://dev.mysql.com/doc/refman/8.0/en/numeric-type-overview.html
+
+let types = [...document.querySelector('div.section ul').children].map( c => c.querySelector('code.literal') ).map( e => e.innerText )
+types = types.map( e => e.split(' ')[0].split('[')[0].split('(')[0]
+types = Array.from(new Set(types))
+types = types.map(e => e.toLowerCase())
+document.body.innerText = types.map( e => '"' + e + '"').join(' << ')
+*/
+
+    QStringList numeric;
+    numeric << "bit" << "tinyint" << "bool" << "smallint" << "mediumint" << "int" << "integer"
+            << "bigint" << "decimal" << "dec" << "float" << "double" << "serial";
+
+    QStringList date;
+    date << "date" << "datetime" << "timestamp" << "time" << "year";
+
+    QStringList string;
+    string << "char" << "varchar" << "enum" << "set" << "blob" << "text" << "binary" << "varbinary"
+           << "mediumblob" << "mediumtext" << "longblob" << "longtext";
+
+    QStringList spatial;
+    spatial << "geometry" << "point" << "linestring" << "polygon" << "multipoint" << "multilinestring"
+            << "multipolygon" << "geometrycollection";
+
+    QStringList types;
+    types << numeric << date << string << spatial;
+
+    QRegularExpression rx1(QString("[`]?(?<name>[^` ]*)[`]?\\s+"
+                                   "(?<type>(%1)([(][0-9,]*[)])?\\s*(unsigned|zerofill|\\s)*)\\s*"
+                                   "(?<null>(null|not null))?\\s*"
+                                   "(?<default>default\\s+[^\\s]+)?\\s*"
+                                   "(?<attributes>.*)").arg(types.join("|")), QRegularExpression::CaseInsensitiveOption);
+    //QRegularExpression rx2(QString("[`]?(?<name>[^` ]*)[`]?\\s+(?<type>%1)(?<attributes>.*)").arg(types.join("|")), QRegularExpression::CaseInsensitiveOption);
+
+    QRegularExpressionMatch rxm = rx1.match(definition);
+    //QRegularExpressionMatch rxm2 = rx2.match(definition);
+    //QRegularExpressionMatch rxm = rxm1.hasMatch() ? rxm1 : rxm2;
+
+    if (rxm.hasMatch()) {
+        QStringList result;
+        result << rxm.captured("name")
+               << rxm.captured("type").trimmed()
+               << rxm.captured("null").trimmed()
+               << rxm.captured("default").trimmed()
+               << rxm.captured("attributes").trimmed();
+        return result;
+    } else {
+        error = QString("parse error");
+    }
+
+    return QStringList{};
+}
 
 namespace {
 

@@ -105,6 +105,26 @@ QVariant SchemaModel::headerData(int section, Qt::Orientation orientation, int r
     return QAbstractItemModel::headerData(section, orientation, role);
 }
 
+bool SchemaModel::isRoot(const QModelIndex &item) const
+{
+    return getItem(item)->isRoot();
+}
+
+bool SchemaModel::isDatabase(const QModelIndex &item) const
+{
+    return getItem(item)->isDatabase();
+}
+
+bool SchemaModel::isTable(const QModelIndex &item) const
+{
+    return getItem(item)->isTable();
+}
+
+bool SchemaModel::isField(const QModelIndex &item) const
+{
+    return getItem(item)->isField();
+}
+
 int SchemaModel::rowCount(const QModelIndex &parent) const
 {
     SchemaItem* item = getItem(parent);

@@ -57,6 +57,42 @@ SchemaItem* SchemaItem::removeChild(int index) {
     return mChildren.takeAt(index);
 }
 
+bool SchemaItem::isRoot() const
+{
+    return type() == ItemRoot;
+}
+
+bool SchemaItem::isDatabase() const
+{
+    return type() == ItemDatabase;
+}
+
+bool SchemaItem::isTable() const
+{
+    return type() == ItemTable;
+}
+
+bool SchemaItem::isField() const
+{
+    return type() == ItemField;
+}
+
+SchemaItem::ItemType SchemaItem::type() const
+{
+    if (!mParent) {
+        return ItemRoot;
+    }
+    if (!mParent->parent()) {
+        return ItemDatabase;
+    }
+    if (!mParent->parent()->parent()) {
+        return ItemTable;
+    }
+    if (!mParent->parent()->parent()->parent()) {
+        return ItemField;
+    }
+}
+
 SchemaItem *SchemaItem::parent() const
 {
     return mParent;
