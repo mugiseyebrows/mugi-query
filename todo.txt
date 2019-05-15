@@ -58,5 +58,11 @@ save data:
     preview
     table name + '.sql' = filename 
     insert ignore (mysql, psql)
+    output directory
+    output to temporary file
+    open with editor
+    csv header data
 execute file
 fetchmore on column select
+do not create new session if current session tab is empty
+switch to res tab if there were no tabs other than stat before

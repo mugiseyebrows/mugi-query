@@ -4,6 +4,8 @@
 
 #include <QSet>
 #include <QSqlRecord>
+#include <QSqlField>
+#include <QDebug>
 
 QStringList tableFields(QSqlDatabase db, const QString& table) {
     QSqlRecord record = db.record(table);
@@ -21,6 +23,75 @@ Tokens::Tokens()
 
 }
 
+#ifdef Q_OS_WIN
+
+#if defined (Q_OS_WIN32)
+#include <QtCore/qt_windows.h>
+#endif
+#if defined(Q_CC_BOR)
+// workaround for Borland to make sure that SQLBIGINT is defined
+#  define _MSC_VER 900
+#endif
+#include <sql.h>
+#if defined(Q_CC_BOR)
+#  undef _MSC_VER
+#endif
+#include <sqlext.h>
+
+QString odbcType(const QSqlField& field, QString& error) {
+// https://docs.microsoft.com/ru-ru/sql/odbc/reference/appendixes/sql-data-types?view=sql-server-2017
+
+    QMap<int,QString> m;
+    m[SQL_DECIMAL] = "DECIMAL";
+    m[SQL_NUMERIC] = "NUMERIC";
+    m[SQL_REAL] = "REAL";
+    m[SQL_FLOAT] = "FLOAT";
+    m[SQL_DOUBLE] = "DOUBLE";
+    m[SQL_SMALLINT] = "SMALLINT";
+    m[SQL_INTEGER] = "INTEGER";
+    m[SQL_BIT] = "BIT";
+    m[SQL_TINYINT] = "TINYINT";
+    m[SQL_BIGINT] = "BIGINT";
+    m[SQL_BINARY] = "BINARY";
+    m[SQL_VARBINARY] = "VARBINARY";
+    m[SQL_LONGVARBINARY] = "LONG VARBINARY";
+    m[SQL_DATE] = "DATE";
+    m[SQL_TYPE_DATE] = "DATE";
+    m[SQL_TIME] = "TIME";
+    m[SQL_TYPE_TIME] = "TIME";
+    m[SQL_TIMESTAMP] = "TIMESTAMP";
+    m[SQL_TYPE_TIMESTAMP] = "TIMESTAMP";
+    m[SQL_WCHAR] = "WCHAR";
+    m[SQL_WVARCHAR] = "VARWCHAR";
+    m[SQL_WLONGVARCHAR] = "LONGWVARCHAR";
+    m[SQL_CHAR] = "CHAR";
+    m[SQL_VARCHAR] = "VARCHAR";
+    m[SQL_GUID] = "GUID";
+    m[SQL_LONGVARCHAR] = "LONG VARCHAR";
+
+    QSet<int> hasLength;
+    hasLength << SQL_CHAR << SQL_VARCHAR << SQL_WCHAR << SQL_WVARCHAR << SQL_BINARY << SQL_VARBINARY;
+
+    int typeId = field.typeID();
+    if (!m.contains(typeId)) {
+        error = QString("unexpected field.typeID() %1").arg(typeId);
+        return QString();
+    }
+    QString type = m[typeId];
+    if (hasLength.contains(typeId)) {
+        type = QString("%1(%2)").arg(type).arg(field.length());
+    }
+    return type;
+}
+
+#else
+
+QString odbcType(const QSqlField& field, QString& error) {
+    return QString();
+}
+
+#endif
+
 Tokens::Tokens(QSqlDatabase db)
 {
     QStringList tableNames = db.tables();
@@ -30,6 +101,23 @@ Tokens::Tokens(QSqlDatabase db)
         table.fields = tableFields(db, tableName);
         mTables.append(table);
     }
+
+#if 0
+    if (!tableNames.isEmpty()) {
+        QString table = tableNames[rand() % tableNames.size()];
+        QSqlRecord r = db.record(table);
+        qDebug() << table;
+        for(int i=0;i<r.count();i++) {
+            QString error;
+            QSqlField field = r.field(i);
+            qDebug() << field.name() << odbcType(field,error);
+            if (!error.isEmpty()) {
+                qDebug() << error;
+            }
+        }
+    }
+#endif
+
     mDriverName = db.driverName();
 }
 
