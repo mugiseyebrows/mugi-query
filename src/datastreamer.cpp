@@ -17,7 +17,7 @@ QString escapeChars(const QString& value) {
     return result;
 }
 
-QStringList filterHeader(QSqlQueryModel *model, const QList<bool>& filter) {
+QStringList filterHeader(QAbstractItemModel *model, const QList<bool>& filter) {
     QStringList res;
     for(int c=0; c<model->columnCount(); c++) {
         if (filter[c]) {
@@ -27,12 +27,20 @@ QStringList filterHeader(QSqlQueryModel *model, const QList<bool>& filter) {
     return res;
 }
 
-QVariantList filterData(QSqlQueryModel *model, int row, const QList<bool>& filter) {
+QVariantList filterData(QAbstractItemModel *model, int row, const QList<bool>& filter) {
     QVariantList res;
     for(int c=0; c<model->columnCount(); c++) {
         if (filter[c]) {
             res << model->data(model->index(row,c));
         }
+    }
+    return res;
+}
+
+QVariantList modelRow(QAbstractItemModel *model, int row) {
+    QVariantList res;
+    for(int c=0; c<model->columnCount(); c++) {
+        res << model->data(model->index(row,c));
     }
     return res;
 }
@@ -55,6 +63,16 @@ QStringList zipJoinNull(const QStringList& vs1, const QStringList vs2) {
         }
     }
     return res;
+}
+
+
+bool allAreNull(const QVariantList& vs) {
+    foreach (const QVariant& v, vs) {
+        if (!v.isNull()) {
+            return false;
+        }
+    }
+    return true;
 }
 
 }
@@ -171,7 +189,47 @@ QString DataStreamer::variantToString(const QVariant& value,
     return QString();
 }
 
-void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model, DataFormat::Format format,
+QString DataStreamer::stream(QAbstractItemModel* model,
+                             int rowCount,
+                             const QString &table,
+                             const QStringList& columns,
+                             const QStringList& types,
+                             DataFormat::Format format,
+                             const QLocale& locale,
+                             QString& error) {
+
+    DataFormat::ActionType action = DataFormat::ActionCopy;
+
+    Formats formats(action);
+
+    QString result;
+
+    QTextStream stream(&result);
+
+    QList<bool> filter;
+    for(int i=0;i<model->columnCount();i++) {
+        filter << (!columns.value(i).isEmpty() && !types.value(i).isEmpty());
+    }
+
+    for(int r=0;r < model->rowCount() && r < rowCount;r++) {
+
+        QVariantList rowValues = filterData(model,r,filter);
+        if (allAreNull(rowValues)) {
+            continue;
+        }
+
+        QString values = variantListToStringList(rowValues,format,formats,locale,error).join(",");
+        if (!error.isEmpty()) {
+            return QString();
+        }
+        stream << "insert into " << table << "(" << columns.join(",") << ") "
+               << "values(" << values << ");\n";
+    }
+    return result;
+}
+
+
+void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model,  DataFormat::Format format,
                           const QString &table, QList<bool> data, QList<bool> keys,
                           DataFormat::ActionType action, const QLocale& locale, QString& error)
 {

@@ -78,7 +78,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatabase">
@@ -114,6 +114,7 @@
      <string>&amp;Data</string>
     </property>
     <addaction name="dataSave"/>
+    <addaction name="dataImport"/>
    </widget>
    <widget class="QMenu" name="menuSelection">
     <property name="title">
@@ -282,6 +283,11 @@
   <action name="queryTables">
    <property name="text">
     <string>&amp;Tables</string>
+   </property>
+  </action>
+  <action name="dataImport">
+   <property name="text">
+    <string>&amp;Import</string>
    </property>
   </action>
  </widget>

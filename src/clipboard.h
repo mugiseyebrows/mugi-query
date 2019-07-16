@@ -27,7 +27,8 @@ public:
                             DataFormat::Format format, const QString &separator,
                             DataFormat::ActionType action, const QLocale &locale, QString &error);
 
-    static void pasteTsv(QAbstractItemModel *model, const QModelIndex& index);
+    static QModelIndex pasteTsv(QAbstractItemModel *model, const QModelIndex& index,
+                                bool appendRows = false, bool appendColumns = false);
 
 };
 

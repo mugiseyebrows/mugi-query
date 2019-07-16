@@ -34,23 +34,54 @@ void Clipboard::streamRange(QTextStream& stream, const QItemSelectionRange &rng,
     }
 }
 
-void Clipboard::pasteTsv(QAbstractItemModel *model, const QModelIndex &index)
+QModelIndex Clipboard::pasteTsv(QAbstractItemModel *model, const QModelIndex &index,
+                                bool appendRows, bool appendColumns)
 {
 
     int column0 = index.column();
+    int row0 = index.row();
+    int maxColumn = column0;
+
     QString text = QApplication::clipboard()->text();
     QStringList lines = text.split("\n");
-    for(int i=0;i<lines.size();i++) {
-        int row = index.row() + i;
-        QStringList columns = lines[i].split("\t");
-        RowValueSetter s(model,row);
-        for(int column=0;column<model->columnCount();column++) {
-            int column_ = column + column0;
-            if (columns.size() > column_) {
-                s(column_, columns[column]);
-            }
+
+    while (lines.size() > 0 && lines[lines.size()-1] == "") {
+        lines.takeLast();
+    }
+
+    int maxRow = row0 + lines.size() - 1;
+
+    if (appendRows) {
+        if (maxRow >= model->rowCount()) {
+            model->insertRows(model->rowCount(), maxRow - model->rowCount() + 1);
         }
     }
+
+    for(int i=0;i<lines.size();i++) {
+        int row = row0 + i;
+        QStringList columns = lines[i].split("\t");
+
+        maxColumn = qMax(maxColumn,column0 + columns.size() - 1);
+
+        if (appendColumns) {
+            if (maxColumn >= model->columnCount()) {
+                model->insertColumns(model->columnCount(), column0 + columns.size() - maxColumn + 1);
+            }
+        }
+
+        RowValueSetter s(model,row);
+        for(int column=0;column<columns.size();column++) {
+            int column_ = column + column0;
+            s(column_, columns[column]);
+        }
+    }
+    if (maxColumn >= model->columnCount()) {
+        maxColumn = model->columnCount() - 1;
+    }
+    if (maxRow >= model->rowCount()) {
+        maxRow = model->rowCount() - 1;
+    }
+    return model->index(maxRow, maxColumn);
 }
 
 void Clipboard::copySelected(QAbstractItemModel *model, const QItemSelection& selection,

@@ -6,6 +6,7 @@
 
 class QSqlQueryModel;
 class QTextStream;
+class QAbstractItemModel;
 
 #include "dataformat.h"
 #include "formats.h"
@@ -26,6 +27,10 @@ public:
     static QString variantToString(const QVariant &value, DataFormat::Format format,
                                    const Formats& formats, const QLocale& locale,
                                    QString& error);
+
+    static QString stream(QAbstractItemModel *model, int rowCount, const QString &table,
+                          const QStringList &columns, const QStringList &types, DataFormat::Format format, const QLocale &locale,
+                          QString& error);
 };
 
 

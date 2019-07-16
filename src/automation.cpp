@@ -81,6 +81,11 @@ void Automation::showJoinHelper()
     mQueued.enqueue(Action(Action::ActionShowJoinHelper));
 }
 
+void Automation::showDataImportDialog()
+{
+    mQueued.enqueue(Action(Action::ActionShowDataImportDialog));
+}
+
 void Automation::afterDialog(DatabaseConnectDialog *) {
 
 }
@@ -171,6 +176,9 @@ void Automation::onStart() {
         } else {
             view->showXYPlot();
         }
+        next();
+    } else if (mAction.type() == Action::ActionShowDataImportDialog) {
+        mainWindow()->on_dataImport_triggered();
         next();
     }
 }

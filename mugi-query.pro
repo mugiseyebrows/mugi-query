@@ -37,6 +37,8 @@ DISTFILES += \
 target.path = /usr/local/bin
 INSTALLS += target
 
+include(src/richheaderview/richheaderview.pri)
+
 HEADERS += \
     src/action.h \
     src/automation.h \
@@ -109,7 +111,10 @@ HEADERS += \
     src/widget/doublelineedit.h \
     src/widget/dirstibutionplotoptionsedit.h \
     src/histogram.h \
-    src/distributiondataset.h
+    src/distributiondataset.h \
+    src/model/dataimportmodel.h \
+    src/widget/dataimportwidgets.h \
+    src/widget/dataimportwidget.h
 
 SOURCES += \
     src/action.cpp \
@@ -181,7 +186,10 @@ SOURCES += \
     src/widget/doublelineedit.cpp \
     src/widget/dirstibutionplotoptionsedit.cpp \
     src/histogram.cpp \
-    src/distributiondataset.cpp
+    src/distributiondataset.cpp \
+    src/model/dataimportmodel.cpp \
+    src/widget/dataimportwidgets.cpp \
+    src/widget/dataimportwidget.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \
@@ -197,5 +205,7 @@ FORMS += \
     src/widget/userhelperdialog.ui \
     src/widget/xyplot.ui \
     src/widget/databaseconnectdialog.ui \
-    src/widget/dirstibutionplotoptionsedit.ui
+    src/widget/dirstibutionplotoptionsedit.ui \
+    src/widget/dataimportwidgets.ui \
+    src/widget/dataimportwidget.ui
 

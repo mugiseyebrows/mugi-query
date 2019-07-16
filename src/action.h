@@ -15,7 +15,8 @@ public:
         ActionSetDistributionPlot,
         ActionShowJoinHelper,
         ActionShowDistributionPlot,
-        ActionShowXYPlot
+        ActionShowXYPlot,
+        ActionShowDataImportDialog
     };
     Action(Type type = ActionEmpty, const QVariantList& args = QVariantList());
     Type type() const;

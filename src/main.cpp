@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
-    Tests::run();
+    //Tests::run();
 
     return a.exec();
 }

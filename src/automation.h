@@ -26,6 +26,7 @@ public:
     void showDistributionPlot();
     void showXYPlot();
     void showJoinHelper();
+    void showDataImportDialog();
 
     void beforeDialog(DatabaseHistoryDialog* dialog);
     void beforeDialog(DatabaseConnectDialog *dialog);

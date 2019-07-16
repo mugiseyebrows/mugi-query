@@ -12,6 +12,7 @@ class QCompleter;
 class Highlighter;
 class JoinHelperWidgets;
 class SchemaModel;
+class DataImportWidgets;
 
 #include "tokens.h"
 
@@ -52,6 +53,7 @@ protected:
     QueryHistoryWidget* mQueryHistory;
     QMap<QString,Tokens> mTokens;
     JoinHelperWidgets* mJoinHelpers;
+    DataImportWidgets* mDataImport;
 
     QString mQuery;
 
@@ -94,9 +96,8 @@ public slots:
     void onShowQueryHistory();
     //void onAddSessionWithQuery(QString);
     void onAppendQuery(const QString &connectionName, QString);
-
-private slots:
     void on_schemaTree_customContextMenuRequested(const QPoint &pos);
+    void on_dataImport_triggered();
 
 private:
     Ui::MainWindow *ui;

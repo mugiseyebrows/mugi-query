@@ -32,6 +32,7 @@
 #include "joinhelperwidgets.h"
 #include "automation.h"
 #include "model/schemamodel.h"
+#include "widget/dataimportwidgets.h"
 
 #include <QThread>
 #include "datautils.h"
@@ -59,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     mQueryHistory(nullptr),
     mJoinHelpers(nullptr),
+    mDataImport(nullptr),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -624,6 +626,22 @@ void MainWindow::on_queryJoin_triggered()
     showOnTop(mJoinHelpers);
 }
 
+void MainWindow::on_dataImport_triggered()
+{
+    QString connectionName = this->connectionName();
+    if (connectionName.isEmpty()) {
+        return;
+    }
+    if (!mDataImport) {
+        mDataImport = new DataImportWidgets();
+        connect(mDataImport,SIGNAL(appendQuery(QString,QString)),this,SLOT(onAppendQuery(QString,QString)));
+    }
+
+    mDataImport->update(connectionName,mTokens[connectionName],true);
+    showOnTop(mDataImport);
+
+}
+
 void MainWindow::on_queryQuote_triggered()
 {
     SessionTab* tab = currentTab();
@@ -685,8 +703,6 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &pos)
         QString table = model->data(index).toString();
 
         qDebug() << connectionName << table;
-
-
     }
-
 }
+
