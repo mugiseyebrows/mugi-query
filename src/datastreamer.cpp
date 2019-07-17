@@ -6,7 +6,11 @@
 
 #include <QDate>
 #include <QDateTime>
+#include <QSqlRecord>
+#include <QSqlDriver>
+#include <QSqlField>
 
+#include "sqldatatypes.h"
 #include "settings.h"
 
 namespace {
@@ -189,14 +193,17 @@ QString DataStreamer::variantToString(const QVariant& value,
     return QString();
 }
 
-QString DataStreamer::stream(QAbstractItemModel* model,
+
+QString DataStreamer::stream(const QSqlDatabase& db,
+                             QAbstractItemModel* model,
                              int rowCount,
                              const QString &table,
                              const QStringList& columns,
                              const QStringList& types,
-                             DataFormat::Format format,
                              const QLocale& locale,
                              QString& error) {
+
+    QSqlDriver* driver = db.driver();
 
     DataFormat::ActionType action = DataFormat::ActionCopy;
 
@@ -208,28 +215,72 @@ QString DataStreamer::stream(QAbstractItemModel* model,
 
     QList<bool> filter;
     for(int i=0;i<model->columnCount();i++) {
-        filter << (!columns.value(i).isEmpty() && !types.value(i).isEmpty());
+        filter << (!columns.value(i).isEmpty());
+    }
+
+    QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
+
+    QSqlRecord record;
+    for(int c=0;c<columns.size();c++) {
+        if (columns[c].isEmpty()) {
+            continue;
+        }
+        record.append(QSqlField(columns[c],m[types[c]]));
     }
 
     for(int r=0;r < model->rowCount() && r < rowCount;r++) {
 
-        QVariantList rowValues = filterData(model,r,filter);
-        if (allAreNull(rowValues)) {
+        //QVariantList rowValues = filterData(model,r,filter);
+
+        bool empty = true;
+
+        for(int c=0;c<columns.size();c++) {
+            if (columns[c].isEmpty()) {
+                continue;
+            }
+
+            QVariant v = SqlDataTypes::tryConvert(model->data(model->index(r,c)), m[types[c]], locale);
+            if (!v.isNull()) {
+                empty = false;
+            }
+            record.setValue(columns[c],v);
+        }
+
+        if (empty) {
             continue;
         }
 
-        QString values = variantListToStringList(rowValues,format,formats,locale,error).join(",");
-        if (!error.isEmpty()) {
-            return QString();
-        }
-        stream << "insert into " << table << "(" << columns.join(",") << ") "
-               << "values(" << values << ");\n";
+        QString statement = driver->sqlStatement(QSqlDriver::InsertStatement,table,record,false);
+        stream << statement << ";\n";
     }
     return result;
 }
 
+QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString &table,
+                                           const QStringList &columns, const QStringList &types, bool ifNotExists)
+{
+    QSqlDriver* driver = db.driver();
 
-void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model,  DataFormat::Format format,
+    QMap<QString,QVariant::Type> variant = SqlDataTypes::mapToVariant();
+    QMap<QVariant::Type,QString> specific = SqlDataTypes::mapToDriver(db.driverName());
+
+    QStringList typed;
+    for(int c=0;c<columns.size();c++) {
+        if (!columns.isEmpty()) {
+            typed << QString("%1 %2")
+                     .arg(driver->escapeIdentifier(columns[c],QSqlDriver::FieldName))
+                     .arg(specific[variant[types[c]]]);
+        }
+    }
+
+    QString statement = QString("CREATE TABLE %1(%2)")
+            .arg(driver->escapeIdentifier(table, QSqlDriver::TableName))
+            .arg(typed.join(", "));
+
+    return statement;
+}
+
+void DataStreamer::stream(const QSqlDatabase& db, QTextStream &stream, QSqlQueryModel *model,  DataFormat::Format format,
                           const QString &table, QList<bool> data, QList<bool> keys,
                           DataFormat::ActionType action, const QLocale& locale, QString& error)
 {
@@ -249,30 +300,60 @@ void DataStreamer::stream(QTextStream &stream, QSqlQueryModel *model,  DataForma
 
     } else if (format == DataFormat::SqlInsert) {
 
-        QString columns = filterHeader(model, data).join(",");
-        for(int r=0;r<model->rowCount();r++) {
-            QString values = variantListToStringList(filterData(model,r,data),format,formats,locale,error).join(",");
-            if (!error.isEmpty()) {
-                return;
+        QSqlDriver* driver = db.driver();
+
+        QSqlRecord insertRecord;
+
+        for(int c=0;c<model->columnCount();c++) {
+            QSqlRecord record = model->record(0);
+            if (data[c]) {
+                insertRecord.append(record.field(c));
             }
-            stream << "insert into " << table << "(" << columns << ") "
-                   << "values(" << values << ");\n";
+        }
+
+        for(int r=0;r<model->rowCount();r++) {
+            QSqlRecord record = model->record(r);
+            for(int c=0;c<model->columnCount();c++) {
+                if (data[c]) {
+                    insertRecord.setValue(record.fieldName(c),record.value(c));
+                }
+            }
+            QString statement = driver->sqlStatement(QSqlDriver::InsertStatement,table,insertRecord,false);
+            stream << statement << ";\n";
         }
 
     } else if (format == DataFormat::SqlUpdate) {
 
-        QStringList columns1 = filterHeader(model, data);
-        QStringList columns2 = filterHeader(model, keys);
+        QSqlDriver* driver = db.driver();
+
+        QSqlRecord update;
+        QSqlRecord where;
+
+        for(int c=0;c<model->columnCount();c++) {
+            QSqlRecord record = model->record(0);
+            if (data[c]) {
+                update.append(record.field(c));
+            }
+            if (keys[c]) {
+                where.append(record.field(c));
+            }
+        }
 
         for(int r=0;r<model->rowCount();r++) {
-
-            QStringList values1 = variantListToStringList(filterData(model,r,data),format,formats,locale,error);
-            QStringList values2 = variantListToStringList(filterData(model,r,keys),format,formats,locale,error);
-
-            stream << "update " << table << " set "
-                   << zipJoin(columns1,"=",values1).join(", ")
-                   << " where " << zipJoinNull(columns2,values2).join(" and ") << ";\n";
+            QSqlRecord record = model->record(r);
+            for(int c=0;c<model->columnCount();c++) {
+                if (data[c]) {
+                    update.setValue(record.fieldName(c),record.value(c));
+                }
+                if (keys[c]) {
+                    where.setValue(record.fieldName(c),record.value(c));
+                }
+            }
+            QString update_ = driver->sqlStatement(QSqlDriver::UpdateStatement,table,update,false);
+            QString where_ = driver->sqlStatement(QSqlDriver::WhereStatement,table,where,false);
+            stream << update_ << " " << where_ << ";\n";
         }
+
 
     }
 

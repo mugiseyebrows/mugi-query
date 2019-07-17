@@ -13,6 +13,9 @@
 #include "splitterutil.h"
 #include "zipunzip.h"
 #include "datastreamer.h"
+#include "sqldatatypes.h"
+#include <QComboBox>
+#include <QtGlobal>
 
 namespace  {
 
@@ -74,6 +77,7 @@ void DataImportWidget::init(const QString &connectionName)
     data->subsectionSizes(Lit::il(30,30));
 
     DataImportModel* model = new DataImportModel(data->sizeHint(),ui->data);
+    model->setLocale(locale());
 
     ui->data->setModel(model);
     ui->data->setHorizontalHeader(view);
@@ -126,9 +130,15 @@ CheckableStringListModel* DataImportWidget::columnsModel() {
     return qobject_cast<CheckableStringListModel*>(ui->columns->model());
 }
 
+DataImportModel* DataImportWidget::dataModel() {
+    return qobject_cast<DataImportModel*>(ui->data->model());
+}
+
 bool DataImportWidget::hasAnyData() {
     return false;
 }
+
+
 
 void DataImportWidget::setColumnNames(const QStringList& names) {
 
@@ -179,6 +189,8 @@ QList<QPair<QString,QString> > DataImportWidget::namesAndTypes() {
     return result;
 }
 
+
+
 void DataImportWidget::createHeaderViewWidgets() {
     RichHeaderView* view = headerView();
     QAbstractItemModel* model = ui->data->model();
@@ -196,17 +208,28 @@ void DataImportWidget::createHeaderViewWidgets() {
         if (!name) {
             name = new QLineEdit(viewport);
             data->cell(0,c).widget(name);
+
+            connect(name, &QLineEdit::textChanged,[=](){
+                onColumnNameChanged(c);
+            });
+
         }
 
         QComboBox* types = qobject_cast<QComboBox*>(data->cell(1,c).widget());
         if (!types) {
             types = new QComboBox(viewport);
-            types->addItems(mTokens.types());
+
+            types->addItems(SqlDataTypes::names());
             data->cell(1,c).widget(types);
+
+            connect(types,qOverload<int>(&QComboBox::currentIndexChanged),[=](){
+                onColumnTypeChanged(c);
+            });
+
         }
 
-        name->show();
-        types->setVisible(newTable);
+        data->cell(0,c).show();
+        data->cell(1,c).setVisible(newTable);
     }
     view->update();
     //view->showWidgets();
@@ -215,6 +238,37 @@ void DataImportWidget::createHeaderViewWidgets() {
 void DataImportWidget::onColumnsDataChanged(QModelIndex,QModelIndex,QVector<int>) {
     CheckableStringListModel* model = columnsModel();
     setColumnNames(model->checked());
+    updatePreview();
+}
+
+void DataImportWidget::onColumnTypeChanged(int column) {
+
+    DataImportModel* model = dataModel();
+    if (!model) {
+        return;
+    }
+
+    QMap<int,QVariant::Type> columnType;
+
+    QList<QPair<QString,QString> > namesAndTypes = this->namesAndTypes();
+    QStringList names = unzipFirsts(namesAndTypes);
+    QStringList types = unzipSeconds(namesAndTypes);
+
+    QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
+
+    for(int c=0;c<names.size();c++) {
+        if (names[c].isEmpty()) {
+            continue;
+        }
+        columnType[c] = m[types[c]];
+    }
+
+    model->setTypes(columnType);
+
+    updatePreview();
+}
+
+void DataImportWidget::onColumnNameChanged(int column) {
     updatePreview();
 }
 
@@ -266,21 +320,39 @@ void DataImportWidget::on_noneColumns_clicked()
 
 void DataImportWidget::onDataPaste() {
     Clipboard::pasteTsv(ui->data->model(),currentOrFirstIndex(ui->data),true,true);
+    onColumnTypeChanged(0);
     updatePreview();
 }
 
 void DataImportWidget::updatePreview() {
 
+    DataImportModel* model = this->dataModel();
+    if (!model) {
+        return;
+    }
+
     bool newTable = ui->optionNewTable->isChecked();
 
     auto namesAndTypes = this->namesAndTypes();
 
+    QStringList names = unzipFirsts(namesAndTypes);
+    QStringList types = unzipSeconds(namesAndTypes);
+
     QString table = newTable ? ui->newTable->text() : ui->existingTable->currentText();
 
-    QString createQuery = newTable ? QString("create table %1(%2);\n").arg(table).arg(join(namesAndTypes," ").join(", ")) : QString();
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
+    QString createQuery = newTable ? DataStreamer::createTableStatement(db, table, names, types, false) + ";\n" : QString();
 
     QString error;
-    QString insertQuery = DataStreamer::stream(ui->data->model(),5,table, unzipFirsts(namesAndTypes), unzipSeconds(namesAndTypes),DataFormat::SqlInsert,locale(),error);
+    QString insertQuery = DataStreamer::stream(db, model, 5,table,names,types,locale(),error);
 
     ui->preview->setText(createQuery + insertQuery);
+}
+
+void DataImportWidget::on_newTable_textChanged(const QString &arg1)
+{
+    if (ui->optionNewTable->isChecked()) {
+        updatePreview();
+    }
 }

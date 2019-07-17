@@ -8,6 +8,8 @@ QT       += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+CONFIG += c++14
+
 win32 {
 
 CONFIG(debug, debug|release) {
@@ -114,7 +116,8 @@ HEADERS += \
     src/distributiondataset.h \
     src/model/dataimportmodel.h \
     src/widget/dataimportwidgets.h \
-    src/widget/dataimportwidget.h
+    src/widget/dataimportwidget.h \
+    src/sqldatatypes.h
 
 SOURCES += \
     src/action.cpp \
@@ -189,7 +192,8 @@ SOURCES += \
     src/distributiondataset.cpp \
     src/model/dataimportmodel.cpp \
     src/widget/dataimportwidgets.cpp \
-    src/widget/dataimportwidget.cpp
+    src/widget/dataimportwidget.cpp \
+    src/sqldatatypes.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

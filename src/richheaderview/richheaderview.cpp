@@ -49,18 +49,7 @@ int RichHeaderView::sectionCount() const {
 void RichHeaderView::setModel(QAbstractItemModel *model)
 {
     QHeaderView::setModel(model);
-    QTimer::singleShot(0,this,SLOT(onTimeout()));
-}
-
-void RichHeaderView::onTimeout() {
-    //QList<RichHeaderCellImpl*> cells = mHeaderData->cells();
-    /*foreach(RichHeaderCellImpl* cell, cells) {
-        if (cell->widget()) {
-            onSectionResized(cell->column(),0,0);
-        }
-    }*/
-    update();
-    showWidgets();
+    QTimer::singleShot(0,this,SLOT(update()));
 }
 
 RichHeaderData *RichHeaderView::data() const
@@ -71,14 +60,6 @@ RichHeaderData *RichHeaderView::data() const
 void RichHeaderView::update()
 {
     onSectionResized(0,0,0);
-}
-
-void RichHeaderView::showWidgets()
-{
-     QList<RichHeaderCellImpl*> cells = mHeaderData->widgetCellsToTheRight(0);
-     foreach(RichHeaderCellImpl* cell, cells) {
-         cell->widget()->show();
-     }
 }
 
 QRect RichHeaderView::cellRect(RichHeaderCellImpl* cell) const{
@@ -119,6 +100,7 @@ void RichHeaderView::onSectionResized(int logical,int,int) {
         QRect rect = cellRect(cell);
         rect.moveTo(rect.topLeft() - QPoint(1,1));
         cell->widget()->setGeometry(rect);
+        cell->widget()->setVisible(cell->visible());
     }
 
     QPair<int,int> spanned = mHeaderData->spannedSections(logical);

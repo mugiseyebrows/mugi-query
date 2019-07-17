@@ -7,6 +7,7 @@
 #include <QModelIndex>
 #include "tokens.h"
 
+class DataImportModel;
 class RichHeaderView;
 class CheckableStringListModel;
 
@@ -40,11 +41,13 @@ protected slots:
 
     void onTimeout();
     void updatePreview();
+    void onColumnTypeChanged(int column);
+    void onColumnNameChanged(int column);
+    void on_newTable_textChanged(const QString &arg1);
 signals:
     void appendQuery(QString);
 
 protected:
-
 
     CheckableStringListModel *columnsModel();
     RichHeaderView *headerView();
@@ -58,6 +61,8 @@ protected:
     Ui::DataImportWidget *ui;
     QString mConnectionName;
     QList<QPair<QString, QString> > namesAndTypes();
+    DataImportModel *dataModel();
+
 };
 
 #endif // DATAIMPORTWIDGET_H

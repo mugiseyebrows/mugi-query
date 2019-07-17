@@ -105,6 +105,29 @@ QWidget* RichHeaderCell::widget() const {
     return mCell->widget();
 }
 
+bool RichHeaderCell::visible() const
+{
+    return mCell->visible();
+}
+
+RichHeaderCell& RichHeaderCell::show()
+{
+    mCell->show();
+    return *this;
+}
+
+RichHeaderCell& RichHeaderCell::hide()
+{
+    mCell->hide();
+    return *this;
+}
+
+RichHeaderCell& RichHeaderCell::setVisible(bool value)
+{
+    mCell->setVisible(value);
+    return *this;
+}
+
 RichHeaderCell& RichHeaderCell::incColumnSpan() {
     mCell->incColumnSpan();
     return *this;

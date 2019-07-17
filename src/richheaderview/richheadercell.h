@@ -28,6 +28,10 @@ public:
     double rotation() const;
     RichHeaderCell& widget(QWidget* value);
     QWidget* widget() const;
+    RichHeaderCell& show();
+    RichHeaderCell& hide();
+    RichHeaderCell& setVisible(bool value);
+    bool visible() const;
     RichHeaderCell& incColumnSpan();
     RichHeaderCell& incRowSpan();
     RichHeaderCell& moveUp();

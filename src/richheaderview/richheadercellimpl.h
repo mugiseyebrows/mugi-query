@@ -31,6 +31,10 @@ public:
     void rotation(double value);
     QWidget* widget() const;
     void widget(QWidget* value);
+    void show();
+    void hide();
+    void setVisible(bool value);
+    bool visible() const;
     void incColumnSpan();
     void incRowSpan();
     void moveUp();
@@ -49,6 +53,7 @@ protected:
     Qt::Alignment mAlign;
     double mRotation;
     QWidget* mWidget;
+    bool mShow;
 };
 QDebug operator<<(QDebug debug, const RichHeaderCellImpl& cell);
 #endif // RICHHEADERCELLIMPL_H

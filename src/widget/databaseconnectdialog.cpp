@@ -19,7 +19,15 @@ DatabaseConnectDialog::DatabaseConnectDialog(bool showHistory, QWidget *parent) 
     ui(new Ui::DatabaseConnectDialog)
 {
     ui->setupUi(this);
-    ui->driver->addItems(QSqlDatabase::drivers());
+    QStringList drivers = QSqlDatabase::drivers();
+
+    drivers.removeAll("QMYSQL3");
+    drivers.removeAll("QOCI8");
+    drivers.removeAll("QODBC3");
+    drivers.removeAll("QPSQL7");
+    drivers.removeAll("QTDS7");
+
+    ui->driver->addItems(drivers);
 
     this->adjustSize();
 

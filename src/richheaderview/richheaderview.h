@@ -15,9 +15,8 @@ public:
 
     RichHeaderData* data() const;
 
+public slots:
     void update();
-
-    void showWidgets();
 
 protected:
     void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const;
@@ -39,7 +38,6 @@ protected:
 protected slots:
 
     void onSectionResized(int, int, int);
-    void onTimeout();
 };
 
 #endif // RICHHEADERVIEW_H

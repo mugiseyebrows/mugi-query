@@ -256,7 +256,9 @@ void SessionTab::saveData()
 
     QString error;
 
-    DataStreamer::stream(*stream,model,dialog.format(),dialog.table(),
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
+    DataStreamer::stream(db,*stream,model,dialog.format(),dialog.table(),
                          dialog.dataChecked(),dialog.keysChecked(),
                          DataFormat::ActionSave,locale(),error);
 
