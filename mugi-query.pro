@@ -117,7 +117,9 @@ HEADERS += \
     src/model/dataimportmodel.h \
     src/widget/dataimportwidgets.h \
     src/widget/dataimportwidget.h \
-    src/sqldatatypes.h
+    src/sqldatatypes.h \
+    src/model/dataimportcolumnmodel.h \
+    src/callonce.h
 
 SOURCES += \
     src/action.cpp \
@@ -193,7 +195,9 @@ SOURCES += \
     src/model/dataimportmodel.cpp \
     src/widget/dataimportwidgets.cpp \
     src/widget/dataimportwidget.cpp \
-    src/sqldatatypes.cpp
+    src/sqldatatypes.cpp \
+    src/model/dataimportcolumnmodel.cpp \
+    src/callonce.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

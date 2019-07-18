@@ -6,11 +6,11 @@
 class RichHeaderCellImpl {
 public:
     RichHeaderCellImpl();
-    RichHeaderCellImpl(int row, int column, int rowSpan = 1, int columnSpan = 1,
+    RichHeaderCellImpl(int row = -1, int column = -1, int rowSpan = 1, int columnSpan = 1,
                        const QString& text = QString(), bool multiline = false,
                        Qt::TextElideMode elide = Qt::ElideNone,
                        Qt::Alignment align = Qt::AlignCenter, double rotation = 0.0,
-                       QWidget* widget = 0);
+                       QWidget* widget = 0, bool visible = true);
     int row() const;
     void row(int value);
     int column() const;
@@ -31,10 +31,10 @@ public:
     void rotation(double value);
     QWidget* widget() const;
     void widget(QWidget* value);
+    bool visible() const;
+    void visible(bool value);
     void show();
     void hide();
-    void setVisible(bool value);
-    bool visible() const;
     void incColumnSpan();
     void incRowSpan();
     void moveUp();
@@ -53,7 +53,7 @@ protected:
     Qt::Alignment mAlign;
     double mRotation;
     QWidget* mWidget;
-    bool mShow;
+    bool mVisible;
 };
 QDebug operator<<(QDebug debug, const RichHeaderCellImpl& cell);
 #endif // RICHHEADERCELLIMPL_H

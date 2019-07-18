@@ -30,6 +30,8 @@ QVariant DataImportModel::data(const QModelIndex &index, int role) const
             if (!ok) {
                 return QVariant(QColor(Qt::red));
             }
+        } else {
+            return QVariant(QColor(Qt::red));
         }
     }
     return QStandardItemModel::data(index,role);

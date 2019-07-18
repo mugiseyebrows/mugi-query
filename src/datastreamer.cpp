@@ -201,13 +201,10 @@ QString DataStreamer::stream(const QSqlDatabase& db,
                              const QStringList& columns,
                              const QStringList& types,
                              const QLocale& locale,
+                             bool* hasMore,
                              QString& error) {
 
     QSqlDriver* driver = db.driver();
-
-    DataFormat::ActionType action = DataFormat::ActionCopy;
-
-    Formats formats(action);
 
     QString result;
 
@@ -228,7 +225,11 @@ QString DataStreamer::stream(const QSqlDatabase& db,
         record.append(QSqlField(columns[c],m[types[c]]));
     }
 
-    for(int r=0;r < model->rowCount() && r < rowCount;r++) {
+    *hasMore = false;
+
+    int nonEmpty = 0;
+
+    for(int r=0;r < model->rowCount();r++) {
 
         //QVariantList rowValues = filterData(model,r,filter);
 
@@ -250,8 +251,15 @@ QString DataStreamer::stream(const QSqlDatabase& db,
             continue;
         }
 
+        if (nonEmpty == rowCount) {
+            *hasMore = true;
+            break;
+        }
+
         QString statement = driver->sqlStatement(QSqlDriver::InsertStatement,table,record,false);
         stream << statement << ";\n";
+
+        nonEmpty++;
     }
     return result;
 }

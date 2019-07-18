@@ -105,26 +105,22 @@ QWidget* RichHeaderCell::widget() const {
     return mCell->widget();
 }
 
-bool RichHeaderCell::visible() const
-{
+RichHeaderCell& RichHeaderCell::visible(bool value) {
+    mCell->visible(value);
+    return *this;
+}
+
+bool RichHeaderCell::visible() const {
     return mCell->visible();
 }
 
-RichHeaderCell& RichHeaderCell::show()
-{
+RichHeaderCell& RichHeaderCell::show() {
     mCell->show();
     return *this;
 }
 
-RichHeaderCell& RichHeaderCell::hide()
-{
+RichHeaderCell& RichHeaderCell::hide() {
     mCell->hide();
-    return *this;
-}
-
-RichHeaderCell& RichHeaderCell::setVisible(bool value)
-{
-    mCell->setVisible(value);
     return *this;
 }
 

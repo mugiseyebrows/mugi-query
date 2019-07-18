@@ -2,11 +2,7 @@
 
 #include <QDateTime>
 #include <QLocale>
-
-SqlDataTypes::SqlDataTypes()
-{
-
-}
+#include <QDebug>
 
 QStringList SqlDataTypes::names()
 {
@@ -34,6 +30,23 @@ QMap<QString,QVariant::Type> SqlDataTypes::mapToVariant()
     m["DATETIME"] = QVariant::DateTime;
     m["BLOB"] = QVariant::ByteArray;
     return m;
+}
+
+
+template<typename A, typename B>
+QMap<B,A> invert(const QMap<A,B>& vs) {
+    QList<A> keys = vs.keys();
+    A key;
+    QMap<B,A> res;
+    foreach(key,keys) {
+        res[vs[key]] = key;
+    }
+    return res;
+}
+
+QMap<QVariant::Type, QString> SqlDataTypes::mapFromVariant()
+{
+    return invert(mapToVariant());
 }
 
 QMap<QVariant::Type, QString> SqlDataTypes::mapToDriver(const QString &driver)
@@ -93,11 +106,21 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t, const QLo
         return v.toString();
     }
 
+    if (v.type() != QVariant::String) {
+        qDebug() << "t != QVariant::String" << __FILE__ << __LINE__;
+        return v;
+    }
+
     if (t == QVariant::Int) {
         return v.toInt(ok);
     } else if (t == QVariant::Double) {
-        if (v.type() == QVariant::String) {
-            return locale.toDouble(v.toString(),ok);
+        bool ok_;
+        double d = locale.toDouble(v.toString(),&ok_);
+        if (ok_) {
+            if (ok) {
+                *ok = true;
+            }
+            return d;
         }
         return v.toDouble(ok);
     } else if (t == QVariant::Date) {

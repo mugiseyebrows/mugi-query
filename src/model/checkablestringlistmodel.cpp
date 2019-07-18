@@ -1,5 +1,7 @@
 #include "checkablestringlistmodel.h"
 
+#include <QDebug>
+
 CheckableStringListModel::CheckableStringListModel(const QStringList &strings, QObject *parent)
     : QStringListModel(strings,parent)
 {
@@ -92,7 +94,14 @@ void CheckableStringListModel::setAllUnchecked()
 
 void CheckableStringListModel::setAllCheckState(Qt::CheckState state)
 {
-    for(int r=0;r<rowCount();r++) {
-        setData(index(r,0),state,Qt::CheckStateRole);
+    if (state == Qt::Checked) {
+        for(int r=0;r<rowCount();r++) {
+            mChecked << r;
+        }
+    } else if (state == Qt::Unchecked) {
+        mChecked.clear();
+    } else {
+        qDebug() << "state" << state << __FILE__ << __LINE__;
     }
+    emit dataChanged(index(0,0),index(rowCount()-1,1));
 }

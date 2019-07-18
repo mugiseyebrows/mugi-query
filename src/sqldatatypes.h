@@ -10,11 +10,12 @@ class QLocale;
 class SqlDataTypes
 {
 public:
-    SqlDataTypes();
 
     static QStringList names();
 
     static QMap<QString,QVariant::Type> mapToVariant();
+
+    static QMap<QVariant::Type, QString> mapFromVariant();
 
     static QMap<QVariant::Type, QString> mapToDriver(const QString& driver);
 

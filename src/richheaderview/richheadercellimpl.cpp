@@ -2,14 +2,16 @@
 
 RichHeaderCellImpl::RichHeaderCellImpl()
     : mRow(-1), mColumn(-1), mRowSpan(1), mColumnSpan(1), mText(QString()), mMultiline(false),
-      mElide(Qt::ElideNone), mAlign(Qt::AlignCenter), mRotation(0.0), mWidget(0), mShow(true) {
+      mElide(Qt::ElideNone), mAlign(Qt::AlignCenter), mRotation(0.0), mWidget(0), mVisible(true) {
 }
 
 RichHeaderCellImpl::RichHeaderCellImpl(int row, int column, int rowSpan, int columnSpan,
                                        const QString& text, bool multiline, Qt::TextElideMode elide,
-                                       Qt::Alignment align, double rotation, QWidget* widget)
+                                       Qt::Alignment align, double rotation, QWidget* widget,
+                                       bool visible)
     : mRow(row), mColumn(column), mRowSpan(rowSpan), mColumnSpan(columnSpan), mText(text),
-      mMultiline(multiline), mElide(elide), mAlign(align), mRotation(rotation), mWidget(widget), mShow(true) {
+      mMultiline(multiline), mElide(elide), mAlign(align), mRotation(rotation), mWidget(widget),
+      mVisible(visible) {
 }
 
 int RichHeaderCellImpl::row() const {
@@ -92,24 +94,20 @@ void RichHeaderCellImpl::widget(QWidget* value) {
     mWidget = value;
 }
 
-void RichHeaderCellImpl::show()
-{
-    mShow = true;
+bool RichHeaderCellImpl::visible() const {
+    return mVisible;
 }
 
-void RichHeaderCellImpl::hide()
-{
-    mShow = false;
+void RichHeaderCellImpl::visible(bool value) {
+    mVisible = value;
 }
 
-void RichHeaderCellImpl::setVisible(bool value)
-{
-    mShow = value;
+void RichHeaderCellImpl::show() {
+    mVisible = true;
 }
 
-bool RichHeaderCellImpl::visible() const
-{
-    return mShow;
+void RichHeaderCellImpl::hide() {
+    mVisible = false;
 }
 
 void RichHeaderCellImpl::incColumnSpan() {

@@ -9,7 +9,8 @@
 
 class DataImportModel;
 class RichHeaderView;
-class CheckableStringListModel;
+class DataImportColumnModel;
+class CallOnce;
 
 namespace Ui {
 class DataImportWidget;
@@ -20,6 +21,11 @@ class DataImportWidget : public QWidget
     Q_OBJECT
 
 public:
+    enum WidgetIndex {
+        WidgetName,
+        WidgetType
+    };
+
     explicit DataImportWidget(QWidget *parent = nullptr);
     ~DataImportWidget();
 
@@ -36,33 +42,45 @@ protected slots:
     void on_optionExistingTable_clicked();
     void on_allColumns_clicked();
     void on_noneColumns_clicked();
-    void onColumnsDataChanged(QModelIndex, QModelIndex, QVector<int>);
+    void onColumnDataChanged(QModelIndex, QModelIndex, QVector<int>);
+    void onDataCopy();
     void onDataPaste();
 
     void onTimeout();
-    void updatePreview();
+    void onUpdatePreview();
     void onColumnTypeChanged(int column);
     void onColumnNameChanged(int column);
-    void on_newTable_textChanged(const QString &arg1);
+    void on_newTable_textChanged(QString);
+    //void onDataChanged(QModelIndex, QModelIndex, QVector<int>);
+    void onSetTypes();
 signals:
     void appendQuery(QString);
 
 protected:
 
-    CheckableStringListModel *columnsModel();
+    DataImportColumnModel *columnModel();
     RichHeaderView *headerView();
     void createHeaderViewWidgets();
-    bool hasAnyData();
-    void setColumnNames(const QStringList &names);
 
-    Tokens mTokens;
+    void setColumnNames(const QStringList &names);
+    void setColumnTypes(const QList<QVariant::Type> &types);
+
     void newOrExistingTable();
 
     Ui::DataImportWidget *ui;
     QString mConnectionName;
-    QList<QPair<QString, QString> > namesAndTypes();
+    Tokens mTokens;
+    void namesAndTypes(QStringList &names, QStringList &types);
     DataImportModel *dataModel();
 
+    QString queries(bool preview);
+
+    CallOnce* mUpdatePreview;
+    CallOnce* mSetTypes;
+
+private slots:
+    void on_clearData_clicked();
+    void on_copyQuery_clicked();
 };
 
 #endif // DATAIMPORTWIDGET_H

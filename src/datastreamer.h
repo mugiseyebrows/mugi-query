@@ -30,7 +30,7 @@ public:
                                    QString& error);
 
     static QString stream(const QSqlDatabase &db, QAbstractItemModel *model, int rowCount, const QString &table,
-                          const QStringList &columns, const QStringList &types, const QLocale &locale, QString& error);
+                          const QStringList &columns, const QStringList &types, const QLocale &locale, bool *hasMore, QString& error);
 
     static QString createTableStatement(const QSqlDatabase &db, const QString& table, const QStringList &columns, const QStringList &types, bool ifNotExists);
 
