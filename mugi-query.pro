@@ -119,7 +119,9 @@ HEADERS += \
     src/widget/dataimportwidget.h \
     src/sqldatatypes.h \
     src/model/dataimportcolumnmodel.h \
-    src/callonce.h
+    src/callonce.h \
+    src/widget/selectcolumnswidget.h \
+    src/widget/selectcolumnslistwidget.h
 
 SOURCES += \
     src/action.cpp \
@@ -197,7 +199,9 @@ SOURCES += \
     src/widget/dataimportwidget.cpp \
     src/sqldatatypes.cpp \
     src/model/dataimportcolumnmodel.cpp \
-    src/callonce.cpp
+    src/callonce.cpp \
+    src/widget/selectcolumnswidget.cpp \
+    src/widget/selectcolumnslistwidget.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \
@@ -215,5 +219,7 @@ FORMS += \
     src/widget/databaseconnectdialog.ui \
     src/widget/dirstibutionplotoptionsedit.ui \
     src/widget/dataimportwidgets.ui \
-    src/widget/dataimportwidget.ui
+    src/widget/dataimportwidget.ui \
+    src/widget/selectcolumnswidget.ui \
+    src/widget/selectcolumnslistwidget.ui
 

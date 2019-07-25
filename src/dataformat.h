@@ -18,7 +18,7 @@ namespace DataFormat
         ActionSave
     };
 
-    void initComboBox(QComboBox* comboBox);
+    void initComboBox(QComboBox* comboBox, bool onlySql = false);
 
     Format value(QComboBox* comboBox);
 

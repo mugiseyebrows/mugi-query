@@ -40,13 +40,11 @@ protected slots:
     void onExistingTableCurrentIndexChanged(int index);
     void on_optionNewTable_clicked();
     void on_optionExistingTable_clicked();
-    void on_allColumns_clicked();
-    void on_noneColumns_clicked();
-    void onColumnDataChanged(QModelIndex, QModelIndex, QVector<int>);
+
+    void onColumnDataChanged(int, QModelIndex, QModelIndex);
     void onDataCopy();
     void onDataPaste();
 
-    void onTimeout();
     void onUpdatePreview();
     void onColumnTypeChanged(int column);
     void onColumnNameChanged(int column);
@@ -58,7 +56,6 @@ signals:
 
 protected:
 
-    DataImportColumnModel *columnModel();
     RichHeaderView *headerView();
     void createHeaderViewWidgets();
 
@@ -81,6 +78,7 @@ protected:
 private slots:
     void on_clearData_clicked();
     void on_copyQuery_clicked();
+    void on_abc_clicked();
 };
 
 #endif // DATAIMPORTWIDGET_H

@@ -105,3 +105,36 @@ void CheckableStringListModel::setAllCheckState(Qt::CheckState state)
     }
     emit dataChanged(index(0,0),index(rowCount()-1,1));
 }
+
+QList<bool> CheckableStringListModel::checkedAsBoolList() const
+{
+    QList<bool> res;
+    for(int r=0;r<rowCount();r++) {
+        res << (data(index(r,0),Qt::CheckStateRole).toInt() == Qt::Checked);
+    }
+    return res;
+}
+
+int CheckableStringListModel::countChecked() const
+{
+    return count(Qt::Checked);
+}
+
+int CheckableStringListModel::countUnchecked() const
+{
+    return count(Qt::Unchecked);
+}
+
+int CheckableStringListModel::count(Qt::CheckState state) const
+{
+#if 0
+    int count = 0;
+    for(int r=0;r<rowCount();r++) {
+        if (data(index(r,0),Qt::CheckStateRole).toInt() == state) {
+            count++;
+        }
+    }
+    return count;
+#endif
+    return state == Qt::Checked ? mChecked.size() : rowCount() - mChecked.size();
+}

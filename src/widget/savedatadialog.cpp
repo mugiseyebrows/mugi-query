@@ -1,11 +1,13 @@
 #include "savedatadialog.h"
 #include "ui_savedatadialog.h"
 
-#include "checkablestringlistmodel.h"
+#include "model/dataimportcolumnmodel.h"
 #include <QSqlQueryModel>
 #include <QSqlQuery>
 #include <QMessageBox>
 #include "error.h"
+
+#include "widget/selectcolumnslistwidget.h"
 
 SaveDataDialog::SaveDataDialog(QSqlQueryModel* model, QWidget *parent) :
     QDialog(parent),
@@ -24,12 +26,9 @@ SaveDataDialog::SaveDataDialog(QSqlQueryModel* model, QWidget *parent) :
         ui->table->setText(rx.cap(1));
     }
 
-    CheckableStringListModel* m1 = new CheckableStringListModel(fields,this);
-    CheckableStringListModel* m2 = new CheckableStringListModel(fields,this);
-
-    m1->setAllChecked();
-    ui->data->setModel(m1);
-    ui->keys->setModel(m2);
+    ui->columns->setFields(fields);
+    ui->columns->data()->setAllChecked();
+    ui->columns->setLabelsMode(SelectColumnsWidget::LabelsModeLong);
 
     OutputType::initComboBox(ui->output);
     DataFormat::initComboBox(ui->format);
@@ -45,26 +44,14 @@ DataFormat::Format SaveDataDialog::format() const
     return DataFormat::value(ui->format);
 }
 
-namespace  {
-
-QList<bool> getChecked(QAbstractItemModel* model) {
-    QList<bool> res;
-    for(int r=0;r<model->rowCount();r++) {
-        res << (model->data(model->index(r,0),Qt::CheckStateRole).toInt() == Qt::Checked);
-    }
-    return res;
-}
-
-}
-
 QList<bool> SaveDataDialog::keysChecked() const
 {
-    return getChecked(ui->keys->model());
+    return keysModel()->checkedAsBoolList();
 }
 
 QList<bool> SaveDataDialog::dataChecked() const
 {
-    return getChecked(ui->data->model());
+    return dataModel()->checkedAsBoolList();
 }
 
 QString SaveDataDialog::table() const
@@ -89,64 +76,23 @@ void SaveDataDialog::accept()
             return;
         }
     }
-
     QDialog::accept();
 }
 
-CheckableStringListModel* SaveDataDialog::dataModel() const {
-    return qobject_cast<CheckableStringListModel*>(ui->data->model());
+DataImportColumnModel* SaveDataDialog::dataModel() const {
+    return ui->columns->data()->model();
 }
 
-CheckableStringListModel* SaveDataDialog::keysModel() const {
-    return qobject_cast<CheckableStringListModel*>(ui->keys->model());
+DataImportColumnModel* SaveDataDialog::keysModel() const {
+    return ui->columns->keys()->model();
 }
 
-void SaveDataDialog::on_allData_clicked()
+void SaveDataDialog::on_table_textChanged(const QString& table)
 {
-    dataModel()->setAllChecked();
-}
-
-void SaveDataDialog::on_noneData_clicked()
-{
-    dataModel()->setAllUnchecked();
-}
-
-void SaveDataDialog::on_allKeys_clicked()
-{
-    keysModel()->setAllChecked();
-}
-
-void SaveDataDialog::on_noneKeys_clicked()
-{
-    keysModel()->setAllUnchecked();
-}
-
-void SaveDataDialog::updateLabels() {
-    DataFormat::Format f = format();
-    QString t = table();
-
-    QString dataLabel;
-    QString keysLabel;
-    if (f == DataFormat::SqlInsert) {
-        dataLabel = QString("insert into %1 (...)").arg(t);
-        keysLabel = QString();
-    } else if (f == DataFormat::SqlUpdate) {
-        dataLabel = QString("update %1 set ...").arg(t);
-        keysLabel = "where ...";
-    } else if (f == DataFormat::Csv || t == DataFormat::Tsv) {
-        dataLabel = t;
-        keysLabel = QString();
-    }
-    ui->dataLabel->setText(dataLabel);
-    ui->keysLabel->setText(keysLabel);
-}
-
-void SaveDataDialog::on_table_textChanged(const QString&)
-{
-    updateLabels();
+    ui->columns->setTable(table);
 }
 
 void SaveDataDialog::on_format_currentIndexChanged(int)
 {
-    updateLabels();
+    ui->columns->setFormat(format());
 }

@@ -13,122 +13,72 @@
   <property name="windowTitle">
    <string>Save Data</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0">
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Output</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="output"/>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Table</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="table"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="format">
-         <item>
-          <property name="text">
-           <string>sql</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>csv</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Format</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+    <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0">
+     <item row="2" column="1">
+      <widget class="QComboBox" name="output"/>
      </item>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QLabel" name="dataLabel"/>
-       </item>
-       <item>
-        <widget class="QListView" name="data"/>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QPushButton" name="allData">
-           <property name="text">
-            <string>all</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="noneData">
-           <property name="text">
-            <string>none</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Table</string>
+       </property>
+      </widget>
      </item>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item row="0" column="1">
+      <widget class="QComboBox" name="format">
        <item>
-        <widget class="QLabel" name="keysLabel"/>
+        <property name="text">
+         <string>sql</string>
+        </property>
        </item>
        <item>
-        <widget class="QListView" name="keys"/>
+        <property name="text">
+         <string>csv</string>
+        </property>
        </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QPushButton" name="allKeys">
-           <property name="text">
-            <string>all</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="noneKeys">
-           <property name="text">
-            <string>none</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="table"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Format</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Output</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2" rowspan="4">
+      <widget class="SelectColumnsWidget" name="columns" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -144,16 +94,18 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SelectColumnsWidget</class>
+   <extends>QWidget</extends>
+   <header>widget/selectcolumnswidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>format</tabstop>
   <tabstop>table</tabstop>
   <tabstop>output</tabstop>
-  <tabstop>data</tabstop>
-  <tabstop>allData</tabstop>
-  <tabstop>noneData</tabstop>
-  <tabstop>keys</tabstop>
-  <tabstop>allKeys</tabstop>
-  <tabstop>noneKeys</tabstop>
  </tabstops>
  <resources/>
  <connections>

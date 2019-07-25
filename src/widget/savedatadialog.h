@@ -8,7 +8,7 @@ class SaveDataDialog;
 }
 
 class QSqlQueryModel;
-class CheckableStringListModel;
+class DataImportColumnModel;
 
 #include "dataformat.h"
 #include "outputtype.h"
@@ -31,23 +31,15 @@ public:
 
     OutputType::Type output() const;
 
-    CheckableStringListModel *dataModel() const;
-    CheckableStringListModel *keysModel() const;
-protected:
-    void updateLabels();
+    DataImportColumnModel *dataModel() const;
+    DataImportColumnModel *keysModel() const;
+
 
 public slots:
 
     void accept();
 
 private slots:
-    void on_allData_clicked();
-
-    void on_noneData_clicked();
-
-    void on_allKeys_clicked();
-
-    void on_noneKeys_clicked();
 
     void on_table_textChanged(const QString &arg1);
 

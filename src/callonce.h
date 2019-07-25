@@ -8,10 +8,11 @@ class CallOnce : public QObject
 {
     Q_OBJECT
 public:
-    explicit CallOnce(const QString name = QString(), QObject *parent = nullptr);
+    explicit CallOnce(const QString name = QString(), int timeout = 0, QObject *parent = nullptr);
 protected:
     int mId;
     QString mName;
+    int mTimeout;
 signals:
     void call();
 public slots:

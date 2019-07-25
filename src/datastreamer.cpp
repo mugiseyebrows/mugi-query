@@ -193,13 +193,28 @@ QString DataStreamer::variantToString(const QVariant& value,
     return QString();
 }
 
+QSqlRecord createDataRecord(const QStringList& columns,
+                      const QStringList& types) {
 
-QString DataStreamer::stream(const QSqlDatabase& db,
+    QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
+    QSqlRecord record;
+    for(int c=0;c<columns.size();c++) {
+        if (columns[c].isEmpty()) {
+            continue;
+        }
+        record.append(QSqlField(columns[c],m[types[c]]));
+    }
+    return record;
+}
+
+QString DataStreamer::stream(DataFormat::Format format,
+                             const QSqlDatabase& db,
                              QAbstractItemModel* model,
                              int rowCount,
                              const QString &table,
                              const QStringList& columns,
                              const QStringList& types,
+                             int dataColumns,
                              const QLocale& locale,
                              bool* hasMore,
                              QString& error) {
@@ -217,13 +232,8 @@ QString DataStreamer::stream(const QSqlDatabase& db,
 
     QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
 
-    QSqlRecord record;
-    for(int c=0;c<columns.size();c++) {
-        if (columns[c].isEmpty()) {
-            continue;
-        }
-        record.append(QSqlField(columns[c],m[types[c]]));
-    }
+    QSqlRecord dataRecord = createDataRecord(columns.mid(0,dataColumns), types.mid(0,dataColumns));
+    QSqlRecord keysRecord = createDataRecord(columns.mid(dataColumns),types.mid(dataColumns));
 
     *hasMore = false;
 
@@ -239,12 +249,15 @@ QString DataStreamer::stream(const QSqlDatabase& db,
             if (columns[c].isEmpty()) {
                 continue;
             }
-
             QVariant v = SqlDataTypes::tryConvert(model->data(model->index(r,c)), m[types[c]], locale);
             if (!v.isNull()) {
                 empty = false;
             }
-            record.setValue(columns[c],v);
+            if (c < dataColumns) {
+                dataRecord.setValue(columns[c],v);
+            } else {
+                keysRecord.setValue(columns[c],v);
+            }
         }
 
         if (empty) {
@@ -256,13 +269,63 @@ QString DataStreamer::stream(const QSqlDatabase& db,
             break;
         }
 
-        QString statement = driver->sqlStatement(QSqlDriver::InsertStatement,table,record,false);
+        QString statement;
+
+        if (format == DataFormat::SqlInsert) {
+            statement = driver->sqlStatement(QSqlDriver::InsertStatement,table,dataRecord,false);
+        } else if (format == DataFormat::SqlUpdate) {
+            statement = driver->sqlStatement(QSqlDriver::UpdateStatement,table,dataRecord,false) + " " +
+                    driver->sqlStatement(QSqlDriver::WhereStatement,table,keysRecord,false);
+        } else {
+            qDebug() << "DataStreamer::stream error: not sql format";
+        }
+
         stream << statement << ";\n";
 
         nonEmpty++;
     }
     return result;
 }
+
+
+static QString prepareIdentifier(const QString &identifier,
+        QSqlDriver::IdentifierType type, const QSqlDriver *driver)
+{
+    Q_ASSERT( driver != NULL );
+    QString ret = identifier;
+    if (!driver->isIdentifierEscaped(identifier, type)) {
+        ret = driver->escapeIdentifier(identifier, type);
+    }
+    return ret;
+}
+
+#if 0
+QString DataStreamer::multiInsert(const QSqlDatabase &db, const QString& tableName, const QList<QSqlRecord>& records) {
+
+    QSqlDriver* driver = db.driver();
+
+    QString head = QLatin1String("INSERT INTO ").append(tableName);
+    QStringList fieldNames;
+    QStringList vals;
+
+    const QSqlRecord& rec = records[0];
+
+    for (i = 0; i < rec.count(); ++i) {
+        if (!rec.isGenerated(i))
+            continue;
+        fieldNames << prepareIdentifier(rec.fieldName(i), QSqlDriver::FieldName, driver);
+        vals << driver->formatValue(rec.field(i));
+    }
+    if (vals.isEmpty()) {
+        s.clear();
+    } else {
+        vals.chop(2); // remove trailing comma
+        s[s.length() - 2] = QLatin1Char(')');
+        s.append(QLatin1String("VALUES (")).append(vals).append(QLatin1Char(')'));
+    }
+
+}
+#endif
 
 QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString &table,
                                            const QStringList &columns, const QStringList &types, bool ifNotExists)

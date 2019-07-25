@@ -29,6 +29,12 @@ public:
     void setAllUnchecked();
     void setAllCheckState(Qt::CheckState state);
 
+    QList<bool> checkedAsBoolList() const;
+
+    int count(Qt::CheckState state) const;
+    int countChecked() const;
+    int countUnchecked() const;
+
 protected:
     QSet<int> mChecked;
 

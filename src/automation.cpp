@@ -17,7 +17,6 @@
 #include "distributionplotmodel.h"
 #include "distributionplot.h"
 
-using namespace Lit;
 
 Automation *Automation::mInstance = 0;
 
@@ -43,11 +42,11 @@ Automation::Automation(QObject *parent) : QObject(parent), mAddDatabaseDialog(0)
 
 void Automation::connectToDatabaseFromHistory(const QString &connectionName)
 {
-    mQueued.enqueue(Action(Action::ActionConnectToDatabaseFromHistory, vl(connectionName)));
+    mQueued.enqueue(Action(Action::ActionConnectToDatabaseFromHistory, Lit::vl(connectionName)));
 }
 
 void Automation::query(const QString &connectionName, const QString &query) {
-    mQueued.enqueue(Action(Action::ActionAppendQuery, vl(connectionName,query)));
+    mQueued.enqueue(Action(Action::ActionAppendQuery, Lit::vl(connectionName,query)));
     mQueued.enqueue(Action(Action::ActionExecuteCurrentQuery));
 }
 
@@ -58,12 +57,12 @@ void Automation::showSaveDataDialog()
 
 void Automation::setXYPlot(int row, const QString &x, const QString &y, const QString &line, const QString &marker)
 {
-    mQueued.enqueue(Action(Action::ActionSetXYPlot,vl(row,x,y,line,marker)));
+    mQueued.enqueue(Action(Action::ActionSetXYPlot, Lit::vl(row,x,y,line,marker)));
 }
 
 void Automation::setDistributionPlot(int row, const QString &v, const QString &color)
 {
-    mQueued.enqueue(Action(Action::ActionSetDistributionPlot,vl(row,v,color)));
+    mQueued.enqueue(Action(Action::ActionSetDistributionPlot, Lit::vl(row,v,color)));
 }
 
 void Automation::showDistributionPlot()

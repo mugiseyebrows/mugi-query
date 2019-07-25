@@ -3,18 +3,16 @@
 #include <QStringList>
 #include <QComboBox>
 
-void DataFormat::initComboBox(QComboBox *comboBox)
+void DataFormat::initComboBox(QComboBox *comboBox, bool onlySql)
 {
-    QStringList items;
-    items << "Csv"
-          << "Tsv"
-          << "Sql insert"
-          << "Sql update";
+    static QStringList items = {"Csv", "Tsv", "Sql insert", "Sql update"};
     comboBox->clear();
-    comboBox->addItems(items);
+    comboBox->addItems(onlySql ? items.mid(2) : items);
 }
 
 DataFormat::Format DataFormat::value(QComboBox *comboBox)
 {
-    return static_cast<DataFormat::Format>(comboBox->currentIndex());
+    static QStringList items = {"Csv", "Tsv", "Sql insert", "Sql update"};
+    QString text = comboBox->currentText();
+    return static_cast<DataFormat::Format>(items.indexOf(text));
 }
