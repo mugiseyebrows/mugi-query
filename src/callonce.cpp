@@ -7,6 +7,26 @@ CallOnce::CallOnce(const QString name, int timeout, QObject *parent) : QObject(p
 
 }
 
+void CallOnce::setName(const QString &name)
+{
+    mName = name;
+}
+
+void CallOnce::setTimeout(int timeout)
+{
+    mTimeout = timeout;
+}
+
+QString CallOnce::name() const
+{
+    return mName;
+}
+
+int CallOnce::timeout() const
+{
+    return mTimeout;
+}
+
 void CallOnce::onPost()
 {
     mId++;
