@@ -11,21 +11,36 @@ class RichHeaderView : public QHeaderView
 public:
     RichHeaderView(Qt::Orientation orientation, QWidget *parent = 0);
 
-    void setModel(QAbstractItemModel *model) override;
+    void setModel(QAbstractItemModel *model);
+
+    void setSelectionModel(QItemSelectionModel *selectionModel);
 
     RichHeaderData* data() const;
 
+    QSize sizeHint() const;
+
+    void setSizeHint(const QSize& size);
+
+    void setHighlightColor(const QColor& color);
+
+    void setFlatStyle(bool value);
+
 public slots:
     void update();
+
+    void onSelectionChanged(QItemSelection, QItemSelection);
 
 protected:
     void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const;
 
     QModelIndex mCurrent;
 
-    QBitArray mSelected;
-
     RichHeaderData* mHeaderData;
+
+    QSet<int> mHighlighted;
+    QColor mHighlighColor;
+    QSize mSizeHint;
+    bool mFlatStyle;
 
     bool rowIntersectsSelection(int row) const;
     bool columnIntersectsSelection(int column) const;

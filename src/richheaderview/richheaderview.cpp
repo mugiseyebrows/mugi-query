@@ -26,13 +26,60 @@ namespace {
         return res;
     }
 
+    double normalize360(double value) {
+        while (value < 0) {
+            value += 360.0;
+        }
+        while (value > 360.0) {
+            value -= 360.0;
+        }
+        return value;
+    }
+
+
+    QSet<int> selectionColumns(const QItemSelection& sel) {
+        QSet<int> result;
+        foreach(const QItemSelectionRange& rng, sel) {
+            if (!rng.isValid()) {
+                continue;
+            }
+            int c1 = rng.topLeft().column();
+            int c2 = rng.bottomRight().column();
+            for(int c=c1;c<=c2;c++) {
+                result.insert(c);
+            }
+        }
+        return result;
+    }
+
+    QSet<int> selectionRows(const QItemSelection& sel) {
+        QSet<int> result;
+        foreach(const QItemSelectionRange& rng, sel) {
+            if (!rng.isValid()) {
+                continue;
+            }
+            int r1 = rng.topLeft().row();
+            int r2 = rng.bottomRight().row();
+            for(int r=r1;r<=r2;r++) {
+                result.insert(r);
+            }
+        }
+        return result;
+    }
+
 }
 
 RichHeaderView::RichHeaderView(Qt::Orientation orientation, QWidget *parent) :
-    QHeaderView(orientation,parent), mHeaderData(new RichHeaderData())
+    QHeaderView(orientation,parent), mHeaderData(new RichHeaderData()), mFlatStyle(false)
 {
     //viewport()->setMouseTracking(true);
+
+#if QT_VERSION >= 0x050000
     setSectionsClickable(true);
+#else
+    setClickable(true);
+#endif
+
     connect(this,SIGNAL(sectionResized(int,int,int)),this,SLOT(onSectionResized(int,int,int)));
 }
 
@@ -52,9 +99,58 @@ void RichHeaderView::setModel(QAbstractItemModel *model)
     QTimer::singleShot(0,this,SLOT(update()));
 }
 
+void RichHeaderView::setSelectionModel(QItemSelectionModel *selectionModel)
+{
+    //qDebug() << "setSelectionModel" << selectionModel;
+    QHeaderView::setSelectionModel(selectionModel);
+
+    if (selectionModel) {
+        connect(selectionModel,
+                SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+                this,
+                SLOT(onSelectionChanged(QItemSelection,QItemSelection)));
+    }
+}
+
+
+void RichHeaderView::onSelectionChanged(QItemSelection,QItemSelection) {
+    if (!mHighlighColor.isValid()) {
+        return;
+    }
+    if (orientation() == Qt::Horizontal) {
+        mHighlighted = selectionColumns(selectionModel()->selection());
+    } else {
+        mHighlighted = selectionRows(selectionModel()->selection());
+    }
+    update();
+}
+
 RichHeaderData *RichHeaderView::data() const
 {
     return mHeaderData;
+}
+
+QSize RichHeaderView::sizeHint() const
+{
+    return mSizeHint.isValid() ? mSizeHint : QHeaderView::sizeHint();
+}
+
+void RichHeaderView::setSizeHint(const QSize &size)
+{
+    mSizeHint = size;
+}
+
+void RichHeaderView::setHighlightColor(const QColor &color)
+{
+    mHighlighColor = color;
+    if (!color.isValid()) {
+        mHighlighted.clear();
+    }
+}
+
+void RichHeaderView::setFlatStyle(bool value)
+{
+    mFlatStyle = value;
 }
 
 void RichHeaderView::update()
@@ -70,7 +166,11 @@ QRect RichHeaderView::cellRect(RichHeaderCellImpl* cell) const{
     int left = sectionViewportPosition(column);
     int top = 0;
 
+    QSize sizeHint = this->sizeHint();
+
     QList<int> subsectionSizes = mHeaderData->subsectionSizes();
+
+    int lastRowSize = sizeHint.height() - std::accumulate(subsectionSizes.begin(),subsectionSizes.end() - 1,0);
 
     for(int i=0;i<row;i++) {
         top += subsectionSizes.value(i,0);
@@ -84,7 +184,11 @@ QRect RichHeaderView::cellRect(RichHeaderCellImpl* cell) const{
     }
     int height = 0;
     for(int i=0;i<rowSpan;i++) {
-        height += subsectionSizes.value(row + i,0);
+        if (row + i == subsectionSizes.size() - 1) {
+            height += lastRowSize;
+        } else {
+            height += subsectionSizes.value(row + i, 0);
+        }
         if (row + i >= subsectionSizes.size()) {
             qDebug() << "MultilineHeaderView::sectionRect height error";
         }
@@ -146,6 +250,8 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
 
     QList<RichHeaderCellImpl*> cells = mHeaderData->cells(logicalIndex);
 
+    QMatrix original = painter->matrix();
+
     foreach(RichHeaderCellImpl* cell, cells) {
 
         if (cell->widget()) {
@@ -197,25 +303,34 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
         else
             opt.selectedPosition = QStyleOptionHeader::NotAdjacent;
 
-        style()->drawControl(QStyle::CE_Header, &opt, painter, this);
+        if (mFlatStyle) {
+            painter->fillRect(cellRect,Qt::white);
+            painter->setPen(QColor("#A0A0A0"));
+            painter->drawRect(cellRect);
+        } else {
+            style()->drawControl(QStyle::CE_Header, &opt, painter, this);
+        }
+
+        if (mHighlighted.contains(logicalIndex)) {
+            QBrush brush(mHighlighColor);
+            painter->fillRect(cellRect,brush);
+        }
 
         if (!drawText) {
 
-            double rotation = cell->rotation();
-
-            QMatrix original = painter->matrix();
+            double rotation = normalize360(cell->rotation());
 
             QFontMetrics metrics(this->font());
 
             QPoint center = cellRect.center();
-            QRect textRect = cellRect;
+            QRect textRect;
 
             QString text = cell->text();
 
             if (equals(rotation,90.0) || equals(rotation,270.0)) {
                 textRect = rotate90(cellRect);
             } else if (equals(rotation,0) || equals(rotation,180.0)) {
-
+                textRect = cellRect;
             } else {
                 if (cell->multiline()) {
                     textRect = RichHeaderTextFitter::fitMultiline(cellRect,metrics.height(),rotation,3.0);
@@ -245,8 +360,6 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
 
             painter->setMatrix(original);
         }
-
-        //qDebug() << cellRect;
 
     }
 
