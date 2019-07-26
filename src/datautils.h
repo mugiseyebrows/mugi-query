@@ -6,6 +6,7 @@
 #include <QPair>
 #include <QStringList>
 class QAbstractItemModel;
+class QSqlDatabase;
 
 namespace DataUtils {
 
@@ -19,6 +20,7 @@ QStringList toLower(const QStringList& vs);
 QStringList headerData(const QAbstractItemModel* model, Qt::Orientation orientation);
 QStringList filterEmpty(const QStringList& items);
 QList<double> toDouble(const QVariantList& vs);
+QString windowTitle(const QString& prefix, const QSqlDatabase& db, const QString suffix);
 
 }
 

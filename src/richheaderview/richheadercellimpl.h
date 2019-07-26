@@ -10,7 +10,11 @@ public:
                        const QString& text = QString(), bool multiline = false,
                        Qt::TextElideMode elide = Qt::ElideNone,
                        Qt::Alignment align = Qt::AlignCenter, double rotation = 0.0,
-                       QWidget* widget = 0, bool visible = true);
+                       QWidget* widget = 0, bool visible = true, int paddingTop = 0,
+                       int paddingRight = 0, int paddingBottom = 0, int paddingLeft = 0);
+    void padding(int all);
+    void padding(int vertical, int horizontal);
+    void padding(int top, int right, int bottom, int left);
     int row() const;
     void row(int value);
     int column() const;
@@ -33,16 +37,14 @@ public:
     void widget(QWidget* value);
     bool visible() const;
     void visible(bool value);
-
-    void padding(int all);
-    void padding(int vertical, int horizontal);
-    void padding(int top, int right, int bottom, int left);
-
     int paddingTop() const;
+    void paddingTop(int value);
     int paddingRight() const;
+    void paddingRight(int value);
     int paddingBottom() const;
+    void paddingBottom(int value);
     int paddingLeft() const;
-
+    void paddingLeft(int value);
     void show();
     void hide();
     void incColumnSpan();
@@ -63,13 +65,11 @@ protected:
     Qt::Alignment mAlign;
     double mRotation;
     QWidget* mWidget;
-
+    bool mVisible;
     int mPaddingTop;
     int mPaddingRight;
     int mPaddingBottom;
     int mPaddingLeft;
-
-    bool mVisible;
 };
 QDebug operator<<(QDebug debug, const RichHeaderCellImpl& cell);
 #endif // RICHHEADERCELLIMPL_H

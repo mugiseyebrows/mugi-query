@@ -2,6 +2,7 @@
 #include "qisnumerictype.h"
 
 #include <QAbstractItemModel>
+#include <QSqlDatabase>
 
 QPolygonF DataUtils::toPolygon(const QList<QPair<QVariant,QVariant> >& data) {
     QPolygonF result;
@@ -102,3 +103,8 @@ QList<double> DataUtils::toDouble(const QVariantList& vs) {
     return res;
 }
 
+QString DataUtils::windowTitle(const QString& prefix, const QSqlDatabase& db, const QString suffix) {
+    QStringList title;
+    title << prefix << db.driverName() << db.hostName() << db.userName() << db.databaseName() << suffix;
+    return filterEmpty(title).join(" ");
+}

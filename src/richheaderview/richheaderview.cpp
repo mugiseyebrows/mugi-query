@@ -142,7 +142,7 @@ void RichHeaderView::onSelectionChanged(QItemSelection,QItemSelection desel) {
     int section1 = minElement(cols);
     int section2 = maxElement(cols);
 
-    QList<RichHeaderCellImpl*> cells = mHeaderData->widgetCellsOverlapsRange(section1,section2);
+    RichHeaderCellList cells = mHeaderData->widgetCellsOverlapsRange(section1,section2);
     QSet<int> sections = RichHeaderData::cellsSections(cells);
     section1 = minElement(sections);
     section2 = maxElement(sections);
@@ -202,7 +202,7 @@ QRect RichHeaderView::cellRect(RichHeaderCellImpl* cell) const{
     for(int i=0;i<row;i++) {
         top += subsectionSizes.value(i,0);
         if (i >= subsectionSizes.size()) {
-            qDebug() << "MultilineHeaderView::sectionRect top error";
+            qDebug() << "RichHeaderView::sectionRect top error";
         }
     }
     int width = 0;
@@ -217,7 +217,7 @@ QRect RichHeaderView::cellRect(RichHeaderCellImpl* cell) const{
             height += subsectionSizes.value(row + i, 0);
         }
         if (row + i >= subsectionSizes.size()) {
-            qDebug() << "MultilineHeaderView::sectionRect height error";
+            qDebug() << "RichHeaderView::sectionRect height error";
         }
     }
     return QRect(left,top,width,height);
@@ -288,7 +288,7 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
 
     painter->setClipRect(rect);
 
-    QList<RichHeaderCellImpl*> cells = mHeaderData->cells(logicalIndex);
+    RichHeaderCellList cells = mHeaderData->cells(logicalIndex);
 
     QMatrix original = painter->matrix();
 

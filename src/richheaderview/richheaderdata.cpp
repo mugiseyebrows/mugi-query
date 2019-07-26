@@ -51,7 +51,7 @@ RichHeaderCellList RichHeaderData::cells() const {
 QPair<int,int> RichHeaderData::spannedSections(int section) {
     int section1 = section;
     int section2 = section;
-    QList<RichHeaderCellImpl*> cells = this->cells(section);
+    RichHeaderCellList cells = this->cells(section);
     foreach(RichHeaderCellImpl* cell, cells) {
         section1 = qMin(section1, cell->column());
         section2 = qMax(section2, cell->column() + cell->columnSpan() - 1);
@@ -102,7 +102,7 @@ void RichHeaderData::testRangesOverlap() {
 }
 
 RichHeaderCellList RichHeaderData::widgetCellsOverlapsRange(int section1, int section2) {
-    QList<RichHeaderCellImpl*> result;
+    RichHeaderCellList result;
     foreach(RichHeaderCellImpl* cell, mCells) {
         if (rangesOverlap(cell->column(), cell->column() + cell->columnSpan() - 1, section1, section2)) {
             result.append(cell);
@@ -124,8 +124,8 @@ QSet<int> RichHeaderData::cellsSections(const RichHeaderCellList &cells) {
 }
 
 RichHeaderCellList RichHeaderData::widgetCellsToTheRight(int section) {
-    QList<RichHeaderCellImpl*> cells = mCells.values();
-    QList<RichHeaderCellImpl*> res;
+    RichHeaderCellList cells = mCells.values();
+    RichHeaderCellList res;
     foreach(RichHeaderCellImpl* cell, cells) {
         if (!cell->widget()) {
             continue;
@@ -139,8 +139,8 @@ RichHeaderCellList RichHeaderData::widgetCellsToTheRight(int section) {
 }
 
 RichHeaderCellList RichHeaderData::cells(int section) const {
-    QList<RichHeaderCellImpl*> cells = mCells.values();
-    QList<RichHeaderCellImpl*> res;
+    RichHeaderCellList cells = mCells.values();
+    RichHeaderCellList res;
     foreach(RichHeaderCellImpl* cell, cells) {
         int column1 = cell->column();
         int column2 = column1 + cell->columnSpan() - 1;
@@ -233,7 +233,7 @@ void RichHeaderData::pull(RichHeaderDirection::DirectionType direction, int sect
     int subsectionCount = mSubsectionSizes.size();
 
     RichHeaderCellBitmap occupied(subsectionCount, sectionCount);
-    QList<RichHeaderCellImpl*> cells = mCells.values();
+    RichHeaderCellList cells = mCells.values();
     foreach(RichHeaderCellImpl* cell, cells) {
         occupied.update(cell);
     }

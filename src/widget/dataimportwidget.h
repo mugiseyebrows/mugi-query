@@ -39,11 +39,13 @@ public:
     QString connectionName() const;
 
     static QVariant::Type guessType(QAbstractItemModel *model, const QModelIndex &topLeft, const QModelIndex &bottomRight);
-public slots:
+    void guessColumnType(int column);
     void update(const Tokens &tokens);
 
+public slots:
+    void onUpdateTokens(QString connectionName, Tokens tokens);
 protected slots:
-    void onExistingTableCurrentIndexChanged(int index);
+    //void onExistingTableCurrentIndexChanged(int index);
     void on_optionNewTable_clicked();
     void on_optionExistingTable_clicked();
 
@@ -52,6 +54,7 @@ protected slots:
     void onDataPaste();
 
     void onUpdatePreview();
+    void onUpdateTitle();
     void onColumnTypeChanged(int);
     void onColumnNameChanged(int);
     void onColumnPrimaryKeyClicked(int);
@@ -90,10 +93,14 @@ protected:
     QComboBox *widgetType(int column);
     QCheckBox *widgetPrimaryKey(int column);
 
+    QString tableName();
 private slots:
     void on_clearData_clicked();
     void on_copyQuery_clicked();
     void on_abc_clicked();
+    void on_format_currentIndexChanged(int index);
+    void on_guessTypes_clicked();
+    void on_existingTable_currentIndexChanged(int index);
 };
 
 #endif // DATAIMPORTWIDGET_H

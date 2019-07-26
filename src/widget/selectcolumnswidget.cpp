@@ -8,10 +8,10 @@ SelectColumnsWidget::SelectColumnsWidget(QWidget *parent) :
     ui(new Ui::SelectColumnsWidget)
 {
     ui->setupUi(this);
-    connect(ui->data,SelectColumnsListWidget::dataChanged,[=](QModelIndex index1,QModelIndex index2){
+    connect(ui->data,&SelectColumnsListWidget::dataChanged,[=](QModelIndex index1,QModelIndex index2){
         emit dataChanged(0,index1,index2);
     });
-    connect(ui->keys,SelectColumnsListWidget::dataChanged,[=](QModelIndex index1,QModelIndex index2){
+    connect(ui->keys,&SelectColumnsListWidget::dataChanged,[=](QModelIndex index1,QModelIndex index2){
         emit dataChanged(1,index1,index2);
     });
 }

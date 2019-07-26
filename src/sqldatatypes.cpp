@@ -114,15 +114,31 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t, const QLo
     if (t == QVariant::Int) {
         return v.toInt(ok);
     } else if (t == QVariant::Double) {
+
         bool ok_;
-        double d = locale.toDouble(v.toString(),&ok_);
+
+        double d = v.toDouble(&ok_);
+
         if (ok_) {
             if (ok) {
                 *ok = true;
             }
             return d;
         }
-        return v.toDouble(ok);
+
+        QString s = v.toString();
+
+        d = locale.toDouble(s,&ok_);
+        if (ok_) {
+            if (ok) {
+                *ok = true;
+            }
+            return d;
+        }
+
+        s.replace(",",".");
+
+        return s.toDouble(ok);
     } else if (t == QVariant::Date) {
         QDate d1 = QDate::fromString(v.toString(),Qt::ISODate);
         QDate d2 = QDate::fromString(v.toString(),Qt::SystemLocaleDate);

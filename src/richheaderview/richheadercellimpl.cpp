@@ -1,19 +1,41 @@
 #include "richheadercellimpl.h"
 
-#include <QWidget>
-
 RichHeaderCellImpl::RichHeaderCellImpl()
     : mRow(-1), mColumn(-1), mRowSpan(1), mColumnSpan(1), mText(QString()), mMultiline(false),
-      mElide(Qt::ElideNone), mAlign(Qt::AlignCenter), mRotation(0.0), mWidget(0), mVisible(true) {
+      mElide(Qt::ElideNone), mAlign(Qt::AlignCenter), mRotation(0.0), mWidget(0), mVisible(true),
+      mPaddingTop(0), mPaddingRight(0), mPaddingBottom(0), mPaddingLeft(0) {
 }
 
 RichHeaderCellImpl::RichHeaderCellImpl(int row, int column, int rowSpan, int columnSpan,
                                        const QString& text, bool multiline, Qt::TextElideMode elide,
                                        Qt::Alignment align, double rotation, QWidget* widget,
-                                       bool visible)
+                                       bool visible, int paddingTop, int paddingRight,
+                                       int paddingBottom, int paddingLeft)
     : mRow(row), mColumn(column), mRowSpan(rowSpan), mColumnSpan(columnSpan), mText(text),
       mMultiline(multiline), mElide(elide), mAlign(align), mRotation(rotation), mWidget(widget),
-      mVisible(visible), mPaddingTop(0), mPaddingRight(0), mPaddingBottom(0), mPaddingLeft(0) {
+      mVisible(visible), mPaddingTop(paddingTop), mPaddingRight(paddingRight),
+      mPaddingBottom(paddingBottom), mPaddingLeft(paddingLeft) {
+}
+
+void RichHeaderCellImpl::padding(int all) {
+    mPaddingTop = all;
+    mPaddingRight = all;
+    mPaddingBottom = all;
+    mPaddingLeft = all;
+}
+
+void RichHeaderCellImpl::padding(int vertical, int horizontal) {
+    mPaddingTop = vertical;
+    mPaddingRight = horizontal;
+    mPaddingBottom = vertical;
+    mPaddingLeft = horizontal;
+}
+
+void RichHeaderCellImpl::padding(int top, int right, int bottom, int left) {
+    mPaddingTop = top;
+    mPaddingRight = right;
+    mPaddingBottom = bottom;
+    mPaddingLeft = left;
 }
 
 int RichHeaderCellImpl::row() const {
@@ -96,7 +118,6 @@ void RichHeaderCellImpl::widget(QWidget* value) {
     mWidget = value;
 }
 
-
 bool RichHeaderCellImpl::visible() const {
     return mVisible;
 }
@@ -105,47 +126,36 @@ void RichHeaderCellImpl::visible(bool value) {
     mVisible = value;
 }
 
-void RichHeaderCellImpl::padding(int all) {
-    mPaddingTop = all;
-    mPaddingRight = all;
-    mPaddingBottom = all;
-    mPaddingLeft = all;
-}
-
-void RichHeaderCellImpl::padding(int vertical, int horizontal)
-{
-    mPaddingTop = vertical;
-    mPaddingRight = horizontal;
-    mPaddingBottom = vertical;
-    mPaddingLeft = horizontal;
-}
-
-void RichHeaderCellImpl::padding(int top, int right, int bottom, int left)
-{
-    mPaddingTop = top;
-    mPaddingRight = right;
-    mPaddingBottom = bottom;
-    mPaddingLeft = left;
-}
-
-int RichHeaderCellImpl::paddingTop() const
-{
+int RichHeaderCellImpl::paddingTop() const {
     return mPaddingTop;
 }
 
-int RichHeaderCellImpl::paddingRight() const
-{
+void RichHeaderCellImpl::paddingTop(int value) {
+    mPaddingTop = value;
+}
+
+int RichHeaderCellImpl::paddingRight() const {
     return mPaddingRight;
 }
 
-int RichHeaderCellImpl::paddingBottom() const
-{
+void RichHeaderCellImpl::paddingRight(int value) {
+    mPaddingRight = value;
+}
+
+int RichHeaderCellImpl::paddingBottom() const {
     return mPaddingBottom;
 }
 
-int RichHeaderCellImpl::paddingLeft() const
-{
+void RichHeaderCellImpl::paddingBottom(int value) {
+    mPaddingBottom = value;
+}
+
+int RichHeaderCellImpl::paddingLeft() const {
     return mPaddingLeft;
+}
+
+void RichHeaderCellImpl::paddingLeft(int value) {
+    mPaddingLeft = value;
 }
 
 void RichHeaderCellImpl::show() {

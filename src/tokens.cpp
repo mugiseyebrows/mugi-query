@@ -86,7 +86,7 @@ QString odbcType(const QSqlField& field, QString& error) {
 
 #else
 
-QString odbcType(const QSqlField& field, QString& error) {
+QString odbcType(const QSqlField& , QString& ) {
     return QString();
 }
 

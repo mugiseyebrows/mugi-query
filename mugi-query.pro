@@ -24,6 +24,7 @@ INCLUDEPATH += C:/Qwt-6.1.4/include
 
 unix {
     CONFIG += qwt
+
 }
 
 TARGET = mugi-query

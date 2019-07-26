@@ -15,6 +15,21 @@ RichHeaderCell& RichHeaderCell::span(int rows, int columns) {
     return *this;
 }
 
+RichHeaderCell& RichHeaderCell::padding(int all) {
+    mCell->padding(all);
+    return *this;
+}
+
+RichHeaderCell& RichHeaderCell::padding(int vertical, int horizontal) {
+    mCell->padding(vertical, horizontal);
+    return *this;
+}
+
+RichHeaderCell& RichHeaderCell::padding(int top, int right, int bottom, int left) {
+    mCell->padding(top, right, bottom, left);
+    return *this;
+}
+
 RichHeaderCell& RichHeaderCell::row(int value) {
     mCell->row(value);
     return *this;
@@ -110,23 +125,44 @@ RichHeaderCell& RichHeaderCell::visible(bool value) {
     return *this;
 }
 
-RichHeaderCell& RichHeaderCell::padding(int all) {
-    mCell->padding(all);
-    return *this;
-}
-
-RichHeaderCell& RichHeaderCell::padding(int vertical, int horizontal) {
-    mCell->padding(vertical, horizontal);
-    return *this;
-}
-RichHeaderCell& RichHeaderCell::padding(int top, int right, int bottom, int left) {
-    mCell->padding(top, right, bottom, left);
-    return *this;
-}
-
-
 bool RichHeaderCell::visible() const {
     return mCell->visible();
+}
+
+RichHeaderCell& RichHeaderCell::paddingTop(int value) {
+    mCell->paddingTop(value);
+    return *this;
+}
+
+int RichHeaderCell::paddingTop() const {
+    return mCell->paddingTop();
+}
+
+RichHeaderCell& RichHeaderCell::paddingRight(int value) {
+    mCell->paddingRight(value);
+    return *this;
+}
+
+int RichHeaderCell::paddingRight() const {
+    return mCell->paddingRight();
+}
+
+RichHeaderCell& RichHeaderCell::paddingBottom(int value) {
+    mCell->paddingBottom(value);
+    return *this;
+}
+
+int RichHeaderCell::paddingBottom() const {
+    return mCell->paddingBottom();
+}
+
+RichHeaderCell& RichHeaderCell::paddingLeft(int value) {
+    mCell->paddingLeft(value);
+    return *this;
+}
+
+int RichHeaderCell::paddingLeft() const {
+    return mCell->paddingLeft();
 }
 
 RichHeaderCell& RichHeaderCell::show() {

@@ -3,6 +3,16 @@
 
 #include "dataimportwidget.h"
 
+namespace {
+
+void showOnTop(QWidget* widget) {
+    widget->show();
+    widget->activateWindow();
+    widget->raise();
+}
+
+}
+
 DataImportWidgets::DataImportWidgets(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DataImportWidgets)
@@ -42,9 +52,20 @@ void DataImportWidgets::closeTab(const QString &connectionName)
     }
 }
 
+void DataImportWidgets::create(const QString &connectionName, const Tokens& tokens) {
+    DataImportWidget* widget = new DataImportWidget();
+    widget->init(connectionName);
+    connect(widget,&DataImportWidget::appendQuery,[=](QString query){
+        emit appendQuery(connectionName,query);
+    });
+    connect(this,SIGNAL(updateTokens(QString,Tokens)),widget,SLOT(onUpdateTokens(QString,Tokens)));
+    emit updateTokens(connectionName,tokens);
+    showOnTop(widget);
+}
 
-void DataImportWidgets::update(const QString &connectionName, const Tokens& tokens, bool focus)
+void DataImportWidgets::update(const QString &connectionName, const Tokens& tokens)
 {
+#if 0
     int index = tabIndex(connectionName);
     DataImportWidget* w;
     if (index > -1) {
@@ -63,4 +84,7 @@ void DataImportWidgets::update(const QString &connectionName, const Tokens& toke
     }
     w->update(tokens);
     ui->tabs->setCurrentIndex(index);
+#endif
+
+    emit updateTokens(connectionName,tokens);
 }

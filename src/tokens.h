@@ -4,6 +4,7 @@
 #include <QStringList>
 #include <QSqlDatabase>
 #include <QMap>
+#include <QMetaType>
 
 class Tokens
 {
@@ -43,5 +44,7 @@ protected:
     QString mDriverName;
 
 };
+
+Q_DECLARE_METATYPE(Tokens)
 
 #endif // TOKENS_H

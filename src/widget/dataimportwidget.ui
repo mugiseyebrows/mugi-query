@@ -103,7 +103,14 @@
           <item>
            <widget class="QPushButton" name="abc">
             <property name="text">
-             <string>abc</string>
+             <string>Abc</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="guessTypes">
+            <property name="text">
+             <string>Guess types</string>
             </property>
            </widget>
           </item>

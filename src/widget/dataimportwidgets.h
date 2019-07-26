@@ -4,7 +4,7 @@
 #include <QWidget>
 
 class DataImportWidget;
-class Tokens;
+#include "tokens.h"
 
 namespace Ui {
 class DataImportWidgets;
@@ -20,10 +20,15 @@ public:
     int tabIndex(const QString &connectionName);
     DataImportWidget *tab(int index);
 
-public slots:
-    void update(const QString &connectionName, const Tokens &tokens, bool focus);
+    void update(const QString &connectionName, const Tokens &tokens);
+    void create(const QString &connectionName, const Tokens &tokens);
+protected:
+    QMap<QString,Tokens> mTokens;
+
+
 signals:
     void appendQuery(QString,QString);
+    void updateTokens(QString,Tokens);
 protected:
     void closeTab(const QString &connectionName);
 private:

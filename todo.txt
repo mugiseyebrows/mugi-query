@@ -68,3 +68,6 @@ do not create new session if current session tab is empty
 switch to res tab if there were no tabs other than stat before
 schema tree:
     context menu: multiple tables select (join)
+dataimport:
+    autoincrement (serial)
+    insert ignore

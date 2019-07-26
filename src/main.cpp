@@ -4,9 +4,12 @@
 #include "queryparser.h"
 #include "version.h"
 #include "tests.h"
+#include "tokens.h"
 
 int main(int argc, char *argv[])
 {
+    qRegisterMetaType<Tokens>();
+
     QApplication a(argc, argv);
 
     a.setApplicationName(APP_NAME);

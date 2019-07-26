@@ -239,6 +239,7 @@ int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
     return -1;
 }
 
+
 void MainWindow::onTabsCurrentChanged(int tabIndex) {
     //qDebug() << "onTabsCurrentChanged" << index;
 
@@ -255,11 +256,7 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
     }
 
     QSqlDatabase db = QSqlDatabase::database(connectionName);
-
-    QStringList title;
-    title << db.driverName() << db.hostName() << db.userName() << db.databaseName();
-    title = filterEmpty(title);
-    setWindowTitle(title.join(" "));
+    setWindowTitle(DataUtils::windowTitle(QString(),db,QString()));
 
     tab(tabIndex)->focusQuery();
 
@@ -407,6 +404,9 @@ void MainWindow::pushTokens(const QString &connectionName)
     }*/
     if (mJoinHelpers) {
         mJoinHelpers->update(connectionName,tokens,false);
+    }
+    if (mDataImport) {
+        mDataImport->update(connectionName,tokens);
     }
 }
 
@@ -637,8 +637,7 @@ void MainWindow::on_dataImport_triggered()
         connect(mDataImport,SIGNAL(appendQuery(QString,QString)),this,SLOT(onAppendQuery(QString,QString)));
     }
 
-    mDataImport->update(connectionName,mTokens[connectionName],true);
-    showOnTop(mDataImport);
+    mDataImport->create(connectionName,mTokens[connectionName]);
 
 }
 

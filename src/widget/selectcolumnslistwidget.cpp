@@ -5,8 +5,7 @@
 
 SelectColumnsListWidget::SelectColumnsListWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::SelectColumnsListWidget),
-    mLabelVisible(true)
+    ui(new Ui::SelectColumnsListWidget)
 {
     ui->setupUi(this);
 }
@@ -15,8 +14,6 @@ SelectColumnsListWidget::~SelectColumnsListWidget()
 {
     delete ui;
 }
-
-
 
 void SelectColumnsListWidget::setFields(const QStringList &fields, const QList<QVariant::Type>& types)
 {
