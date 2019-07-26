@@ -19,7 +19,12 @@ void RichHeaderCellBitmap::update(RichHeaderCellImpl *cell)
 {
     for(int row=cell->row(); row<cell->row() + cell->rowSpan();row++) {
         for(int column=cell->column();column<cell->column() + cell->columnSpan();column++) {
-            mData.setBit(row * mColumnCount + column);
+            int bit = row * mColumnCount + column;
+            if (bit >= mData.size() || bit < 0) {
+                qDebug() << "update" << row << column << "outside bitmap" << mData.size();
+            } else {
+                mData.setBit(bit);
+            }
         }
     }
 }

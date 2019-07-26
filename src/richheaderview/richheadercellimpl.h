@@ -33,6 +33,16 @@ public:
     void widget(QWidget* value);
     bool visible() const;
     void visible(bool value);
+
+    void padding(int all);
+    void padding(int vertical, int horizontal);
+    void padding(int top, int right, int bottom, int left);
+
+    int paddingTop() const;
+    int paddingRight() const;
+    int paddingBottom() const;
+    int paddingLeft() const;
+
     void show();
     void hide();
     void incColumnSpan();
@@ -53,6 +63,12 @@ protected:
     Qt::Alignment mAlign;
     double mRotation;
     QWidget* mWidget;
+
+    int mPaddingTop;
+    int mPaddingRight;
+    int mPaddingBottom;
+    int mPaddingLeft;
+
     bool mVisible;
 };
 QDebug operator<<(QDebug debug, const RichHeaderCellImpl& cell);

@@ -5,7 +5,8 @@
 #include "richheaderiterator.h"
 #include "richheadercell.h"
 
-RichHeaderData::RichHeaderData() : mMultiline(true), mAlign(Qt::AlignCenter), mElide(Qt::ElideNone), mRotation(0.0)
+RichHeaderData::RichHeaderData() :
+    mMultiline(true), mAlign(Qt::AlignCenter), mElide(Qt::ElideNone), mRotation(0.0)
 {
 }
 
@@ -43,7 +44,7 @@ RichHeaderData* RichHeaderData::rotation(double value) {
     return this;
 }
 
-QList<RichHeaderCellImpl*> RichHeaderData::cells() const {
+RichHeaderCellList RichHeaderData::cells() const {
     return mCells.values();
 }
 
@@ -58,7 +59,71 @@ QPair<int,int> RichHeaderData::spannedSections(int section) {
     return QPair<int,int>(section1,section2);
 }
 
-QList<RichHeaderCellImpl*> RichHeaderData::widgetCellsToTheRight(int section) {
+//   a1 b1 b2 a2
+//    b1 a1 b2
+//    b1 a2 b2
+bool RichHeaderData::rangesOverlap(int a1, int a2, int b1, int b2) {
+    return (a1 <= b1 && a2 >= b2) || (a2 >= b1 && a2 <= b2) || (a1 >= b1 && a1 <= b2);
+}
+
+void RichHeaderData::testRangesOverlap() {
+
+    bool passed = true;
+
+    for(int i=0;i<1000;i++) {
+
+        int a1 = rand() % 20;
+        int a2 = a1 + (rand() % 20);
+        int b1 = rand() % 20;
+        int b2 = b1 + (rand() % 20);
+
+        bool actual = rangesOverlap(a1,a2,b1,b2);
+        QSet<int> a;
+        QSet<int> b;
+
+        for(int i=a1;i<=a2;i++) {
+            a << i;
+        }
+        for(int i=b1;i<=b2;i++) {
+            b << i;
+        }
+
+        bool expected = a.intersect(b).size() > 0;
+
+        if (actual != expected) {
+            qDebug() << "failed" << a1 << a2 << b1 << b2 << "expected" << expected << "got" << actual;
+            passed = false;
+        } else {
+            //qDebug() << a1 << a2 << b1 << b2 << actual;
+        }
+    }
+
+    qDebug() << "testRangesOverlap()" << (passed ? "passed" : "failed");
+}
+
+RichHeaderCellList RichHeaderData::widgetCellsOverlapsRange(int section1, int section2) {
+    QList<RichHeaderCellImpl*> result;
+    foreach(RichHeaderCellImpl* cell, mCells) {
+        if (rangesOverlap(cell->column(), cell->column() + cell->columnSpan() - 1, section1, section2)) {
+            result.append(cell);
+        }
+    }
+    return result;
+}
+
+QSet<int> RichHeaderData::cellsSections(const RichHeaderCellList &cells) {
+    QSet<int> result;
+    foreach(RichHeaderCellImpl* cell, cells) {
+        int column = cell->column();
+        int columnSpan = cell->columnSpan();
+        for(int c=0;c<columnSpan;c++) {
+            result.insert(column + c);
+        }
+    }
+    return result;
+}
+
+RichHeaderCellList RichHeaderData::widgetCellsToTheRight(int section) {
     QList<RichHeaderCellImpl*> cells = mCells.values();
     QList<RichHeaderCellImpl*> res;
     foreach(RichHeaderCellImpl* cell, cells) {
@@ -73,7 +138,7 @@ QList<RichHeaderCellImpl*> RichHeaderData::widgetCellsToTheRight(int section) {
     return res;
 }
 
-QList<RichHeaderCellImpl*> RichHeaderData::cells(int section) const {
+RichHeaderCellList RichHeaderData::cells(int section) const {
     QList<RichHeaderCellImpl*> cells = mCells.values();
     QList<RichHeaderCellImpl*> res;
     foreach(RichHeaderCellImpl* cell, cells) {
@@ -158,10 +223,16 @@ void RichHeaderData::subsectionSizes(const QList<int> sizes)
     mSubsectionSizes = sizes;
 }
 
-void RichHeaderData::pull(RichHeaderDirection::DirectionType direction, int rowCount, int columnCount)
+void RichHeaderData::pull(RichHeaderDirection::DirectionType direction, int sectionCount)
 {
+    if (mSubsectionSizes.isEmpty()) {
+        qDebug() << "pull() after subsectionSizes(QList<int>)";
+        return;
+    }
 
-    RichHeaderCellBitmap occupied(rowCount, columnCount);
+    int subsectionCount = mSubsectionSizes.size();
+
+    RichHeaderCellBitmap occupied(subsectionCount, sectionCount);
     QList<RichHeaderCellImpl*> cells = mCells.values();
     foreach(RichHeaderCellImpl* cell, cells) {
         occupied.update(cell);

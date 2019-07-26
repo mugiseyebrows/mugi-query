@@ -2,6 +2,7 @@
 
 #include "sqldatatypes.h"
 #include <QColor>
+#include <QDebug>
 
 DataImportModel::DataImportModel(const QVariant& headerSizeHint, QObject *parent)
     : QStandardItemModel(5,5,parent), mHeaderSizeHint(headerSizeHint)
@@ -39,6 +40,10 @@ QVariant DataImportModel::data(const QModelIndex &index, int role) const
 
 void DataImportModel::setTypes(const QMap<int, QVariant::Type> &types)
 {
+    if (mTypes == types) {
+        //qDebug() << "same types";
+        return;
+    }
     mTypes = types;
     emit dataChanged(index(0,0),index(rowCount()-1,columnCount()-1));
 }

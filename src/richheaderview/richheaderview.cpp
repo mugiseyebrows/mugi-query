@@ -67,6 +67,16 @@ namespace {
         return result;
     }
 
+
+    int minElement(const QSet<int>& vs) {
+        return *std::min_element(vs.begin(),vs.end());
+    }
+
+    int maxElement(const QSet<int>& vs) {
+        return *std::max_element(vs.begin(),vs.end());
+    }
+
+
 }
 
 RichHeaderView::RichHeaderView(Qt::Orientation orientation, QWidget *parent) :
@@ -113,7 +123,7 @@ void RichHeaderView::setSelectionModel(QItemSelectionModel *selectionModel)
 }
 
 
-void RichHeaderView::onSelectionChanged(QItemSelection,QItemSelection) {
+void RichHeaderView::onSelectionChanged(QItemSelection,QItemSelection desel) {
     if (!mHighlighColor.isValid()) {
         return;
     }
@@ -122,7 +132,24 @@ void RichHeaderView::onSelectionChanged(QItemSelection,QItemSelection) {
     } else {
         mHighlighted = selectionRows(selectionModel()->selection());
     }
-    update();
+    //update();
+
+    // repaint deselected sections
+    QSet<int> cols = selectionColumns(desel);
+    if (cols.isEmpty()) {
+        return;
+    }
+    int section1 = minElement(cols);
+    int section2 = maxElement(cols);
+
+    QList<RichHeaderCellImpl*> cells = mHeaderData->widgetCellsOverlapsRange(section1,section2);
+    QSet<int> sections = RichHeaderData::cellsSections(cells);
+    section1 = minElement(sections);
+    section2 = maxElement(sections);
+    for(int index=section1;index<=section2;index++) {
+        updateSection(index);
+    }
+
 }
 
 RichHeaderData *RichHeaderView::data() const
@@ -198,13 +225,26 @@ QRect RichHeaderView::cellRect(RichHeaderCellImpl* cell) const{
 
 void RichHeaderView::onSectionResized(int logical,int,int) {
 
-    QList<RichHeaderCellImpl*> cells = mHeaderData->widgetCellsToTheRight(logical);
+    RichHeaderCellList cells = mHeaderData->widgetCellsToTheRight(logical);
+
+    QWidget* viewport = this->viewport();
 
     foreach(RichHeaderCellImpl* cell, cells) {
         QRect rect = cellRect(cell);
-        rect.moveTo(rect.topLeft() - QPoint(1,1));
-        cell->widget()->setGeometry(rect);
-        cell->widget()->setVisible(cell->visible());
+
+        int paddingTop = cell->paddingTop();
+        int paddingRight = cell->paddingRight();
+        int paddingBottom = cell->paddingBottom();
+        int paddingLeft = cell->paddingLeft();
+
+        rect.setWidth(rect.width() - paddingRight - paddingLeft);
+        rect.setHeight(rect.height() - paddingTop - paddingBottom);
+        rect.moveTo(rect.topLeft() - QPoint(1,1) + QPoint(paddingLeft,paddingTop));
+
+        QWidget* widget = cell->widget();
+        widget->setGeometry(rect);
+        widget->setVisible(cell->visible());
+        widget->setParent(viewport);
     }
 
     QPair<int,int> spanned = mHeaderData->spannedSections(logical);

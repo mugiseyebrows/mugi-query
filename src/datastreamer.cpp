@@ -328,7 +328,9 @@ QString DataStreamer::multiInsert(const QSqlDatabase &db, const QString& tableNa
 #endif
 
 QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString &table,
-                                           const QStringList &columns, const QStringList &types, bool ifNotExists)
+                                           const QStringList &columns, const QStringList &types,
+                                           const QList<bool>& primaryKey,
+                                           bool ifNotExists)
 {
     QSqlDriver* driver = db.driver();
 
@@ -336,12 +338,22 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
     QMap<QVariant::Type,QString> specific = SqlDataTypes::mapToDriver(db.driverName());
 
     QStringList typed;
+    QStringList keys;
     for(int c=0;c<columns.size();c++) {
-        if (!columns.isEmpty()) {
-            typed << QString("%1 %2")
-                     .arg(driver->escapeIdentifier(columns[c],QSqlDriver::FieldName))
-                     .arg(specific[variant[types[c]]]);
+        if (columns[c].isEmpty()) {
+            continue;
         }
+        QString identifier = driver->escapeIdentifier(columns[c],QSqlDriver::FieldName);
+        typed << QString("%1 %2")
+                 .arg(identifier)
+                 .arg(specific[variant[types[c]]]);
+        if (primaryKey[c]) {
+            keys << identifier;
+        }
+    }
+
+    if (!keys.isEmpty()) {
+        typed << QString("PRIMARY KEY (%1)").arg(keys.join(","));
     }
 
     QString statement = QString("CREATE TABLE %1(%2)")

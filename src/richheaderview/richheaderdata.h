@@ -11,6 +11,10 @@
 #include "richheadercell.h"
 #include "richheadercellimpl.h"
 
+class RichHeaderView;
+
+typedef QList<RichHeaderCellImpl *> RichHeaderCellList;
+
 class RichHeaderData
 {
 public:
@@ -22,7 +26,7 @@ public:
 
     RichHeaderCell cell(int row, int column);
 
-    void pull(RichHeaderDirection::DirectionType direction, int rowCount, int columnCount);
+    void pull(RichHeaderDirection::DirectionType direction, int sectionCount);
 
     QSize sizeHint() const;
     QList<int> subsectionSizes() const;
@@ -36,17 +40,22 @@ public:
     int cellIndex(int row, int column);
 
     void grow(RichHeaderCellImpl* cell, RichHeaderCellBitmap &occupied, RichHeaderDirection::DirectionType direction);
-    QList<RichHeaderCellImpl *> cells(int section) const;
-    QList<RichHeaderCellImpl *> cells() const;
+    RichHeaderCellList cells(int section) const;
+    RichHeaderCellList cells() const;
 
-    QList<RichHeaderCellImpl *> widgetCellsToTheRight(int section = 0);
+    RichHeaderCellList widgetCellsToTheRight(int section = 0);
     QPair<int, int> spannedSections(int section);
     RichHeaderData *multiline(bool value);
     RichHeaderData *elide(Qt::TextElideMode value);
     RichHeaderData *align(Qt::Alignment value);
     RichHeaderData *rotation(double value);
+    RichHeaderCellList widgetCellsOverlapsRange(int section1, int section2);
+    static QSet<int> cellsSections(const RichHeaderCellList &cells);
+    static bool rangesOverlap(int a1, int a2, int b1, int b2);
+    static void testRangesOverlap();
 protected:
 
+    RichHeaderView* mView;
     QMap<IntPair,RichHeaderCellImpl*> mCells;
     QList<int> mSubsectionSizes;
     bool mMultiline;

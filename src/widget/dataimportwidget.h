@@ -12,6 +12,10 @@ class RichHeaderView;
 class DataImportColumnModel;
 class CallOnce;
 
+class QLineEdit;
+class QComboBox;
+class QCheckBox;
+
 namespace Ui {
 class DataImportWidget;
 }
@@ -23,7 +27,8 @@ class DataImportWidget : public QWidget
 public:
     enum WidgetIndex {
         WidgetName,
-        WidgetType
+        WidgetType,
+        WidgetPrimaryKey,
     };
 
     explicit DataImportWidget(QWidget *parent = nullptr);
@@ -33,6 +38,7 @@ public:
 
     QString connectionName() const;
 
+    static QVariant::Type guessType(QAbstractItemModel *model, const QModelIndex &topLeft, const QModelIndex &bottomRight);
 public slots:
     void update(const Tokens &tokens);
 
@@ -41,16 +47,19 @@ protected slots:
     void on_optionNewTable_clicked();
     void on_optionExistingTable_clicked();
 
-    void onColumnDataChanged(int, QModelIndex, QModelIndex);
+    //void onColumnDataChanged(int, QModelIndex, QModelIndex);
     void onDataCopy();
     void onDataPaste();
 
     void onUpdatePreview();
-    void onColumnTypeChanged(int column);
-    void onColumnNameChanged(int column);
+    void onColumnTypeChanged(int);
+    void onColumnNameChanged(int);
+    void onColumnPrimaryKeyClicked(int);
     void on_newTable_textChanged(QString);
     //void onDataChanged(QModelIndex, QModelIndex, QVector<int>);
-    void onSetTypes();
+    void onModelSetTypes();
+    void onSetColumnNamesAndTypes();
+
 signals:
     void appendQuery(QString);
 
@@ -67,13 +76,19 @@ protected:
     Ui::DataImportWidget *ui;
     QString mConnectionName;
     Tokens mTokens;
-    void namesAndTypes(QStringList &names, QStringList &types);
+    void namesTypesAndKeys(QStringList &names, QStringList &types, QList<bool> &primaryKeys);
     DataImportModel *dataModel();
 
     QString queries(bool preview);
 
     CallOnce* mUpdatePreview;
-    CallOnce* mSetTypes;
+    CallOnce* mSetModelTypes;
+    CallOnce* mSetColumnNamesAndTypes;
+
+    QWidget *widget(int row, int column);
+    QLineEdit *widgetName(int column);
+    QComboBox *widgetType(int column);
+    QCheckBox *widgetPrimaryKey(int column);
 
 private slots:
     void on_clearData_clicked();

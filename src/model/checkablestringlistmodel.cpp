@@ -94,6 +94,7 @@ void CheckableStringListModel::setAllUnchecked()
 
 void CheckableStringListModel::setAllCheckState(Qt::CheckState state)
 {
+    QSet<int> checked = mChecked;
     if (state == Qt::Checked) {
         for(int r=0;r<rowCount();r++) {
             mChecked << r;
@@ -103,7 +104,9 @@ void CheckableStringListModel::setAllCheckState(Qt::CheckState state)
     } else {
         qDebug() << "state" << state << __FILE__ << __LINE__;
     }
-    emit dataChanged(index(0,0),index(rowCount()-1,1));
+    if (checked != mChecked) {
+        emit dataChanged(index(0,0),index(rowCount()-1,1));
+    }
 }
 
 QList<bool> CheckableStringListModel::checkedAsBoolList() const

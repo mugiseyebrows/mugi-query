@@ -39,6 +39,10 @@ public:
     RichHeaderCell& moveLeft();
     RichHeaderCell& moveRight();
 
+    RichHeaderCell &padding(int value);
+    RichHeaderCell &padding(int vertical, int horizontal);
+    RichHeaderCell &padding(int top, int right, int bottom, int left);
+
 protected:
     RichHeaderCellImpl* mCell;
 };

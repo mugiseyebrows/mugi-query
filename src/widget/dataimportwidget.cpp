@@ -17,6 +17,7 @@
 #include "sqldatatypes.h"
 #include "error.h"
 #include <QComboBox>
+#include <QCheckBox>
 #include <QtGlobal>
 #include <QSqlRecord>
 #include <QSqlField>
@@ -67,7 +68,8 @@ DataImportWidget::DataImportWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DataImportWidget),
     mUpdatePreview(new CallOnce("onUpdatePreview",0,this)),
-    mSetTypes(new CallOnce("onSetTypes",0,this))
+    mSetModelTypes(new CallOnce("onSetTypes",0,this)),
+    mSetColumnNamesAndTypes(new CallOnce("onSetColumnNamesAndTypes",0,this))
 {
     ui->setupUi(this);
 }
@@ -87,20 +89,24 @@ void DataImportWidget::init(const QString &connectionName)
     ui->columns->setLabelsMode(SelectColumnsWidget::LabelsModeShort);
 
     connect(mUpdatePreview,SIGNAL(call()),this,SLOT(onUpdatePreview()));
-    connect(mSetTypes,SIGNAL(call()),this,SLOT(onSetTypes()));
+    connect(mSetModelTypes,SIGNAL(call()),this,SLOT(onModelSetTypes()));
 
     mConnectionName = connectionName;
 
     connect(ui->existingTable,SIGNAL(currentIndexChanged(int)),this,SLOT(onExistingTableCurrentIndexChanged(int)));
 
     RichHeaderView* view = new RichHeaderView(Qt::Horizontal,ui->data);
+
+    int fontHeight = view->fontMetrics().height();
+    int twoLines = fontHeight * 2;
+
     RichHeaderData* data = view->data();
-    data->subsectionSizes(Lit::il(30,30));
+    data->subsectionSizes(Lit::il(twoLines,twoLines,twoLines));
 
     DataImportModel* model = new DataImportModel(data->sizeHint(),ui->data);
     model->setLocale(locale());
 
-    connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)),
+    connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),
             mUpdatePreview,SLOT(onPost()));
 
     ui->data->setModel(model);
@@ -117,10 +123,17 @@ void DataImportWidget::init(const QString &connectionName)
 
     connect(ui->format,qOverload<int>(QComboBox::currentIndexChanged),[=](int){
         ui->columns->setFormat(DataFormat::value(ui->format));
-        mUpdatePreview->onPost();
+        //onColumnDataChanged(0,QModelIndex(),QModelIndex());
+        mSetColumnNamesAndTypes->onPost();
+        //mUpdatePreview->onPost();
     });
 
     DataFormat::initComboBox(ui->format, true);
+
+    connect(mSetColumnNamesAndTypes,SIGNAL(call()),this,SLOT(onSetColumnNamesAndTypes()));
+
+    connect(ui->columns,SIGNAL(dataChanged(int,QModelIndex,QModelIndex)),
+            mSetColumnNamesAndTypes,SLOT(onPost()));
 }
 
 QStringList comboBoxItems(QComboBox* comboBox) {
@@ -158,7 +171,7 @@ void DataImportWidget::update(const Tokens& tokens) {
     }
 
     ui->preview->setTokens(mTokens);
-    mSetTypes->onPost();
+    mSetModelTypes->onPost();
 }
 
 QString DataImportWidget::connectionName() const
@@ -186,10 +199,10 @@ void DataImportWidget::onExistingTableCurrentIndexChanged(int index) {
 
     ui->columns->data()->model()->setAllChecked();
 
-    connect(ui->columns,SIGNAL(dataChanged(int,QModelIndex,QModelIndex)),
-            this,SLOT(onColumnDataChanged(int,QModelIndex,QModelIndex)));
 
-    onColumnDataChanged(0,QModelIndex(),QModelIndex());
+
+    //onColumnDataChanged(0,QModelIndex(),QModelIndex());
+    mSetColumnNamesAndTypes->onPost();
 }
 
 /*
@@ -222,7 +235,7 @@ void DataImportWidget::setColumnNames(const QStringList& names) {
 
     RichHeaderData* data = view->data();
     for(int c=0;c<dataModel->columnCount();c++) {
-        QLineEdit* name = qobject_cast<QLineEdit*>(data->cell(WidgetName,c).widget());
+        QLineEdit* name = widgetName(c);
         if (!name) {
             qDebug() << "!name" << __FILE__ << __LINE__;
             continue;
@@ -247,7 +260,7 @@ void DataImportWidget::setColumnTypes(const QList<QVariant::Type>& types) {
 
     RichHeaderData* data = view->data();
     for(int c=0;c<dataModel->columnCount();c++) {
-        QComboBox* type = qobject_cast<QComboBox*>(data->cell(WidgetType,c).widget());
+        QComboBox* type = widgetType(c);
         if (!type) {
             qDebug() << "!name" << __FILE__ << __LINE__;
             continue;
@@ -261,8 +274,28 @@ void DataImportWidget::setColumnTypes(const QList<QVariant::Type>& types) {
 
 }
 
+QWidget* DataImportWidget::widget(int row, int column) {
+    RichHeaderView* view = headerView();
+    if (!view) {
+        return 0;
+    }
+    RichHeaderData* data = view->data();
+    return data->cell(row,column).widget();
+}
 
-void DataImportWidget::namesAndTypes(QStringList& names, QStringList& types) {
+QLineEdit* DataImportWidget::widgetName(int column) {
+    return qobject_cast<QLineEdit*>(widget(WidgetName,column));
+}
+
+QComboBox* DataImportWidget::widgetType(int column) {
+    return qobject_cast<QComboBox*>(widget(WidgetType,column));
+}
+
+QCheckBox* DataImportWidget::widgetPrimaryKey(int column) {
+    return qobject_cast<QCheckBox*>(widget(WidgetPrimaryKey,column));
+}
+
+void DataImportWidget::namesTypesAndKeys(QStringList& names, QStringList& types, QList<bool>& primaryKeys) {
 
     RichHeaderView* view = headerView();
     QAbstractItemModel* model = ui->data->model();
@@ -271,14 +304,17 @@ void DataImportWidget::namesAndTypes(QStringList& names, QStringList& types) {
     }
     RichHeaderData* data = view->data();
     for(int c=0;c<model->columnCount();c++) {
-        QLineEdit* name = qobject_cast<QLineEdit*>(data->cell(WidgetName,c).widget());
-        QComboBox* type = qobject_cast<QComboBox*>(data->cell(WidgetType,c).widget());
-        if (!name || !type) {
-            qDebug() << "!name || !type" << __FILE__ << __LINE__;
+        QLineEdit* name = widgetName(c);
+        QComboBox* type = widgetType(c);
+        QCheckBox* primaryKey = widgetPrimaryKey(c);
+
+        if (!name || !type || !primaryKey) {
+            qDebug() << "!name || !type || !primaryKey" << __FILE__ << __LINE__;
             continue;
         }
         names << name->text();
         types << type->currentText();
+        primaryKeys << primaryKey->isChecked();
     }
 }
 
@@ -300,7 +336,7 @@ void DataImportWidget::createHeaderViewWidgets() {
     QWidget* viewport = view->viewport();
     for(int c=0;c<model->columnCount();c++) {
 
-        QLineEdit* name = qobject_cast<QLineEdit*>(data->cell(WidgetName,c).widget());
+        QLineEdit* name = widgetName(c);
         if (!name) {
             name = new QLineEdit(viewport);
             data->cell(WidgetName,c).widget(name);
@@ -311,7 +347,7 @@ void DataImportWidget::createHeaderViewWidgets() {
 
         }
 
-        QComboBox* types = qobject_cast<QComboBox*>(data->cell(WidgetType,c).widget());
+        QComboBox* types = widgetType(c);
         if (!types) {
             types = new QComboBox(viewport);
 
@@ -324,15 +360,32 @@ void DataImportWidget::createHeaderViewWidgets() {
 
         }
 
+        QCheckBox* primaryKey = widgetPrimaryKey(c);
+        if (!primaryKey) {
+            primaryKey = new QCheckBox("PK",viewport);
+            data->cell(WidgetPrimaryKey,c).widget(primaryKey).padding(0,5);
+            connect(primaryKey,qOverload<bool>(&QCheckBox::clicked),[=](){
+                onColumnPrimaryKeyClicked(c);
+            });
+        }
+
         data->cell(WidgetType,c).widget()->setEnabled(newTable);
         data->cell(WidgetName,c).widget()->setEnabled(newTable);
+        data->cell(WidgetPrimaryKey,c).widget()->setEnabled(newTable);
     }
     view->update();
 
 }
 
+
+
+/*
 void DataImportWidget::onColumnDataChanged(int,QModelIndex,QModelIndex) {
     qDebug() << "onColumnDataChanged";
+}*/
+
+void DataImportWidget::onSetColumnNamesAndTypes() {
+    qDebug() << "onSetColumnNamesAndTypes";
     QStringList names;
     QList<QVariant::Type> types;
     ui->columns->checked(names,types);
@@ -340,7 +393,7 @@ void DataImportWidget::onColumnDataChanged(int,QModelIndex,QModelIndex) {
     setColumnTypes(types);
 }
 
-void DataImportWidget::onSetTypes() {
+void DataImportWidget::onModelSetTypes() {
 
     DataImportModel* model = dataModel();
     if (!model) {
@@ -351,7 +404,8 @@ void DataImportWidget::onSetTypes() {
 
     QStringList names;
     QStringList types;
-    namesAndTypes(names,types);
+    QList<bool> primaryKeys;
+    namesTypesAndKeys(names,types,primaryKeys);
 
     QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
 
@@ -367,12 +421,17 @@ void DataImportWidget::onSetTypes() {
 }
 
 void DataImportWidget::onColumnTypeChanged(int) {
-    mSetTypes->onPost();
+    mSetModelTypes->onPost();
 }
 
-void DataImportWidget::onColumnNameChanged(int column) {
-    // qDebug() << "onColumnNameChanged updatePreview" << column << mUpdatePreview;
+void DataImportWidget::onColumnPrimaryKeyClicked(int) {
     mUpdatePreview->onPost();
+}
+
+void DataImportWidget::onColumnNameChanged(int) {
+    // qDebug() << "onColumnNameChanged updatePreview" << column << mUpdatePreview;
+    //mUpdatePreview->onPost();
+    mSetModelTypes->onPost();
 }
 
 void DataImportWidget::newOrExistingTable() {
@@ -380,6 +439,7 @@ void DataImportWidget::newOrExistingTable() {
     ui->existingTable->setEnabled(!newTable);
     ui->newTable->setEnabled(newTable);
     ui->columns->setVisible(!newTable);
+    ui->format->setEnabled(!newTable);
     setSpacerEnabled(ui->verticalSpacer,newTable,ui->groupBox->layout());
     createHeaderViewWidgets();
 }
@@ -392,14 +452,78 @@ void DataImportWidget::on_optionNewTable_clicked()
 void DataImportWidget::on_optionExistingTable_clicked()
 {
     newOrExistingTable();
-    onColumnDataChanged(0,QModelIndex(),QModelIndex());
+    //onColumnDataChanged(0,QModelIndex(),QModelIndex());
+    mSetColumnNamesAndTypes->onPost();
     if (!ui->columns->data()->model()) {
         onExistingTableCurrentIndexChanged(ui->existingTable->currentIndex());
     }
 }
 
+QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
+                                    const QModelIndex& topLeft,
+                                    const QModelIndex& bottomRight) {
+
+
+    int ints = 0;
+    int dates = 0;
+    int doubles = 0;
+    int strings = 0;
+    int total = 0;
+
+    QRegularExpression rxInt("^[+-]?[0-9]+$");
+    QRegularExpression rxDouble("^([+-]?(?:[0-9]+[.,]?|[0-9]*[.,][0-9]+))(?:[Ee][+-]?[0-9]+)?$");
+    QRegularExpression rxDate("^([0-9]{4}-[0-9]{2}-[0-9]{2})|([0-9]{2}[.][0-9]{2}[.][0-9]{4})$");
+
+    QItemSelection selection(topLeft, bottomRight);
+    QModelIndexList indexes = selection.indexes();
+    foreach(const QModelIndex& index, indexes) {
+        QString text = model->data(index).toString();
+        if (text.isEmpty()) {
+            continue;
+        }
+        if (rxDate.match(text).hasMatch()) {
+            dates++;
+        } else if (rxInt.match(text).hasMatch()) {
+            ints++;
+        } else if (rxDouble.match(text).hasMatch()) {
+            doubles++;
+        } else {
+            strings++;
+        }
+        total++;
+    }
+
+    if (dates * 100 / total > 90) {
+        return QVariant::Date;
+    } else if (ints * 100 / total > 90) {
+        return QVariant::Int;
+    } else if (doubles * 100 / total > 90) {
+        return QVariant::Double;
+    } else if (strings * 100 / total > 90) {
+        return QVariant::String;
+    }
+    return QVariant::Invalid;
+}
+
 void DataImportWidget::onDataPaste() {
-    Clipboard::pasteTsv(ui->data->model(),currentOrFirstIndex(ui->data),true,true);
+    QModelIndex topLeft = currentOrFirstIndex(ui->data);
+
+    QAbstractItemModel* model = ui->data->model();
+
+    QModelIndex bottomRight = Clipboard::pasteTsv(model,topLeft,true,true);
+
+    QMap<QVariant::Type, QString> m = SqlDataTypes::mapFromVariant();
+    QStringList ts = SqlDataTypes::names();
+
+    for(int column = topLeft.column(); column <= bottomRight.column(); column++) {
+        QVariant::Type type = guessType(model,model->index(0,column),model->index(model->rowCount()-1,column));
+        if (type == QVariant::Invalid) {
+            continue;
+        }
+        QComboBox* types = widgetType(column);
+        types->setCurrentIndex(ts.indexOf(m[type]));
+    }
+
     //onColumnTypeChanged(0);
     //mUpdatePreview->onPost();
 }
@@ -420,13 +544,14 @@ QString DataImportWidget::queries(bool preview) {
 
     QStringList names;
     QStringList types;
-    namesAndTypes(names,types);
+    QList<bool> primaryKeys;
+    namesTypesAndKeys(names,types,primaryKeys);
 
     QString table = newTable ? ui->newTable->text() : ui->existingTable->currentText();
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
-    QString createQuery = newTable ? DataStreamer::createTableStatement(db, table, names, types, false) + ";\n" : QString();
+    QString createQuery = newTable ? DataStreamer::createTableStatement(db, table, names, types, primaryKeys, false) + ";\n" : QString();
 
     QString error;
     bool hasMore;
@@ -468,7 +593,8 @@ void DataImportWidget::on_clearData_clicked()
     model->clear();
     model->setRowCount(5);
     if (ui->optionExistingTable->isChecked()) {
-        onColumnDataChanged(0,QModelIndex(),QModelIndex());
+        //onColumnDataChanged(0,QModelIndex(),QModelIndex());
+        mSetColumnNamesAndTypes->onPost();
     } else {
         model->setColumnCount(5);
         createHeaderViewWidgets();

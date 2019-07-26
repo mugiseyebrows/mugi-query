@@ -110,6 +110,21 @@ RichHeaderCell& RichHeaderCell::visible(bool value) {
     return *this;
 }
 
+RichHeaderCell& RichHeaderCell::padding(int all) {
+    mCell->padding(all);
+    return *this;
+}
+
+RichHeaderCell& RichHeaderCell::padding(int vertical, int horizontal) {
+    mCell->padding(vertical, horizontal);
+    return *this;
+}
+RichHeaderCell& RichHeaderCell::padding(int top, int right, int bottom, int left) {
+    mCell->padding(top, right, bottom, left);
+    return *this;
+}
+
+
 bool RichHeaderCell::visible() const {
     return mCell->visible();
 }
