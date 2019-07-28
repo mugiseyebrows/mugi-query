@@ -5,6 +5,7 @@
 #include "version.h"
 #include "tests.h"
 #include "tokens.h"
+#include "sqldatatypes.h"
 
 int main(int argc, char *argv[])
 {
@@ -19,6 +20,8 @@ int main(int argc, char *argv[])
     w.show();
 
     //Tests::run();
+    SqlDataTypes::tryConvertTest();
+    //SqlDataTypes::writeDateTimeSamples();
 
     return a.exec();
 }
