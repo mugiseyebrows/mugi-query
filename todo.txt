@@ -1,9 +1,5 @@
 edit schema dialog
 users helper
-save data:
-    values(),(),()
-    backticks (mysql)
-    remember format and output
 editable shortcuts
 beautify query
 upcase keywords
@@ -46,14 +42,12 @@ plot:
         x as datatime
     xy:
     distribution:
-        x range filter: auto, manual
         sigm, m0, gauss curve
         y in percent
 memleaks
 clean disconnect
 color input delegate
 combobox delegates with autocompletion instead of lineedit (optional)
-class Histogram
 save data:
     preview
     table name + '.sql' = filename 
@@ -62,6 +56,8 @@ save data:
     output to temporary file
     open with editor
     csv header data
+    values(),(),()
+    remember format and output
 execute file
 fetchmore on column select
 do not create new session if current session tab is empty
@@ -71,3 +67,6 @@ schema tree:
 dataimport:
     autoincrement (serial)
     insert ignore
+    values(),(),()
+    array and json data types
+edit table data
