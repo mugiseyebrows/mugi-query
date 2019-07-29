@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
     w.show();
 
     //Tests::run();
-    SqlDataTypes::tryConvertTest();
+    SqlDataTypes::tryConvertTestDateTimeLocalUtc();
+    SqlDataTypes::tryConvertTestMain();
     //SqlDataTypes::writeDateTimeSamples();
 
     return a.exec();

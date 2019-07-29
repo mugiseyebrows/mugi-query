@@ -169,59 +169,219 @@ bool testSpec(int id, const QDateTime& d, Qt::TimeSpec spec) {
     return spec_ == spec;
 }
 
-void SqlDataTypes::tryConvertTest() {
+bool allTrue(const QList<bool>& vs) {
+    foreach(bool v,vs) {
+        if (!v) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void SqlDataTypes::tryConvertTestDateTimeLocalUtc() {
 
     QLocale locale;
 
-    static QList<Qt::DateFormat> dateFormats = {Qt::TextDate,
-                                            Qt::ISODate,
-                                            Qt::SystemLocaleShortDate,
-                                            Qt::SystemLocaleLongDate,
-                                            Qt::DefaultLocaleShortDate,
-                                            Qt::DefaultLocaleLongDate,
-                                            Qt::RFC2822Date,
-                                            Qt::ISODateWithMs};
-
-    bool passed = true;
-
-    bool inLocalDateTime = true;
-    bool outLocalDateTime = true;
-
-    QRegularExpression rxTimeWithMs("[0-9]+:[0-9]+:[0-9]+[.][0-9]+");
-    QRegularExpression rxTimeWithS("[0-9]+:[0-9]+:[0-9]+");
+    QList<bool> passed;
 
     QDateTime dlocal(QDate(2000,1,1),QTime(12,0,0),Qt::LocalTime);
 
     QDateTime dutc(QDate(2000,1,1),QTime(12,0,0),Qt::UTC);
 
-    QString s = dlocal.toString(Qt::ISODate);
+    QString s = dlocal.toString(Qt::ISODate); // no timezone
 
-    QDateTime d1 = tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
-    QDateTime d2 = tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
-    QDateTime d3 = tryConvert(s, QVariant::DateTime, locale, false, true).toDateTime();
-    QDateTime d4 = tryConvert(s, QVariant::DateTime, locale, true, false).toDateTime();
+    QDateTime d1, d2, d3, d4;
+
+    d1 = tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
+    d2 = tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
+    d3 = tryConvert(s, QVariant::DateTime, locale, false, true).toDateTime();
+    d4 = tryConvert(s, QVariant::DateTime, locale, true, false).toDateTime();
 
     // d1 TT 12MSK 12MSK
     // d2 FF 12GMT 12GMT
     // d3 FT 12GMT 15MSK
     // d4 TF 12MSK  9GMT
 
-    testSpec(__LINE__,d1,Qt::LocalTime);
-    testSpec(__LINE__,d2,Qt::UTC);
-    testSpec(__LINE__,d3,Qt::LocalTime);
-    testSpec(__LINE__,d4,Qt::UTC);
+    passed << testSpec(__LINE__,d1,Qt::LocalTime);
+    passed << testSpec(__LINE__,d2,Qt::UTC);
+    passed << testSpec(__LINE__,d3,Qt::LocalTime);
+    passed << testSpec(__LINE__,d4,Qt::UTC);
 
-    testOffset(__LINE__,dlocal,d1,0);
-    testOffset(__LINE__,dutc,d2,0);
-    testOffset(__LINE__,dutc,d3,0);
-    testOffset(__LINE__,dlocal,d4,0);
+    passed << testOffset(__LINE__,dlocal,d1,0);
+    passed << testOffset(__LINE__,dutc,d2,0);
+    passed << testOffset(__LINE__,dutc,d3,0);
+    passed << testOffset(__LINE__,dlocal,d4,0);
 
     int offset = dlocal.timeZone().offsetFromUtc(dlocal);
 
-    testOffset(__LINE__,dlocal,d2,offset);
-    testOffset(__LINE__,dlocal,d3,offset);
+    passed << testOffset(__LINE__,dlocal,d2,offset);
+    passed << testOffset(__LINE__,dlocal,d3,offset);
 
-    qDebug() << d1 << d2 << d3 << d4;
+    s = dlocal.toString(Qt::RFC2822Date); // with numeric timezone
+
+    d1 = tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
+    d2 = tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
+    d3 = tryConvert(s, QVariant::DateTime, locale, false, true).toDateTime();
+    d4 = tryConvert(s, QVariant::DateTime, locale, true, false).toDateTime();
+
+    // d1 TT 12MSK 12MSK
+    // d2 FF 12MSK  9GMT
+    // d3 FT 12MSK 12MSK
+    // d4 TF 12MSK  9GMT
+
+    passed << testSpec(__LINE__,d1,Qt::OffsetFromUTC);
+    passed << testSpec(__LINE__,d2,Qt::UTC);
+    passed << testSpec(__LINE__,d3,Qt::OffsetFromUTC);
+    passed << testSpec(__LINE__,d4,Qt::UTC);
+
+    passed << testOffset(__LINE__,dlocal,d1,0);
+    passed << testOffset(__LINE__,dlocal,d2,0);
+    passed << testOffset(__LINE__,dlocal,d3,0);
+    passed << testOffset(__LINE__,dlocal,d4,0);
+
+    passed << testOffset(__LINE__,dutc,d1,-offset);
+
+    s = dlocal.toString(Qt::SystemLocaleLongDate); // with abbreviated timezone
+
+    d1 = tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
+    d2 = tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
+    d3 = tryConvert(s, QVariant::DateTime, locale, false, true).toDateTime();
+    d4 = tryConvert(s, QVariant::DateTime, locale, true, false).toDateTime();
+
+    // d1 TT 12MSK 12MSK
+    // d2 FF 12MSK  9GMT
+    // d3 FT 12MSK 12MSK
+    // d4 TF 12MSK  9GMT
+
+    passed << testSpec(__LINE__,d1,Qt::LocalTime);
+    passed << testSpec(__LINE__,d2,Qt::UTC);
+    passed << testSpec(__LINE__,d3,Qt::LocalTime);
+    passed << testSpec(__LINE__,d4,Qt::UTC);
+
+    passed << testOffset(__LINE__,dlocal,d1,0);
+    passed << testOffset(__LINE__,dlocal,d2,0);
+    passed << testOffset(__LINE__,dlocal,d3,0);
+    passed << testOffset(__LINE__,dlocal,d4,0);
+
+    passed << testOffset(__LINE__,dutc,d1,-offset);
+
+    qDebug() << "tryConvertTestDateTimeLocalUtc" << (allTrue(passed) ? "passed" : "failed");
+}
+
+bool testDateEquals(int id, const QDate& date, Qt::DateFormat format,
+                    const QString& string, const QVariant& converted, bool ok) {
+
+    if (converted.isNull()) {
+        qDebug() << "test" << id << "tryConvert return null" << date << format << string << converted << ok;
+        return false;
+    }
+
+    QDate date_ = converted.toDate();
+
+    if (!ok) {
+        qDebug() << "test" << id << "tryConvert ok == false" << date << format << string << converted << ok;
+        return false;
+    }
+
+    if (date != date_) {
+        qDebug() << "test" << id << "tryConvert converted with error" << date << format << string << converted << ok;
+        return false;
+    }
+
+    return true;
+}
+
+bool testDateEquals(int id, const QDate& date, const QString& format,
+                    const QString& string, const QVariant& converted, bool ok) {
+
+    if (converted.isNull()) {
+        qDebug() << "test" << id << "tryConvert return null" << date << format << string << converted << ok;
+        return false;
+    }
+
+    QDate date_ = converted.toDate();
+
+    if (!ok) {
+        qDebug() << "test" << id << "tryConvert ok == false" << date << format << string << converted << ok;
+        return false;
+    }
+
+    if (date != date_) {
+        qDebug() << "test" << id << "tryConvert converted with error" << date << format << string << converted << ok;
+        return false;
+    }
+
+    return true;
+}
+
+bool testTimeEquals(int id, const QTime& time, Qt::DateFormat format,
+                    const QString& string, const QVariant& converted, bool ok) {
+
+    if (converted.isNull()) {
+        qDebug() << "test" << id << "tryConvert return null" << time << format << string << converted << ok;
+        return false;
+    }
+
+    QTime time_ = converted.toTime();
+
+    if (!ok) {
+        qDebug() << "test" << id << "tryConvert ok == false" << time << format << string << converted << ok;
+        return false;
+    }
+
+    if (time != time_) {
+        qDebug() << "test" << id << "tryConvert converted with error" << time << format << string << converted << ok;
+        return false;
+    }
+
+    return true;
+}
+
+bool testDateTimeEquals(int id, const QDateTime& dateTime, Qt::DateFormat format,
+                    const QString& string, const QVariant& converted, bool ok) {
+
+    if (converted.isNull()) {
+        qDebug() << "test" << id << "tryConvert return null" << dateTime << format << string << converted << ok;
+        return false;
+    }
+
+    QDateTime time_ = converted.toDateTime();
+
+    if (!ok) {
+        qDebug() << "test" << id << "tryConvert ok == false" << dateTime << format << string << converted << ok;
+        return false;
+    }
+
+    if (dateTime != time_) {
+        qDebug() << "test" << id << "tryConvert converted with error" << dateTime << format << string << converted << ok;
+        return false;
+    }
+
+    return true;
+}
+
+void SqlDataTypes::tryConvertTestMain() {
+
+    QLocale locale;
+
+    QList<Qt::DateFormat> dateFormats = {Qt::TextDate,
+                                         Qt::ISODate,
+                                         Qt::SystemLocaleShortDate,
+                                         Qt::SystemLocaleLongDate,
+                                         Qt::DefaultLocaleShortDate,
+                                         Qt::DefaultLocaleLongDate,
+                                         Qt::RFC2822Date,
+                                         Qt::ISODateWithMs};
+
+    QStringList dateFormats2 = {"yyyy-MM-dd","dd.MM.yyyy"};
+
+    QList<bool> passed;
+
+    bool inLocalDateTime = true;
+    bool outLocalDateTime = true;
+
+    QRegularExpression rxTimeWithMs("[0-9]+:[0-9]+:[0-9]+[.][0-9]+");
+    QRegularExpression rxTimeWithS("[0-9]+:[0-9]+:[0-9]+");
 
     for(int i=0;i<100;i++) {
 
@@ -240,165 +400,64 @@ void SqlDataTypes::tryConvertTest() {
         /*QDateTime t1(QDate(2000,1,1),QTime(12,0,0),Qt::LocalTime);
         QDateTime t2(QDate(2000,1,1),QTime(12,0,0),Qt::UTC);*/
 
-        QDateTime dateTime(date,time,Qt::UTC);
+        QDateTime dateTime(date,time,Qt::LocalTime);
 
         // date
 
         foreach(Qt::DateFormat format, dateFormats) {
-            QString s = date.toString(format);
-
+            QString string = date.toString(format);
             bool ok;
-            QVariant converted = tryConvert(s,QVariant::Date,locale,inLocalDateTime,outLocalDateTime,&ok);
-
-            if (converted.isNull()) {
-                passed = false;
-                qDebug() << "tryConvert return null for" << date;
-                continue;
-            }
-
-            QDate date_ = converted.toDate();
-
-            if (!ok) {
-                passed = false;
-                qDebug() << "tryConvert failed for" << date;
-                continue;
-            }
-
-            if (date != date_) {
-                passed = false;
-                qDebug() << "tryConvert converted" << date << "with error" << date_;
-                continue;
-            }
-
+            QVariant converted = tryConvert(string,QVariant::Date,locale,inLocalDateTime,outLocalDateTime,&ok);
+            //if ((rand() % 40) == 0) converted = converted.toDate().addDays(1);
+            passed << testDateEquals(__LINE__,date,format,string,converted,ok);
         }
 
-        static QStringList dateFormats2 = {"yyyy-MM-dd","dd.MM.yyyy"};
+
 
         foreach(const QString& format, dateFormats2) {
-            QString s = date.toString(format);
-
+            QString string = date.toString(format);
             bool ok;
-            QVariant converted = tryConvert(s,QVariant::Date,locale,inLocalDateTime,outLocalDateTime,&ok);
-
-            if (converted.isNull()) {
-                passed = false;
-                qDebug() << "tryConvert return null for" << date;
-                continue;
-            }
-
-            QDate date_ = converted.toDate();
-
-            if (!ok) {
-                passed = false;
-                qDebug() << "tryConvert failed for" << date;
-                continue;
-            }
-
-            if (date != date_) {
-                passed = false;
-                qDebug() << "tryConvert converted" << date << "with error" << date_;
-                continue;
-            }
-
+            QVariant converted = tryConvert(string,QVariant::Date,locale,inLocalDateTime,outLocalDateTime,&ok);
+            //if ((rand() % 40) == 0) converted = converted.toDate().addDays(1);
+            passed << testDateEquals(__LINE__,date,format,string,converted,ok);
         }
 
-        foreach(Qt::DateFormat format, dateFormats) {
+        // time
 
+        foreach(Qt::DateFormat format, dateFormats) {
             if (format == Qt::DefaultLocaleLongDate || format == Qt::SystemLocaleLongDate) {
                 //TODO: is "7:06:08 MSK" valid time?
                 continue;
             }
-
             QString string = time.toString(format);
-
             bool hasSeconds = rxTimeWithS.match(string).hasMatch();
             bool hasMilliseconds = rxTimeWithMs.match(string).hasMatch();
-
-            QTime time0 = time;
-
-            //qDebug() << string << hasSeconds << hasMilliseconds;
-
-            if (!hasSeconds && !hasMilliseconds) {
-                time0 = QTime(h,m,0);
-            } else if (!hasSeconds) {
-
-            } else if (!hasMilliseconds) {
-                time0 = QTime(h,m,s);
-            }
-
             bool ok;
-
-            QVariant converted = tryConvert(string, QVariant::Time,locale,inLocalDateTime,outLocalDateTime,&ok);
-
-            if (converted.isNull()) {
-                passed = false;
-                qDebug() << "tryConvert return null for" << time0 << string;
-                continue;
-            }
-
-            QTime time_ = converted.toTime();
-
-            if (!ok) {
-                passed = false;
-                qDebug() << "tryConvert failed for" << time0 << time_ << string << format;
-                continue;
-            }
-
-            if (time0 != time_) {
-                passed = false;
-                qDebug() << "tryConvert converted" << time0 << "with error" << time_ << string;
-                continue;
-            }
-
+            QVariant converted = tryConvert(string, QVariant::Time, locale,inLocalDateTime,outLocalDateTime,&ok);
+            QTime time_ = QTime(h, m, hasSeconds ? s : 0, hasMilliseconds ? ms : 0);
+            //if ((rand() % 40) == 0) converted = converted.toTime().addSecs(1);
+            passed << testTimeEquals(__LINE__,time_,format,string,converted,ok);
         }
 
+        // datetime
+
         foreach(Qt::DateFormat format, dateFormats) {
-
             QString string = dateTime.toString(format);
-
-            bool timeWithMs = rxTimeWithMs.match(string).hasMatch();
-            bool timeWithS = rxTimeWithS.match(string).hasMatch();
-
-            QDateTime dateTime0 = QDateTime(QDate(y,M,d),
-                                            QTime(h,m,timeWithS ? s : 0,timeWithMs ? ms : 0),
-                                            Qt::UTC);
-
+            bool hasSeconds = rxTimeWithS.match(string).hasMatch();
+            bool hasMilliseconds = rxTimeWithMs.match(string).hasMatch();
+            QDateTime dateTime_ = QDateTime(QDate(y, M, d),
+                                            QTime(h, m, hasSeconds ? s : 0, hasMilliseconds ? ms : 0),
+                                            Qt::LocalTime);
             bool ok;
             QVariant converted = tryConvert(string,QVariant::DateTime,locale,inLocalDateTime,outLocalDateTime,&ok);
-
-            if (converted.isNull()) {
-                passed = false;
-                qDebug() << "tryConvert return null" << dateTime0 << string << format;
-                continue;
-            }
-
-            QDateTime dateTime_ = converted.toDateTime();
-
-            /*if (dateTime_.timeSpec() == Qt::LocalTime) {
-                dateTime_.setTimeZone(QTimeZone(0));
-            }*/
-
-            if (!ok) {
-                passed = false;
-                qDebug() << "tryConvert ok == false" << dateTime0 << string << dateTime_ << format;
-                continue;
-            }
-
-            if (dateTime0 != dateTime_) {
-                passed = false;
-                qDebug() << "tryConvert converted with error" << format;
-                qDebug() << "in" << dateTime0;
-                qDebug() << "in" << string;
-                qDebug() << "out" << dateTime_;
-                continue;
-            }
-
+            //if ((rand() % 40) == 0) converted = converted.toDateTime().addDays(1);
+            passed << testDateTimeEquals(__LINE__,dateTime_,format,string,converted,ok);
         }
 
 
     } // for
 
-    qDebug() << "SqlDataTypes::tryConvertTest()" << (passed ? "passed" : "failed");
+    qDebug() << "tryConvertTestMain" << (allTrue(passed) ? "passed" : "failed");
 }
 
 
