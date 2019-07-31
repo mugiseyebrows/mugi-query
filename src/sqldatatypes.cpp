@@ -195,7 +195,7 @@ void SqlDataTypes::tryConvertTestDateTimeLocalUtc() {
     QDateTime dutc(QDate(2000,1,1),QTime(12,0,0),Qt::UTC);
 
     QString s = dlocal.toString(Qt::ISODate); // no timezone
-    qDebug() << s;
+    //qDebug() << s;
 
     QDateTime d1, d2, d3, d4;
 
@@ -225,7 +225,7 @@ void SqlDataTypes::tryConvertTestDateTimeLocalUtc() {
     passed << testOffset(__LINE__,dlocal,d3,offset);
 
     s = dlocal.toString(Qt::RFC2822Date); // with numeric timezone
-    qDebug() << s;
+    //qDebug() << s;
 
     d1 = tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
     d2 = tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
@@ -250,7 +250,7 @@ void SqlDataTypes::tryConvertTestDateTimeLocalUtc() {
     passed << testOffset(__LINE__,dutc,d1,-offset);
 
     s = dlocal.toString("yyyy-MM-dd hh:mm:ss.zzz t"); // with abbreviated timezone
-    qDebug() << s;
+    //qDebug() << s;
 
     d1 = tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
     d2 = tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
@@ -502,12 +502,41 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
 /*
 https://www.timeanddate.com/time/zones/
 let tzs = [...document.querySelector('#tz-abb tbody').querySelectorAll('tr')].map( tr => tr.querySelector('td').innerText )
-document.body.innerText = '\\\\s(' + tzs.join('|') + '|([+][0-9]{4})|(RTZ\\\\s[0-9]+\\\\s[(]зима[)]))$'
+document.body.innerText = JSON.stringify(tzs).replace("[","{").replace("]","}")
 
 // https://windowsnotes.ru/other/perexodim-na-zimnee-vremya/
 */
 
-    QRegularExpression rxTz = QRegularExpression("\\s(A|ACDT|ACST|ACT|ACT|ACWST|ADT|ADT|AEDT|AEST|AET|AFT|AKDT|AKST|ALMT|AMST|AMST|AMT|AMT|ANAST|ANAT|AQTT|ART|AST|AST|AT|AWDT|AWST|AZOST|AZOT|AZST|AZT|AoE|B|BNT|BOT|BRST|BRT|BST|BST|BST|BTT|C|CAST|CAT|CCT|CDT|CDT|CEST|CET|CHADT|CHAST|CHOST|CHOT|CHUT|CIDST|CIST|CKT|CLST|CLT|COT|CST|CST|CST|CT|CVT|CXT|ChST|D|DAVT|DDUT|E|EASST|EAST|EAT|ECT|EDT|EEST|EET|EGST|EGT|EST|ET|F|FET|FJST|FJT|FKST|FKT|FNT|G|GALT|GAMT|GET|GFT|GILT|GMT|GST|GST|GYT|H|HDT|HKT|HOVST|HOVT|HST|I|ICT|IDT|IOT|IRDT|IRKST|IRKT|IRST|IST|IST|IST|JST|K|KGT|KOST|KRAST|KRAT|KST|KUYT|L|LHDT|LHST|LINT|M|MAGST|MAGT|MART|MAWT|MDT|MHT|MMT|MSD|MSK|MST|MT|MUT|MVT|MYT|N|NCT|NDT|NFDT|NFT|NOVST|NOVT|NPT|NRT|NST|NUT|NZDT|NZST|O|OMSST|OMST|ORAT|P|PDT|PET|PETST|PETT|PGT|PHOT|PHT|PKT|PMDT|PMST|PONT|PST|PST|PT|PWT|PYST|PYT|PYT|Q|QYZT|R|RET|ROTT|S|SAKT|SAMT|SAST|SBT|SCT|SGT|SRET|SRT|SST|SYOT|T|TAHT|TFT|TJT|TKT|TLT|TMT|TOST|TOT|TRT|TVT|U|ULAST|ULAT|UTC|UYST|UYT|UZT|V|VET|VLAST|VLAT|VOST|VUT|W|WAKT|WARST|WAST|WAT|WEST|WET|WFT|WGST|WGT|WIB|WIT|WITA|WST|WST|WT|X|Y|YAKST|YAKT|YAPT|YEKST|YEKT|Z|([+][0-9]{4})|(RTZ\\s[0-9]+\\s[(]зима[)]))$");
+    static QStringList tzs = {"A", "ACDT", "ACST", "ACT", "ACT", "ACWST",
+    "ADT", "ADT", "AEDT", "AEST", "AET", "AFT", "AKDT", "AKST", "ALMT", "AMST",
+    "AMST", "AMT", "AMT", "ANAST", "ANAT", "AQTT", "ART", "AST", "AST", "AT",
+    "AWDT", "AWST", "AZOST", "AZOT", "AZST", "AZT", "AoE", "B", "BNT", "BOT",
+    "BRST", "BRT", "BST", "BST", "BST", "BTT", "C", "CAST", "CAT", "CCT",
+    "CDT", "CDT", "CEST", "CET", "CHADT", "CHAST", "CHOST", "CHOT", "CHUT",
+    "CIDST", "CIST", "CKT", "CLST", "CLT", "COT", "CST", "CST", "CST", "CT",
+    "CVT", "CXT", "ChST", "D", "DAVT", "DDUT", "E", "EASST", "EAST", "EAT",
+    "ECT", "EDT", "EEST", "EET", "EGST", "EGT", "EST", "ET", "F", "FET",
+    "FJST", "FJT", "FKST", "FKT", "FNT", "G", "GALT", "GAMT", "GET", "GFT",
+    "GILT", "GMT", "GST", "GST", "GYT", "H", "HDT", "HKT", "HOVST", "HOVT",
+    "HST", "I", "ICT", "IDT", "IOT", "IRDT", "IRKST", "IRKT", "IRST", "IST",
+    "IST", "IST", "JST", "K", "KGT", "KOST", "KRAST", "KRAT", "KST", "KUYT",
+    "L", "LHDT", "LHST", "LINT", "M", "MAGST", "MAGT", "MART", "MAWT", "MDT",
+    "MHT", "MMT", "MSD", "MSK", "MST", "MT", "MUT", "MVT", "MYT", "N", "NCT",
+    "NDT", "NFDT", "NFT", "NOVST", "NOVT", "NPT", "NRT", "NST", "NUT", "NZDT",
+    "NZST", "O", "OMSST", "OMST", "ORAT", "P", "PDT", "PET", "PETST", "PETT",
+    "PGT", "PHOT", "PHT", "PKT", "PMDT", "PMST", "PONT", "PST", "PST", "PT",
+    "PWT", "PYST", "PYT", "PYT", "Q", "QYZT", "R", "RET", "ROTT", "S", "SAKT",
+    "SAMT", "SAST", "SBT", "SCT", "SGT", "SRET", "SRT", "SST", "SYOT", "T",
+    "TAHT", "TFT", "TJT", "TKT", "TLT", "TMT", "TOST", "TOT", "TRT", "TVT",
+    "U", "ULAST", "ULAT", "UTC", "UYST", "UYT", "UZT", "V", "VET", "VLAST",
+    "VLAT", "VOST", "VUT", "W", "WAKT", "WARST", "WAST", "WAT", "WEST", "WET",
+    "WFT", "WGST", "WGT", "WIB", "WIT", "WITA", "WST", "WST", "WT", "X", "Y",
+    "YAKST", "YAKT", "YAPT", "YEKST", "YEKT", "Z"};
+
+    QString tzNumeric = "[+][0-9]{4}";
+    QString tzRtz = "RTZ\\s[0-9]+\\s[(]зима[)]";
+
+    QRegularExpression rxTz = QRegularExpression("\\s(" + tzs.join("|") + "|(" + tzNumeric + ")|(" + tzRtz + "))$");
 
     static QList<Qt::DateFormat> dateFormats = {Qt::TextDate,
                                             Qt::ISODate,
