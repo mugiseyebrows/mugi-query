@@ -112,6 +112,12 @@ void SqlDataTypes::writeDateTimeSamples()
 
     QDir dir("./data");
 
+    if (!dir.exists()) {
+        dir.cdUp();
+        dir.mkdir("data");
+        dir.cd("data");
+    }
+
     for(int i=0;i<dateFormats.size();i++) {
         Qt::DateFormat format = dateFormats[i];
         QString formatName = dateFormatNames[i];
@@ -156,7 +162,7 @@ bool testOffset(int id, const QDateTime& d1, const QDateTime& d2, int offset) {
 
     int offset_ = d1_.secsTo(d2_);
     if (offset_ != offset) {
-        qDebug() << "test" << id << "offset expected" << offset << "actual" << offset_;
+        qDebug() << "test" << id << "offset expected" << offset << "actual" << offset_ << d1 << d2;
     }
     return offset_ == offset;
 }
@@ -189,6 +195,7 @@ void SqlDataTypes::tryConvertTestDateTimeLocalUtc() {
     QDateTime dutc(QDate(2000,1,1),QTime(12,0,0),Qt::UTC);
 
     QString s = dlocal.toString(Qt::ISODate); // no timezone
+    qDebug() << s;
 
     QDateTime d1, d2, d3, d4;
 
@@ -218,6 +225,7 @@ void SqlDataTypes::tryConvertTestDateTimeLocalUtc() {
     passed << testOffset(__LINE__,dlocal,d3,offset);
 
     s = dlocal.toString(Qt::RFC2822Date); // with numeric timezone
+    qDebug() << s;
 
     d1 = tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
     d2 = tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
@@ -241,7 +249,8 @@ void SqlDataTypes::tryConvertTestDateTimeLocalUtc() {
 
     passed << testOffset(__LINE__,dutc,d1,-offset);
 
-    s = dlocal.toString(Qt::SystemLocaleLongDate); // with abbreviated timezone
+    s = dlocal.toString("yyyy-MM-dd hh:mm:ss.zzz t"); // with abbreviated timezone
+    qDebug() << s;
 
     d1 = tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
     d2 = tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
@@ -345,14 +354,14 @@ bool testDateTimeEquals(int id, const QDateTime& dateTime, Qt::DateFormat format
         return false;
     }
 
-    QDateTime time_ = converted.toDateTime();
+    QDateTime dateTime_ = converted.toDateTime();
 
     if (!ok) {
         qDebug() << "test" << id << "tryConvert ok == false" << dateTime << format << string << converted << ok;
         return false;
     }
 
-    if (dateTime != time_) {
+    if (dateTime != dateTime_) {
         qDebug() << "test" << id << "tryConvert converted with error" << dateTime << format << string << converted << ok;
         return false;
     }
@@ -493,10 +502,12 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
 /*
 https://www.timeanddate.com/time/zones/
 let tzs = [...document.querySelector('#tz-abb tbody').querySelectorAll('tr')].map( tr => tr.querySelector('td').innerText )
-document.body.innerText = '\\\\s(' + tzs.join('|') + '|([+][0-9]{4})' + ')$'
+document.body.innerText = '\\\\s(' + tzs.join('|') + '|([+][0-9]{4})|(RTZ\\\\s[0-9]+\\\\s[(]зима[)]))$'
+
+// https://windowsnotes.ru/other/perexodim-na-zimnee-vremya/
 */
 
-    QRegularExpression tzRx = QRegularExpression("\\s(A|ACDT|ACST|ACT|ACT|ACWST|ADT|ADT|AEDT|AEST|AET|AFT|AKDT|AKST|ALMT|AMST|AMST|AMT|AMT|ANAST|ANAT|AQTT|ART|AST|AST|AT|AWDT|AWST|AZOST|AZOT|AZST|AZT|AoE|B|BNT|BOT|BRST|BRT|BST|BST|BST|BTT|C|CAST|CAT|CCT|CDT|CDT|CEST|CET|CHADT|CHAST|CHOST|CHOT|CHUT|CIDST|CIST|CKT|CLST|CLT|COT|CST|CST|CST|CT|CVT|CXT|ChST|D|DAVT|DDUT|E|EASST|EAST|EAT|ECT|EDT|EEST|EET|EGST|EGT|EST|ET|F|FET|FJST|FJT|FKST|FKT|FNT|G|GALT|GAMT|GET|GFT|GILT|GMT|GST|GST|GYT|H|HDT|HKT|HOVST|HOVT|HST|I|ICT|IDT|IOT|IRDT|IRKST|IRKT|IRST|IST|IST|IST|JST|K|KGT|KOST|KRAST|KRAT|KST|KUYT|L|LHDT|LHST|LINT|M|MAGST|MAGT|MART|MAWT|MDT|MHT|MMT|MSD|MSK|MST|MT|MUT|MVT|MYT|N|NCT|NDT|NFDT|NFT|NOVST|NOVT|NPT|NRT|NST|NUT|NZDT|NZST|O|OMSST|OMST|ORAT|P|PDT|PET|PETST|PETT|PGT|PHOT|PHT|PKT|PMDT|PMST|PONT|PST|PST|PT|PWT|PYST|PYT|PYT|Q|QYZT|R|RET|ROTT|S|SAKT|SAMT|SAST|SBT|SCT|SGT|SRET|SRT|SST|SYOT|T|TAHT|TFT|TJT|TKT|TLT|TMT|TOST|TOT|TRT|TVT|U|ULAST|ULAT|UTC|UYST|UYT|UZT|V|VET|VLAST|VLAT|VOST|VUT|W|WAKT|WARST|WAST|WAT|WEST|WET|WFT|WGST|WGT|WIB|WIT|WITA|WST|WST|WT|X|Y|YAKST|YAKT|YAPT|YEKST|YEKT|Z|([+][0-9]{4}))$");
+    QRegularExpression rxTz = QRegularExpression("\\s(A|ACDT|ACST|ACT|ACT|ACWST|ADT|ADT|AEDT|AEST|AET|AFT|AKDT|AKST|ALMT|AMST|AMST|AMT|AMT|ANAST|ANAT|AQTT|ART|AST|AST|AT|AWDT|AWST|AZOST|AZOT|AZST|AZT|AoE|B|BNT|BOT|BRST|BRT|BST|BST|BST|BTT|C|CAST|CAT|CCT|CDT|CDT|CEST|CET|CHADT|CHAST|CHOST|CHOT|CHUT|CIDST|CIST|CKT|CLST|CLT|COT|CST|CST|CST|CT|CVT|CXT|ChST|D|DAVT|DDUT|E|EASST|EAST|EAT|ECT|EDT|EEST|EET|EGST|EGT|EST|ET|F|FET|FJST|FJT|FKST|FKT|FNT|G|GALT|GAMT|GET|GFT|GILT|GMT|GST|GST|GYT|H|HDT|HKT|HOVST|HOVT|HST|I|ICT|IDT|IOT|IRDT|IRKST|IRKT|IRST|IST|IST|IST|JST|K|KGT|KOST|KRAST|KRAT|KST|KUYT|L|LHDT|LHST|LINT|M|MAGST|MAGT|MART|MAWT|MDT|MHT|MMT|MSD|MSK|MST|MT|MUT|MVT|MYT|N|NCT|NDT|NFDT|NFT|NOVST|NOVT|NPT|NRT|NST|NUT|NZDT|NZST|O|OMSST|OMST|ORAT|P|PDT|PET|PETST|PETT|PGT|PHOT|PHT|PKT|PMDT|PMST|PONT|PST|PST|PT|PWT|PYST|PYT|PYT|Q|QYZT|R|RET|ROTT|S|SAKT|SAMT|SAST|SBT|SCT|SGT|SRET|SRT|SST|SYOT|T|TAHT|TFT|TJT|TKT|TLT|TMT|TOST|TOT|TRT|TVT|U|ULAST|ULAT|UTC|UYST|UYT|UZT|V|VET|VLAST|VLAT|VOST|VUT|W|WAKT|WARST|WAST|WAT|WEST|WET|WFT|WGST|WGT|WIB|WIT|WITA|WST|WST|WT|X|Y|YAKST|YAKT|YAPT|YEKST|YEKT|Z|([+][0-9]{4})|(RTZ\\s[0-9]+\\s[(]зима[)]))$");
 
     static QList<Qt::DateFormat> dateFormats = {Qt::TextDate,
                                             Qt::ISODate,
@@ -539,12 +550,27 @@ document.body.innerText = '\\\\s(' + tzs.join('|') + '|([+][0-9]{4})' + ')$'
 
         foreach(Qt::DateFormat format, dateFormats) {
             QDate d = QDate::fromString(s,format);
-            if (d.isValid()) {
-                if (ok) {
-                    *ok = true;
-                }
-                return d;
+            if (!d.isValid()) {
+                continue;
             }
+            if (ok) {
+                *ok = true;
+            }
+            return d;
+        }
+
+        static QStringList monthRu = {"января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"};
+
+        QRegularExpression rxRu("([0-9]+)\\s(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\\s([0-9]+)\\sг.");
+        QRegularExpressionMatch m = rxRu.match(s);
+        if (m.hasMatch()) {
+            int day = m.captured(1).toInt();
+            int month = monthRu.indexOf(m.captured(2)) + 1;
+            int year = m.captured(3).toInt();
+            if (ok) {
+                *ok = true;
+            }
+            return QDate(year,month,day);
         }
 
         if (ok) {
@@ -564,8 +590,6 @@ document.body.innerText = '\\\\s(' + tzs.join('|') + '|([+][0-9]{4})' + ')$'
             }
         }
 
-
-
         if (ok) {
             *ok = false;
         }
@@ -573,7 +597,7 @@ document.body.innerText = '\\\\s(' + tzs.join('|') + '|([+][0-9]{4})' + ')$'
 
     } else if (t == QVariant::DateTime) {
 
-        bool hasTimeZone = tzRx.match(s).hasMatch();
+        bool hasTimeZone = rxTz.match(s).hasMatch();
 
         foreach(Qt::DateFormat format, dateFormats) {
             QDateTime d = QDateTime::fromString(s,format);
@@ -607,6 +631,24 @@ document.body.innerText = '\\\\s(' + tzs.join('|') + '|([+][0-9]{4})' + ')$'
             }
             return dout;
 
+        }
+
+        static QStringList monthRu = {"января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"};
+
+        QRegularExpression rxRu("([0-9]+)\\s(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\\s([0-9]+)\\sг.\\s([0-9]+:[0-9]+:[0-9]+)");
+        QRegularExpressionMatch m = rxRu.match(s);
+        if (m.hasMatch()) {
+            int day = m.captured(1).toInt();
+            int month = monthRu.indexOf(m.captured(2)) + 1;
+            int year = m.captured(3).toInt();
+
+            QDate date(year,month,day);
+            QTime time = QTime::fromString(m.captured(4),"h:mm:ss");
+            QDateTime dateTime(date,time, inLocalDateTime ? Qt::LocalTime : Qt::UTC);
+            if (ok) {
+                *ok = true;
+            }
+            return outLocalDateTime ? dateTime.toLocalTime() : dateTime.toUTC();
         }
 
         if (ok) {
