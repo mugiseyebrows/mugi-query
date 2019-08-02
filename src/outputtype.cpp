@@ -5,7 +5,7 @@
 void OutputType::initComboBox(QComboBox *comboBox)
 {
     comboBox->clear();
-    comboBox->addItems(Lit::sl("File", "Session", "Clipboard"));
+    comboBox->addItems({"File", "Session", "Clipboard"});
 }
 
 OutputType::Type OutputType::value(QComboBox *comboBox)

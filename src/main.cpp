@@ -6,6 +6,8 @@
 #include "tests.h"
 #include "tokens.h"
 #include "sqldatatypes.h"
+#include "datetime.h"
+#include <QDebug>
 
 int main(int argc, char *argv[])
 {
@@ -19,10 +21,9 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
-    //Tests::run();
-    SqlDataTypes::tryConvertTestDateTimeLocalUtc();
-    SqlDataTypes::tryConvertTestMain();
-    //SqlDataTypes::writeDateTimeSamples();
+    Tests::run();
+
+    //DateTime::writeSamples();
 
     return a.exec();
 }

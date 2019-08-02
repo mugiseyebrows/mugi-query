@@ -22,11 +22,7 @@ public:
     static QVariant tryConvert(const QVariant &v, QVariant::Type t, const QLocale &locale,
                                bool inLocalDateTime, bool outLocalDateTime, bool *ok = 0);
 
-    static void tryConvertTestMain();
 
-    static void writeDateTimeSamples();
-
-    static void tryConvertTestDateTimeLocalUtc();
 };
 
 #endif // BASICTYPES_H

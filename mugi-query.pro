@@ -122,7 +122,10 @@ HEADERS += \
     src/model/dataimportcolumnmodel.h \
     src/callonce.h \
     src/widget/selectcolumnswidget.h \
-    src/widget/selectcolumnslistwidget.h
+    src/widget/selectcolumnslistwidget.h \
+    src/datetime.h \
+    src/testdatetimesample.h \
+    src/testdatesample.h
 
 SOURCES += \
     src/action.cpp \
@@ -202,7 +205,10 @@ SOURCES += \
     src/model/dataimportcolumnmodel.cpp \
     src/callonce.cpp \
     src/widget/selectcolumnswidget.cpp \
-    src/widget/selectcolumnslistwidget.cpp
+    src/widget/selectcolumnslistwidget.cpp \
+    src/datetime.cpp \
+    src/testdatetimesample.cpp \
+    src/testdatesample.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

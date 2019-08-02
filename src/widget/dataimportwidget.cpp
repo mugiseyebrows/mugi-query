@@ -23,6 +23,7 @@
 #include <QSqlField>
 #include "callonce.h"
 #include "dataformat.h"
+#include "datetime.h"
 
 namespace  {
 
@@ -60,9 +61,16 @@ void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QVar
     //qDebug() << "recordToNamesTypes";
 }
 
+bool hasMatch(const QList<QRegularExpression>& exps, const QString text) {
+    foreach(const QRegularExpression& exp, exps) {
+        if (exp.match(text).hasMatch()) {
+            return true;
+        }
+    }
+    return false;
 }
 
-
+} // namespace
 
 DataImportWidget::DataImportWidget(QWidget *parent) :
     QWidget(parent),
@@ -464,9 +472,9 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
                                     const QModelIndex& topLeft,
                                     const QModelIndex& bottomRight) {
 
-
     int ints = 0;
     int dates = 0;
+    int dateTimes = 0;
     int doubles = 0;
     int strings = 0;
     int times = 0;
@@ -474,8 +482,11 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
 
     QRegularExpression rxInt("^[+-]?[0-9]+$");
     QRegularExpression rxDouble("^([+-]?(?:[0-9]+[.,]?|[0-9]*[.,][0-9]+))(?:[Ee][+-]?[0-9]+)?$");
-    QRegularExpression rxDate("^([0-9]{4}-[0-9]{2}-[0-9]{2})|([0-9]{2}[.][0-9]{2}[.][0-9]{4})$");
+
     QRegularExpression rxTime("^(?:[01][0-9]|2[0-3]):(?:[0-5][0-9]):(?:[0-5][0-9])$");
+
+    QList<QRegularExpression> rxDate = DateTime::dateRegularExpressions();
+    QList<QRegularExpression> rxDateTime = DateTime::dateTimeRegularExpressions();
 
     QItemSelection selection(topLeft, bottomRight);
     QModelIndexList indexes = selection.indexes();
@@ -484,14 +495,16 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
         if (text.isEmpty()) {
             continue;
         }
-        if (rxDate.match(text).hasMatch()) {
-            dates++;
-        } else if (rxInt.match(text).hasMatch()) {
+        if (rxInt.match(text).hasMatch()) {
             ints++;
         } else if (rxDouble.match(text).hasMatch()) {
             doubles++;
         } else if (rxTime.match(text).hasMatch()) {
             times++;
+        } else if (hasMatch(rxDate,text)) {
+            dates++;
+        } else if (hasMatch(rxDateTime,text)) {
+            dateTimes++;
         } else {
             strings++;
         }
@@ -512,6 +525,8 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
         return QVariant::Time;
     } else if (strings * 100 / total > 90) {
         return QVariant::String;
+    } else if (dateTimes * 100 / total > 90) {
+        return QVariant::DateTime;
     }
     return QVariant::Invalid;
 }
