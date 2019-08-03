@@ -14,6 +14,27 @@ int twoDigitYear(int year, int minYear) {
     return year_;
 }
 
+QTime parseAmPmTime(const QString& time_, const QString& ap, const QString& format) {
+    QTime time = QTime::fromString(time_,format);
+    // AM/PM parsing doesn't work on some locales
+    if (!time.isValid()) {
+        return QTime();
+    }
+    if (ap == "PM") {
+        if (!(time.hour() == 12 && time.minute() == 0 && time.second() == 0 && time.msec() == 0)) { // 12:00 PM is noon 12:00 AM is midnight
+            time = time.addSecs(12 * 3600);
+        }
+    } else if (ap == "AM") {
+        if (time.hour() == 12 && time.minute() == 0 && time.second() == 0 && time.msec() == 0) {
+            time = time.addSecs(-12 * 3600);
+        }
+    } else {
+        qDebug() << "AM / PM error";
+        return QTime();
+    }
+    return time;
+}
+
 }
 
 QRegularExpression DateTime::timeZoneRegularExpression()
@@ -77,6 +98,21 @@ QStringList DateTime::ruWeekDaysShort()
     return {"Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"};
 }
 
+QRegularExpression DateTime::timeRegularExpression(DateTime::Format format)
+{
+    QString hm = "[0-9]{1,2}:[0-9]{2}";
+    QString hms = hm + ":[0-9]{2}";
+
+    if (format == Format5) {
+        // 07.08.19 5:00 AM
+        return QRegularExpression("^(" + hm + ")\\s(AM|PM)$");
+    } else if (format == Format6) {
+        // 07.08.19 09:08:15 PM
+        return QRegularExpression("^(" + hms + ")\\s(AM|PM)$");
+    }
+    return QRegularExpression();
+}
+
 QRegularExpression DateTime::dateRegularExpression(Format format)
 {
     if (format == FormatRuLocaleLong) {
@@ -137,9 +173,6 @@ QRegularExpression DateTime::dateTimeRegularExpression(Format format)
     }
     return QRegularExpression();
 }
-
-
-
 
 QDate DateTime::parseDate(const QString &s, int minYear)
 {
@@ -242,44 +275,37 @@ QDateTime DateTime::parseDateTime(const QString &s, int minYear, bool inLocal, b
         int month = m.captured(2).toInt();
         int year = twoDigitYear(m.captured(3).toInt(), minYear);
         QDate date(year,month,day);
-        QString time_ = m.captured(4);
-        QTime time = QTime::fromString(time_,"h:mm");
-        // AM/PM parsing doesn't work on some locales
-        QString ap = m.captured(5);
-        if (ap == "PM") {
-            if (!(time.hour() == 12 && time.minute() == 0)) { // 12:00 PM is noon 12:00 AM is midnight
-                time = time.addSecs(12 * 3600);
-            }
-        } else if (ap == "AM") {
-            if (time.hour() == 12 && time.minute() == 0) {
-                time = time.addSecs(-12 * 3600);
-            }
-        } else {
-            qDebug() << "AM / PM error";
+        QTime time = parseAmPmTime(m.captured(4), m.captured(5), "h:mm");
+        if (!time.isValid()) {
             return QDateTime();
         }
-
         QDateTime dateTime(date, time, inLocal ? Qt::LocalTime : Qt::UTC);
         return outLocal ? dateTime.toLocalTime() : dateTime.toUTC();
     }
 
-#if 0
-    rx = ruDateTimeRegularExpression(FormatRuLocaleTextDate);
+    return QDateTime();
+}
+
+QTime DateTime::parseTime(const QString &s)
+{
+    QRegularExpression rx;
+    QRegularExpressionMatch m;
+    rx = timeRegularExpression(Format5);
     m = rx.match(s);
     if (m.hasMatch()) {
-        // 1    2     3    4          5
-        // (Сб) (дек) (23) (19:09:00) (2006)
-        QStringList months = ruMonthsShort();
-        int day = m.captured(3).toInt();
-        int month = months.indexOf(m.captured(2)) + 1;
-        int year = m.captured(5).toInt();
-        QDate date(year,month,day);
-        QTime time = QTime::fromString(m.captured(4),"h:mm:ss");
-        QDateTime dateTime(date,time, inLocal ? Qt::LocalTime : Qt::UTC);
-        return outLocal ? dateTime.toLocalTime() : dateTime.toUTC();
+        //          1      2
+        // 07.08.19 (5:00) (AM)
+        return parseAmPmTime(m.captured(1),m.captured(2),"h:mm");
     }
-#endif
-    return QDateTime();
+
+    rx = timeRegularExpression(Format6);
+    m = rx.match(s);
+    if (m.hasMatch()) {
+        //          1          2
+        // 07.08.19 (09:08:15) (PM)
+        return parseAmPmTime(m.captured(1),m.captured(2),"h:mm:ss");
+    }
+    return QTime();
 }
 
 QList<QRegularExpression> DateTime::dateRegularExpressions()
@@ -316,7 +342,7 @@ QList<QRegularExpression> DateTime::dateRegularExpressions()
 
 QList<QRegularExpression> DateTime::dateTimeRegularExpressions()
 {
-    QString ms = "[0-9]{1,2}:[0-9]{2}";
+    QString hm = "[0-9]{1,2}:[0-9]{2}";
     QString hms = "[0-9]{1,2}:[0-9]{2}:[0-9]{2}";
     QString hmsms = hms + "[.][0-9]{3}";
     QString dashed_yyyymmdd = "[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}";
@@ -331,7 +357,7 @@ QList<QRegularExpression> DateTime::dateTimeRegularExpressions()
         dateTimeRegularExpression(FormatRuLocaleLong),
         // DefaultLocaleShortDate
         // 28.01.2067 21:11
-        QRegularExpression("^" + dotted_ddmmyyyy + "\\s" + ms + "$"),
+        QRegularExpression("^" + dotted_ddmmyyyy + "\\s" + hm + "$"),
         // ISODate
         // 2057-11-08T17:21:09
         QRegularExpression("^" + dashed_yyyymmdd + "T" + hms + "$"),
@@ -350,6 +376,27 @@ QList<QRegularExpression> DateTime::dateTimeRegularExpressions()
         dateTimeRegularExpression(Format5),
     };
 
+    return result;
+}
+
+QList<QRegularExpression> DateTime::timeRegularExpressions()
+{
+    QString hm = "[0-9]{1,2}:[0-9]{2}";
+    QString hms = hm + ":[0-9]{2}";
+    QString hmsms = hms + "[.][0-9]{3}";
+
+    QList<QRegularExpression> result = {
+        // 12:24
+        QRegularExpression("^(" + hm + ")$"),
+        // 20:40:46
+        QRegularExpression("^(" + hms + ")$"),
+        // 16:10:21.285
+        QRegularExpression("^(" + hmsms + ")$"),
+        // 12:18 PM
+        timeRegularExpression(Format5),
+        // 09:08:15 PM
+        timeRegularExpression(Format6)
+    };
     return result;
 }
 
@@ -374,59 +421,76 @@ void DateTime::writeSamples()
                                    "RFC2822Date",
                                    "ISODateWithMs"};
 
-    QDir dir("./data");
+    QDir dir(".");
 
-    if (!dir.exists()) {
-        dir.cdUp();
-        dir.mkdir("data");
-        dir.cd("data");
-    }
+    dir.mkpath("data");
+    dir.cd("data");
 
     for(int i=0;i<dateFormats.size();i++) {
         Qt::DateFormat format = dateFormats[i];
         QString formatName = dateFormatNames[i];
 
-        QString filePath = dir.filePath(formatName + ".txt");
+        QStringList subdirNames = {"date","dateTime","time"};
 
-        QFile file(filePath);
-        if (!file.open(QIODevice::WriteOnly)) {
-            qDebug() << "cannot open" << filePath;
-            continue;
-        }
+        for (int sw=0; sw < 3; sw++) {
+            QString sw_ = subdirNames[sw];
+            dir.mkpath(sw_);
+            QDir subdir(dir.filePath(sw_));
+            QString filePath = subdir.filePath(formatName + ".txt");
 
-        QTextStream stream(&file);
-        stream.setCodec(QTextCodec::codecForName("UTF-8"));
+            QFile file(filePath);
+            if (!file.open(QIODevice::WriteOnly)) {
+                qDebug() << "cannot open" << filePath;
+                continue;
+            }
 
-        for(int j=0;j<1000;j++) {
+            QTextStream stream(&file);
+            stream.setCodec(QTextCodec::codecForName("UTF-8"));
 
-            int y = 1900 + (rand() % 200);
-            int M = 1 + (rand() % 12);
-            int d = 1 + (rand() % 28);
+            for(int j=0;j<100;j++) {
 
-            //M = 1 + (i % 12);
-            //d = 1 + (i % 28);
-            //y = 2000;
-            //M = 1;
+                int y = 1900 + (rand() % 200);
+                int M = 1 + (rand() % 12);
+                int d = 1 + (rand() % 28);
 
-            int h = rand() % 24;
-            int m = rand() % 60;
-            int s = rand() % 60;
-            int ms = rand() % 1000;
+                //M = 1 + (i % 12);
+                //d = 1 + (i % 28);
+                //y = 2000;
+                //M = 1;
 
-            QDate date(y,M,d);
-            QTime time(h,m,s,ms);
-            QDateTime dateTime(date,time);
-            //stream << dateTime.toString(format) << "\n";
+                int h = rand() % 24;
+                int m = rand() % 60;
+                int s = rand() % 60;
+                int ms = rand() % 1000;
 
-            bool samplesDate = true;
+                QDate date(y,M,d);
+                QTime time(h,m,s,ms);
+                QDateTime dateTime(date,time);
+                //stream << dateTime.toString(format) << "\n";
 
-            stream << QString("Test%4Sample(Q%4::fromString(\"%1\",%5),\"%2\",Qt::%3),\n")
-                      .arg(samplesDate ? dateTime.date().toString(Qt::ISODate) : dateTime.toString(Qt::ISODateWithMs))
-                      .arg(samplesDate ? dateTime.date().toString(format) : dateTime.toString(format))
-                      .arg(formatName)
-                      .arg(samplesDate ? "Date" : "DateTime")
-                      .arg(samplesDate ? "Qt::ISODate" : "Qt::ISODateWithMs");
-
+                if (sw == 0) {
+                    stream << QString("Test%4Sample(Q%4::fromString(\"%1\",%5),\"%2\",Qt::%3),\n")
+                              .arg(dateTime.date().toString(Qt::ISODate))
+                              .arg(dateTime.date().toString(format))
+                              .arg(formatName)
+                              .arg("Date")
+                              .arg("Qt::ISODate");
+                } else if (sw == 1) {
+                    stream << QString("Test%4Sample(Q%4::fromString(\"%1\",%5),\"%2\",Qt::%3),\n")
+                              .arg(dateTime.toString(Qt::ISODateWithMs))
+                              .arg(dateTime.toString(format))
+                              .arg(formatName)
+                              .arg("DateTime")
+                              .arg("Qt::ISODateWithMs");
+                } else if (sw == 2) {
+                    stream << QString("Test%4Sample(Q%4::fromString(\"%1\",%5),\"%2\",Qt::%3),\n")
+                              .arg(dateTime.toString(Qt::ISODateWithMs))
+                              .arg(dateTime.time().toString(format))
+                              .arg(formatName)
+                              .arg("Time")
+                              .arg("Qt::ISODateWithMs");
+                }
+            }
         }
     }
 

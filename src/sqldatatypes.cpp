@@ -194,9 +194,22 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
 
     } else if (t == QVariant::Time) {
 
+        QRegularExpression ap("(AM|PM)$");
+        if (ap.match(s).hasMatch()) {
+            QTime time = DateTime::parseTime(s);
+            if (time.isValid()) {
+                if (ok) {
+                    *ok = true;
+                }
+                return time;
+            }
+            return QTime();
+        }
+
         foreach(Qt::DateFormat format, dateFormats) {
             QTime d = QTime::fromString(s,format);
             if (d.isValid()) {
+                qDebug() << d << s << format;
                 if (ok) {
                     *ok = true;
                 }

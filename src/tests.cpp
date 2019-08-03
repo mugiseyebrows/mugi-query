@@ -29,7 +29,7 @@ void Tests::run()
     testDateTimeRegularExpressions();
     testTryConvert1();
     testTryConvert2();
-    testApParse();
+    //testApParse();
 }
 
 namespace {
@@ -108,6 +108,7 @@ bool equals(const QString& e, const QString& a) {
         return true;
     }
     qDebug() << "not equal, expected: " << e << ", actual " << a;
+    return false;
 }
 
 bool equals(const QStringList e, const QStringList a) {
@@ -156,7 +157,7 @@ bool allTrue(const QList<bool>& vs) {
     return true;
 }
 
-bool testDateEquals(int id, const QDate& date, Qt::DateFormat format,
+bool equals(int id, const QDate& date, Qt::DateFormat format,
                     const QString& string, const QVariant& converted, bool ok) {
 
     if (converted.isNull()) {
@@ -179,7 +180,7 @@ bool testDateEquals(int id, const QDate& date, Qt::DateFormat format,
     return true;
 }
 
-bool testDateEquals(int id, const QDate& date, const QString& format,
+bool equals(int id, const QDate& date, const QString& format,
                     const QString& string, const QVariant& converted, bool ok) {
 
     if (converted.isNull()) {
@@ -202,7 +203,7 @@ bool testDateEquals(int id, const QDate& date, const QString& format,
     return true;
 }
 
-bool testTimeEquals(int id, const QTime& time, Qt::DateFormat format,
+bool equals(int id, const QTime& time, Qt::DateFormat format,
                     const QString& string, const QVariant& converted, bool ok) {
 
     if (converted.isNull()) {
@@ -225,7 +226,7 @@ bool testTimeEquals(int id, const QTime& time, Qt::DateFormat format,
     return true;
 }
 
-bool testDateTimeEquals(int id, const QDateTime& dateTime, Qt::DateFormat format,
+bool equals(int id, const QDateTime& dateTime, Qt::DateFormat format,
                     const QString& string, const QVariant& converted, bool ok) {
 
     if (converted.isNull()) {
@@ -642,17 +643,15 @@ void Tests::testTryConvert1() {
             bool ok;
             QVariant converted = SqlDataTypes::tryConvert(string,QVariant::Date,locale,inLocalDateTime,outLocalDateTime,&ok);
             //if ((rand() % 40) == 0) converted = converted.toDate().addDays(1);
-            passed << testDateEquals(__LINE__,date,format,string,converted,ok);
+            passed << equals(__LINE__,date,format,string,converted,ok);
         }
-
-
 
         foreach(const QString& format, dateFormats2) {
             QString string = date.toString(format);
             bool ok;
             QVariant converted = SqlDataTypes::tryConvert(string,QVariant::Date,locale,inLocalDateTime,outLocalDateTime,&ok);
             //if ((rand() % 40) == 0) converted = converted.toDate().addDays(1);
-            passed << testDateEquals(__LINE__,date,format,string,converted,ok);
+            passed << equals(__LINE__,date,format,string,converted,ok);
         }
 
         // time
@@ -669,7 +668,7 @@ void Tests::testTryConvert1() {
             QVariant converted = SqlDataTypes::tryConvert(string, QVariant::Time, locale,inLocalDateTime,outLocalDateTime,&ok);
             QTime time_ = QTime(h, m, hasSeconds ? s : 0, hasMilliseconds ? ms : 0);
             //if ((rand() % 40) == 0) converted = converted.toTime().addSecs(1);
-            passed << testTimeEquals(__LINE__,time_,format,string,converted,ok);
+            passed << equals(__LINE__,time_,format,string,converted,ok);
         }
 
         // datetime
@@ -684,7 +683,7 @@ void Tests::testTryConvert1() {
             bool ok;
             QVariant converted = SqlDataTypes::tryConvert(string,QVariant::DateTime,locale,inLocalDateTime,outLocalDateTime,&ok);
             //if ((rand() % 40) == 0) converted = converted.toDateTime().addDays(1);
-            passed << testDateTimeEquals(__LINE__,dateTime_,format,string,converted,ok);
+            passed << equals(__LINE__,dateTime_,format,string,converted,ok);
 
             /*if (format == Qt::TextDate) {
                 qDebug() << "Qt::TextDate" << dateTime << string << converted.toDateTime();

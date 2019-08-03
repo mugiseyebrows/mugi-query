@@ -14,7 +14,8 @@ public:
         Format2, // 02.08.19
         Format3, // 6 авг 19
         Format4, // 9-авг-2019
-        Format5  // 07.08.19 5:00 AM
+        Format5, // 07.08.19 5:00 AM
+        Format6  // 07.08.19 09:08:15 PM
     };
 
     static QRegularExpression timeZoneRegularExpression();
@@ -27,6 +28,8 @@ public:
 
     static QStringList ruWeekDaysShort();
 
+    static QRegularExpression timeRegularExpression(Format format);
+
     static QRegularExpression dateRegularExpression(Format format);
 
     static QRegularExpression dateTimeRegularExpression(Format format);
@@ -35,9 +38,13 @@ public:
 
     static QDateTime parseDateTime(const QString& s, int minYear, bool inLocal, bool outLocal);
 
+    static QTime parseTime(const QString& s);
+
     static QList<QRegularExpression> dateRegularExpressions();
 
     static QList<QRegularExpression> dateTimeRegularExpressions();
+
+    static QList<QRegularExpression> timeRegularExpressions();
 
     static void writeSamples();
 };

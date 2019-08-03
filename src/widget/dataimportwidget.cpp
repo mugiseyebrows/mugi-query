@@ -483,8 +483,7 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
     QRegularExpression rxInt("^[+-]?[0-9]+$");
     QRegularExpression rxDouble("^([+-]?(?:[0-9]+[.,]?|[0-9]*[.,][0-9]+))(?:[Ee][+-]?[0-9]+)?$");
 
-    QRegularExpression rxTime("^(?:[01][0-9]|2[0-3]):(?:[0-5][0-9]):(?:[0-5][0-9])$");
-
+    QList<QRegularExpression> rxTime = DateTime::timeRegularExpressions();
     QList<QRegularExpression> rxDate = DateTime::dateRegularExpressions();
     QList<QRegularExpression> rxDateTime = DateTime::dateTimeRegularExpressions();
 
@@ -499,7 +498,7 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
             ints++;
         } else if (rxDouble.match(text).hasMatch()) {
             doubles++;
-        } else if (rxTime.match(text).hasMatch()) {
+        } else if (hasMatch(rxTime,text)) {
             times++;
         } else if (hasMatch(rxDate,text)) {
             dates++;
