@@ -125,7 +125,8 @@ HEADERS += \
     src/widget/selectcolumnslistwidget.h \
     src/datetime.h \
     src/testdatetimesample.h \
-    src/testdatesample.h
+    src/testdatesample.h \
+    src/timezone.h
 
 SOURCES += \
     src/action.cpp \
@@ -208,7 +209,8 @@ SOURCES += \
     src/widget/selectcolumnslistwidget.cpp \
     src/datetime.cpp \
     src/testdatetimesample.cpp \
-    src/testdatesample.cpp
+    src/testdatesample.cpp \
+    src/timezone.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

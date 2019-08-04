@@ -12,11 +12,12 @@ namespace Tests
     void testClosingBracket();
     void testParseCreateTable();
     void textParseCreateTableCreateDefinition();
-    void testDateRegularExpressions();
-    void testDateTimeRegularExpressions();
+    //void testDateRegularExpressions();
+    //void testDateTimeRegularExpressions();
     void testTryConvert1();
     void testTryConvert2();
     bool testApParse();
+    bool testTimeZones();
 }
 
 #endif // TESTS_H

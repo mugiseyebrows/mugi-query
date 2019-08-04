@@ -3,6 +3,7 @@
 
 #include <QRegularExpression>
 #include <QDateTime>
+#include "timezone.h"
 
 class DateTime
 {
@@ -18,13 +19,53 @@ public:
         Format6  // 07.08.19 09:08:15 PM
     };
 
-    static QRegularExpression timeZoneRegularExpression();
+    enum Type {
+        TypeUnknown,
+        TypeDate,
+        TypeTime,
+        TypeDateTime
+    };
+
+    enum FormatDateTime {
+        FormatDateTimeUndefined,
+        FormatDateTime1
+    };
+
+    enum FormatTime {
+        FormatTimeUndefined,
+        FormatTimeHM,
+        FormatTimeHMS,
+        FormatTimeHMSMS
+    };
+
+    enum FormatDate {
+        FormatDateUndefined,
+        FormatDateYYYYMMDD,
+        FormatDateDDMMYY,
+        FormatDateRuDDMonYY,
+        FormatDateRuDDMonthYY,
+        FormatDateEnDDMonYY,
+        FormatDateEnDDMonthYY,
+    };
+
+    static QList<FormatDate> dateFormats();
+
+    static QList<FormatTime> timeFormats();
+
+    static QString regExp(Type type, FormatDateTime formatDateTime,
+                  FormatDate formatDate, FormatTime formatTime);
+
+    static QString timeZoneRegExp();
+
+    static int timeZoneOffset(const QString &timeZone, const QDateTime &dateTime);
 
     static QStringList ruMonthsShort();
 
     static QStringList ruMonthsLong();
 
     static QStringList enMonthsShort();
+
+    static QStringList enMonthsLong();
 
     static QStringList ruWeekDaysShort();
 
@@ -47,6 +88,17 @@ public:
     static QList<QRegularExpression> timeRegularExpressions();
 
     static void writeSamples();
+    static void writeNumber();
+    static void writeTimeZones();
+
+    static QString parseTimeZone(const QString &s, const QDateTime &dateTime, int *offset, bool *hasTimeZone);
+    static QString parseTime(const QString &s, QTime &time);
+    static QString parseDate(const QString &s, QDate &date);
+    static bool parse(Type type, const QString &s, QDate &date, QTime &time, QDateTime &dateTime, int minYear, bool inLocalTime, bool outLocalTime);
+
+    static TimeZone timeZone(const QString& code);
+
+
 };
 
 #endif // DATETIME_H

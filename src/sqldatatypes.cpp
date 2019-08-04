@@ -127,7 +127,7 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
     // TODO: user specified minYear
     static int minYear = ((QDate::currentDate().year() + 5) / 10) * 10 - 50;
 
-    QRegularExpression timeZoneRegularExpression = DateTime::timeZoneRegularExpression();
+    QRegularExpression timeZoneRegularExpression = QRegularExpression(DateTime::timeZoneRegExp());
 
     static QList<Qt::DateFormat> dateFormats = {Qt::TextDate,
                                             Qt::ISODate,
@@ -179,13 +179,13 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
             return date;
         }
 
-        QDate date = DateTime::parseDate(s, minYear);
+        /*QDate date = DateTime::parseDate(s, minYear);
         if (date.isValid()) {
             if (ok) {
                 *ok = true;
             }
             return date;
-        }
+        }*/
 
         if (ok) {
             *ok = false;
@@ -194,7 +194,7 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
 
     } else if (t == QVariant::Time) {
 
-        QRegularExpression ap("(AM|PM)$");
+        /*QRegularExpression ap("(AM|PM)$");
         if (ap.match(s).hasMatch()) {
             QTime time = DateTime::parseTime(s);
             if (time.isValid()) {
@@ -204,7 +204,7 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
                 return time;
             }
             return QTime();
-        }
+        }*/
 
         foreach(Qt::DateFormat format, dateFormats) {
             QTime d = QTime::fromString(s,format);
@@ -244,13 +244,13 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
             return dout;
         }
 
-        QDateTime dateTime = DateTime::parseDateTime(s, minYear, inLocalDateTime, outLocalDateTime);
+        /*QDateTime dateTime = DateTime::parseDateTime(s, minYear, inLocalDateTime, outLocalDateTime);
         if (dateTime.isValid()) {
             if (ok) {
                 *ok = true;
             }
             return dateTime;
-        }
+        }*/
 
         if (ok) {
             *ok = false;

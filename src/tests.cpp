@@ -13,6 +13,8 @@
 #include "datetime.h"
 #include "sqldatatypes.h"
 #include <QTimeZone>
+#include "timezone.h"
+#include <QTextCodec>
 
 using namespace Lit;
 
@@ -25,11 +27,12 @@ void Tests::run()
     testClosingBracket();
     testParseCreateTable();
     textParseCreateTableCreateDefinition();
-    testDateRegularExpressions();
-    testDateTimeRegularExpressions();
-    testTryConvert1();
-    testTryConvert2();
+    //testDateRegularExpressions();
+    //testDateTimeRegularExpressions();
+    //testTryConvert1();
+    //testTryConvert2();
     //testApParse();
+    testTimeZones();
 }
 
 namespace {
@@ -462,7 +465,7 @@ void Tests::textParseCreateTableCreateDefinition() {
 
 
 
-
+#if 0
 void Tests::testDateRegularExpressions() {
     static QMap<Qt::DateFormat,int> dateFormats = {
         {Qt::DefaultLocaleLongDate,0},{Qt::SystemLocaleLongDate,0},
@@ -525,7 +528,9 @@ void Tests::testDateRegularExpressions() {
     qDebug() << "testDateRegularExpressions" << (passed ? "passed" : "failed");
 
 }
+#endif
 
+#if 0
 void Tests::testDateTimeRegularExpressions() {
 
     static QMap<Qt::DateFormat,int> dateFormats = {
@@ -593,6 +598,7 @@ void Tests::testDateTimeRegularExpressions() {
 
     qDebug() << "testDateTimeRegularExpressions" << (passed ? "passed" : "failed");
 }
+#endif
 
 void Tests::testTryConvert1() {
 
@@ -799,5 +805,34 @@ bool Tests::testApParse() {
     ok << isValid(QTime::fromString("10:20 AM","h:mm AP"));
     bool passed = allTrue(ok);
     qDebug() << "testApParse" << (passed ? "passed" : "failed");
+    return passed;
+}
+
+
+
+bool Tests::testTimeZones() {
+
+    QStringList codes = {"A", "ACDT", "ACST", "ACWST", "AEDT", "AEST", "AFT", "AKDT", "AKST", "ALMT", "ANAST", "ANAT", "AQTT", "ART", "AWDT", "AWST", "AZOST", "AZOT", "AZST", "AZT", "AoE", "B", "BNT", "BOT", "BRST", "BRT", "BTT", "C", "CAST", "CAT", "CCT", "CEST", "CET", "CHADT", "CHAST", "CHOST", "CHOT", "CHUT", "CIDST", "CIST", "CKT", "CLST", "CLT", "COT", "CVT", "CXT", "ChST", "D", "DAVT", "DDUT", "E", "EASST", "EAST", "EAT", "ECT", "EDT", "EEST", "EET", "EGST", "EGT", "EST", "F", "FET", "FJST", "FJT", "FKST", "FKT", "FNT", "G", "GALT", "GAMT", "GET", "GFT", "GILT", "GMT", "GYT", "H", "HDT", "HKT", "HOVST", "HOVT", "HST", "I", "ICT", "IDT", "IOT", "IRDT", "IRKST", "IRKT", "IRST", "JST", "K", "KGT", "KOST", "KRAST", "KRAT", "KST", "KUYT", "L", "LHDT", "LHST", "LINT", "M", "MAGST", "MAGT", "MART", "MAWT", "MDT", "MHT", "MMT", "MSD", "MSK", "MST", "MUT", "MVT", "MYT", "N", "NCT", "NDT", "NFDT", "NFT", "NOVST", "NOVT", "NPT", "NRT", "NST", "NUT", "NZDT", "NZST", "O", "OMSST", "OMST", "ORAT", "P", "PDT", "PET", "PETST", "PETT", "PGT", "PHOT", "PHT", "PKT", "PMDT", "PMST", "PONT", "PWT", "PYST", "Q", "QYZT", "R", "RET", "ROTT", "S", "SAKT", "SAMT", "SAST", "SBT", "SCT", "SGT", "SRET", "SRT", "SST", "SYOT", "T", "TAHT", "TFT", "TJT", "TKT", "TLT", "TMT", "TOST", "TOT", "TRT", "TVT", "U", "ULAST", "ULAT", "UYST", "UYT", "UZT", "V", "VET", "VLAST", "VLAT", "VOST", "VUT", "W", "WAKT", "WARST", "WAST", "WAT", "WEST", "WET", "WFT", "WGST", "WGT", "WIB", "WIT", "WITA", "WT", "X", "Y", "YAKST", "YAKT", "YAPT", "YEKST", "YEKT", "Z"};
+
+    bool passed = true;
+
+    QDateTime current = QDateTime::currentDateTime();
+    foreach(const QString& code, codes) {
+        TimeZone timeZone = DateTime::timeZone(code);
+        if (!timeZone.isValid()) {
+            qDebug() << "invalid timezone" << code;
+            continue;
+        }
+        QTimeZone timeZone_(timeZone.ianaId());
+        int offset = timeZone_.offsetFromUtc(current);
+
+        if (offset != timeZone.offset()) {
+            qDebug() << "different offset" << offset << timeZone.offset() << code;
+            passed = false;
+        }
+
+    }
+
+    qDebug() << "testTimeZones" << (passed ? "passed" : "failed");
     return passed;
 }

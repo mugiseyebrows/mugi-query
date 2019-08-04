@@ -8,6 +8,9 @@
 #include "sqldatatypes.h"
 #include "datetime.h"
 #include <QDebug>
+#include <QTimeZone>
+
+#include <QFile>
 
 int main(int argc, char *argv[])
 {
@@ -24,6 +27,7 @@ int main(int argc, char *argv[])
     Tests::run();
 
     //DateTime::writeSamples();
+    //DateTime::writeNumber();
 
     return a.exec();
 }
