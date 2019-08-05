@@ -483,14 +483,11 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
     QRegularExpression rxInt("^[+-]?[0-9]+$");
     QRegularExpression rxDouble("^([+-]?(?:[0-9]+[.,]?|[0-9]*[.,][0-9]+))(?:[Ee][+-]?[0-9]+)?$");
 
-    QList<QRegularExpression> rxTime = DateTime::timeRegularExpressions();
-    QList<QRegularExpression> rxDate = DateTime::dateRegularExpressions();
-    QList<QRegularExpression> rxDateTime = DateTime::dateTimeRegularExpressions();
-
     QItemSelection selection(topLeft, bottomRight);
     QModelIndexList indexes = selection.indexes();
     foreach(const QModelIndex& index, indexes) {
         QString text = model->data(index).toString();
+
         if (text.isEmpty()) {
             continue;
         }
@@ -498,15 +495,27 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
             ints++;
         } else if (rxDouble.match(text).hasMatch()) {
             doubles++;
-        } else if (hasMatch(rxTime,text)) {
-            times++;
-        } else if (hasMatch(rxDate,text)) {
-            dates++;
-        } else if (hasMatch(rxDateTime,text)) {
-            dateTimes++;
         } else {
-            strings++;
+
+            QDate date;
+            QTime time;
+            QDateTime dateTime;
+
+            if (DateTime::parse(DateTime::TypeUnknown,text,date,time,dateTime,1950,true,true)) {
+                if (dateTime.isValid()) {
+                    dateTimes++;
+                } else if (date.isValid()) {
+                    dates++;
+                } else if (time.isValid()) {
+                    times++;
+                } else {
+                    qDebug() << __FILE__ << __LINE__ << text;
+                }
+            } else {
+                strings++;
+            }
         }
+
         total++;
     }
 

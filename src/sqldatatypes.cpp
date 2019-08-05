@@ -88,15 +88,10 @@ QMap<QVariant::Type, QString> SqlDataTypes::mapToDriver(const QString &driver)
     return m;
 }
 
-
-
-
-
-
 QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
                                   const QLocale& locale,
-                                  bool inLocalDateTime,
-                                  bool outLocalDateTime,
+                                  bool inLocalTime,
+                                  bool outUtc,
                                   bool* ok) {
 
     if (v.isNull()) {
@@ -127,17 +122,6 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
     // TODO: user specified minYear
     static int minYear = ((QDate::currentDate().year() + 5) / 10) * 10 - 50;
 
-    QRegularExpression timeZoneRegularExpression = QRegularExpression(DateTime::timeZoneRegExp());
-
-    static QList<Qt::DateFormat> dateFormats = {Qt::TextDate,
-                                            Qt::ISODate,
-                                            Qt::SystemLocaleShortDate,
-                                            Qt::SystemLocaleLongDate,
-                                            Qt::DefaultLocaleShortDate,
-                                            Qt::DefaultLocaleLongDate,
-                                            Qt::RFC2822Date,
-                                            Qt::ISODateWithMs};
-
     QString s = v.toString();
 
     if (t == QVariant::Int) {
@@ -167,26 +151,13 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
 
         return s.toDouble(ok);
     } else if (t == QVariant::Date) {
-
-        foreach(Qt::DateFormat format, dateFormats) {
-            QDate date = QDate::fromString(s,format);
-            if (!date.isValid()) {
-                continue;
-            }
+        QDate date;
+        if (DateTime::parseAsDate(s,date,minYear)) {
             if (ok) {
                 *ok = true;
             }
             return date;
         }
-
-        /*QDate date = DateTime::parseDate(s, minYear);
-        if (date.isValid()) {
-            if (ok) {
-                *ok = true;
-            }
-            return date;
-        }*/
-
         if (ok) {
             *ok = false;
         }
@@ -194,27 +165,12 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
 
     } else if (t == QVariant::Time) {
 
-        /*QRegularExpression ap("(AM|PM)$");
-        if (ap.match(s).hasMatch()) {
-            QTime time = DateTime::parseTime(s);
-            if (time.isValid()) {
-                if (ok) {
-                    *ok = true;
-                }
-                return time;
+        QTime time;
+        if (DateTime::parseAsTime(s,time)) {
+            if (ok) {
+                *ok = true;
             }
-            return QTime();
-        }*/
-
-        foreach(Qt::DateFormat format, dateFormats) {
-            QTime d = QTime::fromString(s,format);
-            if (d.isValid()) {
-                qDebug() << d << s << format;
-                if (ok) {
-                    *ok = true;
-                }
-                return d;
-            }
+            return time;
         }
 
         if (ok) {
@@ -224,33 +180,13 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
 
     } else if (t == QVariant::DateTime) {
 
-        bool hasTimeZone = timeZoneRegularExpression.match(s).hasMatch();
-
-        foreach(Qt::DateFormat format, dateFormats) {
-            QDateTime d = QDateTime::fromString(s,format);
-            QDateTime dout;
-            if (!d.isValid()) {
-                continue;
-            }
-            if (hasTimeZone) {
-                dout = outLocalDateTime ? d : d.toUTC();
-            } else {
-                dout = QDateTime(d.date(), d.time(), inLocalDateTime ? Qt::LocalTime : Qt::UTC);
-                dout = outLocalDateTime ? dout.toLocalTime() : dout.toUTC();
-            }
-            if (ok) {
-                *ok = true;
-            }
-            return dout;
-        }
-
-        /*QDateTime dateTime = DateTime::parseDateTime(s, minYear, inLocalDateTime, outLocalDateTime);
-        if (dateTime.isValid()) {
+        QDateTime dateTime;
+        if (DateTime::parseAsDateTime(s,dateTime,minYear,inLocalTime, outUtc)) {
             if (ok) {
                 *ok = true;
             }
             return dateTime;
-        }*/
+        }
 
         if (ok) {
             *ok = false;

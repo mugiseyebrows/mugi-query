@@ -20,7 +20,7 @@ public:
     static QMap<QVariant::Type, QString> mapToDriver(const QString& driver);
 
     static QVariant tryConvert(const QVariant &v, QVariant::Type t, const QLocale &locale,
-                               bool inLocalDateTime, bool outLocalDateTime, bool *ok = 0);
+                               bool inLocalTime, bool outUtc, bool *ok = 0);
 
 
 };

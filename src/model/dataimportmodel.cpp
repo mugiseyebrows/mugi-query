@@ -27,7 +27,7 @@ QVariant DataImportModel::data(const QModelIndex &index, int role) const
             if (v.isNull()) {
                 return QVariant();
             }
-            SqlDataTypes::tryConvert(v,mTypes[index.column()],mLocale,true,true,&ok);
+            SqlDataTypes::tryConvert(v,mTypes[index.column()],mLocale,true,false,&ok);
             if (!ok) {
                 return QVariant(QColor(Qt::red));
             }

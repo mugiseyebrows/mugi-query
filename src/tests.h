@@ -18,6 +18,7 @@ namespace Tests
     void testTryConvert2();
     bool testApParse();
     bool testTimeZones();
+    bool testDateTimeParse();
 }
 
 #endif // TESTS_H

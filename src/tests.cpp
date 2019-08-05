@@ -33,6 +33,7 @@ void Tests::run()
     //testTryConvert2();
     //testApParse();
     testTimeZones();
+    testDateTimeParse();
 }
 
 namespace {
@@ -834,5 +835,89 @@ bool Tests::testTimeZones() {
     }
 
     qDebug() << "testTimeZones" << (passed ? "passed" : "failed");
+    return passed;
+}
+
+bool Tests::testDateTimeParse() {
+
+    QList<bool> ok;
+
+    QList<TestDateTimeSample> samples = {
+        TestDateTimeSample(QDateTime::fromString("2096-06-14T07:06:00.002",Qt::ISODateWithMs),"2096-06-14T07:06:00",Qt::ISODate),
+        TestDateTimeSample(QDateTime::fromString("2012-05-05T05:23:06.661",Qt::ISODateWithMs),"2012-05-05T05:23:06",Qt::ISODate),
+        TestDateTimeSample(QDateTime::fromString("2060-11-20T04:13:11.440",Qt::ISODateWithMs),"2060-11-20T04:13:11",Qt::ISODate),
+        TestDateTimeSample(QDateTime::fromString("2056-04-13T20:45:40.523",Qt::ISODateWithMs),"2056-04-13T20:45:40.523",Qt::ISODateWithMs),
+        TestDateTimeSample(QDateTime::fromString("1919-02-03T16:03:56.461",Qt::ISODateWithMs),"1919-02-03T16:03:56.461",Qt::ISODateWithMs),
+        TestDateTimeSample(QDateTime::fromString("1991-06-26T06:33:37.356",Qt::ISODateWithMs),"1991-06-26T06:33:37.356",Qt::ISODateWithMs),
+        TestDateTimeSample(QDateTime::fromString("1965-08-26T21:17:22.766",Qt::ISODateWithMs),"26 Aug 1965 21:17:22 +0300",Qt::RFC2822Date),
+        TestDateTimeSample(QDateTime::fromString("1968-01-05T15:07:52.044",Qt::ISODateWithMs),"05 Jan 1968 15:07:52 +0300",Qt::RFC2822Date),
+        TestDateTimeSample(QDateTime::fromString("1992-08-23T14:19:24.651",Qt::ISODateWithMs),"23 Aug 1992 14:19:24 +0400",Qt::RFC2822Date),
+        TestDateTimeSample(QDateTime::fromString("1988-04-19T20:54:17.346",Qt::ISODateWithMs),"вт апр. 19 20:54:17 1988",Qt::TextDate),
+        TestDateTimeSample(QDateTime::fromString("1935-02-04T01:23:13.328",Qt::ISODateWithMs),"пн февр. 4 01:23:13 1935",Qt::TextDate),
+        TestDateTimeSample(QDateTime::fromString("2025-08-07T18:37:36.963",Qt::ISODateWithMs),"чт авг. 7 18:37:36 2025",Qt::TextDate),
+    };
+
+    foreach(const TestDateTimeSample& sample, samples) {
+        QDate date;
+        QTime time;
+        QDateTime dateTime;
+        bool parsed = DateTime::parse(DateTime::TypeUnknown, sample.string(), date, time, dateTime, 1950, true, false);
+        if (!parsed) {
+            ok << false;
+            qDebug() << "not parsed" << sample.string();
+        } else if (!dateTime.isValid()) {
+            qDebug() << "!dateTime.isValid()" << sample.string();
+        } else {
+            bool hasMs = sample.format() == Qt::ISODateWithMs;
+            bool hasTimeZone = sample.format() == Qt::RFC2822Date;
+            Qt::TimeSpec timeSpecExpected = (hasTimeZone ? Qt::OffsetFromUTC : Qt::LocalTime);
+            if (dateTime.timeSpec() != timeSpecExpected) {
+                qDebug() << "timeSpec expected" << timeSpecExpected << "actual" << dateTime.timeSpec();
+                ok << false;
+            }
+            QDateTime dateTime_ = sample.dateTime();
+            if (!hasMs) {
+                dateTime_ = dateTime_.addMSecs(-dateTime_.time().msec());
+            }
+            dateTime_.setTimeSpec(Qt::LocalTime);
+            if (dateTime_ != dateTime) {
+                qDebug() << "not equals";
+                qDebug() << dateTime;
+                qDebug() << dateTime_;
+                qDebug() << sample.string();
+                qDebug() << sample.format();
+                ok << false;
+            }
+        }
+    }
+
+    QStringList samples2 = {
+        "06.08.2019 01:00:00",
+        "06.08.19 01:00"
+    };
+
+    foreach(const QString& sample, samples2) {
+        QDateTime dateTime;
+        if (!DateTime::parseAsDateTime(sample,dateTime,1950,true,false)) {
+            qDebug() << "failed to parse" << sample;
+            ok << false;
+        } else {
+            QDateTime dateTimeExpected(QDate(2019,8,6),QTime(1,0));
+            if (dateTime != dateTimeExpected) {
+                qDebug() << "not equals";
+                qDebug() << dateTime;
+                qDebug() << dateTimeExpected;
+                qDebug() << sample;
+                ok << false;
+            }
+        }
+    }
+
+
+
+
+
+    bool passed = allTrue(ok);
+    qDebug() << "testDateTimeParse" << (passed ? "passed" : "failed");
     return passed;
 }

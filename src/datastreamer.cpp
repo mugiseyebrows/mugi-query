@@ -249,7 +249,7 @@ QString DataStreamer::stream(DataFormat::Format format,
             if (columns[c].isEmpty()) {
                 continue;
             }
-            QVariant v = SqlDataTypes::tryConvert(model->data(model->index(r,c)), m[types[c]], locale, true, true);
+            QVariant v = SqlDataTypes::tryConvert(model->data(model->index(r,c)), m[types[c]], locale, true, false);
             if (!v.isNull()) {
                 empty = false;
             }

@@ -126,7 +126,8 @@ HEADERS += \
     src/datetime.h \
     src/testdatetimesample.h \
     src/testdatesample.h \
-    src/timezone.h
+    src/timezone.h \
+    src/multinameenum.h
 
 SOURCES += \
     src/action.cpp \
@@ -210,7 +211,8 @@ SOURCES += \
     src/datetime.cpp \
     src/testdatetimesample.cpp \
     src/testdatesample.cpp \
-    src/timezone.cpp
+    src/timezone.cpp \
+    src/multinameenum.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

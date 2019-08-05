@@ -1,16 +1,9 @@
 #include <QApplication>
 #include "mainwindow.h"
 
-#include "queryparser.h"
 #include "version.h"
 #include "tests.h"
-#include "tokens.h"
-#include "sqldatatypes.h"
 #include "datetime.h"
-#include <QDebug>
-#include <QTimeZone>
-
-#include <QFile>
 
 int main(int argc, char *argv[])
 {
@@ -28,6 +21,7 @@ int main(int argc, char *argv[])
 
     //DateTime::writeSamples();
     //DateTime::writeNumber();
+    //DateTime::writeTimeZones();
 
     return a.exec();
 }

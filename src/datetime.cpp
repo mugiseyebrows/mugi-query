@@ -19,7 +19,7 @@ QString range(int a, int b) {
     return a == b ? QString("%1").arg(a) : QString("[%1-%2]").arg(a).arg(b);
 }
 
-QString number(int min, int max) {
+QString number(int min, int max, bool cap = true) {
     Q_ASSERT(min < 100 && max < 100 && max >= min);
     QStringList result;
     int min1 = min / 10;
@@ -49,11 +49,9 @@ QString number(int min, int max) {
             result << range(max1,max1) + range(0,max2);
         }
     }
-    return "(" + result.join("|") + ")";
+    return (cap ? "(" : "(?:") + result.join("|") + ")";
 }
 
-
-}
 
 QString head(const QString& s) {
     return "^" + s;
@@ -67,12 +65,18 @@ QString whole(const QString& s) {
     return "^" + s + "$";
 }
 
-QString group(const QString& s) {
-    return "(" + s + ")";
+QString group(const QString& s, bool cap = true) {
+    return (cap ? "(" : "(?:") + s + ")";
 }
 
+QString group(const QStringList& s, bool cap = true) {
+    return (cap ? "(" : "(?:") + s.join("|") + ")";
+}
+
+} // namespace
+
 QString DateTime::regExpDateTime(FormatDateTime format) {
-    return regExp(TypeDate, format, FormatDateUndefined, FormatTimeUndefined);
+    return regExp(TypeDateTime, format, FormatDateUndefined, FormatTimeUndefined);
 }
 
 QString DateTime::regExpDate(FormatDate format) {
@@ -86,46 +90,60 @@ QString DateTime::regExpTime(FormatTime format) {
 QString DateTime::regExp(DateTime::Type type, FormatDateTime formatDateTime, DateTime::FormatDate formatDate, DateTime::FormatTime formatTime)
 {
     QString notDigit = "[^0-9]";
-    QString yearDot = "(?:\\sг.)?";
+    QString yearDot = group("\\sг.",false) + "?";
+
+    QString hm = number(0,23,false) + ":" + number(0,59,false);
+    QString hms = hm + ":" + number(0,59,false);
+    QString hmsms = hms + "[.][0-9]{1,3}";
+
+    QString fourDigits = "[0-9]{4}";
+
+    static MultinameEnum ruMonths = DateTime::ruMonths();
+    static MultinameEnum enMonths = DateTime::enMonths();
 
     if (type == TypeDateTime){
-        if (formatDateTime != FormatDateTimeUndefined) {
-
-        } else {
-            return regExp(TypeDate, formatDateTime, formatDate, formatTime) +
-                    notDigit +
-                    regExp(TypeTime, formatDateTime, formatDate, formatTime);
-        }
+        static QMap<FormatDateTime, QString> exps = {
+            // 26 Aug 1965 21:17:22 +0300
+            {FormatDateTimeRFC2822, number(1,31) + "\\s" + enMonths.regExp() + "\\s" + fourDigits + "\\s" + hms + "\\s[+-][0-9]{4}"},
+            // 2012-05-05T05:23:06
+            {FormatDateTimeISO, fourDigits + "-" + number(1,12) + "-" + number(1,31) + "T" + hms},
+            // 1919-02-03T16:03:56.461
+            {FormatDateTimeISOWithMs, "[0-9]{4}-" + number(1,12) + "-" + number(1,31) + "T" + hmsms},
+            // пятница, 23 сентября 2039 г. 3:48:06 MSK
+            {FormatRuLong, group(ruWeekDaysLong()) + ",\\s" + number(1,31) + "\\s" + ruMonths.regExp() + "\\s" + group(fourDigits) + yearDot + "\\s" + group(hms) + timeZoneRegExp()},
+            // вт апр. 19 20:54:17 1988
+            {FormatRuShort, group(ruWeekDaysShort()) + "\\s" + ruMonths.regExp() + "[.]?\\s" + number(1,31) + "\\s" + group(hms) + "\\s" + group(fourDigits)},
+        };
+        return exps[formatDateTime];
     } else if (type == TypeDate) {
         static QMap<FormatDate, QString> exps = {
             {FormatDateYYYYMMDD, group("[0-9]{4}") + notDigit + number(1,12) + notDigit + number(1,31)},
             {FormatDateDDMMYY, number(1,31) + notDigit + number(1,12) + notDigit + group("[0-9]{2,4}") + yearDot },
-            {FormatDateRuDDMonYY, number(1,31) + notDigit + group(ruMonthsShort().join("|")) + notDigit + "[0-9]{2,4}" + yearDot },
-            {FormatDateRuDDMonthYY, number(1,31) + notDigit + group(ruMonthsLong().join("|")) + notDigit + "[0-9]{2,4}" + yearDot },
-            {FormatDateEnDDMonYY, number(1,31) + notDigit + group(enMonthsShort().join("|")) + notDigit + "[0-9]{2,4}" },
-            {FormatDateEnDDMonthYY, number(1,31) + notDigit + group(enMonthsLong().join("|")) + notDigit + "[0-9]{2,4}" }
+            {FormatDateRuDDMonthYY, number(1,31) + notDigit + ruMonths.regExp() + "[.,]?" + notDigit + group("[0-9]{2,4}") + yearDot },
+            {FormatDateEnDDMonthYY, number(1,31) + notDigit + enMonths.regExp() + notDigit + group("[0-9]{2,4}")}
         };
         return exps[formatDate];
     } else if (type == TypeTime) {
         static QMap<FormatTime, QString> exps = {
-            {FormatTimeHM, group(number(0,24) + ":" + number(0,60)) + "(\\sAM|\\sPM)?" },
-            {FormatTimeHMS, group(number(0,24) + ":" + number(0,60) + ":" + number(0,60)) + "(\\sAM|\\sPM)?"},
-            {FormatTimeHMSMS, group(number(0,24) + ":" + number(0,60) + ":" + number(0,60) + "[.][0-9]{1,3}") + "(\\sAM|\\sPM)?"},
+            {FormatTimeHM, group(hm) + "(\\sAM|\\sPM)?" },
+            {FormatTimeHMS, group(hms) + "(\\sAM|\\sPM)?"},
+            {FormatTimeHMSMS, group(hmsms) + "(\\sAM|\\sPM)?"},
         };
         return exps[formatTime];
     }
+    return QString();
 }
 
-bool dateTimeMaybe(const QString& s) {
+bool DateTime::dateTimeMaybe(const QString& s) {
     QRegularExpression fourDigitGroups("[0-9]+[^0-9]+[0-9]+[^0-9]+[0-9]+[^0-9]+[0-9]+");
     return fourDigitGroups.match(s).hasMatch() && s.indexOf(":") > 0;
 }
 
-bool timeMaybe(const QString& s) {
+bool DateTime::timeMaybe(const QString& s) {
     return s.indexOf(":") > 0;
 }
 
-bool dateMaybe(const QString& s) {
+bool DateTime::dateMaybe(const QString& s) {
     QRegularExpression twoDigitGroups("[0-9]+[^0-9]+[0-9]+");
     return twoDigitGroups.match(s).hasMatch();
 }
@@ -181,20 +199,21 @@ QString DateTime::parseDate(const QString& s, QDate& date, int minYear) {
 
     QList<FormatDate> formats = {FormatDateYYYYMMDD,
                                  FormatDateDDMMYY,
-                                 FormatDateRuDDMonYY,
                                  FormatDateRuDDMonthYY,
-                                 FormatDateEnDDMonYY,
                                  FormatDateEnDDMonthYY};
 
     QList<QRegularExpression> exps;
     foreach (FormatDate format, formats) {
-        exps << QRegularExpression(regExpDate(format), QRegularExpression::CaseInsensitiveOption);
+        exps << QRegularExpression(head(regExpDate(format) + "\\s?"), QRegularExpression::CaseInsensitiveOption);
     }
+
+    static MultinameEnum ruMonths = DateTime::ruMonths();
+    static MultinameEnum enMonths = DateTime::enMonths();
 
     for(int i=0;i<formats.size();i++) {
         FormatDate format = formats[i];
         QRegularExpression rx = exps[i];
-        QRegularExpressionMatch m = rx.match(head(s + "\\s?"));
+        QRegularExpressionMatch m = rx.match(s);
 
         if (m.hasMatch()) {
             QString year_ = format == FormatDateYYYYMMDD ? m.captured(1) : m.captured(3);
@@ -205,39 +224,38 @@ QString DateTime::parseDate(const QString& s, QDate& date, int minYear) {
             int month = -1;
             if (format == FormatDateYYYYMMDD || format == FormatDateDDMMYY) {
                 month = m.captured(2).toInt();
-            } else if (format == FormatDateRuDDMonYY) {
-                month = ruMonthsShort().indexOf(m.captured(2)) + 1;
             } else if (format == FormatDateRuDDMonthYY) {
-                month = ruMonthsLong().indexOf(m.captured(2)) + 1;
-            } else if (format == FormatDateEnDDMonYY) {
-                month = enMonthsShort().indexOf(m.captured(2)) + 1;
+                month = ruMonths.indexOf(m.captured(2).toLower()) + 1;
             } else if (format == FormatDateEnDDMonthYY) {
-                month = enMonthsLong().indexOf(m.captured(2)) + 1;
+                month = enMonths.indexOf(m.captured(2).toLower()) + 1;
+            }
+            if (month < 1) {
+                qDebug() << __FILE__ << __LINE__ << m.captured(2).toLower();
             }
             int day = format == FormatDateYYYYMMDD ? m.captured(3).toInt() : m.captured(1).toInt();
             date = QDate(year,month,day);
-            return s.mid(m.captured());
+            return s.mid(m.capturedLength());
         }
     }
     return s;
 }
 
 bool DateTime::parse(Type type, const QString& s, QDate& date, QTime& time,
-                     QDateTime& dateTime, int minYear, bool inLocalTime, bool outLocalTime) {
+                     QDateTime& dateTime, int minYear, bool inLocalTime, bool outUtc) {
 
     if (type == TypeUnknown) {
         QDate date_;
         QTime time_;
         QDateTime dateTime_;
-        if (parse(TypeDateTime, s, date_, time_, dateTime_, minYear, inLocalTime, outLocalTime)) {
+        if (parse(TypeDateTime, s, date_, time_, dateTime_, minYear, inLocalTime, outUtc)) {
             dateTime = dateTime_;
             return true;
         }
-        if (parse(TypeTime, s, date_, time_, dateTime_, minYear, inLocalTime, outLocalTime)) {
+        if (parse(TypeTime, s, date_, time_, dateTime_, minYear, inLocalTime, outUtc)) {
             time = time_;
             return true;
         }
-        if (parse(TypeDate, s, date_, time_, dateTime_, minYear, inLocalTime, outLocalTime)) {
+        if (parse(TypeDate, s, date_, time_, dateTime_, minYear, inLocalTime, outUtc)) {
             date = date_;
             return true;
         }
@@ -262,7 +280,7 @@ bool DateTime::parse(Type type, const QString& s, QDate& date, QTime& time,
             return false;
         }
         QTime time_;
-        QString s_ = parseTime(s_, time_);
+        QString s_ = parseTime(s, time_);
         if (!s_.isEmpty() || !time_.isValid()) {
             return false;
         }
@@ -275,9 +293,81 @@ bool DateTime::parse(Type type, const QString& s, QDate& date, QTime& time,
             return false;
         }
 
+        QList<FormatDateTime> formats = {FormatDateTimeRFC2822, FormatDateTimeISO, FormatDateTimeISOWithMs};
+        QList<Qt::DateFormat> formats_ = {Qt::RFC2822Date, Qt::ISODate, Qt::ISODateWithMs};
+        QList<QRegularExpression> exps;
+        foreach(FormatDateTime format, formats) {
+            exps << QRegularExpression(whole(regExpDateTime(format)),QRegularExpression::CaseInsensitiveOption);
+        }
+
+        for(int i=0;i<formats.size();i++) {
+            QRegularExpressionMatch m = exps[i].match(s);
+            if (m.hasMatch()) {
+                dateTime = QDateTime::fromString(s,formats_[i]);
+                if (dateTime.isValid()) {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        MultinameEnum ruMonths = DateTime::ruMonths();
+
+        QRegularExpression rx;
+        QRegularExpressionMatch m;
+        QString exp = whole(regExpDateTime(FormatRuLong));
+        rx = QRegularExpression(exp,QRegularExpression::CaseInsensitiveOption);
+        m = rx.match(s);
+        if (m.hasMatch()) {
+
+            // 1          2    3          4         5         6
+            // (пятница), (23) (сентября) (2039) г. (3:48:06) (MSK)
+            int day = m.captured(2).toInt();
+            int month = ruMonths.indexOf(m.captured(3).toLower()) + 1;
+            int year = m.captured(4).toInt();
+            QTime time_ = QTime::fromString(m.captured(5),"h:m:s");
+            if (!time_.isValid()) {
+                qDebug() << __FILE__ << __LINE__ << m.captured(5);
+                return false;
+            }
+            QTimeZone timeZone = parseTimeZone(m.captured(6));
+            if (!timeZone.isValid()) {
+                qDebug() << __FILE__ << __LINE__ << m.captured(6);
+                return false;
+            }
+            QDateTime dateTime_(QDate(year,month,day),time_,timeZone);
+            dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
+            return true;
+        }
+
+        exp = whole(regExpDateTime(FormatRuShort));
+        rx = QRegularExpression(exp,QRegularExpression::CaseInsensitiveOption);
+        m = rx.match(s);
+        if (m.hasMatch()) {
+            // 1    2      3    4          5
+            // (вт) (апр). (19) (20:54:17) (1988)
+
+            int day = m.captured(3).toInt();
+            int month = ruMonths.indexOf(m.captured(2).toLower()) + 1;
+            int year = m.captured(5).toInt();
+
+            if (month < 1) {
+                qDebug() << __FILE__ << __LINE__ << m.captured(2).toLower();
+            }
+
+            QTime time_ = QTime::fromString(m.captured(4),"h:m:s");
+            if (!time_.isValid()) {
+                qDebug() << __FILE__ << __LINE__ << m.captured(4);
+                return false;
+            }
+            QDateTime dateTime_(QDate(year,month,day),time_,inLocalTime ? Qt::LocalTime : Qt::UTC);
+            dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
+            return true;
+        }
+
         QDate date_;
         QTime time_;
-        QString s_ = parseDate(s_, date_, minYear);
+        QString s_ = parseDate(s, date_, minYear);
         if (!date_.isValid()) {
             return false;
         }
@@ -287,22 +377,46 @@ bool DateTime::parse(Type type, const QString& s, QDate& date, QTime& time,
         }
         bool hasTimeZone;
         QDateTime dateTime_(date_,time_);
-        s_ = parseTimeZone(s, dateTime_, &hasTimeZone);
+        s_ = parseTimeZone(s_, dateTime_, &hasTimeZone);
         if (!s_.isEmpty()) {
             return false;
         }
-        if (hasTimeZone) {
-            dateTime = outLocalTime ? dateTime_.toLocalTime() : dateTime.toUTC();
-        } else {
-            dateTime_ = QDateTime(date_, time_, inLocalTime ? Qt::LocalTime : Qt::UTC);
-            dateTime = outLocalTime ? dateTime_.toLocalTime() : dateTime.toUTC();
+        if (!dateTime_.isValid()) {
+            qDebug() << __FILE__ << __LINE__;
+            return false;
         }
+        if (!hasTimeZone) {
+            dateTime_ = QDateTime(date_, time_, inLocalTime ? Qt::LocalTime : Qt::UTC);
+        }
+        dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
         return true;
     }
 
     return false;
 }
 
+bool DateTime::parseAsDate(const QString &s, QDate &date, int minYear)
+{
+    QTime time;
+    QDateTime dateTime;
+    return parse(TypeDate,s,date,time,dateTime,minYear,true,true);
+}
+
+bool DateTime::parseAsTime(const QString &s, QTime &time)
+{
+    QDate date;
+    QDateTime dateTime;
+    return parse(TypeTime,s,date,time,dateTime,1950,true,true);
+}
+
+bool DateTime::parseAsDateTime(const QString &s, QDateTime &dateTime, int minYear, bool inLocalTime, bool outUtc)
+{
+    QDate date;
+    QTime time;
+    return parse(TypeDateTime,s,date,time,dateTime,minYear,inLocalTime,outUtc);
+}
+
+// TODO: store in json
 TimeZone DateTime::timeZone(const QString &code)
 {
     // see timezones.js
@@ -519,7 +633,6 @@ TimeZone DateTime::timeZone(const QString &code)
     return zones.value(code);
 }
 
-
 QString DateTime::timeZoneRegExp()
 {
     // see timezones.js
@@ -597,22 +710,17 @@ QString DateTime::parseTimeZone(const QString& s, QDateTime& dateTime, bool* has
     return s;
 }
 
-QStringList DateTime::ruMonthsShort() {
-    return {"янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"};
+MultinameEnum DateTime::ruMonths() {
+    return MultinameEnum(
+    {"янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"},
+    {"янв","февр","мар","апр","мая","июн","июл","авг","сент","окт","нояб","дек"},
+    {"января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"});
 }
 
-QStringList DateTime::ruMonthsLong()
-{
-    return {"января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"};
-}
-
-QStringList DateTime::enMonthsShort()
-{
-    return {"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"};
-}
-
-QStringList DateTime::enMonthsLong() {
-    return {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
+MultinameEnum DateTime::enMonths() {
+    return MultinameEnum(
+    {"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"},
+    {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"});
 }
 
 QStringList DateTime::ruWeekDaysShort()
@@ -620,324 +728,9 @@ QStringList DateTime::ruWeekDaysShort()
     return {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
 }
 
-QList<QRegularExpression> DateTime::dateRegularExpressions()
-{
-    return {};
+QStringList DateTime::ruWeekDaysLong() {
+    return {"понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"};
 }
-
-QList<QRegularExpression> DateTime::dateTimeRegularExpressions()
-{
-    return {};
-}
-
-QList<QRegularExpression> DateTime::timeRegularExpressions()
-{
-    return {};
-}
-
-#if 0
-
-QRegularExpression DateTime::timeRegularExpression(DateTime::Format format)
-{
-    QString hm = "[0-9]{1,2}:[0-9]{2}";
-    QString hms = hm + ":[0-9]{2}";
-
-    if (format == Format5) {
-        // 07.08.19 5:00 AM
-        return QRegularExpression("^(" + hm + ")\\s(AM|PM)$");
-    } else if (format == Format6) {
-        // 07.08.19 09:08:15 PM
-        return QRegularExpression("^(" + hms + ")\\s(AM|PM)$");
-    }
-    return QRegularExpression();
-}
-
-QRegularExpression DateTime::dateRegularExpression(Format format)
-{
-    if (format == FormatRuLocaleLong) {
-        // 5 сентября 1974 г.
-        // 5 сентября 1974
-        // 5-сентября-1974
-        QStringList months = ruMonthsLong();
-        return QRegularExpression("^([0-9]{1,2})[\\s-](" + months.join("|") + ")[\\s-]([0-9]{4})(?:\\sг.)?$");
-    } else if (format == FormatRuLocaleText) {
-        // Чт май 28 1970
-        // Чт май 28 1970 г.
-        QStringList months = ruMonthsShort();
-        QStringList weekDays = ruWeekDaysShort();
-        return QRegularExpression("^(" + weekDays.join("|") + ")\\s(" + months.join("|") + ")\\s([0-9]{1,2})\\s([0-9]{4})(?:\\sг.)?$");
-    /*} else if (format == Format1) {
-        // 02.08.2019
-        return QRegularExpression("^([0-9]{1,2})[.]([0-9]{1,2})[.]([0-9]{4})$");*/
-    } else if (format == Format2) {
-        // 02.08.19
-        return QRegularExpression("^([0-9]{1,2})[.]([0-9]{1,2})[.]([0-9]{2})$");
-    } else if (format == Format3) {
-        // 6 авг 19
-        // 6-авг-19
-        QStringList months = ruMonthsShort();
-        return QRegularExpression("^([0-9]{1,2})[\\s-](" + months.join("|") + ")[\\s-]([0-9]{2})$");
-    } else if (format == Format4) {
-        // 9 авг 2019
-        // 9-авг-2019
-        // 9-авг-2019 г.
-        QStringList months = ruMonthsShort();
-        return QRegularExpression("^([0-9]{1,2})[\\s-](" + months.join("|") + ")[\\s-]([0-9]{4})(?:\\sг.)?$");
-    }
-
-    return QRegularExpression();
-}
-
-QRegularExpression DateTime::dateTimeRegularExpression(Format format)
-{
-    QString hms = "[0-9]{1,2}:[0-9]{2}:[0-9]{2}";
-    QString hm = "[0-9]{1,2}:[0-9]{2}";
-    QString dotted_ddmmyy = "([0-9]{1,2})[./-]([0-9]{1,2})[./-]([0-9]{1,2})";
-
-    if (format == FormatRuLocaleLong) {
-        // 22 августа 2023 г. 19:35:14
-        QStringList months = ruMonthsLong();
-        return QRegularExpression("^([0-9]{1,2})[\\s-](" + months.join("|") + ")[\\s-]([0-9]{4})(?:\\sг.)?\\s(" + hms + ")$");
-    } else if (format == FormatRuLocaleText) {
-        // Сб дек 23 19:09:00 2006
-        QStringList months = ruMonthsShort();
-        QStringList weekDays = ruWeekDaysShort();
-        return QRegularExpression("^(" + weekDays.join("|") + ")\\s(" + months.join("|") + ")\\s([0-9]{1,2})\\s(" + hms + ")\\s([0-9]{4})$");
-    } else if (format == FormatRuLocaleShortTwoDigitYear) {
-        // 05.08.19 3:00
-        return QRegularExpression("^" + dotted_ddmmyy + "\\s(" + hm + ")$");
-    } else if (format == Format5) {
-        // 07.08.19 5:00 AM
-        return QRegularExpression("^" + dotted_ddmmyy + "\\s(" + hm + ")\\s(AM|PM)$");
-    }
-    return QRegularExpression();
-}
-
-QDate DateTime::parseDate(const QString &s, int minYear)
-{
-
-    QRegularExpression rx;
-    QRegularExpressionMatch m;
-
-    rx = dateRegularExpression(FormatRuLocaleLong);
-    m = rx.match(s);
-    if (m.hasMatch()) {
-        QStringList months = ruMonthsLong();
-        int day = m.captured(1).toInt();
-        int month = months.indexOf(m.captured(2)) + 1;
-        int year = m.captured(3).toInt();
-        return QDate(year,month,day);
-    }
-
-    /*rx = dateRegularExpression(Format1);
-    m = rx.match(s);
-    if (m.hasMatch()) {
-        // (02).(08).(2019)
-        return QDate::fromString(s,"dd.MM.yyyy");
-    }*/
-
-    rx = dateRegularExpression(Format2);
-    m = rx.match(s);
-    if (m.hasMatch()) {
-        // (02).(08).(19)
-        int day = m.captured(1).toInt();
-        int month = m.captured(2).toInt();
-        int year = twoDigitYear(m.captured(3).toInt(), minYear);
-        return QDate(year,month,day);
-    }
-
-    rx = dateRegularExpression(Format3);
-    m = rx.match(s);
-    if (m.hasMatch()) {
-        // 6 авг 19
-        QStringList months = ruMonthsShort();
-        int day = m.captured(1).toInt();
-        int month = months.indexOf(m.captured(2)) + 1;
-        int year = twoDigitYear(m.captured(3).toInt(), minYear);
-        return QDate(year,month,day);
-    }
-
-    rx = dateRegularExpression(Format4);
-    m = rx.match(s);
-    if (m.hasMatch()) {
-        // 9-авг-2019
-        QStringList months = ruMonthsShort();
-        int day = m.captured(1).toInt();
-        int month = months.indexOf(m.captured(2)) + 1;
-        int year = m.captured(3).toInt();
-        return QDate(year,month,day);
-    }
-
-    return QDate();
-}
-
-QDateTime DateTime::parseDateTime(const QString &s, int minYear, bool inLocal, bool outLocal)
-{
-
-    QRegularExpression rx = dateTimeRegularExpression(FormatRuLocaleLong);
-    QRegularExpressionMatch m = rx.match(s);
-    if (m.hasMatch()) {
-        // 1    2         3         4
-        // (22) (августа) (2023) г. (19:35:14)
-        QStringList months = ruMonthsLong();
-        int day = m.captured(1).toInt();
-        int month = months.indexOf(m.captured(2)) + 1;
-        int year = m.captured(3).toInt();
-        QDate date(year,month,day);
-        QTime time = QTime::fromString(m.captured(4),"h:mm:ss");
-        QDateTime dateTime(date, time, inLocal ? Qt::LocalTime : Qt::UTC);
-        return outLocal ? dateTime.toLocalTime() : dateTime.toUTC();
-    }
-
-    rx = dateTimeRegularExpression(FormatRuLocaleShortTwoDigitYear);
-    m = rx.match(s);
-    if (m.hasMatch()) {
-        // 1    2    3    4
-        // (05).(08).(19) (3:00)
-        int day = m.captured(1).toInt();
-        int month = m.captured(2).toInt();
-        int year = twoDigitYear(m.captured(3).toInt(), minYear);
-        QDate date(year,month,day);
-        QString time_ = m.captured(4);
-        QTime time = QTime::fromString(time_,"h:mm");
-        QDateTime dateTime(date, time, inLocal ? Qt::LocalTime : Qt::UTC);
-        return outLocal ? dateTime.toLocalTime() : dateTime.toUTC();
-    }
-
-    rx = dateTimeRegularExpression(Format5);
-    m = rx.match(s);
-    if (m.hasMatch()) {
-        // 1    2    3    4      5
-        // (07).(08).(19) (5:00) (AM)
-        int day = m.captured(1).toInt();
-        int month = m.captured(2).toInt();
-        int year = twoDigitYear(m.captured(3).toInt(), minYear);
-        QDate date(year,month,day);
-        QTime time = parseAmPmTime(m.captured(4), m.captured(5), "h:mm");
-        if (!time.isValid()) {
-            return QDateTime();
-        }
-        QDateTime dateTime(date, time, inLocal ? Qt::LocalTime : Qt::UTC);
-        return outLocal ? dateTime.toLocalTime() : dateTime.toUTC();
-    }
-
-    return QDateTime();
-}
-
-QTime DateTime::parseTime(const QString &s)
-{
-    QRegularExpression rx;
-    QRegularExpressionMatch m;
-    rx = timeRegularExpression(Format5);
-    m = rx.match(s);
-    if (m.hasMatch()) {
-        //          1      2
-        // 07.08.19 (5:00) (AM)
-        return parseAmPmTime(m.captured(1),m.captured(2),"h:mm");
-    }
-
-    rx = timeRegularExpression(Format6);
-    m = rx.match(s);
-    if (m.hasMatch()) {
-        //          1          2
-        // 07.08.19 (09:08:15) (PM)
-        return parseAmPmTime(m.captured(1),m.captured(2),"h:mm:ss");
-    }
-    return QTime();
-}
-
-QList<QRegularExpression> DateTime::dateRegularExpressions()
-{
-    QString dashed_yyyymmdd = "[0-9]{4}-[0-9]{2}-[0-9]{2}";
-    QString dotted_ddmmyyyy = "[0-9]{2}[.][0-9]{2}[.][0-9]{4}";
-    QList<QRegularExpression> result = {
-        // DefaultLocaleLongDate
-        // 5 сентября 1974 г.
-        dateRegularExpression(FormatRuLocaleLong),
-        // DefaultLocaleShortDate
-        // 19.11.2058
-        QRegularExpression("^" + dotted_ddmmyyyy + "$"),
-        // ISODate, ISODateWithMs
-        // 2057-11-08
-        QRegularExpression("^" + dashed_yyyymmdd + "$"),
-        // RFC2822Date
-        // 18 Jun 1921
-        QRegularExpression("^[0-9]{1,2}\\s(" + enMonthsShort().join("|") + ")\\s[0-9]{4}$"),
-        // TextDate
-        // Чт май 28 1970
-        dateRegularExpression(FormatRuLocaleText),
-        // 02.08.19
-        dateRegularExpression(Format2),
-        // 6 авг 19
-        dateRegularExpression(Format3),
-        // 9-авг-2019
-        dateRegularExpression(Format4)
-    };
-
-
-    return result;
-}
-
-QList<QRegularExpression> DateTime::dateTimeRegularExpressions()
-{
-    QString hm = "[0-9]{1,2}:[0-9]{2}";
-    QString hms = "[0-9]{1,2}:[0-9]{2}:[0-9]{2}";
-    QString hmsms = hms + "[.][0-9]{3}";
-    QString dashed_yyyymmdd = "[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}";
-    QString dotted_ddmmyyyy = "[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{4}";
-
-    QString two_digits = "[0-9]{1,2}";
-    QString four_digits = "[0-9]{4}";
-
-    QList<QRegularExpression> result = {
-        // DefaultLocaleLongDate
-        // 5 сентября 1974 г. 1:18:07
-        dateTimeRegularExpression(FormatRuLocaleLong),
-        // DefaultLocaleShortDate
-        // 28.01.2067 21:11
-        QRegularExpression("^" + dotted_ddmmyyyy + "\\s" + hm + "$"),
-        // ISODate
-        // 2057-11-08T17:21:09
-        QRegularExpression("^" + dashed_yyyymmdd + "T" + hms + "$"),
-        // ISODateWithMs
-        // 1978-04-10T04:57:05.185
-        QRegularExpression("^" + dashed_yyyymmdd + "T" + hmsms + "$"),
-        // RFC2822Date
-        // 05 Jan 1998 05:44:32 +0300
-        QRegularExpression("^" + two_digits + "\\s(" + enMonthsShort().join("|") + ")\\s" + four_digits + "\\s" + hms + "\\s[+][0-9]{4}$"), // RFC2822Date
-        // TextDate
-        // Чт май 28 04:55:06 1970
-        dateTimeRegularExpression(FormatRuLocaleText),
-        // 05.08.19 3:00
-        dateTimeRegularExpression(FormatRuLocaleShortTwoDigitYear),
-        // 07.08.19 5:00 AM
-        dateTimeRegularExpression(Format5),
-    };
-
-    return result;
-}
-
-QList<QRegularExpression> DateTime::timeRegularExpressions()
-{
-    QString hm = "[0-9]{1,2}:[0-9]{2}";
-    QString hms = hm + ":[0-9]{2}";
-    QString hmsms = hms + "[.][0-9]{3}";
-
-    QList<QRegularExpression> result = {
-        // 12:24
-        QRegularExpression("^(" + hm + ")$"),
-        // 20:40:46
-        QRegularExpression("^(" + hms + ")$"),
-        // 16:10:21.285
-        QRegularExpression("^(" + hmsms + ")$"),
-        // 12:18 PM
-        timeRegularExpression(Format5),
-        // 09:08:15 PM
-        timeRegularExpression(Format6)
-    };
-    return result;
-}
-#endif
 
 void DateTime::writeSamples()
 {
@@ -991,7 +784,7 @@ void DateTime::writeSamples()
                 int M = 1 + (rand() % 12);
                 int d = 1 + (rand() % 28);
 
-                //M = 1 + (j % 12);
+                M = 1 + (j % 12);
                 //d = 1 + (j % 28);
                 //y = 2000;
                 //M = 1;
@@ -1020,12 +813,19 @@ void DateTime::writeSamples()
                     }
 
                 } else if (sw == 1) {
-                    stream << QString("Test%4Sample(Q%4::fromString(\"%1\",%5),\"%2\",Qt::%3),\n")
-                              .arg(dateTime.toString(Qt::ISODateWithMs))
-                              .arg(dateTime.toString(format))
-                              .arg(formatName)
-                              .arg("DateTime")
-                              .arg("Qt::ISODateWithMs");
+
+                    if (1) {
+
+                        stream << QString("Test%4Sample(Q%4::fromString(\"%1\",%5),\"%2\",Qt::%3),\n")
+                                  .arg(dateTime.toString(Qt::ISODateWithMs))
+                                  .arg(dateTime.toString(format))
+                                  .arg(formatName)
+                                  .arg("DateTime")
+                                  .arg("Qt::ISODateWithMs");
+                    } else {
+                        stream << dateTime.toString(format) << "\n";
+                    }
+
                 } else if (sw == 2) {
                     stream << QString("Test%4Sample(Q%4::fromString(\"%1\",%5),\"%2\",Qt::%3),\n")
                               .arg(dateTime.toString(Qt::ISODateWithMs))
