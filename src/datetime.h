@@ -48,9 +48,9 @@ public:
         FormatDateEnDDMonthYY,
     };
 
-    static QList<FormatDate> dateFormats();
-
-    static QList<FormatTime> timeFormats();
+    static QString regExpDateTime(FormatDateTime format);
+    static QString regExpDate(FormatDate format);
+    static QString regExpTime(FormatTime format);
 
     static QString regExp(Type type, FormatDateTime formatDateTime,
                   FormatDate formatDate, FormatTime formatTime);
@@ -91,9 +91,12 @@ public:
     static void writeNumber();
     static void writeTimeZones();
 
-    static QString parseTimeZone(const QString &s, const QDateTime &dateTime, int *offset, bool *hasTimeZone);
+    static QString parseTimeZone(const QString &s, QDateTime &dateTime, bool *hasTimeZone);
+    static QTimeZone parseTimeZone(const QString &timeZone);
+
+    static QTime parseAmPmTime(const QString& time_, const QString& ap, const QString& format);
     static QString parseTime(const QString &s, QTime &time);
-    static QString parseDate(const QString &s, QDate &date);
+    static QString parseDate(const QString &s, QDate &date, int minYear);
     static bool parse(Type type, const QString &s, QDate &date, QTime &time, QDateTime &dateTime, int minYear, bool inLocalTime, bool outLocalTime);
 
     static TimeZone timeZone(const QString& code);

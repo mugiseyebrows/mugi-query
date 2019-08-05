@@ -15,27 +15,6 @@ int twoDigitYear(int year, int minYear) {
     return year_;
 }
 
-QTime parseAmPmTime(const QString& time_, const QString& ap, const QString& format) {
-    QTime time = QTime::fromString(time_,format);
-    // AM/PM parsing doesn't work on some locales
-    if (!time.isValid()) {
-        return QTime();
-    }
-    if (ap == "PM") {
-        if (!(time.hour() == 12 && time.minute() == 0 && time.second() == 0 && time.msec() == 0)) { // 12:00 PM is noon 12:00 AM is midnight
-            time = time.addSecs(12 * 3600);
-        }
-    } else if (ap == "AM") {
-        if (time.hour() == 12 && time.minute() == 0 && time.second() == 0 && time.msec() == 0) {
-            time = time.addSecs(-12 * 3600);
-        }
-    } else {
-        qDebug() << "AM / PM error";
-        return QTime();
-    }
-    return time;
-}
-
 QString range(int a, int b) {
     return a == b ? QString("%1").arg(a) : QString("[%1-%2]").arg(a).arg(b);
 }
@@ -84,34 +63,30 @@ QString tail(const QString& s) {
     return s + "$";
 }
 
+QString whole(const QString& s) {
+    return "^" + s + "$";
+}
+
 QString group(const QString& s) {
     return "(" + s + ")";
 }
 
-QList<DateTime::FormatDate> DateTime::dateFormats()
-{
-    return {
-        FormatDateYYYYMMDD,
-                FormatDateDDMMYY,
-                FormatDateRuDDMonYY,
-                FormatDateRuDDMonthYY,
-                FormatDateEnDDMonYY,
-                FormatDateEnDDMonthYY
-    };
+QString DateTime::regExpDateTime(FormatDateTime format) {
+    return regExp(TypeDate, format, FormatDateUndefined, FormatTimeUndefined);
 }
 
-QList<DateTime::FormatTime> DateTime::timeFormats()
-{
-    return {
-        FormatTimeHM,
-                FormatTimeHMS,
-                FormatTimeHMSMS
-    };
+QString DateTime::regExpDate(FormatDate format) {
+    return regExp(TypeDate, FormatDateTimeUndefined, format, FormatTimeUndefined);
+}
+
+QString DateTime::regExpTime(FormatTime format) {
+    return regExp(TypeTime, FormatDateTimeUndefined, FormatDateUndefined, format);
 }
 
 QString DateTime::regExp(DateTime::Type type, FormatDateTime formatDateTime, DateTime::FormatDate formatDate, DateTime::FormatTime formatTime)
 {
     QString notDigit = "[^0-9]";
+    QString yearDot = "(?:\\sг.)?";
 
     if (type == TypeDateTime){
         if (formatDateTime != FormatDateTimeUndefined) {
@@ -123,26 +98,26 @@ QString DateTime::regExp(DateTime::Type type, FormatDateTime formatDateTime, Dat
         }
     } else if (type == TypeDate) {
         static QMap<FormatDate, QString> exps = {
-            {FormatDateYYYYMMDD, group("[0-9]{4}" + notDigit + number(1,12) + notDigit + number(1,31))},
-            {FormatDateDDMMYY, group(number(1,31) + notDigit + number(1,12) + notDigit + "[0-9]{2,4}") },
-            {FormatDateRuDDMonYY, number(1,31) + notDigit + group(ruMonthsShort().join("|")) + notDigit + "[0-9]{2,4}" },
-            {FormatDateRuDDMonthYY, number(1,31) + notDigit + group(ruMonthsLong().join("|")) + notDigit + "[0-9]{2,4}" },
+            {FormatDateYYYYMMDD, group("[0-9]{4}") + notDigit + number(1,12) + notDigit + number(1,31)},
+            {FormatDateDDMMYY, number(1,31) + notDigit + number(1,12) + notDigit + group("[0-9]{2,4}") + yearDot },
+            {FormatDateRuDDMonYY, number(1,31) + notDigit + group(ruMonthsShort().join("|")) + notDigit + "[0-9]{2,4}" + yearDot },
+            {FormatDateRuDDMonthYY, number(1,31) + notDigit + group(ruMonthsLong().join("|")) + notDigit + "[0-9]{2,4}" + yearDot },
             {FormatDateEnDDMonYY, number(1,31) + notDigit + group(enMonthsShort().join("|")) + notDigit + "[0-9]{2,4}" },
             {FormatDateEnDDMonthYY, number(1,31) + notDigit + group(enMonthsLong().join("|")) + notDigit + "[0-9]{2,4}" }
         };
         return exps[formatDate];
     } else if (type == TypeTime) {
         static QMap<FormatTime, QString> exps = {
-            {FormatTimeHM,""},
-            {FormatTimeHMS,""},
-            {FormatTimeHMSMS,""},
+            {FormatTimeHM, group(number(0,24) + ":" + number(0,60)) + "(\\sAM|\\sPM)?" },
+            {FormatTimeHMS, group(number(0,24) + ":" + number(0,60) + ":" + number(0,60)) + "(\\sAM|\\sPM)?"},
+            {FormatTimeHMSMS, group(number(0,24) + ":" + number(0,60) + ":" + number(0,60) + "[.][0-9]{1,3}") + "(\\sAM|\\sPM)?"},
         };
         return exps[formatTime];
     }
 }
 
 bool dateTimeMaybe(const QString& s) {
-    QRegularExpression fourDigitGroups("[0-9]+[^0-9]+[0-9]+[^0-9]+[0-9]+[^0-9]+[0-9]+[^0-9]+");
+    QRegularExpression fourDigitGroups("[0-9]+[^0-9]+[0-9]+[^0-9]+[0-9]+[^0-9]+[0-9]+");
     return fourDigitGroups.match(s).hasMatch() && s.indexOf(":") > 0;
 }
 
@@ -150,50 +125,182 @@ bool timeMaybe(const QString& s) {
     return s.indexOf(":") > 0;
 }
 
-QString DateTime::parseTimeZone(const QString& s, const QDateTime& dateTime, int* offset, bool* hasTimeZone) {
+bool dateMaybe(const QString& s) {
+    QRegularExpression twoDigitGroups("[0-9]+[^0-9]+[0-9]+");
+    return twoDigitGroups.match(s).hasMatch();
+}
 
-    QRegularExpression rx(tail(timeZoneRegExp()));
-    QRegularExpressionMatch m = rx.match(s);
-    *hasTimeZone = m.hasMatch();
-    if (m.hasMatch()) {
-        *offset = timeZoneOffset(m.captured(0), dateTime);
-        return s.chopped(m.capturedLength());
+QTime DateTime::parseAmPmTime(const QString& time_, const QString& ap, const QString& format) {
+    QTime time = QTime::fromString(time_,format);
+    // AM/PM parsing doesn't work on some locales
+    if (!time.isValid()) {
+        return QTime();
     }
-    *offset = 0;
-    return s;
+    QString ap_ = ap.trimmed().toLower();
+
+    if (ap_ == "pm") {
+        if (!(time.hour() == 12 && time.minute() == 0 && time.second() == 0 && time.msec() == 0)) { // 12:00 PM is noon 12:00 AM is midnight
+            time = time.addSecs(12 * 3600);
+        }
+    } else if (ap_ == "am") {
+        if (time.hour() == 12 && time.minute() == 0 && time.second() == 0 && time.msec() == 0) {
+            time = time.addSecs(-12 * 3600);
+        }
+    } else {
+        qDebug() << "AM / PM error";
+        return QTime();
+    }
+    return time;
 }
 
 QString DateTime::parseTime(const QString& s, QTime& time) {
-
+    QList<FormatTime> formats = {FormatTimeHMSMS,
+                                 FormatTimeHMS,
+                                 FormatTimeHM};
+    QStringList formats_ = {"h:m:s.z","h:m:s","h:m"};
+    QList<QRegularExpression> exps;
+    foreach (FormatTime format, formats) {
+        exps << QRegularExpression(regExpTime(format), QRegularExpression::CaseInsensitiveOption);
+    }
+    for(int i=0;i<formats.size();i++) {
+        QRegularExpression rx = exps[i];
+        QRegularExpressionMatch m = rx.match(head(s + "\\s?"));
+        if (m.hasMatch()) {
+            if (m.lastCapturedIndex() == 2) {
+                time = parseAmPmTime(m.captured(1),m.captured(2),formats_[i]);
+            } else {
+                time = QTime::fromString(m.captured(1),formats_[i]);
+            }
+            return s.mid(m.capturedLength());
+        }
+    }
+    return s;
 }
 
-QString DateTime::parseDate(const QString& s, QDate& date) {
+QString DateTime::parseDate(const QString& s, QDate& date, int minYear) {
 
+    QList<FormatDate> formats = {FormatDateYYYYMMDD,
+                                 FormatDateDDMMYY,
+                                 FormatDateRuDDMonYY,
+                                 FormatDateRuDDMonthYY,
+                                 FormatDateEnDDMonYY,
+                                 FormatDateEnDDMonthYY};
+
+    QList<QRegularExpression> exps;
+    foreach (FormatDate format, formats) {
+        exps << QRegularExpression(regExpDate(format), QRegularExpression::CaseInsensitiveOption);
+    }
+
+    for(int i=0;i<formats.size();i++) {
+        FormatDate format = formats[i];
+        QRegularExpression rx = exps[i];
+        QRegularExpressionMatch m = rx.match(head(s + "\\s?"));
+
+        if (m.hasMatch()) {
+            QString year_ = format == FormatDateYYYYMMDD ? m.captured(1) : m.captured(3);
+            int year = year_.toInt();
+            if (year_.size() < 3) {
+                year = twoDigitYear(year, minYear);
+            }
+            int month = -1;
+            if (format == FormatDateYYYYMMDD || format == FormatDateDDMMYY) {
+                month = m.captured(2).toInt();
+            } else if (format == FormatDateRuDDMonYY) {
+                month = ruMonthsShort().indexOf(m.captured(2)) + 1;
+            } else if (format == FormatDateRuDDMonthYY) {
+                month = ruMonthsLong().indexOf(m.captured(2)) + 1;
+            } else if (format == FormatDateEnDDMonYY) {
+                month = enMonthsShort().indexOf(m.captured(2)) + 1;
+            } else if (format == FormatDateEnDDMonthYY) {
+                month = enMonthsLong().indexOf(m.captured(2)) + 1;
+            }
+            int day = format == FormatDateYYYYMMDD ? m.captured(3).toInt() : m.captured(1).toInt();
+            date = QDate(year,month,day);
+            return s.mid(m.captured());
+        }
+    }
+    return s;
 }
 
 bool DateTime::parse(Type type, const QString& s, QDate& date, QTime& time,
                      QDateTime& dateTime, int minYear, bool inLocalTime, bool outLocalTime) {
 
     if (type == TypeUnknown) {
+        QDate date_;
+        QTime time_;
+        QDateTime dateTime_;
+        if (parse(TypeDateTime, s, date_, time_, dateTime_, minYear, inLocalTime, outLocalTime)) {
+            dateTime = dateTime_;
+            return true;
+        }
+        if (parse(TypeTime, s, date_, time_, dateTime_, minYear, inLocalTime, outLocalTime)) {
+            time = time_;
+            return true;
+        }
+        if (parse(TypeDate, s, date_, time_, dateTime_, minYear, inLocalTime, outLocalTime)) {
+            date = date_;
+            return true;
+        }
+        return false;
 
     } else if (type == TypeDate) {
 
+        if (!dateMaybe(s)) {
+            return false;
+        }
+
+        QDate date_;
+        QString s_ = parseDate(s, date_, minYear);
+        if (!s_.isEmpty() || !date_.isValid()) {
+            return false;
+        }
+        date = date_;
+        return true;
+
     } else if (type == TypeTime) {
+        if (!timeMaybe(s)) {
+            return false;
+        }
+        QTime time_;
+        QString s_ = parseTime(s_, time_);
+        if (!s_.isEmpty() || !time_.isValid()) {
+            return false;
+        }
+        time = time_;
+        return true;
 
     } else if (type == TypeDateTime) {
+
         if (!dateTimeMaybe(s)) {
             return false;
         }
+
         QDate date_;
         QTime time_;
-        QString s_ = parseDate(s_, date_);
+        QString s_ = parseDate(s_, date_, minYear);
+        if (!date_.isValid()) {
+            return false;
+        }
         s_ = parseTime(s_, time_);
-        int offset = 0;
-        bool hasTimeZone = false;
-        parseTimeZone(s, QDateTime(date,time,Qt::UTC), &offset, &hasTimeZone);
-
+        if (!time_.isValid()) {
+            return false;
+        }
+        bool hasTimeZone;
+        QDateTime dateTime_(date_,time_);
+        s_ = parseTimeZone(s, dateTime_, &hasTimeZone);
+        if (!s_.isEmpty()) {
+            return false;
+        }
+        if (hasTimeZone) {
+            dateTime = outLocalTime ? dateTime_.toLocalTime() : dateTime.toUTC();
+        } else {
+            dateTime_ = QDateTime(date_, time_, inLocalTime ? Qt::LocalTime : Qt::UTC);
+            dateTime = outLocalTime ? dateTime_.toLocalTime() : dateTime.toUTC();
+        }
+        return true;
     }
 
+    return false;
 }
 
 TimeZone DateTime::timeZone(const QString &code)
@@ -445,12 +552,10 @@ QString DateTime::timeZoneRegExp()
     QString tzNumeric = "[+][0-9]{4}";
     QString tzRtz = "RTZ\\s[0-9]+\\s[(]зима[)]";
 
-    return "(" + tzs.join("|") + "|(" + tzNumeric + ")|(" + tzRtz + "))";
+    return group(tzs.join("|") + "|" + tzNumeric + "|" + tzRtz);
 }
 
-
-
-int DateTime::timeZoneOffset(const QString& timeZone, const QDateTime& dateTime) {
+QTimeZone DateTime::parseTimeZone(const QString& timeZone) {
 
     QRegularExpression tzNumeric("[+]([0-9]{2})([0-9]{2})");
     QRegularExpression tzRtz("RTZ\\s([0-9]+)\\s[(]зима[)]");
@@ -459,16 +564,37 @@ int DateTime::timeZoneOffset(const QString& timeZone, const QDateTime& dateTime)
     if (m.hasMatch()) {
         int hours = m.captured(1).toInt();
         int minutes = m.captured(2).toInt();
-        return hours * 3600 + minutes * 60;
+        return QTimeZone(hours * 3600 + minutes * 60);
     }
     m = tzRtz.match(timeZone);
     if (m.hasMatch()) {
         int rtz = m.captured(1).toInt();
-        return (rtz + 1) * 3600;
+        return QTimeZone((rtz + 1) * 3600);
     }
 
-    //return QDateTime(dateTime.date(), dateTime.time(), )
-    return 0;
+    TimeZone timeZone_ = DateTime::timeZone(timeZone);
+    if (timeZone_.isValid()) {
+        return QTimeZone(timeZone_.ianaId());
+    }
+    return QTimeZone();
+}
+
+QString DateTime::parseTimeZone(const QString& s, QDateTime& dateTime, bool* hasTimeZone) {
+
+    QRegularExpression rx(head("\\s?" + timeZoneRegExp()));
+    QRegularExpressionMatch m = rx.match(s);
+    *hasTimeZone = m.hasMatch();
+    if (m.hasMatch()) {
+        QTimeZone timeZone = parseTimeZone(m.captured(1));
+        if (timeZone.isValid()) {
+            dateTime = QDateTime(dateTime.date(), dateTime.time(), timeZone);
+        } else {
+            qDebug() << "invalid timezone" << m.captured();
+            *hasTimeZone = false;
+        }
+        return s.mid(m.capturedLength());
+    }
+    return s;
 }
 
 QStringList DateTime::ruMonthsShort() {
