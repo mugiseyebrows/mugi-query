@@ -15,6 +15,7 @@ class CallOnce;
 class QLineEdit;
 class QComboBox;
 class QCheckBox;
+class FieldAttributesWidget;
 
 namespace Ui {
 class DataImportWidget;
@@ -28,7 +29,7 @@ public:
     enum WidgetIndex {
         WidgetName,
         WidgetType,
-        WidgetPrimaryKey,
+        WidgetFieldAttributes,
     };
 
     explicit DataImportWidget(QWidget *parent = nullptr);
@@ -57,7 +58,7 @@ protected slots:
     void onUpdateTitle();
     void onColumnTypeChanged(int);
     void onColumnNameChanged(int);
-    void onColumnPrimaryKeyClicked(int);
+    void onFieldAttributesClicked(int);
     void on_newTable_textChanged(QString);
     //void onDataChanged(QModelIndex, QModelIndex, QVector<int>);
     void onModelSetTypes();
@@ -79,7 +80,10 @@ protected:
     Ui::DataImportWidget *ui;
     QString mConnectionName;
     Tokens mTokens;
-    void namesTypesAndKeys(QStringList &names, QStringList &types, QList<bool> &primaryKeys);
+    void namesTypesAndAttributes(QStringList &names,
+                                 QStringList &types,
+                                 QList<bool> &primaryKeys,
+                                 QList<bool> &autoicrements);
     DataImportModel *dataModel();
 
     QString queries(bool preview);
@@ -91,7 +95,7 @@ protected:
     QWidget *widget(int row, int column);
     QLineEdit *widgetName(int column);
     QComboBox *widgetType(int column);
-    QCheckBox *widgetPrimaryKey(int column);
+    FieldAttributesWidget *widgetFieldAttributes(int column);
 
     QString tableName();
 private slots:

@@ -127,7 +127,8 @@ HEADERS += \
     src/testdatetimesample.h \
     src/testdatesample.h \
     src/timezone.h \
-    src/multinameenum.h
+    src/multinameenum.h \
+    src/widget/fieldattributeswidget.h
 
 SOURCES += \
     src/action.cpp \
@@ -212,7 +213,8 @@ SOURCES += \
     src/testdatetimesample.cpp \
     src/testdatesample.cpp \
     src/timezone.cpp \
-    src/multinameenum.cpp
+    src/multinameenum.cpp \
+    src/widget/fieldattributeswidget.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \
@@ -232,5 +234,6 @@ FORMS += \
     src/widget/dataimportwidgets.ui \
     src/widget/dataimportwidget.ui \
     src/widget/selectcolumnswidget.ui \
-    src/widget/selectcolumnslistwidget.ui
+    src/widget/selectcolumnslistwidget.ui \
+    src/widget/fieldattributeswidget.ui
 

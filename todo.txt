@@ -69,4 +69,5 @@ dataimport:
     insert ignore
     values(),(),()
     array and json data types
+    fieldspec class: name type attributes
 edit table data

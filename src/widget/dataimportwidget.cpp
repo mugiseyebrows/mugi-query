@@ -24,6 +24,7 @@
 #include "callonce.h"
 #include "dataformat.h"
 #include "datetime.h"
+#include "widget/fieldattributeswidget.h"
 
 namespace  {
 
@@ -291,30 +292,33 @@ QComboBox* DataImportWidget::widgetType(int column) {
     return qobject_cast<QComboBox*>(widget(WidgetType,column));
 }
 
-QCheckBox* DataImportWidget::widgetPrimaryKey(int column) {
-    return qobject_cast<QCheckBox*>(widget(WidgetPrimaryKey,column));
+FieldAttributesWidget* DataImportWidget::widgetFieldAttributes(int column) {
+    return qobject_cast<FieldAttributesWidget*>(widget(WidgetFieldAttributes,column));
 }
 
-void DataImportWidget::namesTypesAndKeys(QStringList& names, QStringList& types, QList<bool>& primaryKeys) {
+void DataImportWidget::namesTypesAndAttributes(QStringList& names, QStringList& types,
+                                               QList<bool>& primaryKeys,
+                                               QList<bool>& autoicrements) {
 
     RichHeaderView* view = headerView();
     QAbstractItemModel* model = dataModel();
     if (!view || !model) {
-        qDebug() << "!view || !model" << __FILE__ << __LINE__;
+        qDebug() << __FILE__ << __LINE__ << view << model;
         return;
     }
     for(int c=0;c<model->columnCount();c++) {
         QLineEdit* name = widgetName(c);
         QComboBox* type = widgetType(c);
-        QCheckBox* primaryKey = widgetPrimaryKey(c);
+        FieldAttributesWidget* fieldAttributes = widgetFieldAttributes(c);
 
-        if (!name || !type || !primaryKey) {
-            qDebug() << "!name || !type || !primaryKey" << __FILE__ << __LINE__;
+        if (!name || !type || !fieldAttributes) {
+            qDebug() << __FILE__ << __LINE__ << name << type << fieldAttributes;
             continue;
         }
         names << name->text();
         types << type->currentText();
-        primaryKeys << primaryKey->isChecked();
+        primaryKeys << fieldAttributes->primaryKey();
+        autoicrements << fieldAttributes->autoincrement();
     }
 }
 
@@ -360,18 +364,21 @@ void DataImportWidget::createHeaderViewWidgets() {
 
         }
 
-        QCheckBox* primaryKey = widgetPrimaryKey(c);
+        FieldAttributesWidget* primaryKey = widgetFieldAttributes(c);
         if (!primaryKey) {
-            primaryKey = new QCheckBox("PK",viewport);
-            data->cell(WidgetPrimaryKey,c).widget(primaryKey).padding(0,5);
-            connect(primaryKey,qOverload<bool>(&QCheckBox::clicked),[=](){
-                onColumnPrimaryKeyClicked(c);
+            primaryKey = new FieldAttributesWidget(viewport);
+            data->cell(WidgetFieldAttributes,c).widget(primaryKey).padding(0,5);
+            connect(primaryKey,&FieldAttributesWidget::primaryKeyClicked,[=](){
+                onFieldAttributesClicked(c);
+            });
+            connect(primaryKey,&FieldAttributesWidget::autoincrementClicked,[=](){
+                onFieldAttributesClicked(c);
             });
         }
 
         widgetName(c)->setReadOnly(!newTable);
         widgetType(c)->setEnabled(newTable);
-        widgetPrimaryKey(c)->setEnabled(newTable);
+        widgetFieldAttributes(c)->setEnabled(newTable);
     }
     view->update();
 }
@@ -412,7 +419,8 @@ void DataImportWidget::onModelSetTypes() {
     QStringList names;
     QStringList types;
     QList<bool> primaryKeys;
-    namesTypesAndKeys(names,types,primaryKeys);
+    QList<bool> autoincrements;
+    namesTypesAndAttributes(names,types,primaryKeys,autoincrements);
 
     QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
 
@@ -431,7 +439,7 @@ void DataImportWidget::onColumnTypeChanged(int) {
     mSetModelTypes->onPost();
 }
 
-void DataImportWidget::onColumnPrimaryKeyClicked(int) {
+void DataImportWidget::onFieldAttributesClicked(int) {
     mUpdatePreview->onPost();
 }
 
@@ -581,12 +589,11 @@ QString DataImportWidget::queries(bool preview) {
         return QString();
     }
 
-
-
     QStringList names;
     QStringList types;
     QList<bool> primaryKeys;
-    namesTypesAndKeys(names,types,primaryKeys);
+    QList<bool> autoincrements;
+    namesTypesAndAttributes(names,types,primaryKeys,autoincrements);
 
     bool newTable = ui->optionNewTable->isChecked();
 
@@ -594,7 +601,17 @@ QString DataImportWidget::queries(bool preview) {
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
-    QString createQuery = newTable ? DataStreamer::createTableStatement(db, table, names, types, primaryKeys, false) + ";\n" : QString();
+    QString createQuery;
+
+    if (newTable) {
+        createQuery = DataStreamer::createTableStatement(db,
+                                                         table,
+                                                         names,
+                                                         types,
+                                                         primaryKeys,
+                                                         autoincrements,
+                                                         false) + ";\n";
+    }
 
     QString error;
     bool hasMore;

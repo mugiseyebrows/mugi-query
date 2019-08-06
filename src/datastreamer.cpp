@@ -330,12 +330,15 @@ QString DataStreamer::multiInsert(const QSqlDatabase &db, const QString& tableNa
 QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString &table,
                                            const QStringList &columns, const QStringList &types,
                                            const QList<bool>& primaryKey,
+                                           const QList<bool>& autoincrements,
                                            bool ifNotExists)
 {
     QSqlDriver* driver = db.driver();
 
     QMap<QString,QVariant::Type> variant = SqlDataTypes::mapToVariant();
     QMap<QVariant::Type,QString> specific = SqlDataTypes::mapToDriver(db.driverName());
+
+    QString driverName = db.driverName();
 
     QStringList typed;
     QStringList keys;
@@ -344,16 +347,32 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
             continue;
         }
         QString identifier = driver->escapeIdentifier(columns[c],QSqlDriver::FieldName);
-        typed << QString("%1 %2")
-                 .arg(identifier)
-                 .arg(specific[variant[types[c]]]);
+
+        QString type = (driverName == "QPSLQ" && autoincrements[c]) ? "SERIAL" : specific[variant[types[c]]];
+
+        static QMap<QString,QString> driverAutoincrement =
+        {
+            {"QMYSQL", "AUTO_INCREMENT"},
+            {"QSQLITE", "AUTOINCREMENT"},
+        };
+
+        QString autoincrement = autoincrements[c] ? driverAutoincrement.value(driverName) : QString();
+
+        QString columnSpec = QString("%1 %2 %3")
+                .arg(identifier)
+                .arg(type)
+                .arg(autoincrement)
+                .trimmed();
+
         if (primaryKey[c]) {
             keys << identifier;
         }
+
+        typed << columnSpec;
     }
 
     if (!keys.isEmpty()) {
-        typed << QString("PRIMARY KEY (%1)").arg(keys.join(","));
+        typed << QString("PRIMARY KEY (%1)").arg(keys.join(", "));
     }
 
     QString statement = QString("CREATE TABLE %1(%2)")
