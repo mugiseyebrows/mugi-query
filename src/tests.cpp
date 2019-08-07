@@ -32,7 +32,7 @@ void Tests::run()
     //testTryConvert1();
     //testTryConvert2();
     //testApParse();
-    testTimeZones();
+    //testTimeZones();
     testDateTimeParse();
 }
 
@@ -825,6 +825,12 @@ bool Tests::testTimeZones() {
             continue;
         }
         QTimeZone timeZone_(timeZone.ianaId());
+
+        if (!timeZone_.isValid()) {
+            qDebug() << "timezone not available" << timeZone.ianaId();
+            continue;
+        }
+
         int offset = timeZone_.offsetFromUtc(current);
 
         if (offset != timeZone.offset()) {
@@ -843,25 +849,35 @@ bool Tests::testDateTimeParse() {
     QList<bool> ok;
 
     QList<TestDateTimeSample> samples = {
-        TestDateTimeSample(QDateTime::fromString("2096-06-14T07:06:00.002",Qt::ISODateWithMs),"2096-06-14T07:06:00",Qt::ISODate),
-        TestDateTimeSample(QDateTime::fromString("2012-05-05T05:23:06.661",Qt::ISODateWithMs),"2012-05-05T05:23:06",Qt::ISODate),
-        TestDateTimeSample(QDateTime::fromString("2060-11-20T04:13:11.440",Qt::ISODateWithMs),"2060-11-20T04:13:11",Qt::ISODate),
-        TestDateTimeSample(QDateTime::fromString("2056-04-13T20:45:40.523",Qt::ISODateWithMs),"2056-04-13T20:45:40.523",Qt::ISODateWithMs),
-        TestDateTimeSample(QDateTime::fromString("1919-02-03T16:03:56.461",Qt::ISODateWithMs),"1919-02-03T16:03:56.461",Qt::ISODateWithMs),
-        TestDateTimeSample(QDateTime::fromString("1991-06-26T06:33:37.356",Qt::ISODateWithMs),"1991-06-26T06:33:37.356",Qt::ISODateWithMs),
-        TestDateTimeSample(QDateTime::fromString("1965-08-26T21:17:22.766",Qt::ISODateWithMs),"26 Aug 1965 21:17:22 +0300",Qt::RFC2822Date),
-        TestDateTimeSample(QDateTime::fromString("1968-01-05T15:07:52.044",Qt::ISODateWithMs),"05 Jan 1968 15:07:52 +0300",Qt::RFC2822Date),
-        TestDateTimeSample(QDateTime::fromString("1992-08-23T14:19:24.651",Qt::ISODateWithMs),"23 Aug 1992 14:19:24 +0400",Qt::RFC2822Date),
-        TestDateTimeSample(QDateTime::fromString("1988-04-19T20:54:17.346",Qt::ISODateWithMs),"вт апр. 19 20:54:17 1988",Qt::TextDate),
-        TestDateTimeSample(QDateTime::fromString("1935-02-04T01:23:13.328",Qt::ISODateWithMs),"пн февр. 4 01:23:13 1935",Qt::TextDate),
-        TestDateTimeSample(QDateTime::fromString("2025-08-07T18:37:36.963",Qt::ISODateWithMs),"чт авг. 7 18:37:36 2025",Qt::TextDate),
+        TestDateTimeSample(QDateTime::fromString("2028-12-20T08:15:26.662",Qt::ISODateWithMs),"20 декабря 2028 г. 8:15:26",Qt::DefaultLocaleLongDate),
+        TestDateTimeSample(QDateTime::fromString("1992-07-19T11:39:48.073",Qt::ISODateWithMs),"19 июля 1992 г. 11:39:48",Qt::DefaultLocaleLongDate),
+        TestDateTimeSample(QDateTime::fromString("2046-10-17T01:00:40.487",Qt::ISODateWithMs),"17 октября 2046 г. 1:00:40",Qt::DefaultLocaleLongDate),
+        TestDateTimeSample(QDateTime::fromString("2090-05-19T03:13:56.373",Qt::ISODateWithMs),"19.05.2090 3:13",Qt::DefaultLocaleShortDate),
+        TestDateTimeSample(QDateTime::fromString("1961-09-01T20:59:47.497",Qt::ISODateWithMs),"01.09.1961 20:59",Qt::DefaultLocaleShortDate),
+        TestDateTimeSample(QDateTime::fromString("1972-03-26T04:53:38.999",Qt::ISODateWithMs),"26.03.1972 4:53",Qt::DefaultLocaleShortDate),
+        TestDateTimeSample(QDateTime::fromString("2023-02-14T22:07:56.632",Qt::ISODateWithMs),"2023-02-14T22:07:56",Qt::ISODate),
+        TestDateTimeSample(QDateTime::fromString("1970-12-03T02:23:00.553",Qt::ISODateWithMs),"1970-12-03T02:23:00",Qt::ISODate),
+        TestDateTimeSample(QDateTime::fromString("2005-08-28T18:07:09.042",Qt::ISODateWithMs),"2005-08-28T18:07:09",Qt::ISODate),
+        TestDateTimeSample(QDateTime::fromString("2023-09-28T04:13:07.741",Qt::ISODateWithMs),"2023-09-28T04:13:07.741",Qt::ISODateWithMs),
+        TestDateTimeSample(QDateTime::fromString("2013-11-18T13:30:36.271",Qt::ISODateWithMs),"2013-11-18T13:30:36.271",Qt::ISODateWithMs),
+        TestDateTimeSample(QDateTime::fromString("1914-06-03T09:33:47.179",Qt::ISODateWithMs),"1914-06-03T09:33:47.179",Qt::ISODateWithMs),
+        TestDateTimeSample(QDateTime::fromString("03 Jul 1961 08:29:35 +0300",Qt::RFC2822Date),"03 Jul 1961 08:29:35 +0300",Qt::RFC2822Date),
+        TestDateTimeSample(QDateTime::fromString("16 Aug 1968 22:17:41 +0300",Qt::RFC2822Date),"16 Aug 1968 22:17:41 +0300",Qt::RFC2822Date),
+        TestDateTimeSample(QDateTime::fromString("16 Oct 2052 17:52:14 +0300",Qt::RFC2822Date),"16 Oct 2052 17:52:14 +0300",Qt::RFC2822Date),
+        TestDateTimeSample(QDateTime::fromString("2037-03-15T15:14:27.293",Qt::ISODateWithMs),"15 марта 2037 г. 15:14:27",Qt::SystemLocaleLongDate),
+        TestDateTimeSample(QDateTime::fromString("2029-08-25T13:04:34.076",Qt::ISODateWithMs),"25 августа 2029 г. 13:04:34",Qt::SystemLocaleLongDate),
+        TestDateTimeSample(QDateTime::fromString("1915-11-01T07:08:27.555",Qt::ISODateWithMs),"1 ноября 1915 г. 7:08:27",Qt::SystemLocaleLongDate),
+        TestDateTimeSample(QDateTime::fromString("2066-06-20T06:47:48.554",Qt::ISODateWithMs),"20.06.2066 6:47",Qt::SystemLocaleShortDate),
+        TestDateTimeSample(QDateTime::fromString("1950-05-24T04:55:18.792",Qt::ISODateWithMs),"24.05.1950 4:55",Qt::SystemLocaleShortDate),
+        TestDateTimeSample(QDateTime::fromString("2016-11-18T20:59:18.583",Qt::ISODateWithMs),"18.11.2016 20:59",Qt::SystemLocaleShortDate),
+        TestDateTimeSample(QDateTime::fromString("1970-05-28T04:55:06.498",Qt::ISODateWithMs),"Чт май 28 04:55:06 1970",Qt::TextDate),
+        TestDateTimeSample(QDateTime::fromString("2070-12-20T12:23:41.663",Qt::ISODateWithMs),"Сб дек 20 12:23:41 2070",Qt::TextDate),
+        TestDateTimeSample(QDateTime::fromString("2006-12-23T19:09:00.164",Qt::ISODateWithMs),"Сб дек 23 19:09:00 2006",Qt::TextDate),
     };
 
     foreach(const TestDateTimeSample& sample, samples) {
-        QDate date;
-        QTime time;
         QDateTime dateTime;
-        bool parsed = DateTime::parse(DateTime::TypeUnknown, sample.string(), date, time, dateTime, 1950, true, false);
+        bool parsed = DateTime::parseAsDateTime(sample.string(), dateTime, 1950, true, false);
         if (!parsed) {
             ok << false;
             qDebug() << "not parsed" << sample.string();
@@ -869,21 +885,25 @@ bool Tests::testDateTimeParse() {
             qDebug() << "!dateTime.isValid()" << sample.string();
         } else {
             bool hasMs = sample.format() == Qt::ISODateWithMs;
+            bool hasSeconds = !(sample.format() == Qt::SystemLocaleShortDate || sample.format() == Qt::DefaultLocaleShortDate);
             bool hasTimeZone = sample.format() == Qt::RFC2822Date;
             Qt::TimeSpec timeSpecExpected = (hasTimeZone ? Qt::OffsetFromUTC : Qt::LocalTime);
             if (dateTime.timeSpec() != timeSpecExpected) {
                 qDebug() << "timeSpec expected" << timeSpecExpected << "actual" << dateTime.timeSpec();
                 ok << false;
             }
-            QDateTime dateTime_ = sample.dateTime();
+            QDateTime dateTimeExpected = sample.dateTime();
             if (!hasMs) {
-                dateTime_ = dateTime_.addMSecs(-dateTime_.time().msec());
+                dateTimeExpected = dateTimeExpected.addMSecs(-dateTimeExpected.time().msec());
             }
-            dateTime_.setTimeSpec(Qt::LocalTime);
-            if (dateTime_ != dateTime) {
+            if (!hasSeconds) {
+                dateTimeExpected = dateTimeExpected.addSecs(-dateTimeExpected.time().second());
+            }
+
+            if (dateTimeExpected != dateTime) {
                 qDebug() << "not equals";
+                qDebug() << dateTimeExpected;
                 qDebug() << dateTime;
-                qDebug() << dateTime_;
                 qDebug() << sample.string();
                 qDebug() << sample.format();
                 ok << false;

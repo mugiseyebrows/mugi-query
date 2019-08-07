@@ -47,6 +47,11 @@ public:
     static bool parseAsDateTime(const QString &s, QDateTime &dateTime, int minYear, bool inLocalTime, bool outUtc);
     static TimeZone timeZone(const QString& code);
 
+    static void writeSamples();
+    static void writeNumber();
+    static void writeTimeZones();
+
+
 protected:
 
     static bool dateTimeMaybe(const QString &s);
@@ -65,18 +70,16 @@ protected:
 
     static MultinameEnum ruMonths();
     static MultinameEnum enMonths();
-    static QStringList ruWeekDaysShort();
-    static QStringList ruWeekDaysLong();
+    static MultinameEnum ruWeekDays();
 
     static QString parseTimeZone(const QString &s, QDateTime &dateTime, bool *hasTimeZone);
     static QTimeZone parseTimeZone(const QString &timeZone);
     static QTime parseAmPmTime(const QString& time_, const QString& ap, const QString& format);
     static QString parseTime(const QString &s, QTime &time);
     static QString parseDate(const QString &s, QDate &date, int minYear);
+    static bool parseDateTime(const QString &s, QDateTime &dateTime, int minYear, bool inLocalTime, bool outUtc);
 
-    static void writeSamples();
-    static void writeNumber();
-    static void writeTimeZones();
+
 };
 
 #endif // DATETIME_H

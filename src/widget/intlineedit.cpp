@@ -11,6 +11,12 @@ int IntLineEdit::value(bool *ok) const
     return text().toInt(ok);
 }
 
+int IntLineEdit::value(int defaultValue) const {
+    bool ok;
+    int value = this->value(&ok);
+    return ok ? value : defaultValue;
+}
+
 void IntLineEdit::setIfNoValue(int value) {
     bool ok;
     this->value(&ok);

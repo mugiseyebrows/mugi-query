@@ -11,6 +11,7 @@ class QSqlDatabase;
 
 #include "dataformat.h"
 #include "formats.h"
+#include "field.h"
 
 class DataStreamer
 {
@@ -29,10 +30,9 @@ public:
                                    const Formats& formats, const QLocale& locale,
                                    QString& error);
 
-    static QString createTableStatement(const QSqlDatabase &db, const QString &table, const QStringList &columns, const QStringList &types, const QList<bool> &primaryKey, const QList<bool> &autoincrements, bool ifNotExists);
+    static QString createTableStatement(const QSqlDatabase &db, const QString &table, const QList<Field> &fields, bool ifNotExists);
 
-    static QString stream(DataFormat::Format format, const QSqlDatabase &db, QAbstractItemModel *model, int rowCount, const QString &table, const QStringList &columns, const QStringList &types, int dataColumns, const QLocale &locale, bool *hasMore, QString &error);
-
+    static QString stream(DataFormat::Format format, const QSqlDatabase &db, QAbstractItemModel *model, int rowCount, const QString &table, const QList<Field> &fields, int dataColumns, const QLocale &locale, bool *hasMore, QString &error);
 };
 
 

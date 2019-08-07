@@ -41,21 +41,23 @@ QStringList column(const QList<QStringList>& data, int i) {
 
 }
 
-
 QString MultinameEnum::regExp() const
 {
-    int size = mNames[0].size();
     QStringList result;
-    for(int i=0;i<size;i++) {
-        result << group(column(mNames, i).toSet().toList(),false);
+    foreach(const QStringList& names, mNames) {
+        result.append(names);
     }
+    // sort by length in descending order
+    qSort(result.begin(),result.end(),[](const QString& s1, const QString& s2){
+        return s1.size() > s2.size();
+    });
     return group(result);
 }
 
 int MultinameEnum::indexOf(const QString &value) const
 {
-    foreach(const QStringList& item, mNames) {
-        int index = item.indexOf(value);
+    foreach(const QStringList& names, mNames) {
+        int index = names.indexOf(value);
         if (index > -1) {
             return index;
         }

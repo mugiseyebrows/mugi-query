@@ -129,15 +129,21 @@ var trs = [...document.querySelector('#tz-abb tbody').querySelectorAll('tr')]
 
 var zones = trs.map( tr => [...tr.querySelectorAll('td')].map( (e,i) => i == 1 ? e.childNodes[0].textContent.trim() : e.innerText.trim() ))
 
-var abbrs = zones.map( zone => zone[0] )
+var codes = zones.map( zone => zone[0] )
 
 var ambiguous = new Set()
 
-abbrs.forEach((abbr,i) => {
-	if (abbrs.indexOf(abbr) != i) {
-		ambiguous.add(abbr)
+codes.forEach((code,i) => {
+	if (codes.indexOf(code) != i) {
+		ambiguous.add(code)
 	}
 })
+
+var uniqueCodes = codes.filter( code => !ambiguous.has(code))
+
+uniqueCodes.sort( (a,b) => a.length > b.length ? -1 : 1 )
+
+//document.body.innerText = JSON.stringify(uniqueCodes)
 
 function findLongName(name, longNames) {
 	var name_ = [/*'Central','Western','Eastern'*/,'Standard','Time'/*,'Daylight','Summer'*/].reduce( (p,c) => p.replace(c,'').trim(), name).toLowerCase()

@@ -12,6 +12,7 @@ public:
     int value(bool* ok = 0) const;
     void setValue(int value);
     void setIfNoValue(int value);
+    int value(int defaultValue) const;
 signals:
     void valueChanged(int);
 public slots:

@@ -6,11 +6,13 @@
 #include <QDialog>
 #include <QModelIndex>
 #include "tokens.h"
+#include "field.h"
 
 class DataImportModel;
 class RichHeaderView;
 class DataImportColumnModel;
 class CallOnce;
+class IntLineEdit;
 
 class QLineEdit;
 class QComboBox;
@@ -29,6 +31,7 @@ public:
     enum WidgetIndex {
         WidgetName,
         WidgetType,
+        WidgetSize,
         WidgetFieldAttributes,
     };
 
@@ -64,12 +67,13 @@ protected slots:
     void onModelSetTypes();
     void onSetColumnNamesAndTypes();
 
+    void onColumnSizeChanged(int);
 signals:
     void appendQuery(QString);
 
 protected:
 
-    RichHeaderView *headerView();
+    RichHeaderView *headerView() const;
     void createHeaderViewWidgets();
 
     void setColumnNames(const QStringList &names);
@@ -80,11 +84,8 @@ protected:
     Ui::DataImportWidget *ui;
     QString mConnectionName;
     Tokens mTokens;
-    void namesTypesAndAttributes(QStringList &names,
-                                 QStringList &types,
-                                 QList<bool> &primaryKeys,
-                                 QList<bool> &autoicrements);
-    DataImportModel *dataModel();
+
+    DataImportModel *dataModel() const;
 
     QString queries(bool preview);
 
@@ -92,12 +93,17 @@ protected:
     CallOnce* mSetModelTypes;
     CallOnce* mSetColumnNamesAndTypes;
 
-    QWidget *widget(int row, int column);
-    QLineEdit *widgetName(int column);
-    QComboBox *widgetType(int column);
-    FieldAttributesWidget *widgetFieldAttributes(int column);
+    QWidget *widget(int row, int column) const;
+    QLineEdit *widgetName(int column) const;
+    QComboBox *widgetType(int column) const;
+    IntLineEdit *widgetSize(int column) const;
+    FieldAttributesWidget *widgetFieldAttributes(int column) const;
 
     QString tableName();
+    QList<Field> fields() const;
+
+    void setColumnSizes();
+    void setColumnAttributes();
 private slots:
     void on_clearData_clicked();
     void on_copyQuery_clicked();

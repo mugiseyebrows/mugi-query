@@ -19,6 +19,10 @@ public:
 
     bool autoincrement() const;
 
+    void setPrimaryKey(bool value);
+
+    void setAutoincrement(bool value);
+
 signals:
     void primaryKeyClicked(bool);
     void autoincrementClicked(bool);

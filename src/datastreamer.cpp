@@ -193,16 +193,15 @@ QString DataStreamer::variantToString(const QVariant& value,
     return QString();
 }
 
-QSqlRecord createDataRecord(const QStringList& columns,
-                      const QStringList& types) {
-
+QSqlRecord createDataRecord(const QList<Field>& fields) {
     QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
     QSqlRecord record;
-    for(int c=0;c<columns.size();c++) {
-        if (columns[c].isEmpty()) {
+
+    foreach(const Field& field, fields) {
+        if (field.name().isEmpty()) {
             continue;
         }
-        record.append(QSqlField(columns[c],m[types[c]]));
+        record.append(QSqlField(field.name(),m[field.type()]));
     }
     return record;
 }
@@ -212,8 +211,7 @@ QString DataStreamer::stream(DataFormat::Format format,
                              QAbstractItemModel* model,
                              int rowCount,
                              const QString &table,
-                             const QStringList& columns,
-                             const QStringList& types,
+                             const QList<Field>& fields,
                              int dataColumns,
                              const QLocale& locale,
                              bool* hasMore,
@@ -225,15 +223,10 @@ QString DataStreamer::stream(DataFormat::Format format,
 
     QTextStream stream(&result);
 
-    QList<bool> filter;
-    for(int i=0;i<model->columnCount();i++) {
-        filter << (!columns.value(i).isEmpty());
-    }
-
     QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
 
-    QSqlRecord dataRecord = createDataRecord(columns.mid(0,dataColumns), types.mid(0,dataColumns));
-    QSqlRecord keysRecord = createDataRecord(columns.mid(dataColumns),types.mid(dataColumns));
+    QSqlRecord dataRecord = createDataRecord(fields.mid(0,dataColumns));
+    QSqlRecord keysRecord = createDataRecord(fields.mid(dataColumns));
 
     *hasMore = false;
 
@@ -245,18 +238,19 @@ QString DataStreamer::stream(DataFormat::Format format,
 
         bool empty = true;
 
-        for(int c=0;c<columns.size();c++) {
-            if (columns[c].isEmpty()) {
+        for(int c=0;c<fields.size();c++) {
+            const Field& field = fields[c];
+            if (field.name().isEmpty()) {
                 continue;
             }
-            QVariant v = SqlDataTypes::tryConvert(model->data(model->index(r,c)), m[types[c]], locale, true, false);
+            QVariant v = SqlDataTypes::tryConvert(model->data(model->index(r,c)), m[field.type()], locale, true, false);
             if (!v.isNull()) {
                 empty = false;
             }
             if (c < dataColumns) {
-                dataRecord.setValue(columns[c],v);
+                dataRecord.setValue(field.name(),v);
             } else {
-                keysRecord.setValue(columns[c],v);
+                keysRecord.setValue(field.name(),v);
             }
         }
 
@@ -328,9 +322,7 @@ QString DataStreamer::multiInsert(const QSqlDatabase &db, const QString& tableNa
 #endif
 
 QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString &table,
-                                           const QStringList &columns, const QStringList &types,
-                                           const QList<bool>& primaryKey,
-                                           const QList<bool>& autoincrements,
+                                           const QList<Field>& fields,
                                            bool ifNotExists)
 {
     QSqlDriver* driver = db.driver();
@@ -342,13 +334,35 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
 
     QStringList typed;
     QStringList keys;
-    for(int c=0;c<columns.size();c++) {
-        if (columns[c].isEmpty()) {
+    for(int c=0;c<fields.size();c++) {
+
+        const Field& field = fields[c];
+
+        if (field.name().isEmpty()) {
             continue;
         }
-        QString identifier = driver->escapeIdentifier(columns[c],QSqlDriver::FieldName);
 
-        QString type = (driverName == "QPSLQ" && autoincrements[c]) ? "SERIAL" : specific[variant[types[c]]];
+        QString identifier = driver->escapeIdentifier(field.name(),QSqlDriver::FieldName);
+
+        QString type = specific[variant[field.type()]];
+
+        if (driverName == "QPSLQ" && field.autoincrement() && variant[field.type()] == QVariant::Int) {
+            type = "SERIAL";
+        }
+
+        static QMap<QString,QString> varchar = {
+            {"QMYSQL", "VARCHAR"},
+            {"QSQLITE", "VARCHAR"},
+            {"QODBC", "VARCHAR"},
+        };
+
+        if (variant[field.type()] == QVariant::String) {
+            if (field.size() > -1) {
+                type = QString("%1(%2)")
+                        .arg(varchar.value(driverName,"VARCHAR"))
+                        .arg(field.size());
+            }
+        }
 
         static QMap<QString,QString> driverAutoincrement =
         {
@@ -356,15 +370,13 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
             {"QSQLITE", "AUTOINCREMENT"},
         };
 
-        QString autoincrement = autoincrements[c] ? driverAutoincrement.value(driverName) : QString();
-
         QString columnSpec = QString("%1 %2 %3")
                 .arg(identifier)
                 .arg(type)
-                .arg(autoincrement)
+                .arg(field.autoincrement() ? driverAutoincrement.value(driverName) : QString())
                 .trimmed();
 
-        if (primaryKey[c]) {
+        if (field.primaryKey()) {
             keys << identifier;
         }
 

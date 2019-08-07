@@ -37,16 +37,16 @@ QString number(int min, int max, bool cap = true) {
         }
     } else {
         if (!up) {
-            result << range(min1,min1) + range(min2,9);
-            if (min1 == 0) {
-                result << range(min2,9);
-            }
+            result << range(min1,min1) + range(min2,9);   
         }
         if ((max1 - min1) > 1) {
             result << range(up ? min1 : min1 + 1, down ? max1 : max1 - 1) + range(0,9);
         }
         if (!down) {
             result << range(max1,max1) + range(0,max2);
+        }
+        if (min1 == 0) {
+            result << range(min2,9);
         }
     }
     return (cap ? "(" : "(?:") + result.join("|") + ")";
@@ -100,6 +100,7 @@ QString DateTime::regExp(DateTime::Type type, FormatDateTime formatDateTime, Dat
 
     static MultinameEnum ruMonths = DateTime::ruMonths();
     static MultinameEnum enMonths = DateTime::enMonths();
+    static MultinameEnum ruWeekDays = DateTime::ruWeekDays();
 
     if (type == TypeDateTime){
         static QMap<FormatDateTime, QString> exps = {
@@ -110,9 +111,9 @@ QString DateTime::regExp(DateTime::Type type, FormatDateTime formatDateTime, Dat
             // 1919-02-03T16:03:56.461
             {FormatDateTimeISOWithMs, "[0-9]{4}-" + number(1,12) + "-" + number(1,31) + "T" + hmsms},
             // пятница, 23 сентября 2039 г. 3:48:06 MSK
-            {FormatRuLong, group(ruWeekDaysLong()) + ",\\s" + number(1,31) + "\\s" + ruMonths.regExp() + "\\s" + group(fourDigits) + yearDot + "\\s" + group(hms) + timeZoneRegExp()},
+            {FormatRuLong, ruWeekDays.regExp() + "[,.]?\\s" + number(1,31) + "\\s" + ruMonths.regExp() + "\\s" + group(fourDigits) + yearDot + "\\s" + group(hms) + timeZoneRegExp()},
             // вт апр. 19 20:54:17 1988
-            {FormatRuShort, group(ruWeekDaysShort()) + "\\s" + ruMonths.regExp() + "[.]?\\s" + number(1,31) + "\\s" + group(hms) + "\\s" + group(fourDigits)},
+            {FormatRuShort, ruWeekDays.regExp() + "\\s" + ruMonths.regExp() + "[.]?\\s" + number(1,31) + "\\s" + group(hms) + "\\s" + group(fourDigits)},
         };
         return exps[formatDateTime];
     } else if (type == TypeDate) {
@@ -178,21 +179,125 @@ QString DateTime::parseTime(const QString& s, QTime& time) {
     QStringList formats_ = {"h:m:s.z","h:m:s","h:m"};
     QList<QRegularExpression> exps;
     foreach (FormatTime format, formats) {
-        exps << QRegularExpression(regExpTime(format), QRegularExpression::CaseInsensitiveOption);
+        exps << QRegularExpression(head(regExpTime(format) + "\\s?"), QRegularExpression::CaseInsensitiveOption);
     }
     for(int i=0;i<formats.size();i++) {
         QRegularExpression rx = exps[i];
-        QRegularExpressionMatch m = rx.match(head(s + "\\s?"));
+        QRegularExpressionMatch m = rx.match(s);
         if (m.hasMatch()) {
             if (m.lastCapturedIndex() == 2) {
                 time = parseAmPmTime(m.captured(1),m.captured(2),formats_[i]);
             } else {
                 time = QTime::fromString(m.captured(1),formats_[i]);
             }
-            return s.mid(m.capturedLength());
+
+            QString tail = s.mid(m.capturedLength());
+            return tail;
         }
     }
     return s;
+}
+
+bool DateTime::parseDateTime(const QString& s, QDateTime& dateTime,
+                             int minYear, bool inLocalTime, bool outUtc) {
+
+    QList<FormatDateTime> formats = {FormatDateTimeRFC2822, FormatDateTimeISO, FormatDateTimeISOWithMs};
+    QList<Qt::DateFormat> formats_ = {Qt::RFC2822Date, Qt::ISODate, Qt::ISODateWithMs};
+    QList<QRegularExpression> exps;
+    foreach(FormatDateTime format, formats) {
+        exps << QRegularExpression(whole(regExpDateTime(format)),QRegularExpression::CaseInsensitiveOption);
+    }
+
+    for(int i=0;i<formats.size();i++) {
+        QRegularExpressionMatch m = exps[i].match(s);
+        if (m.hasMatch()) {
+            dateTime = QDateTime::fromString(s,formats_[i]);
+            if (dateTime.isValid()) {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    MultinameEnum ruMonths = DateTime::ruMonths();
+
+    QRegularExpression rx;
+    QRegularExpressionMatch m;
+    QString exp = whole(regExpDateTime(FormatRuLong));
+    rx = QRegularExpression(exp,QRegularExpression::CaseInsensitiveOption);
+    m = rx.match(s);
+    if (m.hasMatch()) {
+
+        // 1          2    3          4         5         6
+        // (пятница), (23) (сентября) (2039) г. (3:48:06) (MSK)
+        int day = m.captured(2).toInt();
+        int month = ruMonths.indexOf(m.captured(3).toLower()) + 1;
+        int year = m.captured(4).toInt();
+        QTime time_ = QTime::fromString(m.captured(5),"h:m:s");
+        if (!time_.isValid()) {
+            qDebug() << __FILE__ << __LINE__ << m.captured(5);
+            return false;
+        }
+        QTimeZone timeZone = parseTimeZone(m.captured(6));
+        if (!timeZone.isValid()) {
+            qDebug() << __FILE__ << __LINE__ << m.captured(6);
+            return false;
+        }
+        QDateTime dateTime_(QDate(year,month,day),time_,timeZone);
+        dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
+        return true;
+    }
+
+    exp = whole(regExpDateTime(FormatRuShort));
+    rx = QRegularExpression(exp,QRegularExpression::CaseInsensitiveOption);
+    m = rx.match(s);
+    if (m.hasMatch()) {
+        // 1    2      3    4          5
+        // (вт) (апр). (19) (20:54:17) (1988)
+
+        int day = m.captured(3).toInt();
+        int month = ruMonths.indexOf(m.captured(2).toLower()) + 1;
+        int year = m.captured(5).toInt();
+
+        if (month < 1) {
+            qDebug() << __FILE__ << __LINE__ << m.captured(2).toLower();
+        }
+
+        QTime time_ = QTime::fromString(m.captured(4),"h:m:s");
+        if (!time_.isValid()) {
+            qDebug() << __FILE__ << __LINE__ << m.captured(4);
+            return false;
+        }
+        QDateTime dateTime_(QDate(year,month,day),time_,inLocalTime ? Qt::LocalTime : Qt::UTC);
+        dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
+        return true;
+    }
+
+    QDate date_;
+    QTime time_;
+    QString s_ = parseDate(s, date_, minYear);
+    if (!date_.isValid()) {
+        return false;
+    }
+    s_ = parseTime(s_, time_);
+    if (!time_.isValid()) {
+        return false;
+    }
+    bool hasTimeZone;
+    QDateTime dateTime_(date_,time_);
+    s_ = parseTimeZone(s_, dateTime_, &hasTimeZone);
+    if (!s_.isEmpty()) {
+        return false;
+    }
+    if (!dateTime_.isValid()) {
+        qDebug() << __FILE__ << __LINE__;
+        return false;
+    }
+    if (!hasTimeZone) {
+        dateTime_ = QDateTime(date_, time_, inLocalTime ? Qt::LocalTime : Qt::UTC);
+    }
+    dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
+    return true;
 }
 
 QString DateTime::parseDate(const QString& s, QDate& date, int minYear) {
@@ -293,103 +398,7 @@ bool DateTime::parse(Type type, const QString& s, QDate& date, QTime& time,
             return false;
         }
 
-        QList<FormatDateTime> formats = {FormatDateTimeRFC2822, FormatDateTimeISO, FormatDateTimeISOWithMs};
-        QList<Qt::DateFormat> formats_ = {Qt::RFC2822Date, Qt::ISODate, Qt::ISODateWithMs};
-        QList<QRegularExpression> exps;
-        foreach(FormatDateTime format, formats) {
-            exps << QRegularExpression(whole(regExpDateTime(format)),QRegularExpression::CaseInsensitiveOption);
-        }
-
-        for(int i=0;i<formats.size();i++) {
-            QRegularExpressionMatch m = exps[i].match(s);
-            if (m.hasMatch()) {
-                dateTime = QDateTime::fromString(s,formats_[i]);
-                if (dateTime.isValid()) {
-                    return true;
-                }
-                return false;
-            }
-        }
-
-        MultinameEnum ruMonths = DateTime::ruMonths();
-
-        QRegularExpression rx;
-        QRegularExpressionMatch m;
-        QString exp = whole(regExpDateTime(FormatRuLong));
-        rx = QRegularExpression(exp,QRegularExpression::CaseInsensitiveOption);
-        m = rx.match(s);
-        if (m.hasMatch()) {
-
-            // 1          2    3          4         5         6
-            // (пятница), (23) (сентября) (2039) г. (3:48:06) (MSK)
-            int day = m.captured(2).toInt();
-            int month = ruMonths.indexOf(m.captured(3).toLower()) + 1;
-            int year = m.captured(4).toInt();
-            QTime time_ = QTime::fromString(m.captured(5),"h:m:s");
-            if (!time_.isValid()) {
-                qDebug() << __FILE__ << __LINE__ << m.captured(5);
-                return false;
-            }
-            QTimeZone timeZone = parseTimeZone(m.captured(6));
-            if (!timeZone.isValid()) {
-                qDebug() << __FILE__ << __LINE__ << m.captured(6);
-                return false;
-            }
-            QDateTime dateTime_(QDate(year,month,day),time_,timeZone);
-            dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
-            return true;
-        }
-
-        exp = whole(regExpDateTime(FormatRuShort));
-        rx = QRegularExpression(exp,QRegularExpression::CaseInsensitiveOption);
-        m = rx.match(s);
-        if (m.hasMatch()) {
-            // 1    2      3    4          5
-            // (вт) (апр). (19) (20:54:17) (1988)
-
-            int day = m.captured(3).toInt();
-            int month = ruMonths.indexOf(m.captured(2).toLower()) + 1;
-            int year = m.captured(5).toInt();
-
-            if (month < 1) {
-                qDebug() << __FILE__ << __LINE__ << m.captured(2).toLower();
-            }
-
-            QTime time_ = QTime::fromString(m.captured(4),"h:m:s");
-            if (!time_.isValid()) {
-                qDebug() << __FILE__ << __LINE__ << m.captured(4);
-                return false;
-            }
-            QDateTime dateTime_(QDate(year,month,day),time_,inLocalTime ? Qt::LocalTime : Qt::UTC);
-            dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
-            return true;
-        }
-
-        QDate date_;
-        QTime time_;
-        QString s_ = parseDate(s, date_, minYear);
-        if (!date_.isValid()) {
-            return false;
-        }
-        s_ = parseTime(s_, time_);
-        if (!time_.isValid()) {
-            return false;
-        }
-        bool hasTimeZone;
-        QDateTime dateTime_(date_,time_);
-        s_ = parseTimeZone(s_, dateTime_, &hasTimeZone);
-        if (!s_.isEmpty()) {
-            return false;
-        }
-        if (!dateTime_.isValid()) {
-            qDebug() << __FILE__ << __LINE__;
-            return false;
-        }
-        if (!hasTimeZone) {
-            dateTime_ = QDateTime(date_, time_, inLocalTime ? Qt::LocalTime : Qt::UTC);
-        }
-        dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
-        return true;
+        return parseDateTime(s, dateTime, minYear, inLocalTime, outUtc);
     }
 
     return false;
@@ -636,31 +645,26 @@ TimeZone DateTime::timeZone(const QString &code)
 QString DateTime::timeZoneRegExp()
 {
     // see timezones.js
-    static QStringList tzs = {"A", "ACDT", "ACST", "ACT", "ACT", "ACWST",
-    "ADT", "ADT", "AEDT", "AEST", "AET", "AFT", "AKDT", "AKST", "ALMT", "AMST",
-    "AMST", "AMT", "AMT", "ANAST", "ANAT", "AQTT", "ART", "AST", "AST", "AT",
-    "AWDT", "AWST", "AZOST", "AZOT", "AZST", "AZT", "AoE", "B", "BNT", "BOT",
-    "BRST", "BRT", "BST", "BST", "BST", "BTT", "C", "CAST", "CAT", "CCT",
-    "CDT", "CDT", "CEST", "CET", "CHADT", "CHAST", "CHOST", "CHOT", "CHUT",
-    "CIDST", "CIST", "CKT", "CLST", "CLT", "COT", "CST", "CST", "CST", "CT",
-    "CVT", "CXT", "ChST", "D", "DAVT", "DDUT", "E", "EASST", "EAST", "EAT",
-    "ECT", "EDT", "EEST", "EET", "EGST", "EGT", "EST", "ET", "F", "FET",
-    "FJST", "FJT", "FKST", "FKT", "FNT", "G", "GALT", "GAMT", "GET", "GFT",
-    "GILT", "GMT", "GST", "GST", "GYT", "H", "HDT", "HKT", "HOVST", "HOVT",
-    "HST", "I", "ICT", "IDT", "IOT", "IRDT", "IRKST", "IRKT", "IRST", "IST",
-    "IST", "IST", "JST", "K", "KGT", "KOST", "KRAST", "KRAT", "KST", "KUYT",
-    "L", "LHDT", "LHST", "LINT", "M", "MAGST", "MAGT", "MART", "MAWT", "MDT",
-    "MHT", "MMT", "MSD", "MSK", "MST", "MT", "MUT", "MVT", "MYT", "N", "NCT",
-    "NDT", "NFDT", "NFT", "NOVST", "NOVT", "NPT", "NRT", "NST", "NUT", "NZDT",
-    "NZST", "O", "OMSST", "OMST", "ORAT", "P", "PDT", "PET", "PETST", "PETT",
-    "PGT", "PHOT", "PHT", "PKT", "PMDT", "PMST", "PONT", "PST", "PST", "PT",
-    "PWT", "PYST", "PYT", "PYT", "Q", "QYZT", "R", "RET", "ROTT", "S", "SAKT",
-    "SAMT", "SAST", "SBT", "SCT", "SGT", "SRET", "SRT", "SST", "SYOT", "T",
-    "TAHT", "TFT", "TJT", "TKT", "TLT", "TMT", "TOST", "TOT", "TRT", "TVT",
-    "U", "ULAST", "ULAT", "UTC", "UYST", "UYT", "UZT", "V", "VET", "VLAST",
-    "VLAT", "VOST", "VUT", "W", "WAKT", "WARST", "WAST", "WAT", "WEST", "WET",
-    "WFT", "WGST", "WGT", "WIB", "WIT", "WITA", "WST", "WST", "WT", "X", "Y",
-    "YAKST", "YAKT", "YAPT", "YEKST", "YEKT", "Z"};
+    static QStringList tzs = {"YEKST", "YAKST", "WARST", "VLAST", "ULAST", "PETST", "OMSST", "NOVST",
+                              "MAGST", "KRAST", "IRKST", "HOVST", "EASST", "CIDST", "CHOST", "CHAST", "CHADT",
+                              "AZOST", "ANAST", "ACWST", "YEKT", "YAPT", "YAKT", "WITA", "WGST", "WEST",
+                              "WAST", "WAKT", "VOST", "VLAT", "UYST", "ULAT", "TOST", "TAHT", "SYOT", "SRET",
+                              "SAST", "SAMT", "SAKT", "ROTT", "QYZT", "PYST", "PONT", "PMST", "PMDT", "PHOT",
+                              "PETT", "ORAT", "OMST", "NZST", "NZDT", "NOVT", "NFDT", "MAWT", "MART", "MAGT",
+                              "LINT", "LHST", "LHDT", "KUYT", "KRAT", "KOST", "IRST", "IRKT", "IRDT", "HOVT",
+                              "GILT", "GAMT", "GALT", "FKST", "FJST", "EGST", "EEST", "EAST", "DDUT", "DAVT",
+                              "ChST", "CLST", "CIST", "CHUT", "CHOT", "CEST", "CAST", "BRST", "AZST", "AZOT",
+                              "AWST", "AWDT", "AQTT", "ANAT", "ALMT", "AKST", "AKDT", "AEST", "AEDT", "ACST",
+                              "ACDT", "WIT", "WIB", "WGT", "WFT", "WET", "WAT", "VUT", "VET", "UZT", "UYT",
+                              "UTC", "TVT", "TRT", "TOT", "TMT", "TLT", "TKT", "TJT", "TFT", "SST", "SRT",
+                              "SGT", "SCT", "SBT", "RET", "PWT", "PKT", "PHT", "PGT", "PET", "PDT", "NUT",
+                              "NST", "NRT", "NPT", "NFT", "NDT", "NCT", "MYT", "MVT", "MUT", "MST", "MSK",
+                              "MSD", "MMT", "MHT", "MDT", "KST", "KGT", "JST", "IOT", "IDT", "ICT", "HST",
+                              "HKT", "HDT", "GYT", "GMT", "GFT", "GET", "FNT", "FKT", "FJT", "FET", "EST",
+                              "EGT", "EET", "EDT", "ECT", "EAT", "CXT", "CVT", "COT", "CLT", "CKT", "CET",
+                              "CCT", "CAT", "BTT", "BRT", "BOT", "BNT", "AoE", "AZT", "ART", "AFT", "AET",
+                              "WT", "PT", "MT", "ET", "CT", "AT", "Z", "Y", "X", "W", "V", "U", "T", "S", "R",
+                              "Q", "P", "O", "N", "M", "L", "K", "I", "H", "G", "F", "E", "D", "C", "B", "A"};
 
     QString tzNumeric = "[+][0-9]{4}";
     QString tzRtz = "RTZ\\s[0-9]+\\s[(]зима[)]";
@@ -668,26 +672,30 @@ QString DateTime::timeZoneRegExp()
     return group(tzs.join("|") + "|" + tzNumeric + "|" + tzRtz);
 }
 
-QTimeZone DateTime::parseTimeZone(const QString& timeZone) {
+QTimeZone DateTime::parseTimeZone(const QString& timeZoneCode) {
 
     QRegularExpression tzNumeric("[+]([0-9]{2})([0-9]{2})");
     QRegularExpression tzRtz("RTZ\\s([0-9]+)\\s[(]зима[)]");
 
-    QRegularExpressionMatch m = tzNumeric.match(timeZone);
+    QRegularExpressionMatch m = tzNumeric.match(timeZoneCode);
     if (m.hasMatch()) {
         int hours = m.captured(1).toInt();
         int minutes = m.captured(2).toInt();
         return QTimeZone(hours * 3600 + minutes * 60);
     }
-    m = tzRtz.match(timeZone);
+    m = tzRtz.match(timeZoneCode);
     if (m.hasMatch()) {
         int rtz = m.captured(1).toInt();
         return QTimeZone((rtz + 1) * 3600);
     }
 
-    TimeZone timeZone_ = DateTime::timeZone(timeZone);
-    if (timeZone_.isValid()) {
-        return QTimeZone(timeZone_.ianaId());
+    TimeZone timeZoneData = DateTime::timeZone(timeZoneCode);
+    if (timeZoneData.isValid()) {
+        QTimeZone timeZone =  QTimeZone(timeZoneData.ianaId());
+        if (!timeZone.isValid()) {
+            timeZone = QTimeZone(timeZoneData.offset());
+        }
+        return timeZone;
     }
     return QTimeZone();
 }
@@ -723,13 +731,10 @@ MultinameEnum DateTime::enMonths() {
     {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"});
 }
 
-QStringList DateTime::ruWeekDaysShort()
-{
-    return {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
-}
-
-QStringList DateTime::ruWeekDaysLong() {
-    return {"понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"};
+MultinameEnum DateTime::ruWeekDays() {
+    return MultinameEnum(
+                {"пн", "вт", "ср", "чт", "пт", "сб", "вс"},
+                {"понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"});
 }
 
 void DateTime::writeSamples()
@@ -784,7 +789,7 @@ void DateTime::writeSamples()
                 int M = 1 + (rand() % 12);
                 int d = 1 + (rand() % 28);
 
-                M = 1 + (j % 12);
+                //M = 1 + (j % 12);
                 //d = 1 + (j % 28);
                 //y = 2000;
                 //M = 1;
@@ -817,11 +822,11 @@ void DateTime::writeSamples()
                     if (1) {
 
                         stream << QString("Test%4Sample(Q%4::fromString(\"%1\",%5),\"%2\",Qt::%3),\n")
-                                  .arg(dateTime.toString(Qt::ISODateWithMs))
+                                  .arg(dateTime.toString(format == Qt::RFC2822Date ? Qt::RFC2822Date : Qt::ISODateWithMs))
                                   .arg(dateTime.toString(format))
                                   .arg(formatName)
                                   .arg("DateTime")
-                                  .arg("Qt::ISODateWithMs");
+                                  .arg(format == Qt::RFC2822Date ? "Qt::RFC2822Date" : "Qt::ISODateWithMs");
                     } else {
                         stream << dateTime.toString(format) << "\n";
                     }

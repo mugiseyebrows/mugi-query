@@ -26,6 +26,16 @@ bool FieldAttributesWidget::autoincrement() const
     return ui->autoincrement->isChecked();
 }
 
+void FieldAttributesWidget::setPrimaryKey(bool value)
+{
+    ui->primaryKey->setChecked(value);
+}
+
+void FieldAttributesWidget::setAutoincrement(bool value)
+{
+    ui->autoincrement->setChecked(value);
+}
+
 void FieldAttributesWidget::on_primaryKey_stateChanged(int state)
 {
     //ui->autoincrement->setVisible(state == Qt::Checked);
