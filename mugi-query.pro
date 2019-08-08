@@ -129,7 +129,9 @@ HEADERS += \
     src/timezone.h \
     src/multinameenum.h \
     src/widget/fieldattributeswidget.h \
-    src/field.h
+    src/field.h \
+    src/testdatetime2sample.h \
+    src/datasavedialogstate.h
 
 SOURCES += \
     src/action.cpp \
@@ -216,7 +218,9 @@ SOURCES += \
     src/timezone.cpp \
     src/multinameenum.cpp \
     src/widget/fieldattributeswidget.cpp \
-    src/field.cpp
+    src/field.cpp \
+    src/testdatetime2sample.cpp \
+    src/datasavedialogstate.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

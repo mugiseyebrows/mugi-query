@@ -9,9 +9,15 @@ class SaveDataDialog;
 
 class QSqlQueryModel;
 class DataImportColumnModel;
+class CallOnce;
 
 #include "dataformat.h"
 #include "outputtype.h"
+#include "datasavedialogstate.h"
+#include <QSqlDatabase>
+
+
+class Tokens;
 
 class SaveDataDialog : public QDialog
 {
@@ -19,7 +25,8 @@ class SaveDataDialog : public QDialog
 
 public:
 
-    explicit SaveDataDialog(QSqlQueryModel *model, QWidget *parent = 0);
+    explicit SaveDataDialog(const QSqlDatabase &database, QSqlQueryModel *model,
+                            const Tokens& tokens, QWidget *parent = 0);
     ~SaveDataDialog();
 
     DataFormat::Format format() const;
@@ -34,6 +41,13 @@ public:
     DataImportColumnModel *dataModel() const;
     DataImportColumnModel *keysModel() const;
 
+    void init();
+
+    void save();
+
+    static DataSaveDialogState mState;
+
+    QString filePath() const;
 
 public slots:
 
@@ -45,9 +59,17 @@ private slots:
 
     void on_format_currentIndexChanged(int index);
 
+    void on_output_currentIndexChanged(int index);
+
+    void on_selectPath_clicked();
+
+    void onUpdatePreview();
+
 private:
     Ui::SaveDataDialog *ui;
     QSqlQueryModel* mModel;
+    QSqlDatabase mDatabase;
+    CallOnce* mUpdatePreview;
 };
 
 #endif // SAVEDATADIALOG_H

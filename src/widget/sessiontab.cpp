@@ -24,6 +24,8 @@
 
 #include "statview.h"
 #include "clipboard.h"
+#include <QSharedPointer>
+#include "error.h"
 
 namespace {
 
@@ -215,59 +217,51 @@ void SessionTab::saveData()
         return;
     }
 
-    SaveDataDialog dialog(model,this);
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
+    SaveDataDialog dialog(db,model,ui->query->tokens(),this);
+    dialog.init();
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
+    dialog.save();
 
     //qDebug() << "dialog.output()" << dialog.output();
 
-    QFile* file = 0;
-    QTextStream* stream = 0;
+    QSharedPointer<QFile> file;
+    QSharedPointer<QTextStream> stream;
     QString output;
 
     if (dialog.output() == OutputType::File) {
-        QString filter;
-        if (dialog.format() == DataFormat::Csv) {
-            filter = "csv files (*.csv)";
-        } else if (dialog.format() == DataFormat::Tsv) {
-            filter = "tsv files (*.tsv)";
-        } else {
-            filter = "sql files (*.sql)";
-        }
-        QString name = QFileDialog::getSaveFileName(this,QString(),QString(),filter);
-        if (name.isEmpty()) {
+
+        QString filePath = dialog.filePath();
+        if (filePath.isEmpty()) {
+            qDebug() << __FILE__ << __LINE__;
             return;
         }
-        file = new QFile(name);
+        file = QSharedPointer<QFile>(new QFile(filePath));
         if (!file->open(QIODevice::WriteOnly)) {
-            QMessageBox::critical(this,"Error",QString("Can not open file %1").arg(name));
-            file->deleteLater();
+            QMessageBox::critical(this,"Error",QString("Can not open file %1").arg(filePath));
             return;
         }
-        stream = new QTextStream(file);
+        stream = QSharedPointer<QTextStream>(new QTextStream(file.get()));
     } else {
-        stream = new QTextStream(&output,QIODevice::WriteOnly);
+        stream = QSharedPointer<QTextStream>(new QTextStream(&output,QIODevice::WriteOnly));
     }
 
-    if (stream) {
+    if (!stream.isNull()) {
         stream->setCodec(QTextCodec::codecForName("UTF-8"));
     }
 
     QString error;
-
-    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    bool hasMore;
 
     DataStreamer::stream(db,*stream,model,dialog.format(),dialog.table(),
                          dialog.dataChecked(),dialog.keysChecked(),
-                         DataFormat::ActionSave,locale(),error);
+                         DataFormat::ActionSave,false,&hasMore,locale(),error);
 
     if (!error.isEmpty()) {
-        QMessageBox::critical(this,"Error",error);
-        if (file) {
-            file->deleteLater();
-        }
-        delete stream;
+        Error::show(this,error);
         return;
     }
 
@@ -278,11 +272,7 @@ void SessionTab::saveData()
         clipboard->setText(output);
     }
 
-    if (file) {
-        file->deleteLater();
-    }
 
-    delete stream;
 }
 
 void SessionTab::copySelected(bool asList)
@@ -294,7 +284,7 @@ void SessionTab::copySelected(bool asList)
     QString error;
     QItemSelection selection = currentView()->selectionModel()->selection();
     if (asList) {
-        Clipboard::copySelectedAsList(model, selection, locale(), error);
+        Clipboard::copySelectedAsList(model, selection);
     } else {
         QString separator = "\t";
         DataFormat::Format format = DataFormat::Csv;

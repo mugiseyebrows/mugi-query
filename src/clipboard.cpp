@@ -8,6 +8,11 @@
 #include <QClipboard>
 #include <QApplication>
 #include "rowvaluesetter.h"
+#include <QSqlQueryModel>
+#include <QSqlDriver>
+#include <QSqlQuery>
+#include <QSqlRecord>
+#include <QSqlField>
 
 void Clipboard::streamRange(QTextStream& stream, const QItemSelectionRange &rng,
                                   DataFormat::Format format,
@@ -119,24 +124,22 @@ void Clipboard::copySelected(QAbstractItemModel *model, const QItemSelection& se
 
 }
 
-void Clipboard::copySelectedAsList(QAbstractItemModel *model,
-                                         const QItemSelection &selection,
-                                         const QLocale& locale, QString& error)
+
+
+void Clipboard::copySelectedAsList(QSqlQueryModel *model,
+                                         const QItemSelection &selection)
 {
-    QVariantList vs;
-    foreach(const QItemSelectionRange& rng, selection) {
-        for(int row = rng.topLeft().row(); row <= rng.bottomRight().row(); row++) {
-            for (int column = rng.topLeft().column(); column <= rng.bottomRight().column(); column++) {
-                vs << model->data(model->index(row,column));
-            }
+    QStringList result;
+    const QSqlDriver* driver = model->query().driver();
+
+    foreach(const QItemSelectionRange& range, selection) {
+        QModelIndexList indexes = range.indexes();
+        foreach(const QModelIndex& index, indexes) {
+            const QSqlRecord& record = model->record(index.row());
+            result << driver->formatValue(record.field(index.column()));
         }
     }
-    Formats formats(DataFormat::ActionCopy);
-    QStringList ss = DataStreamer::variantListToStringList(vs,DataFormat::SqlInsert,formats,locale,error);
-    if (!error.isEmpty()) {
-        return;
-    }
     QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText("(" + ss.join(",") + ")");
+    clipboard->setText("(" + result.join(",") + ")");
     return;
 }

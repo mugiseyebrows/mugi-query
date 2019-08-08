@@ -281,7 +281,7 @@ QString DataStreamer::stream(DataFormat::Format format,
     return result;
 }
 
-
+#if 0
 static QString prepareIdentifier(const QString &identifier,
         QSqlDriver::IdentifierType type, const QSqlDriver *driver)
 {
@@ -293,7 +293,7 @@ static QString prepareIdentifier(const QString &identifier,
     return ret;
 }
 
-#if 0
+
 QString DataStreamer::multiInsert(const QSqlDatabase &db, const QString& tableName, const QList<QSqlRecord>& records) {
 
     QSqlDriver* driver = db.driver();
@@ -396,16 +396,24 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
 
 void DataStreamer::stream(const QSqlDatabase& db, QTextStream &stream, QSqlQueryModel *model,  DataFormat::Format format,
                           const QString &table, QList<bool> data, QList<bool> keys,
-                          DataFormat::ActionType action, const QLocale& locale, QString& error)
+                          DataFormat::ActionType action,
+                          bool preview, bool* hasMore, const QLocale& locale, QString& error)
 {
     Formats formats(action);
+
+    int rowCount = model->rowCount();
+    if (preview) {
+        *hasMore = rowCount > 5;
+        rowCount = 5;
+    }
 
     if (format == DataFormat::Csv || format == DataFormat::Tsv) {
 
         QString sep = format == DataFormat::Csv ? ";" : "\t";
 
         stream << filterHeader(model,data).join(sep) << "\n";
-        for(int r=0; r<model->rowCount(); r++) {
+
+        for(int r=0; r<rowCount; r++) {
             stream << variantListToStringList(filterData(model,r,data),format,formats,locale,error).join(sep) << "\n";
             if (!error.isEmpty()) {
                 return;
@@ -425,7 +433,7 @@ void DataStreamer::stream(const QSqlDatabase& db, QTextStream &stream, QSqlQuery
             }
         }
 
-        for(int r=0;r<model->rowCount();r++) {
+        for(int r=0;r<rowCount;r++) {
             QSqlRecord record = model->record(r);
             for(int c=0;c<model->columnCount();c++) {
                 if (data[c]) {
@@ -453,7 +461,7 @@ void DataStreamer::stream(const QSqlDatabase& db, QTextStream &stream, QSqlQuery
             }
         }
 
-        for(int r=0;r<model->rowCount();r++) {
+        for(int r=0;r<rowCount;r++) {
             QSqlRecord record = model->record(r);
             for(int c=0;c<model->columnCount();c++) {
                 if (data[c]) {

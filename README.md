@@ -38,7 +38,7 @@ make release
 In terminal run
 
 ```bash
-sudo apt install build-essential qtbase5-dev libqwt-qt5-dev libqt5svg5-dev libqt5sql5-ibase libqt5sql5-mysql libqt5sql5-odbc libqt5sql5-psql libqt5sql5-sqlite libqt5sql5-tds git
+sudo apt install build-essential qtbase5-dev qtchooser libqwt-qt5-dev libqt5svg5-dev libqt5sql5-ibase libqt5sql5-mysql libqt5sql5-odbc libqt5sql5-psql libqt5sql5-sqlite libqt5sql5-tds git
 git clone git@github.com:mugiseyebrows/mugi-grep.git
 cd mugi-grep
 qmake -qt=5 'CONFIG+=release'

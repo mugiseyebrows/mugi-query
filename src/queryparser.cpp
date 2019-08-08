@@ -305,6 +305,29 @@ document.body.innerText = types.map( e => '"' + e + '"').join(' << ')
     return QStringList{};
 }
 
+QString QueryParser::tableNameFromSelectQuery(const QString &query, bool* many)
+{
+    QRegularExpression rx("\\bfrom\\s*([^)(,\\s]+)(?:\\s*)(,)?(?:\\s*)([^)(,\\s]*)", QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
+    QRegularExpressionMatchIterator it = rx.globalMatch(query);
+    QStringList tables;
+    while (it.hasNext()) {
+        QRegularExpressionMatch m = it.next();
+        tables << m.captured(1).toLower();
+        QString second = m.captured(2);
+        QString third = m.captured(3).toLower();
+        if (!second.isEmpty() && !third.isEmpty()) {
+            tables << third;
+        }
+    }
+    *many = tables.size() > 1;
+    rx = QRegularExpression("\\bjoin\\b", QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
+    QRegularExpressionMatch m = rx.match(query);
+    if (m.hasMatch()) {
+        *many = true;
+    }
+    return (tables.size() == 1 && *many == false) ? tables.first() : QString();
+}
+
 namespace {
 
 bool goesFirst(const QRegularExpressionMatch& m1, const QList<QRegularExpressionMatch>& ms) {

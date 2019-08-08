@@ -447,6 +447,7 @@ void DataImportWidget::onModelSetTypes() {
     }
 
     QMap<int,QVariant::Type> columnType;
+    QMap<int,int> columnSize;
 
     /*QStringList names;
     QStringList types;
@@ -464,9 +465,10 @@ void DataImportWidget::onModelSetTypes() {
             continue;
         }
         columnType[c] = m[field.type()];
+        columnSize[c] = field.size();
     }
 
-    model->setTypes(columnType);
+    model->setTypes(columnType, columnSize);
     mUpdatePreview->onPost();
 }
 
@@ -475,7 +477,7 @@ void DataImportWidget::onColumnTypeChanged(int) {
 }
 
 void DataImportWidget::onColumnSizeChanged(int) {
-    mUpdatePreview->onPost();
+    mSetModelTypes->onPost();
 }
 
 void DataImportWidget::onColumnNameChanged(int) {
@@ -496,8 +498,6 @@ void DataImportWidget::newOrExistingTable() {
     setSpacerEnabled(ui->verticalSpacer,newTable,ui->groupBox->layout());
     createHeaderViewWidgets();
     onUpdateTitle();
-
-
 
     mUpdatePreview->onPost();
 }

@@ -18,6 +18,7 @@ public:
     ~TextEdit();
 
     void setTokens(const Tokens &tokens);
+    Tokens tokens() const;
     void updateCompleter();
 signals:
     void submit();

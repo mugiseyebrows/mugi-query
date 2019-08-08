@@ -101,6 +101,7 @@ QString DateTime::regExp(DateTime::Type type, FormatDateTime formatDateTime, Dat
     static MultinameEnum ruMonths = DateTime::ruMonths();
     static MultinameEnum enMonths = DateTime::enMonths();
     static MultinameEnum ruWeekDays = DateTime::ruWeekDays();
+    static MultinameEnum enWeekDays = DateTime::enWeekDays();
 
     if (type == TypeDateTime){
         static QMap<FormatDateTime, QString> exps = {
@@ -111,9 +112,11 @@ QString DateTime::regExp(DateTime::Type type, FormatDateTime formatDateTime, Dat
             // 1919-02-03T16:03:56.461
             {FormatDateTimeISOWithMs, "[0-9]{4}-" + number(1,12) + "-" + number(1,31) + "T" + hmsms},
             // пятница, 23 сентября 2039 г. 3:48:06 MSK
-            {FormatRuLong, ruWeekDays.regExp() + "[,.]?\\s" + number(1,31) + "\\s" + ruMonths.regExp() + "\\s" + group(fourDigits) + yearDot + "\\s" + group(hms) + timeZoneRegExp()},
+            {FormatRuLong, ruWeekDays.regExp() + "[,.]?\\s" + number(1,31) + "\\s" + ruMonths.regExp() + "[.]?\\s" + group(fourDigits) + yearDot + "\\s" + group(hms) + timeZoneRegExp()},
             // вт апр. 19 20:54:17 1988
-            {FormatRuShort, ruWeekDays.regExp() + "\\s" + ruMonths.regExp() + "[.]?\\s" + number(1,31) + "\\s" + group(hms) + "\\s" + group(fourDigits)},
+            {FormatRuShort, ruWeekDays.regExp() + "[,.]?\\s" + ruMonths.regExp() + "[.]?\\s{1,2}" + number(1,31) + "\\s" + group(hms) + "\\s" + group(fourDigits)},
+            // Wed Aug  7 14:14:38 2019
+            {FormatEnShort, enWeekDays.regExp() + "[,.]?\\s" + enMonths.regExp() + "[.]?\\s{1,2}" + number(1,31) + "\\s" + group(hms) + "\\s" + group(fourDigits)},
         };
         return exps[formatDateTime];
     } else if (type == TypeDate) {
@@ -219,7 +222,8 @@ bool DateTime::parseDateTime(const QString& s, QDateTime& dateTime,
         }
     }
 
-    MultinameEnum ruMonths = DateTime::ruMonths();
+    static MultinameEnum ruMonths = DateTime::ruMonths();
+    static MultinameEnum enMonths = DateTime::enMonths();
 
     QRegularExpression rx;
     QRegularExpressionMatch m;
@@ -227,7 +231,6 @@ bool DateTime::parseDateTime(const QString& s, QDateTime& dateTime,
     rx = QRegularExpression(exp,QRegularExpression::CaseInsensitiveOption);
     m = rx.match(s);
     if (m.hasMatch()) {
-
         // 1          2    3          4         5         6
         // (пятница), (23) (сентября) (2039) г. (3:48:06) (MSK)
         int day = m.captured(2).toInt();
@@ -251,12 +254,39 @@ bool DateTime::parseDateTime(const QString& s, QDateTime& dateTime,
     exp = whole(regExpDateTime(FormatRuShort));
     rx = QRegularExpression(exp,QRegularExpression::CaseInsensitiveOption);
     m = rx.match(s);
+
     if (m.hasMatch()) {
         // 1    2      3    4          5
         // (вт) (апр). (19) (20:54:17) (1988)
 
         int day = m.captured(3).toInt();
         int month = ruMonths.indexOf(m.captured(2).toLower()) + 1;
+        int year = m.captured(5).toInt();
+
+        if (month < 1) {
+            qDebug() << __FILE__ << __LINE__ << m.captured(2).toLower();
+        }
+
+        QTime time_ = QTime::fromString(m.captured(4),"h:m:s");
+        if (!time_.isValid()) {
+            qDebug() << __FILE__ << __LINE__ << m.captured(4);
+            return false;
+        }
+        QDateTime dateTime_(QDate(year,month,day),time_,inLocalTime ? Qt::LocalTime : Qt::UTC);
+        dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
+        return true;
+    }
+
+    exp = whole(regExpDateTime(FormatEnShort));
+    rx = QRegularExpression(exp,QRegularExpression::CaseInsensitiveOption);
+    m = rx.match(s);
+
+    if (m.hasMatch()) {
+        // 1     2      3   4          5
+        // (Wed) (Aug)  (7) (14:14:38) (2019)
+
+        int day = m.captured(3).toInt();
+        int month = enMonths.indexOf(m.captured(2).toLower()) + 1;
         int year = m.captured(5).toInt();
 
         if (month < 1) {
@@ -733,8 +763,14 @@ MultinameEnum DateTime::enMonths() {
 
 MultinameEnum DateTime::ruWeekDays() {
     return MultinameEnum(
-                {"пн", "вт", "ср", "чт", "пт", "сб", "вс"},
-                {"понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"});
+    {"пн", "вт", "ср", "чт", "пт", "сб", "вс"},
+    {"понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"});
+}
+
+MultinameEnum DateTime::enWeekDays() {
+    return MultinameEnum(
+    {"mon","tue","wed","thu","fri","sat","sun"},
+    {"monday","tuesday","wednesday","thursday","friday","saturday","sunday"});
 }
 
 void DateTime::writeSamples()

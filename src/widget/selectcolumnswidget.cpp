@@ -5,7 +5,7 @@
 
 SelectColumnsWidget::SelectColumnsWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::SelectColumnsWidget)
+    ui(new Ui::SelectColumnsWidget), mFormat(DataFormat::SqlInsert)
 {
     ui->setupUi(this);
     connect(ui->data,&SelectColumnsListWidget::dataChanged,[=](QModelIndex index1,QModelIndex index2){
@@ -41,6 +41,14 @@ void SelectColumnsWidget::checked(QStringList &fields, QList<QVariant::Type> &ty
 void SelectColumnsWidget::setLabelsMode(SelectColumnsWidget::LabelsMode mode)
 {
     mLabelsMode = mode;
+}
+
+bool SelectColumnsWidget::hasAnyChecked() const
+{
+    if (mFormat == DataFormat::SqlUpdate) {
+        return ui->data->hasAnyChecked() && ui->keys->hasAnyChecked();
+    }
+    return ui->data->hasAnyChecked();
 }
 
 void SelectColumnsWidget::setTable(const QString &table)

@@ -53,6 +53,11 @@ void TextEdit::setTokens(const Tokens& tokens) {
     updateCompleter();
 }
 
+Tokens TextEdit::tokens() const
+{
+    return mTokens;
+}
+
 void TextEdit::setCompleter(QCompleter *completer)
 {
     if (mCompleter) {

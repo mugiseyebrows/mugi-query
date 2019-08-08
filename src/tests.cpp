@@ -15,6 +15,7 @@
 #include <QTimeZone>
 #include "timezone.h"
 #include <QTextCodec>
+#include "testdatetime2sample.h"
 
 using namespace Lit;
 
@@ -34,6 +35,7 @@ void Tests::run()
     //testApParse();
     //testTimeZones();
     testDateTimeParse();
+    testTableNamesFromSelectQuery();
 }
 
 namespace {
@@ -107,11 +109,11 @@ bool equals(const QPair<QString,QStringList>& e, const QPair<QString,QStringList
     return false;
 }
 
-bool equals(const QString& e, const QString& a) {
+bool equals(int id, const QString& e, const QString& a) {
     if (e == a) {
         return true;
     }
-    qDebug() << "not equal, expected: " << e << ", actual " << a;
+    qDebug() << id << "not equal, expected: " << e << ", actual " << a;
     return false;
 }
 
@@ -125,7 +127,7 @@ bool equals(const QStringList e, const QStringList a) {
     return false;
 }
 
-bool isValid(const QTime& time) {
+bool isValid(int id, const QTime& time) {
     if (!time.isValid()) {
         qDebug() << "time is not valid";
     }
@@ -802,8 +804,8 @@ void Tests::testTryConvert2() {
 
 bool Tests::testApParse() {
     QList<bool> ok;
-    ok << equals("10:20 AM",QTime(10,20,30).toString("h:mm AP"));
-    ok << isValid(QTime::fromString("10:20 AM","h:mm AP"));
+    ok << equals(__LINE__,"10:20 AM",QTime(10,20,30).toString("h:mm AP"));
+    ok << isValid(__LINE__,QTime::fromString("10:20 AM","h:mm AP"));
     bool passed = allTrue(ok);
     qDebug() << "testApParse" << (passed ? "passed" : "failed");
     return passed;
@@ -873,6 +875,9 @@ bool Tests::testDateTimeParse() {
         TestDateTimeSample(QDateTime::fromString("1970-05-28T04:55:06.498",Qt::ISODateWithMs),"Чт май 28 04:55:06 1970",Qt::TextDate),
         TestDateTimeSample(QDateTime::fromString("2070-12-20T12:23:41.663",Qt::ISODateWithMs),"Сб дек 20 12:23:41 2070",Qt::TextDate),
         TestDateTimeSample(QDateTime::fromString("2006-12-23T19:09:00.164",Qt::ISODateWithMs),"Сб дек 23 19:09:00 2006",Qt::TextDate),
+        TestDateTimeSample(QDateTime::fromString("1988-04-19T20:54:17.346",Qt::ISODateWithMs),"вт апр. 19 20:54:17 1988",Qt::TextDate),
+        TestDateTimeSample(QDateTime::fromString("1935-02-04T01:23:13.328",Qt::ISODateWithMs),"пн февр. 4 01:23:13 1935",Qt::TextDate),
+        TestDateTimeSample(QDateTime::fromString("2025-08-07T18:37:36.963",Qt::ISODateWithMs),"чт авг. 7 18:37:36 2025",Qt::TextDate),
     };
 
     foreach(const TestDateTimeSample& sample, samples) {
@@ -911,23 +916,42 @@ bool Tests::testDateTimeParse() {
         }
     }
 
-    QStringList samples2 = {
-        "06.08.2019 01:00:00",
-        "06.08.19 01:00"
+    QList<TestDateTime2Sample> samples2 = {
+        TestDateTime2Sample("06.08.2019 8:15 PM"),
+        TestDateTime2Sample("06.08.2019 8:15:32 PM",true),
+        TestDateTime2Sample("06.08.2019 8:15:32.123 PM",true,true),
+        TestDateTime2Sample("06.08.2019 20:15"),
+        TestDateTime2Sample("06.08.2019 20:15:32",true),
+        TestDateTime2Sample("06.08.2019 20:15:32.123",true,true),
+        TestDateTime2Sample("06.08.19 8:15 PM"),
+        TestDateTime2Sample("06.08.19 20:15"),
+        TestDateTime2Sample("06 августа 2019 г. 8:15 PM"),
+        TestDateTime2Sample("06 августа 2019 г. 20:15"),
+        TestDateTime2Sample("06 августа 2019 8:15 PM"),
+        TestDateTime2Sample("06 августа 2019 20:15"),
+        TestDateTime2Sample("6-авг-2019 20:15"),
+        TestDateTime2Sample("6/Aug/2019 20:15"),
+        TestDateTime2Sample("06-авг-2019 20:15"),
+        TestDateTime2Sample("6-авг-2019 8:15 PM"),
     };
 
-    foreach(const QString& sample, samples2) {
+    foreach(const TestDateTime2Sample& sample, samples2) {
         QDateTime dateTime;
-        if (!DateTime::parseAsDateTime(sample,dateTime,1950,true,false)) {
-            qDebug() << "failed to parse" << sample;
+        if (!DateTime::parseAsDateTime(sample.string(), dateTime, 1950, true, false)) {
+            qDebug() << "failed to parse" << sample.string();
             ok << false;
         } else {
-            QDateTime dateTimeExpected(QDate(2019,8,6),QTime(1,0));
+            QDateTime dateTimeExpected(QDate(2019,8,6),QTime(20,15));
+            if (sample.hasMilliseconds())  {
+                dateTimeExpected.setTime(QTime(20,15,32,123));
+            } else if (sample.hasSeconds()) {
+                dateTimeExpected.setTime(QTime(20,15,32));
+            }
             if (dateTime != dateTimeExpected) {
                 qDebug() << "not equals";
                 qDebug() << dateTime;
                 qDebug() << dateTimeExpected;
-                qDebug() << sample;
+                qDebug() << sample.string();
                 ok << false;
             }
         }
@@ -935,9 +959,46 @@ bool Tests::testDateTimeParse() {
 
 
 
-
-
     bool passed = allTrue(ok);
     qDebug() << "testDateTimeParse" << (passed ? "passed" : "failed");
     return passed;
 }
+
+bool equals(int id, bool e, bool a) {
+    if (e != a) {
+        qDebug() << id << "not equal, expected" << e << "actual" << a;
+        return false;
+    }
+    return true;
+}
+
+bool Tests::testTableNamesFromSelectQuery() {
+    bool many;
+    QList<bool> ok;
+
+    ok << equals(__LINE__,QString(), QueryParser::tableNameFromSelectQuery("select 1",&many));
+    ok << equals(__LINE__,false,many);
+    ok << equals(__LINE__,"bar", QueryParser::tableNameFromSelectQuery("select foo from bar",&many));
+    ok << equals(__LINE__,false,many);
+    ok << equals(__LINE__,QString(),QueryParser::tableNameFromSelectQuery("select foo from bar, baz",&many));
+    ok << equals(__LINE__,true,many);
+    ok << equals(__LINE__,"baz",QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz)",&many));
+    ok << equals(__LINE__,false,many);
+    ok << equals(__LINE__,QString(),QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz, qix)",&many));
+    ok << equals(__LINE__,true,many);
+    ok << equals(__LINE__,QString(), QueryParser::tableNameFromSelectQuery("select foo from bar left join baz",&many));
+    ok << equals(__LINE__,true,many);
+    ok << equals(__LINE__,"baz", QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz)",&many));
+    ok << equals(__LINE__,false,many);
+    ok << equals(__LINE__,QString(), QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz,qix)",&many));
+    ok << equals(__LINE__,true,many);
+    ok << equals(__LINE__,"bar", QueryParser::tableNameFromSelectQuery("select\nfoo\tfrom\r\nbar",&many));
+    ok << equals(__LINE__,false,many);
+    ok << equals(__LINE__,QString(),QueryParser::tableNameFromSelectQuery("select\nfoo\nfrom bar\t,\nbaz",&many));
+    ok << equals(__LINE__,true,many);
+
+    bool passed = allTrue(ok);
+    qDebug() << "testTableNamesFromSelectQuery" << (passed ? "passed" : "failed");
+    return passed;
+}
+

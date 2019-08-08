@@ -37,6 +37,8 @@ public:
 
     void setLabelsMode(LabelsMode mode);
 
+    bool hasAnyChecked() const;
+
 signals:
     void dataChanged(int,QModelIndex,QModelIndex);
 

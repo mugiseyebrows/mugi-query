@@ -19,6 +19,7 @@ namespace Tests
     bool testApParse();
     bool testTimeZones();
     bool testDateTimeParse();
+    bool testTableNamesFromSelectQuery();
 }
 
 #endif // TESTS_H

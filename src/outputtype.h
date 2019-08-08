@@ -14,7 +14,7 @@ namespace OutputType
     void initComboBox(QComboBox* comboBox);
 
     Type value(QComboBox* comboBox);
-
+    
 };
 
 #endif // OUTPUTTYPE_H

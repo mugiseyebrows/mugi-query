@@ -8,6 +8,7 @@ class QString;
 class QLocale;
 class QItemSelectionRange;
 class QModelIndex;
+class QSqlQueryModel;
 
 #include "dataformat.h"
 
@@ -19,9 +20,8 @@ public:
                              DataFormat::Format format, const QString& separator,
                              const QLocale &locale, QString &error);
 
-    static void copySelectedAsList(QAbstractItemModel *model,
-                                   const QItemSelection& selection,
-                                   const QLocale &locale, QString &error);
+    static void copySelectedAsList(QSqlQueryModel *model,
+                                   const QItemSelection& selection);
 
     static void streamRange(QTextStream &stream, const QItemSelectionRange &rng,
                             DataFormat::Format format, const QString &separator,

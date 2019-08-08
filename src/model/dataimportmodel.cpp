@@ -27,7 +27,17 @@ QVariant DataImportModel::data(const QModelIndex &index, int role) const
             if (v.isNull()) {
                 return QVariant();
             }
-            SqlDataTypes::tryConvert(v,mTypes[index.column()],mLocale,true,false,&ok);
+
+            QVariant::Type type = mTypes[index.column()];
+            int size = mSizes[index.column()];
+            if (type == QVariant::String) {
+                if (size > -1) {
+                    return v.toString().size() > size ? QVariant(QColor(Qt::red)) : QVariant();
+                }
+                return QVariant();
+            }
+
+            SqlDataTypes::tryConvert(v, type, mLocale, true, false, &ok);
             if (!ok) {
                 return QVariant(QColor(Qt::red));
             }
@@ -38,13 +48,14 @@ QVariant DataImportModel::data(const QModelIndex &index, int role) const
     return QStandardItemModel::data(index,role);
 }
 
-void DataImportModel::setTypes(const QMap<int, QVariant::Type> &types)
+void DataImportModel::setTypes(const QMap<int, QVariant::Type> &types, const QMap<int, int> &sizes)
 {
-    if (mTypes == types) {
+    if (mTypes == types && mSizes == sizes) {
         //qDebug() << "same types";
         return;
     }
     mTypes = types;
+    mSizes = sizes;
     emit dataChanged(index(0,0),index(rowCount()-1,columnCount()-1));
 }
 

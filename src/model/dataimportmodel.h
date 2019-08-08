@@ -16,7 +16,7 @@ public:
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
-    void setTypes(const QMap<int, QVariant::Type>& types);
+    void setTypes(const QMap<int, QVariant::Type>& types, const QMap<int,int>& sizes);
 
     void setLocale(const QLocale& locale);
 
@@ -25,6 +25,7 @@ protected:
     QVariant mHeaderSizeHint;
 
     QMap<int, QVariant::Type> mTypes;
+    QMap<int, int> mSizes;
 
     QLocale mLocale;
 

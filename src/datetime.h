@@ -23,7 +23,8 @@ public:
         FormatDateTimeISO,       // 2012-05-05T05:23:06
         FormatDateTimeISOWithMs, // 1919-02-03T16:03:56.461
         FormatRuLong,            // пятница, 23 сентября 2039 г. 3:48:06 MSK
-        FormatRuShort            // вт апр. 19 20:54:17 1988
+        FormatRuShort,           // вт апр. 19 20:54:17 1988
+        FormatEnShort            // Wed Aug  7 14:14:38 2019
     };
 
     enum FormatTime {
@@ -71,6 +72,7 @@ protected:
     static MultinameEnum ruMonths();
     static MultinameEnum enMonths();
     static MultinameEnum ruWeekDays();
+    static MultinameEnum enWeekDays();
 
     static QString parseTimeZone(const QString &s, QDateTime &dateTime, bool *hasTimeZone);
     static QTimeZone parseTimeZone(const QString &timeZone);
