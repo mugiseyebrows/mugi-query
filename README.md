@@ -27,7 +27,7 @@ Sql client for mysql, sqlite, postgresql, access and mssql databases
 5) In cmd run
 
 ```bash
-git clone git@github.com:mugiseyebrows/mugi-query.git
+git clone https://github.com/mugiseyebrows/mugi-query.git
 cd mugi-query
 qmake
 make release
@@ -38,12 +38,13 @@ make release
 In terminal run
 
 ```bash
-sudo apt install build-essential qtbase5-dev libqwt-qt5-dev libqt5svg5-dev libqt5sql5-ibase libqt5sql5-mysql libqt5sql5-odbc libqt5sql5-psql libqt5sql5-sqlite libqt5sql5-tds git
-git clone git@github.com:mugiseyebrows/mugi-grep.git
-cd mugi-grep
+sudo apt install build-essential git qtbase5-dev qtchooser libqwt-qt5-dev libqt5svg5-dev libqt5sql5-ibase libqt5sql5-mysql libqt5sql5-odbc libqt5sql5-psql libqt5sql5-sqlite libqt5sql5-tds 
+git clone https://github.com/mugiseyebrows/mugi-query.git
+cd mugi-query
 qmake -qt=5 'CONFIG+=release'
 make
 make clean
+strip mugi-query
 sudo make install # installs to /usr/local/bin
 python desktop.py # copies icons, creates desktop file
 ```
