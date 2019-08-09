@@ -1,7 +1,5 @@
 #include "outputtype.h"
 
-#include "lit.h"
-
 void OutputType::initComboBox(QComboBox *comboBox)
 {
     comboBox->clear();

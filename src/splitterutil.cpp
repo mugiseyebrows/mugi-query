@@ -29,27 +29,6 @@ bool SplitterUtil::setRatio(QSplitter *splitter, const QList<double> &ratios) {
     splitter->setSizes(proportional(sizes, ratios));
     return true;
 }
-bool SplitterUtil::setRatio(QSplitter *splitter, double r0, double r1) {
-    QList<double> ratios;
-    ratios << r0 << r1;
-    return setRatio(splitter, ratios);
-}
-bool SplitterUtil::setRatio(QSplitter *splitter, double r0, double r1, double r2) {
-    QList<double> ratios;
-    ratios << r0 << r1 << r2;
-    return setRatio(splitter, ratios);
-}
-bool SplitterUtil::setRatio(QSplitter *splitter, double r0, double r1, double r2, double r3) {
-    QList<double> ratios;
-    ratios << r0 << r1 << r2 << r3;
-    return setRatio(splitter, ratios);
-}
-bool SplitterUtil::setRatio(QSplitter *splitter, double r0, double r1, double r2, double r3,
-                            double r4) {
-    QList<double> ratios;
-    ratios << r0 << r1 << r2 << r3 << r4;
-    return setRatio(splitter, ratios);
-}
 
 bool SplitterUtil::setRatioWithMinSize(QSplitter *splitter, double r0, double r1, int m0, int m1) {
 

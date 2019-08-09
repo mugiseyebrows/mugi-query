@@ -60,7 +60,6 @@ HEADERS += \
     src/jointoken.h \
     src/jointokenlist.h \
     src/jsonhelper.h \
-    src/lit.h \
     src/modelappender.h \
     src/outputtype.h \
     src/qisnumerictype.h \
@@ -74,7 +73,6 @@ HEADERS += \
     src/setheaderdata.h \
     src/settings.h \
     src/splitterutil.h \
-    src/stringstringmap.h \
     src/tests.h \
     src/tokens.h \
     src/version.h \
@@ -150,7 +148,6 @@ SOURCES += \
     src/itemdelegatewithcompleter.cpp \
     src/jointokenlist.cpp \
     src/jsonhelper.cpp \
-    src/lit.cpp \
     src/main.cpp \
     src/modelappender.cpp \
     src/outputtype.cpp \
@@ -165,7 +162,6 @@ SOURCES += \
     src/setheaderdata.cpp \
     src/settings.cpp \
     src/splitterutil.cpp \
-    src/stringstringmap.cpp \
     src/tests.cpp \
     src/tokens.cpp \
     src/model/checkablestringlistmodel.cpp \

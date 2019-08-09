@@ -5,17 +5,17 @@ namespace Tests
 {
     void run();
 
-    void testSplit();
-    void testJoinSplit();
-    void testAliases();
-    void testFlatQueries();
-    void testClosingBracket();
-    void testParseCreateTable();
-    void textParseCreateTableCreateDefinition();
+    bool testSplit();
+    bool testJoinSplit();
+    bool testAliases();
+    bool testFlatQueries();
+    bool testClosingBracket();
+    bool testParseCreateTable();
+    bool textParseCreateTableCreateDefinition();
     //void testDateRegularExpressions();
     //void testDateTimeRegularExpressions();
-    void testTryConvert1();
-    void testTryConvert2();
+    bool testTryConvert1();
+    bool testTryConvert2();
     bool testApParse();
     bool testTimeZones();
     bool testDateTimeParse();

@@ -19,11 +19,9 @@
 #include "relation.h"
 #include "relations.h"
 #include "splitterutil.h"
-
 #include "relationsmodel.h"
 #include <QSortFilterProxyModel>
 #include <QTimer>
-#include "lit.h"
 #include "stringlistmodelwithheader.h"
 #include "copyeventfilter.h"
 #include "clipboard.h"
@@ -36,8 +34,6 @@ QModelIndex firstColumn(const QModelIndex& index) {
     return index.model()->index(index.row(),0);
 }
 }
-
-using namespace Lit;
 
 JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
     QWidget(parent),
@@ -116,7 +112,7 @@ void JoinHelperWidget::init(const QString& connectionName) {
 
     mTablesAppender->setActive(false);
 
-    tables->setStringList(sl(QString(),QString()));
+    tables->setStringList({QString(),QString()});
 
     mTablesAppender->setActive(true);
 
@@ -141,8 +137,8 @@ void JoinHelperWidget::onSelectLastTablesRow() {
 }
 
 void JoinHelperWidget::onAdjustSplitters() {
-    SplitterUtil::setRatio(ui->horizontalSplitter,1,1);
-    SplitterUtil::setRatio(ui->verticalSplitter,3,1);
+    SplitterUtil::setRatio(ui->horizontalSplitter,{1,1});
+    SplitterUtil::setRatio(ui->verticalSplitter,{3,1});
 }
 
 JoinHelperWidget::~JoinHelperWidget()

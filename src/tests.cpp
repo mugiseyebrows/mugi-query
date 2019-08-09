@@ -6,8 +6,6 @@
 #include "zipunzip.h"
 #include <QDebug>
 #include "queryparser.h"
-#include "lit.h"
-#include "stringstringmap.h"
 #include "testdatetimesample.h"
 #include "testdatesample.h"
 #include "datetime.h"
@@ -16,8 +14,6 @@
 #include "timezone.h"
 #include <QTextCodec>
 #include "testdatetime2sample.h"
-
-using namespace Lit;
 
 void Tests::run()
 {
@@ -66,25 +62,25 @@ QString tokenListAsString(const QList<QPair<JoinToken::JoinToken,QString> >& vs)
     return QString("{%1}").arg(res.join(", "));
 }
 
-bool equals(int a, int b) {
+bool equals(int id, int a, int b) {
     if (a == b) {
         return true;
     }
-    qDebug() << "not equal, expected: " << a << ", actual " << b;
+    qDebug() << id << "not equal, expected: " << a << ", actual " << b;
     return false;
 }
 
-bool equals(const QMap<QString,QString>& e, const QMap<QString,QString>& a) {
+bool equals(int id, const QMap<QString,QString>& e, const QMap<QString,QString>& a) {
     if (e == a) {
         return true;
     }
     QString e_ = mapAsString(e);
     QString a_ = mapAsString(a);
-    qDebug() << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
+    qDebug() << id << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
     return false;
 }
 
-bool equals(const QList<QPair<JoinToken::JoinToken,QString> >& e, const QList<QPair<JoinToken::JoinToken,QString> >& a) {
+bool equals(int id, const QList<QPair<JoinToken::JoinToken,QString> >& e, const QList<QPair<JoinToken::JoinToken,QString> >& a) {
 
     QStringList es = mapTrimmed(unzipSeconds(e));
     QStringList as = mapTrimmed(unzipSeconds(a));
@@ -95,17 +91,17 @@ bool equals(const QList<QPair<JoinToken::JoinToken,QString> >& e, const QList<QP
     }
     QString e_ = tokenListAsString(e);
     QString a_ = tokenListAsString(a);
-    qDebug() << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
+    qDebug() << id << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
     return false;
 }
 
-bool equals(const QPair<QString,QStringList>& e, const QPair<QString,QStringList>& a) {
+bool equals(int id, const QPair<QString,QStringList>& e, const QPair<QString,QStringList>& a) {
     if (e == a) {
         return true;
     }
     QString e_ = e.first + "{" + e.second.join("|") + "}";
     QString a_ = a.first + "{" + a.second.join("|") + "}";
-    qDebug() << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
+    qDebug() << id << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
     return false;
 }
 
@@ -117,13 +113,13 @@ bool equals(int id, const QString& e, const QString& a) {
     return false;
 }
 
-bool equals(const QStringList e, const QStringList a) {
+bool equals(int id, const QStringList e, const QStringList a) {
     QString e_ = "{" + e.join("|") + "}";
     QString a_ = "{" + a.join("|") + "}";
     if (e_ == a_) {
         return true;
     }
-    qDebug() << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
+    qDebug() << id << "not equal, expected: " << e_.toStdString().c_str() << ", actual " << a_.toStdString().c_str();
     return false;
 }
 
@@ -259,36 +255,28 @@ bool equals(int id, const QDateTime& dateTime, Qt::DateFormat format,
 
 } // namespace
 
-void Tests::testAliases() {
+bool Tests::testAliases() {
+    QList<bool> ok;
 
-    qDebug() << "testAliases() started";
+    ok << equals(__LINE__,
+    {},
+                 QueryParser::aliases("select * from foo, bar left join baz"));
 
-    using namespace StringStringMap;
+    ok << equals(__LINE__,
+    {{"f1","foo"},{"b1","bar"},{"b2","baz"},{"q1","qix"}},
+                 QueryParser::aliases("select * from foo f1, bar b1 left join baz b2 on baz.id=bar.id join qix q1"));
 
-    QString q;
-    QMap<QString,QString> e,a;
+    ok << equals(__LINE__,
+    {{"b1","bar"},{"b2","baz"},{"q1","qix"},{"z1","zen"}},
+                 QueryParser::aliases("select * from (select abc from zen z1 having 2) x, bar b1 left join baz b2 on baz.id=bar.id join qix q1 where a=b"));
 
-    q = "select * from foo, bar left join baz";
-    e = ssm();
-    a = QueryParser::aliases(q);
-    equals(e,a);
-
-    q = "select * from foo f1, bar b1 left join baz b2 on baz.id=bar.id join qix q1";
-    e = ssm("f1","foo","b1","bar","b2","baz","q1","qix");
-    a = QueryParser::aliases(q);
-    equals(e,a);
-
-    q = "select * from (select abc from zen z1 having 2) x, bar b1 left join baz b2 on baz.id=bar.id join qix q1 where a=b";
-    e = ssm("b1","bar","b2","baz","q1","qix","z1","zen");
-    a = QueryParser::aliases(q);
-    equals(e,a);
-
-    qDebug() << "testAliases() finished";
+    bool passed = allTrue(ok);
+    qDebug() << "testAliases" << (passed ? "passed" : "failed");
+    return passed;
 }
 
-void Tests::testJoinSplit() {
-
-    qDebug() << "testJoinSplit started";
+bool Tests::testJoinSplit() {
+    QList<bool> ok;
 
     using namespace JoinTokenList;
     using namespace JoinToken;
@@ -308,7 +296,7 @@ void Tests::testJoinSplit() {
             JoinTokenTable,"qix");
 
     a = QueryParser::joinSplit(q);
-    equals(e,a);
+    ok << equals(__LINE__,e,a);
 
     q = "foo f1, bar b1 left join baz b2 on baz.id=bar.id join qix q1";
     e = jtl(JoinTokenTable,"foo f1",
@@ -322,151 +310,107 @@ void Tests::testJoinSplit() {
             JoinTokenTable,"qix q1");
 
     a = QueryParser::joinSplit(q);
-    equals(e,a);
-
-    qDebug() << "testJoinSplit() finished";
+    ok << equals(__LINE__,e,a);
+    bool passed = allTrue(ok);
+    qDebug() << "testJoinSplit" << (passed ? "passed" : "failed");
+    return passed;
 }
 
 
-void Tests::testSplit() {
+bool Tests::testSplit() {
 
     QList<bool> ok;
 
-    ok << equals({"foo","bar","baz"},QueryParser::split("foo;bar;baz"));
-    ok << equals({"","",""},QueryParser::split(";;"));
-    ok << equals({"foo","bar--;baz"},QueryParser::split("foo;bar--;baz"));
-    ok << equals({"foo","bar","--baz"},QueryParser::split("foo;bar;--baz"));
-    ok << equals({"foo--\n","bar"},QueryParser::split("foo--\n;bar"));
-    ok << equals({"foo--;\nbar"},QueryParser::split("foo--;\nbar"));
-    ok << equals({"foo'bar'","baz"},QueryParser::split("foo'bar';baz"));
-    ok << equals({},QueryParser::split("foo'bar;baz"));
-    ok << equals({"foo'bar--'","baz"},QueryParser::split("foo'bar--';baz"));
-    ok << equals({"foo'bar'--;baz"},QueryParser::split("foo'bar'--;baz"));
-    ok << equals({"foo/*bar;*/baz"},QueryParser::split("foo/*bar;*/baz"));
-    ok << equals({"foo/*bar*/","baz"},QueryParser::split("foo/*bar*/;baz"));
-    ok << equals({"foo--/*bar\n","*/baz"},QueryParser::split("foo--/*bar\n;*/baz"));
-    ok << equals({"foo'/*bar'","*/baz"},QueryParser::split("foo'/*bar';*/baz"));
-
-    qDebug() << "testSplit" << (allTrue(ok) ? "passed" : "failed");
+    ok << equals(__LINE__,{"foo","bar","baz"},QueryParser::split("foo;bar;baz"));
+    ok << equals(__LINE__,{"","",""},QueryParser::split(";;"));
+    ok << equals(__LINE__,{"foo","bar--;baz"},QueryParser::split("foo;bar--;baz"));
+    ok << equals(__LINE__,{"foo","bar","--baz"},QueryParser::split("foo;bar;--baz"));
+    ok << equals(__LINE__,{"foo--\n","bar"},QueryParser::split("foo--\n;bar"));
+    ok << equals(__LINE__,{"foo--;\nbar"},QueryParser::split("foo--;\nbar"));
+    ok << equals(__LINE__,{"foo'bar'","baz"},QueryParser::split("foo'bar';baz"));
+    ok << equals(__LINE__,{},QueryParser::split("foo'bar;baz"));
+    ok << equals(__LINE__,{"foo'bar--'","baz"},QueryParser::split("foo'bar--';baz"));
+    ok << equals(__LINE__,{"foo'bar'--;baz"},QueryParser::split("foo'bar'--;baz"));
+    ok << equals(__LINE__,{"foo/*bar;*/baz"},QueryParser::split("foo/*bar;*/baz"));
+    ok << equals(__LINE__,{"foo/*bar*/","baz"},QueryParser::split("foo/*bar*/;baz"));
+    ok << equals(__LINE__,{"foo--/*bar\n","*/baz"},QueryParser::split("foo--/*bar\n;*/baz"));
+    ok << equals(__LINE__,{"foo'/*bar'","*/baz"},QueryParser::split("foo'/*bar';*/baz"));
+    bool passed = allTrue(ok);
+    qDebug() << "testSplit" << (passed ? "passed" : "failed");
+    return passed;
 }
 
-void Tests::testFlatQueries() {
+bool Tests::testFlatQueries() {
+    QList<bool> ok;
 
-    qDebug() << "testFlatQueries() started";
+    ok << equals(__LINE__,
+    {"select foo from () union ()",
+     "select * from bar",
+     "select baz from qix"},
+                 QueryParser::flatQueries("select foo from (select * from bar) union (select baz from qix)"));
 
-    QString q;
-    QStringList e,a;
+    ok << equals(__LINE__,
+    {"select a,b,c from () where 1",
+     "select foo from () union ()",
+     "select * from bar",
+     "select baz from qix"},
+                 QueryParser::flatQueries("select a,b,c from (select foo from (select * from bar) union (select baz from qix)) where 1"));
 
-    q = "select foo from (select * from bar) union (select baz from qix)";
-    e = sl("select foo from () union ()","select * from bar","select baz from qix");
-    a = QueryParser::flatQueries(q);
-    equals(e,a);
+    ok << equals(__LINE__,
+    {"select * from foo"},
+                 QueryParser::flatQueries("select * from foo"));
 
-    q = "select a,b,c from (select foo from (select * from bar) union (select baz from qix)) where 1";
-    e = sl("select a,b,c from () where 1","select foo from () union ()","select * from bar","select baz from qix");
-    a = QueryParser::flatQueries(q);
-    equals(e,a);
-
-    q = "select * from foo";
-    e = sl("select * from foo");
-    a = QueryParser::flatQueries(q);
-    equals(e,a);
-
-    qDebug() << "testFlatQueries() finished";
+    bool passed = allTrue(ok);
+    qDebug() << "testFlatQueries" << (passed ? "passed" : "failed");
+    return passed;
 }
 
-void Tests::testClosingBracket() {
-
-    qDebug() << "testClosingBracket() started";
-
-    QString t;
-    int a,e;
-
-    t = "()";
-    a = QueryParser::closingBracket(t,0);
-    e = 1;
-    equals(e,a);
-
-    t = "(())";
-    a = QueryParser::closingBracket(t,0);
-    e = 3;
-    equals(e,a);
-
-    t = "(())";
-    a = QueryParser::closingBracket(t,1);
-    e = 2;
-    equals(e,a);
-
-    t = "create table foo(bar int(11),baz text)";
-    a = QueryParser::closingBracket(t,t.indexOf("("));
-    e = t.lastIndexOf(")");
-    equals(e,a);
-    qDebug() << "testClosingBracket() finished";
+bool Tests::testClosingBracket() {
+    QList<bool> ok;
+    ok << equals(__LINE__,1,QueryParser::closingBracket("()",0));
+    ok << equals(__LINE__,3,QueryParser::closingBracket("(())",0));
+    ok << equals(__LINE__,2,QueryParser::closingBracket("(())",1));
+    QString t = "create table foo(bar int(11),baz text)";
+    ok << equals(__LINE__,t.lastIndexOf(")"),QueryParser::closingBracket(t,t.indexOf("(")));
+    bool passed = allTrue(ok);
+    qDebug() << "testClosingBracket" << (passed ? "passed" : "failed");
+    return passed;
 }
 
-void Tests::testParseCreateTable()
+bool Tests::testParseCreateTable()
 {
-    qDebug() << "testParseCreateTable() started";
-
     typedef QPair<QString,QStringList> X;
-
-    QString t;
-    X a,e;
-
-    t = "create table foo(a,b)";
-    a = QueryParser::parseCreateTable(t);
-    e = X("foo",sl("a","b"));
-    equals(e,a);
-
-    t = "create temporary table if not exists foo(a,b)";
-    a = QueryParser::parseCreateTable(t);
-    e = X("foo",sl("a","b"));
-    equals(e,a);
-
-    t = "create table foo like bar(a,b)";
-    a = QueryParser::parseCreateTable(t);
-    e = X("foo",sl("a","b"));
-    equals(e,a);
-
-    qDebug() << "testParseCreateTable() finished";
+    QList<bool> ok;
+    ok << equals(__LINE__,X("foo",{"a","b"}),QueryParser::parseCreateTable("create table foo(a,b)"));
+    ok << equals(__LINE__,X("foo",{"a","b"}),QueryParser::parseCreateTable("create temporary table if not exists foo(a,b)"));
+    ok << equals(__LINE__,X("foo",{"a","b"}),QueryParser::parseCreateTable("create table foo like bar(a,b)"));
+    bool passed = allTrue(ok);
+    qDebug() << "testParseCreateTable" << (passed ? "passed" : "failed");
+    return passed;
 }
 
-void Tests::textParseCreateTableCreateDefinition() {
-
-    qDebug() << "textParseCreateTableCreateDefinition() started";
-
-    QString t,err;
-    QStringList e,a;
-
-    t = "`foo` int(11) NOT NULL";
-    e = sl("foo","int(11)","NOT NULL","","");
-    a = QueryParser::parseCreateTableCreateDefinition(t,err);
-    equals(e,a);
-
-    t = "`bar` text";
-    e = sl("bar","text","","","");
-    a = QueryParser::parseCreateTableCreateDefinition(t,err);
-    equals(e,a);
-
-    t = "foo int unsigned zerofill null";
-    e = sl("foo","int unsigned zerofill","null","","");
-    a = QueryParser::parseCreateTableCreateDefinition(t,err);
-    equals(e,a);
-
-    t = "`foo` varchar(100) DEFAULT NULL";
-    e = sl("foo","varchar(100)","","DEFAULT NULL","");
-    a = QueryParser::parseCreateTableCreateDefinition(t,err);
-    equals(e,a);
-
-    t = "`bar` int(11) NOT NULL DEFAULT '0'";
-    e = sl("bar","int(11)","NOT NULL","DEFAULT '0'","");
-    a = QueryParser::parseCreateTableCreateDefinition(t,err);
-    equals(e,a);
-
-    qDebug() << "textParseCreateTableCreateDefinition() finished";
+bool Tests::textParseCreateTableCreateDefinition() {
+    QString err;
+    QList<bool> ok;
+    ok << equals(__LINE__,
+    {"foo","int(11)","NOT NULL","",""},
+                 QueryParser::parseCreateTableCreateDefinition("`foo` int(11) NOT NULL",err));
+    ok << equals(__LINE__,
+    {"bar","text","","",""},
+                 QueryParser::parseCreateTableCreateDefinition("`bar` text",err));
+    ok << equals(__LINE__,
+    {"foo","int unsigned zerofill","null","",""},
+                 QueryParser::parseCreateTableCreateDefinition("foo int unsigned zerofill null",err));
+    ok << equals(__LINE__,
+    {"foo","varchar(100)","","DEFAULT NULL",""},
+                 QueryParser::parseCreateTableCreateDefinition("`foo` varchar(100) DEFAULT NULL",err));
+    ok << equals(__LINE__,
+    {"bar","int(11)","NOT NULL","DEFAULT '0'",""},
+                 QueryParser::parseCreateTableCreateDefinition("`bar` int(11) NOT NULL DEFAULT '0'",err));
+    bool passed = allTrue(ok);
+    qDebug() << "textParseCreateTableCreateDefinition" << (passed ? "passed" : "failed");
+    return passed;
 }
-
-
 
 #if 0
 void Tests::testDateRegularExpressions() {
@@ -603,7 +547,7 @@ void Tests::testDateTimeRegularExpressions() {
 }
 #endif
 
-void Tests::testTryConvert1() {
+bool Tests::testTryConvert1() {
 
     QLocale locale;
 
@@ -703,12 +647,14 @@ void Tests::testTryConvert1() {
 
     } // for
 
-    qDebug() << "testTryConvert1" << (allTrue(passed) ? "passed" : "failed");
+    bool passed_ = allTrue(passed);
+    qDebug() << "testTryConvert1" << (passed_ ? "passed" : "failed");
+    return passed_;
 }
 
 
 
-void Tests::testTryConvert2() {
+bool Tests::testTryConvert2() {
 
     QLocale locale;
 
@@ -798,7 +744,9 @@ void Tests::testTryConvert2() {
 
     ok << testOffset(__LINE__,dutc,d1,-offset);
 
-    qDebug() << "testTryConvert2" << (allTrue(ok) ? "passed" : "failed");
+    bool passed = allTrue(ok);
+    qDebug() << "testTryConvert2" << (passed ? "passed" : "failed");
+    return passed;
 }
 
 
@@ -976,26 +924,26 @@ bool Tests::testTableNamesFromSelectQuery() {
     bool many;
     QList<bool> ok;
 
-    ok << equals(__LINE__,QString(), QueryParser::tableNameFromSelectQuery("select 1",&many));
-    ok << equals(__LINE__,false,many);
-    ok << equals(__LINE__,"bar", QueryParser::tableNameFromSelectQuery("select foo from bar",&many));
-    ok << equals(__LINE__,false,many);
-    ok << equals(__LINE__,QString(),QueryParser::tableNameFromSelectQuery("select foo from bar, baz",&many));
-    ok << equals(__LINE__,true,many);
-    ok << equals(__LINE__,"baz",QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz)",&many));
-    ok << equals(__LINE__,false,many);
-    ok << equals(__LINE__,QString(),QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz, qix)",&many));
-    ok << equals(__LINE__,true,many);
-    ok << equals(__LINE__,QString(), QueryParser::tableNameFromSelectQuery("select foo from bar left join baz",&many));
-    ok << equals(__LINE__,true,many);
-    ok << equals(__LINE__,"baz", QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz)",&many));
-    ok << equals(__LINE__,false,many);
-    ok << equals(__LINE__,QString(), QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz,qix)",&many));
-    ok << equals(__LINE__,true,many);
-    ok << equals(__LINE__,"bar", QueryParser::tableNameFromSelectQuery("select\nfoo\tfrom\r\nbar",&many));
-    ok << equals(__LINE__,false,many);
-    ok << equals(__LINE__,QString(),QueryParser::tableNameFromSelectQuery("select\nfoo\nfrom bar\t,\nbaz",&many));
-    ok << equals(__LINE__,true,many);
+    ok << equals(__LINE__, QString(), QueryParser::tableNameFromSelectQuery("select 1", &many));
+    ok << equals(__LINE__, false, many);
+    ok << equals(__LINE__, "bar", QueryParser::tableNameFromSelectQuery("select foo from bar", &many));
+    ok << equals(__LINE__, false, many);
+    ok << equals(__LINE__, QString(), QueryParser::tableNameFromSelectQuery("select foo from bar, baz", &many));
+    ok << equals(__LINE__, true, many);
+    ok << equals(__LINE__, "baz", QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz)", &many));
+    ok << equals(__LINE__, false, many);
+    ok << equals(__LINE__, QString(), QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz, qix)", &many));
+    ok << equals(__LINE__, true, many);
+    ok << equals(__LINE__, QString(), QueryParser::tableNameFromSelectQuery("select foo from bar left join baz", &many));
+    ok << equals(__LINE__, true, many);
+    ok << equals(__LINE__, "baz", QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz)", &many));
+    ok << equals(__LINE__, false, many);
+    ok << equals(__LINE__, QString(), QueryParser::tableNameFromSelectQuery("select foo from (select bar from baz, qix)", &many));
+    ok << equals(__LINE__, true, many);
+    ok << equals(__LINE__, "bar", QueryParser::tableNameFromSelectQuery("select\nfoo\tfrom\r\nbar", &many));
+    ok << equals(__LINE__, false, many);
+    ok << equals(__LINE__, QString(), QueryParser::tableNameFromSelectQuery("select\nfoo\nfrom bar\t, \nbaz", &many));
+    ok << equals(__LINE__, true, many);
 
     bool passed = allTrue(ok);
     qDebug() << "testTableNamesFromSelectQuery" << (passed ? "passed" : "failed");

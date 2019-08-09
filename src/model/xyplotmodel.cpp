@@ -1,12 +1,10 @@
 #include "xyplotmodel.h"
 #include "rowvaluegetter.h"
-#include "lit.h"
-
 #include "setheaderdata.h"
 
 XYPlotModel::XYPlotModel(QObject *parent) : QStandardItemModel(1,cols_size,parent)
 {
-    ::setHeaderData(this,Qt::Horizontal,Lit::sl("X","Y","Line","Symbol"));
+    ::setHeaderData(this,Qt::Horizontal,{"X","Y","Line","Symbol"});
 }
 
 QList<XYPlotModelItem> XYPlotModel::items(const QStringList& header) const

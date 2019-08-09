@@ -8,7 +8,6 @@
 #include <QApplication>
 #include <QWindow>
 #include <QDebug>
-#include "lit.h"
 #include "sessiontab.h"
 #include "xyplot.h"
 #include "querymodelview.h"
@@ -42,11 +41,11 @@ Automation::Automation(QObject *parent) : QObject(parent), mAddDatabaseDialog(0)
 
 void Automation::connectToDatabaseFromHistory(const QString &connectionName)
 {
-    mQueued.enqueue(Action(Action::ActionConnectToDatabaseFromHistory, Lit::vl(connectionName)));
+    mQueued.enqueue(Action(Action::ActionConnectToDatabaseFromHistory, {connectionName}));
 }
 
 void Automation::query(const QString &connectionName, const QString &query) {
-    mQueued.enqueue(Action(Action::ActionAppendQuery, Lit::vl(connectionName,query)));
+    mQueued.enqueue(Action(Action::ActionAppendQuery, {connectionName, query}));
     mQueued.enqueue(Action(Action::ActionExecuteCurrentQuery));
 }
 
@@ -57,12 +56,12 @@ void Automation::showSaveDataDialog()
 
 void Automation::setXYPlot(int row, const QString &x, const QString &y, const QString &line, const QString &marker)
 {
-    mQueued.enqueue(Action(Action::ActionSetXYPlot, Lit::vl(row,x,y,line,marker)));
+    mQueued.enqueue(Action(Action::ActionSetXYPlot, {row, x, y, line, marker}));
 }
 
 void Automation::setDistributionPlot(int row, const QString &v, const QString &color)
 {
-    mQueued.enqueue(Action(Action::ActionSetDistributionPlot, Lit::vl(row,v,color)));
+    mQueued.enqueue(Action(Action::ActionSetDistributionPlot, {row, v, color}));
 }
 
 void Automation::showDistributionPlot()

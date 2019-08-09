@@ -1,11 +1,10 @@
 #include "distributionplotmodel.h"
 #include "rowvaluegetter.h"
 #include "setheaderdata.h"
-#include "lit.h"
 
 DistributionPlotModel::DistributionPlotModel(QObject *parent) : QStandardItemModel(1,cols_size,parent)
 {
-    ::setHeaderData(this,Qt::Horizontal,Lit::sl("V","Color"));
+    ::setHeaderData(this,Qt::Horizontal,{"V","Color"});
 }
 
 QList<DistributionPlotItem> DistributionPlotModel::items(const QStringList& header) const

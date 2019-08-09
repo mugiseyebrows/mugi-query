@@ -10,7 +10,6 @@
 #include "itemdelegatewithcompleter.h"
 #include "setdefaultcolors.h"
 #include "modelappender.h"
-#include "lit.h"
 #include "datautils.h"
 #include "colorpalette.h"
 #include "filterplotitem.h"
@@ -18,10 +17,8 @@
 #include "canvaspicker.h"
 #include "histogram.h"
 #include "distributiondataset.h"
-//#include "plotmultibarchart.h"
 
 using namespace DataUtils;
-using namespace Lit;
 
 DistributionPlot::DistributionPlot(QWidget *parent) :
     QWidget(parent),
@@ -118,9 +115,7 @@ void DistributionPlot::onDataChanged(QModelIndex,QModelIndex,QVector<int>) {
 void DistributionPlot::setDefaultColors() {
     ::setDefaultColors(mAppender,
                      ui->table->model(),
-                     il(DistributionPlotModel::col_v),
-                     il(DistributionPlotModel::col_color),
-                     il());
+                     {DistributionPlotModel::col_v},{DistributionPlotModel::col_color},{});
 }
 
 

@@ -148,8 +148,8 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 }
 
 void MainWindow::onAdjustSplitter() {
-    SplitterUtil::setRatio(ui->horizontalSplitter,1,4);
-    SplitterUtil::setRatio(ui->verticalSplitter,1,3);
+    SplitterUtil::setRatio(ui->horizontalSplitter,{1,4});
+    SplitterUtil::setRatio(ui->verticalSplitter,{1,3});
 }
 
 void MainWindow::onTreeCurrentChanged(QModelIndex index,QModelIndex) {

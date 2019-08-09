@@ -4,7 +4,6 @@
 #include <QStandardItemModel>
 
 #include "richheaderview/richheaderview.h"
-#include "lit.h"
 #include "model/dataimportmodel.h"
 #include "model/checkablestringlistmodel.h"
 #include "model/dataimportcolumnmodel.h"
@@ -92,8 +91,8 @@ DataImportWidget::~DataImportWidget()
 void DataImportWidget::init(const QString &connectionName)
 {
     QTimer::singleShot(0,[=](){
-        SplitterUtil::setRatio(ui->horizontalSplitter,1,2);
-        SplitterUtil::setRatio(ui->verticalSplitter,4,1);
+        SplitterUtil::setRatio(ui->horizontalSplitter,{1,2});
+        SplitterUtil::setRatio(ui->verticalSplitter,{4,1});
     });
 
     ui->columns->setLabelsMode(SelectColumnsWidget::LabelsModeShort);
@@ -111,7 +110,7 @@ void DataImportWidget::init(const QString &connectionName)
     int twoLines = fontHeight * 2;
 
     RichHeaderData* data = view->data();
-    data->subsectionSizes(Lit::il(twoLines, twoLines, twoLines, twoLines));
+    data->subsectionSizes({twoLines, twoLines, twoLines, twoLines});
 
     DataImportModel* model = new DataImportModel(data->sizeHint(),ui->data);
     model->setLocale(locale());

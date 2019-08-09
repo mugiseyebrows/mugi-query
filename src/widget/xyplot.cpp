@@ -5,7 +5,6 @@
 #include "itemdelegatewithcompleter.h"
 #include "xyplotmodel.h"
 #include "colorpalette.h"
-#include "lit.h"
 #include "setdefaultcolors.h"
 #include "xyplotmodel.h"
 #include "modelappender.h"
@@ -22,7 +21,6 @@
 #include "splitterutil.h"
 #include <QTimer>
 using namespace DataUtils;
-using namespace Lit;
 
 XYPlot::XYPlot(QWidget *parent) :
     QWidget(parent),
@@ -121,9 +119,9 @@ QSize XYPlot::minimumSizeHint() const
 void XYPlot::setDefaultColors() {
     ::setDefaultColors(mAppender,
                      ui->table->model(),
-                     il(XYPlotModel::col_x, XYPlotModel::col_y),
-                     il(XYPlotModel::col_line),
-                     il(XYPlotModel::col_marker));
+                     {XYPlotModel::col_x, XYPlotModel::col_y},
+                     {XYPlotModel::col_line},
+                     {XYPlotModel::col_marker});
 }
 
 void XYPlot::onDataChanged(QModelIndex,QModelIndex,QVector<int>) {

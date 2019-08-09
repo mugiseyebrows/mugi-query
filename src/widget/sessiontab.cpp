@@ -162,7 +162,7 @@ void SessionTab::setResult(const QStringList& queries, const QStringList errors,
     view->setColumnWidth(0,columnWidth);
 
     if (mFirstQuery) {
-        SplitterUtil::setRatio(ui->splitter,1,5);
+        SplitterUtil::setRatio(ui->splitter,{1,5});
         ui->resultTabs->setCurrentIndex(0);
     }
     mFirstQuery = false;
