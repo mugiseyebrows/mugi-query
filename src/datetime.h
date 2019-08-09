@@ -40,6 +40,7 @@ public:
         FormatDateDDMMYY,
         FormatDateRuDDMonthYY,
         FormatDateEnDDMonthYY,
+        FormatDateRuWeekDayMonthDDYY // Чт окт 6 2022
     };
 
     static bool parse(Type type, const QString &s, QDate &date, QTime &time, QDateTime &dateTime, int minYear, bool inLocalTime, bool outUtc);

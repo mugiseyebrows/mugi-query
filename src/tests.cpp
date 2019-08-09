@@ -26,8 +26,8 @@ void Tests::run()
     textParseCreateTableCreateDefinition();
     //testDateRegularExpressions();
     //testDateTimeRegularExpressions();
-    //testTryConvert1();
-    //testTryConvert2();
+    testTryConvert1();
+    testTryConvert2();
     //testApParse();
     //testTimeZones();
     testDateTimeParse();
@@ -669,19 +669,19 @@ bool Tests::testTryConvert2() {
 
     QDateTime d1, d2, d3, d4;
 
-    d1 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
-    d2 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
-    d3 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, true).toDateTime();
-    d4 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, false).toDateTime();
+    d1 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, false).toDateTime();
+    d2 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, true).toDateTime();
+    d3 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
+    d4 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
 
-    // d1 TT 12MSK 12MSK
-    // d2 FF 12GMT 12GMT
-    // d3 FT 12GMT 15MSK
-    // d4 TF 12MSK  9GMT
+    // d1 TF 12MSK 12MSK
+    // d2 FT 12GMT 12GMT
+    // d3 FF 12GMT 12GMT
+    // d4 TT 12MSK  9GMT
 
     ok << testSpec(__LINE__,d1,Qt::LocalTime);
     ok << testSpec(__LINE__,d2,Qt::UTC);
-    ok << testSpec(__LINE__,d3,Qt::LocalTime);
+    ok << testSpec(__LINE__,d3,Qt::UTC);
     ok << testSpec(__LINE__,d4,Qt::UTC);
 
     ok << testOffset(__LINE__,dlocal,d1,0);
@@ -697,15 +697,15 @@ bool Tests::testTryConvert2() {
     s = dlocal.toString(Qt::RFC2822Date); // with numeric timezone
     //qDebug() << s;
 
-    d1 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
-    d2 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
-    d3 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, true).toDateTime();
-    d4 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, false).toDateTime();
+    d1 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, false).toDateTime();
+    d2 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, true).toDateTime();
+    d3 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
+    d4 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
 
-    // d1 TT 12MSK 12MSK
-    // d2 FF 12MSK  9GMT
-    // d3 FT 12MSK 12MSK
-    // d4 TF 12MSK  9GMT
+    // d1 TF 12MSK 12MSK
+    // d2 FT 12MSK  9GMT
+    // d3 FF 12MSK 12MSK
+    // d4 TT 12MSK  9GMT
 
     ok << testSpec(__LINE__,d1,Qt::OffsetFromUTC);
     ok << testSpec(__LINE__,d2,Qt::UTC);
@@ -722,19 +722,19 @@ bool Tests::testTryConvert2() {
     s = dlocal.toString("yyyy-MM-dd hh:mm:ss.zzz t"); // with abbreviated timezone
     //qDebug() << s;
 
-    d1 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
-    d2 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
-    d3 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, true).toDateTime();
-    d4 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, false).toDateTime();
+    d1 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, false).toDateTime();
+    d2 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, true).toDateTime();
+    d3 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, false, false).toDateTime();
+    d4 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, true, true).toDateTime();
 
-    // d1 TT 12MSK 12MSK
-    // d2 FF 12MSK  9GMT
-    // d3 FT 12MSK 12MSK
-    // d4 TF 12MSK  9GMT
+    // d1 TF 12MSK 12MSK
+    // d2 FT 12MSK  9GMT
+    // d3 FF 12MSK 12MSK
+    // d4 TT 12MSK  9GMT
 
-    ok << testSpec(__LINE__,d1,Qt::LocalTime);
+    ok << testSpec(__LINE__,d1,Qt::TimeZone);
     ok << testSpec(__LINE__,d2,Qt::UTC);
-    ok << testSpec(__LINE__,d3,Qt::LocalTime);
+    ok << testSpec(__LINE__,d3,Qt::TimeZone);
     ok << testSpec(__LINE__,d4,Qt::UTC);
 
     ok << testOffset(__LINE__,dlocal,d1,0);

@@ -124,7 +124,9 @@ QString DateTime::regExp(DateTime::Type type, FormatDateTime formatDateTime, Dat
             {FormatDateYYYYMMDD, group("[0-9]{4}") + notDigit + number(1,12) + notDigit + number(1,31)},
             {FormatDateDDMMYY, number(1,31) + notDigit + number(1,12) + notDigit + group("[0-9]{2,4}") + yearDot },
             {FormatDateRuDDMonthYY, number(1,31) + notDigit + ruMonths.regExp() + "[.,]?" + notDigit + group("[0-9]{2,4}") + yearDot },
-            {FormatDateEnDDMonthYY, number(1,31) + notDigit + enMonths.regExp() + notDigit + group("[0-9]{2,4}")}
+            {FormatDateEnDDMonthYY, number(1,31) + notDigit + enMonths.regExp() + notDigit + group("[0-9]{2,4}")},
+            // Чт окт 6 2022
+            {FormatDateRuWeekDayMonthDDYY, ruWeekDays.regExp() + "\\s" + ruMonths.regExp() + "[.,]?\\s" + number(0,31) + "\\s" + group("[0-9]{2,4}") + yearDot}
         };
         return exps[formatDate];
     } else if (type == TypeTime) {
@@ -212,13 +214,19 @@ bool DateTime::parseDateTime(const QString& s, QDateTime& dateTime,
     }
 
     for(int i=0;i<formats.size();i++) {
+        Qt::DateFormat format = formats_[i];
         QRegularExpressionMatch m = exps[i].match(s);
         if (m.hasMatch()) {
-            dateTime = QDateTime::fromString(s,formats_[i]);
-            if (dateTime.isValid()) {
-                return true;
+            QDateTime dateTime_ = QDateTime::fromString(s,format);
+            if (!dateTime_.isValid()) {
+                qDebug() << __FILE__ << __LINE__ << s << format;
+                return false;
             }
-            return false;
+            if (format != Qt::RFC2822Date) {
+                dateTime_ = QDateTime(dateTime_.date(), dateTime_.time(), inLocalTime ? Qt::LocalTime : Qt::UTC);
+            }
+            dateTime = outUtc ? dateTime_.toUTC() : dateTime_;
+            return true;
         }
     }
 
@@ -335,7 +343,8 @@ QString DateTime::parseDate(const QString& s, QDate& date, int minYear) {
     QList<FormatDate> formats = {FormatDateYYYYMMDD,
                                  FormatDateDDMMYY,
                                  FormatDateRuDDMonthYY,
-                                 FormatDateEnDDMonthYY};
+                                 FormatDateEnDDMonthYY,
+                                 FormatDateRuWeekDayMonthDDYY};
 
     QList<QRegularExpression> exps;
     foreach (FormatDate format, formats) {
@@ -351,7 +360,14 @@ QString DateTime::parseDate(const QString& s, QDate& date, int minYear) {
         QRegularExpressionMatch m = rx.match(s);
 
         if (m.hasMatch()) {
-            QString year_ = format == FormatDateYYYYMMDD ? m.captured(1) : m.captured(3);
+            QString year_;
+            if (format == FormatDateYYYYMMDD) {
+                year_ = m.captured(1);
+            } else if (format == FormatDateRuWeekDayMonthDDYY) {
+                year_ = m.captured(4);
+            } else {
+                year_ = m.captured(3);
+            }
             int year = year_.toInt();
             if (year_.size() < 3) {
                 year = twoDigitYear(year, minYear);
@@ -363,11 +379,20 @@ QString DateTime::parseDate(const QString& s, QDate& date, int minYear) {
                 month = ruMonths.indexOf(m.captured(2).toLower()) + 1;
             } else if (format == FormatDateEnDDMonthYY) {
                 month = enMonths.indexOf(m.captured(2).toLower()) + 1;
+            } else if (format == FormatDateRuWeekDayMonthDDYY) {
+                month = ruMonths.indexOf(m.captured(2).toLower()) + 1;
             }
             if (month < 1) {
                 qDebug() << __FILE__ << __LINE__ << m.captured(2).toLower();
             }
-            int day = format == FormatDateYYYYMMDD ? m.captured(3).toInt() : m.captured(1).toInt();
+
+            int day;
+            if (format == FormatDateYYYYMMDD || format == FormatDateRuWeekDayMonthDDYY) {
+                day = m.captured(3).toInt();
+            } else {
+                day = m.captured(1).toInt();
+            }
+
             date = QDate(year,month,day);
             return s.mid(m.capturedLength());
         }
@@ -699,7 +724,7 @@ QString DateTime::timeZoneRegExp()
     QString tzNumeric = "[+][0-9]{4}";
     QString tzRtz = "RTZ\\s[0-9]+\\s[(]зима[)]";
 
-    return group(tzs.join("|") + "|" + tzNumeric + "|" + tzRtz);
+    return group({group(tzNumeric,false),group(tzRtz,false),group(tzs,false)});
 }
 
 QTimeZone DateTime::parseTimeZone(const QString& timeZoneCode) {
