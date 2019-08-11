@@ -12,7 +12,7 @@ public:
                   const QStringList& ns4 = QStringList(),
                   const QStringList& ns5 = QStringList());
 
-    QString regExp() const;
+    QString regExp(bool cap = true) const;
 
     int indexOf(const QString& value) const;
 

@@ -4,6 +4,8 @@
 #include "version.h"
 #include "tests.h"
 #include "datetime.h"
+#include <QDebug>
+#include <QTimeZone>
 
 int main(int argc, char *argv[])
 {

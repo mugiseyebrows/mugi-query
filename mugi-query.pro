@@ -129,7 +129,8 @@ HEADERS += \
     src/widget/fieldattributeswidget.h \
     src/field.h \
     src/testdatetime2sample.h \
-    src/datasavedialogstate.h
+    src/datasavedialogstate.h \
+    src/timezones.h
 
 SOURCES += \
     src/action.cpp \
@@ -216,7 +217,8 @@ SOURCES += \
     src/widget/fieldattributeswidget.cpp \
     src/field.cpp \
     src/testdatetime2sample.cpp \
-    src/datasavedialogstate.cpp
+    src/datasavedialogstate.cpp \
+    src/timezones.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

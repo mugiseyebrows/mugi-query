@@ -41,7 +41,7 @@ QStringList column(const QList<QStringList>& data, int i) {
 
 }
 
-QString MultinameEnum::regExp() const
+QString MultinameEnum::regExp(bool cap) const
 {
     QStringList result;
     foreach(const QStringList& names, mNames) {
@@ -51,7 +51,7 @@ QString MultinameEnum::regExp() const
     qSort(result.begin(),result.end(),[](const QString& s1, const QString& s2){
         return s1.size() > s2.size();
     });
-    return group(result);
+    return group(result, cap);
 }
 
 int MultinameEnum::indexOf(const QString &value) const

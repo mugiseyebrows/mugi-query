@@ -22,6 +22,7 @@ public:
         FormatDateTimeRFC2822,   // 26 Aug 1965 21:17:22 +0300
         FormatDateTimeISO,       // 2012-05-05T05:23:06
         FormatDateTimeISOWithMs, // 1919-02-03T16:03:56.461
+        // todo remove
         FormatRuLong,            // пятница, 23 сентября 2039 г. 3:48:06 MSK
         FormatRuShort,           // вт апр. 19 20:54:17 1988
         FormatEnShort            // Wed Aug  7 14:14:38 2019
@@ -40,14 +41,14 @@ public:
         FormatDateDDMMYY,
         FormatDateRuDDMonthYY,
         FormatDateEnDDMonthYY,
-        FormatDateRuWeekDayMonthDDYY // Чт окт 6 2022
+        FormatDateRuWeekDayMonthDDYY, // Чт окт 6 2022
+        FormatDateRuWeekDayDDMonthYY  // воскресенье, 10 марта 1974 г.
     };
 
     static bool parse(Type type, const QString &s, QDate &date, QTime &time, QDateTime &dateTime, int minYear, bool inLocalTime, bool outUtc);
     static bool parseAsDate(const QString &s, QDate &date, int minYear);
     static bool parseAsTime(const QString &s, QTime &time);
     static bool parseAsDateTime(const QString &s, QDateTime &dateTime, int minYear, bool inLocalTime, bool outUtc);
-    static TimeZone timeZone(const QString& code);
 
     static void writeSamples();
     static void writeNumber();
@@ -65,10 +66,6 @@ protected:
     static QString regExpTime(FormatTime format);
     static QString regExp(Type type, FormatDateTime formatDateTime,
                   FormatDate formatDate, FormatTime formatTime);
-
-    static QString timeZoneRegExp();
-
-    static int timeZoneOffset(const QString &timeZone, const QDateTime &dateTime);
 
     static MultinameEnum ruMonths();
     static MultinameEnum enMonths();
