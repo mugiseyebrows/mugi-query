@@ -5,7 +5,8 @@
 class Field {
 public:
     Field();
-    Field(const QString& name, const QString& type, int size, bool primaryKey, bool autoincrement);
+    Field(const QString& name, const QString& type, int size, bool primaryKey, bool autoincrement,
+          bool index, bool unique);
     QString name() const;
     void setName(const QString& name);
     QString type() const;
@@ -16,6 +17,10 @@ public:
     void setPrimaryKey(bool primaryKey);
     bool autoincrement() const;
     void setAutoincrement(bool autoincrement);
+    bool index() const;
+    void setIndex(bool index);
+    bool unique() const;
+    void setUnique(bool unique);
 
 protected:
     QString mName;
@@ -23,5 +28,7 @@ protected:
     int mSize;
     bool mPrimaryKey;
     bool mAutoincrement;
+    bool mIndex;
+    bool mUnique;
 };
 #endif // FIELD_H

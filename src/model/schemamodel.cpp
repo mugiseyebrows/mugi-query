@@ -131,7 +131,7 @@ int SchemaModel::rowCount(const QModelIndex &parent) const
     return item->rowCount();
 }
 
-int SchemaModel::columnCount(const QModelIndex &parent) const
+int SchemaModel::columnCount(const QModelIndex &) const
 {
     return mRoot->columnCount();
 }

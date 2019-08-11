@@ -7,6 +7,7 @@ class SchemaItem
 {
 public:
     enum ItemType {
+        ItemUndefined,
         ItemRoot,
         ItemDatabase,
         ItemTable,

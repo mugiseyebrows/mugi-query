@@ -90,6 +90,7 @@ QMap<QVariant::Type, QString> SqlDataTypes::mapToDriver(const QString &driver)
 
 QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
                                   const QLocale& locale,
+                                  int minYear,
                                   bool inLocalTime,
                                   bool outUtc,
                                   bool* ok) {
@@ -116,11 +117,6 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
         qDebug() << "t != QVariant::String" << __FILE__ << __LINE__;
         return v;
     }
-
-    // assume two digit year means years in range [currentYear - 50, currentYear + 50)
-    // where currentYear is current year rounded to tens
-    // TODO: user specified minYear
-    static int minYear = ((QDate::currentDate().year() + 5) / 10) * 10 - 50;
 
     QString s = v.toString();
 

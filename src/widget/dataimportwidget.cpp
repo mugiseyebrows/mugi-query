@@ -45,30 +45,12 @@ void setSpacerEnabled(QSpacerItem* spacer, bool enabled, QLayout* layout) {
     layout->invalidate();
 }
 
-QStringList join(const QList<QPair<QString,QString> > items, const QString& glue) {
-    QStringList result;
-    typedef QPair<QString,QString> T;
-    foreach (const T& item, items) {
-        result << item.first + glue + item.second;
-    }
-    return result;
-}
-
 void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QVariant::Type>& types) {
     for(int c=0;c<record.count();c++) {
         names << record.fieldName(c);
         types << record.field(c).type();
     }
     //qDebug() << "recordToNamesTypes";
-}
-
-bool hasMatch(const QList<QRegularExpression>& exps, const QString text) {
-    foreach(const QRegularExpression& exp, exps) {
-        if (exp.match(text).hasMatch()) {
-            return true;
-        }
-    }
-    return false;
 }
 
 } // namespace
@@ -110,7 +92,7 @@ void DataImportWidget::init(const QString &connectionName)
     int twoLines = fontHeight * 2;
 
     RichHeaderData* data = view->data();
-    data->subsectionSizes({twoLines, twoLines, twoLines, twoLines});
+    data->subsectionSizes({twoLines, twoLines, twoLines, twoLines * 3 / 2});
 
     DataImportModel* model = new DataImportModel(data->sizeHint(),ui->data);
     model->setLocale(locale());
@@ -138,7 +120,33 @@ void DataImportWidget::init(const QString &connectionName)
             mSetColumnNamesAndTypes,SLOT(onPost()));
 
     onUpdateTitle();
+
+    connect(ui->minYear,&IntLineEdit::valueChanged,[=](int value){
+         ui->maxYear->setValue(value + 99);
+         mUpdatePreview->onPost();
+    });
+
+    connect(ui->maxYear,&IntLineEdit::valueChanged,[=](int value){
+        ui->minYear->setValue(value - 99);
+        mUpdatePreview->onPost();
+    });
+
+    int currentYear = QDate::currentDate().year();
+    // assume two digit year means years in range [currentYear - 50, currentYear + 50)
+    // where currentYear is current year rounded to tens
+    int minYear = ((currentYear + 5) / 10) * 10 - 50;
+    int maxYear = minYear + 99;
+    ui->minYear->setValue(minYear);
+
+    qDebug() << (currentYear - minYear) << (maxYear - currentYear);
+
+    connect(ui->inLocal,SIGNAL(clicked(bool)),mUpdatePreview,SLOT(onPost()));
+    connect(ui->inUtc,SIGNAL(clicked(bool)),mUpdatePreview,SLOT(onPost()));
+    connect(ui->outAsIs,SIGNAL(clicked(bool)),mUpdatePreview,SLOT(onPost()));
+    connect(ui->outUtc,SIGNAL(clicked(bool)),mUpdatePreview,SLOT(onPost()));
+
 }
+
 
 QStringList comboBoxItems(QComboBox* comboBox) {
     QStringList items;
@@ -336,7 +344,9 @@ QList<Field> DataImportWidget::fields() const {
             continue;
         }
 
-        Field field(name->text(), type->currentText(), size->value(-1), attributes->primaryKey(), attributes->autoincrement());
+        Field field(name->text(), type->currentText(), size->value(-1),
+                    attributes->primaryKey(), attributes->autoincrement(),
+                    attributes->index(), attributes->unique());
         result << field;
     }
     return result;
@@ -397,11 +407,8 @@ void DataImportWidget::createHeaderViewWidgets() {
         if (!attributes) {
             attributes = new FieldAttributesWidget(viewport);
             data->cell(WidgetFieldAttributes,c).widget(attributes).padding(0,5);
-            connect(attributes,&FieldAttributesWidget::primaryKeyClicked,[=](){
-                onFieldAttributesClicked(c);
-            });
-            connect(attributes,&FieldAttributesWidget::autoincrementClicked,[=](){
-                onFieldAttributesClicked(c);
+            connect(attributes,&FieldAttributesWidget::attributeClicked,[=](){
+                onFieldAttributeClicked(c);
             });
         }
 
@@ -483,7 +490,7 @@ void DataImportWidget::onColumnNameChanged(int) {
     mSetModelTypes->onPost();
 }
 
-void DataImportWidget::onFieldAttributesClicked(int)
+void DataImportWidget::onFieldAttributeClicked(int)
 {
     mUpdatePreview->onPost();
 }
@@ -575,7 +582,7 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
         return QVariant::Date;
     } else if (ints * 100 / total > 90) {
         return QVariant::Int;
-    } else if (doubles * 100 / total > 90) {
+    } else if ((doubles + ints) * 100 / total > 90) {
         return QVariant::Double;
     } else if (times * 100 / total > 90) {
         return QVariant::Time;
@@ -629,6 +636,11 @@ QString DataImportWidget::queries(bool preview) {
         return QString();
     }
 
+    int minYear = ui->minYear->value(-1);
+    if (minYear == -1) {
+        return QString();
+    }
+
     /*QStringList names;
     QStringList types;
     QList<bool> primaryKeys;
@@ -641,15 +653,13 @@ QString DataImportWidget::queries(bool preview) {
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
-    QString createQuery;
+    QStringList schemaQueries;
 
     QList<Field> fields = this->fields();
 
     if (newTable) {
-        createQuery = DataStreamer::createTableStatement(db,
-                                                         table,
-                                                         fields,
-                                                         false) + ";\n";
+        schemaQueries.append(DataStreamer::createTableStatement(db,table,fields,false));
+        schemaQueries.append(DataStreamer::createIndexStatements(db,table,fields));
     }
 
     QString error;
@@ -667,10 +677,13 @@ QString DataImportWidget::queries(bool preview) {
                 fields.size() :
                 ui->columns->data()->model()->countChecked();
 
-    QString insertOrUpdateQuery = DataStreamer::stream(format, db, model, rowCount, table, fields, dataColumns, locale(), &hasMore, error);
+    bool inLocal = ui->inLocal->isChecked();
+    bool outUtc = ui->outUtc->isChecked();
+
+    QString insertOrUpdateQuery = DataStreamer::stream(format, db, model, rowCount, table, fields, dataColumns, minYear, inLocal, outUtc, locale(), &hasMore, error);
     QString elipsis = (hasMore && preview) ? "..." : QString();
 
-    return createQuery + insertOrUpdateQuery + elipsis;
+    return schemaQueries.join(";\n") + (schemaQueries.isEmpty() ? "" : ";\n") + insertOrUpdateQuery + elipsis;
 }
 
 void DataImportWidget::onUpdatePreview() {

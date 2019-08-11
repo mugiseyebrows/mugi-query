@@ -19,8 +19,8 @@ public:
 
     static QMap<QVariant::Type, QString> mapToDriver(const QString& driver);
 
-    static QVariant tryConvert(const QVariant &v, QVariant::Type t, const QLocale &locale,
-                               bool inLocalTime, bool outUtc, bool *ok = 0);
+    static QVariant tryConvert(const QVariant &v, QVariant::Type t, const QLocale &locale, int minYear,
+                               bool inLocalTime, bool outUtc, bool *ok);
 
 
 };

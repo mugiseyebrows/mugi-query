@@ -58,20 +58,12 @@ QString head(const QString& s) {
     return "^" + s;
 }
 
-QString tail(const QString& s) {
-    return s + "$";
-}
-
 QString whole(const QString& s) {
     return "^" + s + "$";
 }
 
 QString group(const QString& s, bool cap = true) {
     return (cap ? "(" : "(?:") + s + ")";
-}
-
-QString group(const QStringList& s, bool cap = true) {
-    return (cap ? "(" : "(?:") + s.join("|") + ")";
 }
 
 } // namespace

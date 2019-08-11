@@ -67,8 +67,8 @@ private slots:
 
 private:
     Ui::SaveDataDialog *ui;
-    QSqlQueryModel* mModel;
     QSqlDatabase mDatabase;
+    QSqlQueryModel* mModel;
     CallOnce* mUpdatePreview;
 };
 

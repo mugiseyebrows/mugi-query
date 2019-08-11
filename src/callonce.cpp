@@ -2,7 +2,8 @@
 
 #include <QTimer>
 
-CallOnce::CallOnce(const QString name, int timeout, QObject *parent) : QObject(parent), mName(name), mId(0), mTimeout(timeout)
+CallOnce::CallOnce(const QString name, int timeout, QObject *parent) :
+    QObject(parent), mId(0), mName(name), mTimeout(timeout)
 {
 
 }

@@ -23,20 +23,8 @@ MultinameEnum::MultinameEnum(const QStringList &ns1, const QStringList &ns2, con
 
 namespace {
 
-QString group(const QString& s, bool cap = true) {
-    return (cap ? "(" : "(?:") + s + ")";
-}
-
 QString group(const QStringList& s, bool cap = true) {
     return (cap ? "(" : "(?:") + s.join("|") + ")";
-}
-
-QStringList column(const QList<QStringList>& data, int i) {
-    QStringList result;
-    foreach(const QStringList& item, data) {
-        result << item.value(i);
-    }
-    return result;
 }
 
 }

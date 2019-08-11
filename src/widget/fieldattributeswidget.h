@@ -19,6 +19,10 @@ public:
 
     bool autoincrement() const;
 
+    bool index() const;
+
+    bool unique() const;
+
     void setPrimaryKey(bool value);
 
     void setAutoincrement(bool value);
@@ -26,9 +30,9 @@ public:
 signals:
     void primaryKeyClicked(bool);
     void autoincrementClicked(bool);
-
-private slots:
-    void on_primaryKey_stateChanged(int state);
+    void indexClicked(bool);
+    void uniqueClicked(bool);
+    void attributeClicked(bool);
 
 private:
     Ui::FieldAttributesWidget *ui;

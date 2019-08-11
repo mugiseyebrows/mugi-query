@@ -2,7 +2,7 @@
 
 #include <QDebug>
 
-SchemaItem::SchemaItem(const QString &data, SchemaItem *parent) : mData(data), mParent(parent)
+SchemaItem::SchemaItem(const QString &data, SchemaItem *parent) : mParent(parent), mData(data)
 {
 
 }
@@ -91,6 +91,7 @@ SchemaItem::ItemType SchemaItem::type() const
     if (!mParent->parent()->parent()->parent()) {
         return ItemField;
     }
+    return ItemUndefined;
 }
 
 SchemaItem *SchemaItem::parent() const

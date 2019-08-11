@@ -33,8 +33,9 @@ public:
 
     static QString createTableStatement(const QSqlDatabase &db, const QString &table, const QList<Field> &fields, bool ifNotExists);
 
-    static QString stream(DataFormat::Format format, const QSqlDatabase &db, QAbstractItemModel *model, int rowCount, const QString &table, const QList<Field> &fields, int dataColumns, const QLocale &locale, bool *hasMore, QString &error);
+    static QString stream(DataFormat::Format format, const QSqlDatabase &db, QAbstractItemModel *model, int rowCount, const QString &table, const QList<Field> &fields, int dataColumns, int minYear, bool inLocal, bool outUtc, const QLocale &locale, bool *hasMore, QString &error);
 
+    static QStringList createIndexStatements(const QSqlDatabase &db, const QString &table, const QList<Field> &fields);
 };
 
 

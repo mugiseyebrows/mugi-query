@@ -37,7 +37,9 @@ QVariant DataImportModel::data(const QModelIndex &index, int role) const
                 return QVariant();
             }
 
-            SqlDataTypes::tryConvert(v, type, mLocale, true, false, &ok);
+            int minYear = 1950;
+            SqlDataTypes::tryConvert(v, type, mLocale, minYear, true, false, &ok);
+
             if (!ok) {
                 return QVariant(QColor(Qt::red));
             }

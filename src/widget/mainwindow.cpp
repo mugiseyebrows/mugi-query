@@ -676,7 +676,7 @@ void MainWindow::on_queryExecute_triggered()
     tab->on_execute_clicked();
 }
 
-void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &pos)
+void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 {
 
     QMenu menu;

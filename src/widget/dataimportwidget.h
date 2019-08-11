@@ -61,7 +61,7 @@ protected slots:
     void onUpdateTitle();
     void onColumnTypeChanged(int);
     void onColumnNameChanged(int);
-    void onFieldAttributesClicked(int);
+    void onFieldAttributeClicked(int);
     void on_newTable_textChanged(QString);
     //void onDataChanged(QModelIndex, QModelIndex, QVector<int>);
     void onModelSetTypes();

@@ -1,12 +1,13 @@
 #include "field.h"
 
-Field::Field() : mSize(-1), mPrimaryKey(false), mAutoincrement(false) {
+Field::Field()
+    : mSize(-1), mPrimaryKey(false), mAutoincrement(false), mIndex(false), mUnique(false) {
 }
 
 Field::Field(const QString& name, const QString& type, int size, bool primaryKey,
-             bool autoincrement)
-    : mName(name), mType(type), mSize(size), mPrimaryKey(primaryKey),
-      mAutoincrement(autoincrement) {
+             bool autoincrement, bool index, bool unique)
+    : mName(name), mType(type), mSize(size), mPrimaryKey(primaryKey), mAutoincrement(autoincrement),
+      mIndex(index), mUnique(unique) {
 }
 
 QString Field::name() const {
@@ -47,4 +48,20 @@ bool Field::autoincrement() const {
 
 void Field::setAutoincrement(bool autoincrement) {
     mAutoincrement = autoincrement;
+}
+
+bool Field::index() const {
+    return mIndex;
+}
+
+void Field::setIndex(bool index) {
+    mIndex = index;
+}
+
+bool Field::unique() const {
+    return mUnique;
+}
+
+void Field::setUnique(bool unique) {
+    mUnique = unique;
 }

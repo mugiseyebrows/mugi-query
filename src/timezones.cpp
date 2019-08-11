@@ -6,14 +6,6 @@
 
 namespace {
 
-QString head(const QString& s) {
-    return "^" + s;
-}
-
-QString tail(const QString& s) {
-    return s + "$";
-}
-
 QString whole(const QString& s) {
     return "^" + s + "$";
 }
