@@ -143,7 +143,7 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1,1">
           <item>
            <widget class="QGroupBox" name="groupBox_4">
             <property name="title">

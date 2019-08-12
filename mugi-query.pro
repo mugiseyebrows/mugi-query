@@ -41,6 +41,7 @@ target.path = /usr/local/bin
 INSTALLS += target
 
 include(src/richheaderview/richheaderview.pri)
+include(src/tablebuttons/tablebuttons.pri)
 
 HEADERS += \
     src/action.h \

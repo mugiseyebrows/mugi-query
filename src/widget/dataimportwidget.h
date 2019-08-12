@@ -18,6 +18,8 @@ class QLineEdit;
 class QComboBox;
 class QCheckBox;
 class FieldAttributesWidget;
+class ModelAppender;
+class TableButtons;
 
 namespace Ui {
 class DataImportWidget;
@@ -35,75 +37,68 @@ public:
         WidgetFieldAttributes,
     };
 
+    enum ButtonIndex {
+        ButtonInsertRow,
+        ButtonRemoveRow,
+        ButtonInsertColumn,
+        ButtonRemoveColumn
+    };
+
     explicit DataImportWidget(QWidget *parent = nullptr);
     ~DataImportWidget();
 
     void init(const QString& value);
-
     QString connectionName() const;
-
-    static QVariant::Type guessType(QAbstractItemModel *model, const QModelIndex &topLeft, const QModelIndex &bottomRight);
-    void guessColumnType(int column);
     void update(const Tokens &tokens);
 
 public slots:
     void onUpdateTokens(QString connectionName, Tokens tokens);
 protected slots:
-    //void onExistingTableCurrentIndexChanged(int index);
     void on_optionNewTable_clicked();
     void on_optionExistingTable_clicked();
-
-    //void onColumnDataChanged(int, QModelIndex, QModelIndex);
     void onDataCopy();
     void onDataPaste();
-
     void onUpdatePreview();
     void onUpdateTitle();
     void onColumnTypeChanged(int);
     void onColumnNameChanged(int);
     void onFieldAttributeClicked(int);
     void on_newTable_textChanged(QString);
-    //void onDataChanged(QModelIndex, QModelIndex, QVector<int>);
     void onModelSetTypes();
     void onSetColumnNamesAndTypes();
-
     void onColumnSizeChanged(int);
 signals:
     void appendQuery(QString);
 
 protected:
-
-    RichHeaderView *headerView() const;
-    void createHeaderViewWidgets();
-
-    void setColumnNames(const QStringList &names);
-    void setColumnTypes(const QList<QVariant::Type> &types);
-
-    void newOrExistingTable();
-
     Ui::DataImportWidget *ui;
     QString mConnectionName;
     Tokens mTokens;
-
-    DataImportModel *dataModel() const;
-
-    QString queries(bool preview);
-
     CallOnce* mUpdatePreview;
     CallOnce* mSetModelTypes;
     CallOnce* mSetColumnNamesAndTypes;
+    ModelAppender* mAppender;
+    TableButtons* mButtons;
 
+    RichHeaderView *headerView() const;
+    void createHeaderViewWidgets();
+    void setColumnNames(const QStringList &names);
+    void setColumnTypes(const QList<QVariant::Type> &types);
+    void newOrExistingTable();
+    DataImportModel *dataModel() const;
+    QString queries(bool preview);
     QWidget *widget(int row, int column) const;
     QLineEdit *widgetName(int column) const;
     QComboBox *widgetType(int column) const;
     IntLineEdit *widgetSize(int column) const;
     FieldAttributesWidget *widgetFieldAttributes(int column) const;
-
     QString tableName();
     QList<Field> fields() const;
-
     void setColumnSizes();
     void setColumnAttributes();
+    bool newTable() const;
+    static QVariant::Type guessType(QAbstractItemModel *model, const QModelIndex &topLeft, const QModelIndex &bottomRight);
+    void guessColumnType(int column);
 private slots:
     void on_clearData_clicked();
     void on_copyQuery_clicked();

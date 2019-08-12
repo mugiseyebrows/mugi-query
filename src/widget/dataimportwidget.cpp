@@ -25,6 +25,8 @@
 #include "datetime.h"
 #include "widget/fieldattributeswidget.h"
 #include "widget/intlineedit.h"
+#include "modelappender.h"
+#include "tablebuttons/tablebuttons.h"
 
 namespace  {
 
@@ -60,7 +62,9 @@ DataImportWidget::DataImportWidget(QWidget *parent) :
     ui(new Ui::DataImportWidget),
     mUpdatePreview(new CallOnce("onUpdatePreview",0,this)),
     mSetModelTypes(new CallOnce("onSetTypes",0,this)),
-    mSetColumnNamesAndTypes(new CallOnce("onSetColumnNamesAndTypes",0,this))
+    mSetColumnNamesAndTypes(new CallOnce("onSetColumnNamesAndTypes",0,this)),
+    mAppender(new ModelAppender(this)),
+    mButtons(new TableButtons(this))
 {
     ui->setupUi(this);
 }
@@ -135,15 +139,42 @@ void DataImportWidget::init(const QString &connectionName)
     // assume two digit year means years in range [currentYear - 50, currentYear + 50)
     // where currentYear is current year rounded to tens
     int minYear = ((currentYear + 5) / 10) * 10 - 50;
-    int maxYear = minYear + 99;
+    //int maxYear = minYear + 99;
     ui->minYear->setValue(minYear);
 
-    qDebug() << (currentYear - minYear) << (maxYear - currentYear);
+    //qDebug() << (currentYear - minYear) << (maxYear - currentYear);
 
     connect(ui->inLocal,SIGNAL(clicked(bool)),mUpdatePreview,SLOT(onPost()));
     connect(ui->inUtc,SIGNAL(clicked(bool)),mUpdatePreview,SLOT(onPost()));
     connect(ui->outAsIs,SIGNAL(clicked(bool)),mUpdatePreview,SLOT(onPost()));
     connect(ui->outUtc,SIGNAL(clicked(bool)),mUpdatePreview,SLOT(onPost()));
+
+    mAppender->setModel(ui->data->model());
+    mAppender->setActive(true);
+
+    int sectionSize = ui->data->verticalHeader()->defaultSectionSize();
+    QSize buttonSize(sectionSize,sectionSize);
+
+    mButtons->setView(ui->data);
+    mButtons->button(ButtonInsertRow).vertical().insert().text("+").size(buttonSize).offset(buttonSize.width(),0);
+    mButtons->button(ButtonRemoveRow).vertical().remove().text("-").size(buttonSize);
+    mButtons->button(ButtonInsertColumn).horizontal().insert().text("+").size(buttonSize);
+    mButtons->button(ButtonRemoveColumn).horizontal().remove().text("-").size(buttonSize);
+
+    connect(mButtons,&TableButtons::clicked,[=](int button,int index){
+        DataImportModel* model = dataModel();
+        if (button == ButtonInsertRow) {
+            model->insertRow(index);
+        } else if (button == ButtonRemoveRow) {
+            model->removeRow(index);
+        } else if (button == ButtonInsertColumn) {
+            model->insertColumn(index);
+            createHeaderViewWidgets();
+        } else if (button == ButtonRemoveColumn) {
+            model->removeColumn(index);
+            headerView()->update();
+        }
+    });
 
 }
 
@@ -162,7 +193,7 @@ void DataImportWidget::update(const Tokens& tokens) {
     QStringList currentTables = comboBoxItems(ui->existingTable);
     QStringList newTables = mTokens.tables();
 
-    bool firstRun = ui->existingTable->count() == 0;
+    static bool firstRun = true;
 
     if (newTables != currentTables) {
         QString selected = ui->existingTable->currentText();
@@ -175,12 +206,14 @@ void DataImportWidget::update(const Tokens& tokens) {
     }
 
     if (firstRun) {
-        if (ui->optionNewTable->isChecked()) {
+        if (this->newTable()) {
             on_optionNewTable_clicked();
         } else {
             on_optionExistingTable_clicked();
         }
     }
+
+    firstRun = false;
 
     ui->preview->setTokens(mTokens);
     mSetModelTypes->onPost();
@@ -263,6 +296,11 @@ void DataImportWidget::setColumnAttributes() {
         attributes->setPrimaryKey(false);
         attributes->setAutoincrement(false);
     }
+}
+
+bool DataImportWidget::newTable() const
+{
+    return ui->optionNewTable->isChecked();
 }
 
 void DataImportWidget::setColumnSizes() {
@@ -362,7 +400,7 @@ void DataImportWidget::createHeaderViewWidgets() {
         return;
     }
 
-    bool newTable = ui->optionNewTable->isChecked();
+    bool newTable = this->newTable();
 
     RichHeaderData* data = view->data();
     QWidget* viewport = view->viewport();
@@ -496,15 +534,15 @@ void DataImportWidget::onFieldAttributeClicked(int)
 }
 
 void DataImportWidget::newOrExistingTable() {
-    bool newTable = ui->optionNewTable->isChecked();
+    bool newTable = this->newTable();
     ui->existingTable->setEnabled(!newTable);
     ui->newTable->setEnabled(newTable);
     ui->columns->setVisible(!newTable);
     ui->format->setEnabled(!newTable);
+    mButtons->setVisible(newTable);
     setSpacerEnabled(ui->verticalSpacer,newTable,ui->groupBox->layout());
     createHeaderViewWidgets();
     onUpdateTitle();
-
     mUpdatePreview->onPost();
 }
 
@@ -610,9 +648,19 @@ void DataImportWidget::onDataPaste() {
 
     QAbstractItemModel* model = dataModel();
     QModelIndex topLeft = currentOrFirstIndex(ui->data);
-    QModelIndex bottomRight = Clipboard::pasteTsv(model,topLeft,true,true);
 
-    if (!ui->optionNewTable->isChecked()) {
+    bool newTable = this->newTable();
+
+    bool appendRows = true;
+    bool appendColumns = newTable;
+
+    mAppender->setActive(false);
+    QModelIndex bottomRight = Clipboard::pasteTsv(model,topLeft,appendRows,appendColumns);
+    mAppender->setActive(true);
+
+    if (newTable) {
+        createHeaderViewWidgets();
+    } else {
         return;
     }
 
@@ -620,8 +668,6 @@ void DataImportWidget::onDataPaste() {
         guessColumnType(column);
     }
 
-    //onColumnTypeChanged(0);
-    //mUpdatePreview->onPost();
 }
 
 void DataImportWidget::onDataCopy() {
@@ -647,7 +693,7 @@ QString DataImportWidget::queries(bool preview) {
     QList<bool> autoincrements;
     namesTypesAndAttributes(names,types,primaryKeys,autoincrements);*/
 
-    bool newTable = ui->optionNewTable->isChecked();
+    bool newTable = this->newTable();
 
     QString table = tableName();
 
@@ -692,7 +738,7 @@ void DataImportWidget::onUpdatePreview() {
 }
 
 QString DataImportWidget::tableName() {
-    bool newTable = ui->optionNewTable->isChecked();
+    bool newTable = this->newTable();
     QString table = newTable ? ui->newTable->text() : ui->existingTable->currentText();
     return table;
 }
@@ -704,7 +750,7 @@ void DataImportWidget::onUpdateTitle()
 
 void DataImportWidget::on_newTable_textChanged(QString)
 {
-    if (!ui->optionNewTable->isChecked()) {
+    if (!this->newTable()) {
         return;
     }
     mUpdatePreview->onPost();
