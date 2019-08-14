@@ -32,6 +32,7 @@ signals:
     void copy();
     void paste();
     void delete_();
+    void cut();
 public slots:
     void onDeleteSelected();
 

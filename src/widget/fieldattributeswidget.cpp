@@ -52,3 +52,13 @@ void FieldAttributesWidget::setAutoincrement(bool value)
 {
     ui->autoincrement->setChecked(value);
 }
+
+void FieldAttributesWidget::setIndex(bool value)
+{
+    ui->index->setChecked(value);
+}
+
+void FieldAttributesWidget::setUnique(bool value)
+{
+    ui->unique->setChecked(value);
+}

@@ -52,7 +52,6 @@ void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QVar
         names << record.fieldName(c);
         types << record.field(c).type();
     }
-    //qDebug() << "recordToNamesTypes";
 }
 
 } // namespace
@@ -113,8 +112,12 @@ void DataImportWidget::init(const QString &connectionName)
     connect(filter,SIGNAL(paste()),this,SLOT(onDataPaste()));
     connect(filter,SIGNAL(delete_()),filter,SLOT(onDeleteSelected()));
     connect(filter,SIGNAL(copy()),this,SLOT(onDataCopy()));
+    connect(filter,&CopyEventFilter::cut,[=](){
+        onDataCopy();
+        filter->onDeleteSelected();
+    });
 
-    on_abc_clicked();
+    //on_abc_clicked();
 
     DataFormat::initComboBox(ui->format, true);
 
@@ -168,13 +171,20 @@ void DataImportWidget::init(const QString &connectionName)
         } else if (button == ButtonRemoveRow) {
             model->removeRow(index);
         } else if (button == ButtonInsertColumn) {
+            QList<Field> fields = this->fields();
             model->insertColumn(index);
-            createHeaderViewWidgets();
+            fields.insert(index,Field());
+            setFields(fields);
         } else if (button == ButtonRemoveColumn) {
+            QList<Field> fields = this->fields();
             model->removeColumn(index);
+            fields.removeAt(index);
+            setFields(fields);
             headerView()->update();
         }
     });
+
+    createHeaderViewWidgets();
 
 }
 
@@ -206,11 +216,7 @@ void DataImportWidget::update(const Tokens& tokens) {
     }
 
     if (firstRun) {
-        if (this->newTable()) {
-            on_optionNewTable_clicked();
-        } else {
-            on_optionExistingTable_clicked();
-        }
+        on_optionNewTable_toggled(this->newTable());
     }
 
     firstRun = false;
@@ -226,7 +232,7 @@ QString DataImportWidget::connectionName() const
 
 void DataImportWidget::on_existingTable_currentIndexChanged(int index) {
 
-    if (!ui->optionExistingTable->isChecked()) {
+    if (this->newTable()) {
         return;
     }
 
@@ -263,20 +269,18 @@ DataImportModel* DataImportWidget::dataModel() const {
     return qobject_cast<DataImportModel*>(ui->data->model());
 }
 
-void DataImportWidget::setColumnNames(const QStringList& names) {
-
-    RichHeaderView* view = headerView();
-    if (!view) {
-        return;
-    }
-
+void DataImportWidget::setDataModelColumnCount(int count) {
     QAbstractItemModel* model = dataModel();
-    if (model->columnCount() < names.size()) {
-        model->insertColumns(model->columnCount(), names.size() - model->columnCount());
+    if (model->columnCount() < count) {
+        int insert = count - model->columnCount();
+        model->insertColumns(model->columnCount(), insert);
     }
+}
 
+void DataImportWidget::setColumnNames(const QStringList& names) {
+    setDataModelColumnCount(names.size());
     createHeaderViewWidgets();
-
+    QAbstractItemModel* model = dataModel();
     for(int c=0;c<model->columnCount();c++) {
         QLineEdit* name = widgetName(c);
         if (!name) {
@@ -285,10 +289,15 @@ void DataImportWidget::setColumnNames(const QStringList& names) {
         }
         name->setText(names.value(c));
     }
-
-    // qDebug() << "setColumnNames updatePreview";
 }
 
+
+bool DataImportWidget::newTable() const
+{
+    return ui->optionNewTable->isChecked();
+}
+
+#if 0
 void DataImportWidget::setColumnAttributes() {
     QAbstractItemModel* model = dataModel();
     for(int c=0;c<model->columnCount();c++) {
@@ -298,11 +307,6 @@ void DataImportWidget::setColumnAttributes() {
     }
 }
 
-bool DataImportWidget::newTable() const
-{
-    return ui->optionNewTable->isChecked();
-}
-
 void DataImportWidget::setColumnSizes() {
     QAbstractItemModel* model = dataModel();
     for(int c=0;c<model->columnCount();c++) {
@@ -310,6 +314,7 @@ void DataImportWidget::setColumnSizes() {
         size->setText(QString());
     }
 }
+
 
 void DataImportWidget::setColumnTypes(const QList<QVariant::Type>& types) {
 
@@ -337,6 +342,7 @@ void DataImportWidget::setColumnTypes(const QList<QVariant::Type>& types) {
     }
 
 }
+#endif
 
 QWidget* DataImportWidget::widget(int row, int column) const {
     RichHeaderView* view = headerView();
@@ -361,6 +367,37 @@ IntLineEdit* DataImportWidget::widgetSize(int column) const {
 
 FieldAttributesWidget* DataImportWidget::widgetFieldAttributes(int column) const {
     return qobject_cast<FieldAttributesWidget*>(widget(WidgetFieldAttributes,column));
+}
+
+void DataImportWidget::setFields(const QList<Field>& fields) {
+    RichHeaderView* view = headerView();
+    QAbstractItemModel* model = dataModel();
+    if (!view || !model) {
+        qDebug() << __FILE__ << __LINE__ << view << model;
+        return;
+    }
+    setDataModelColumnCount(fields.size());
+    createHeaderViewWidgets();
+    for(int c=0;c<model->columnCount();c++) {
+        QLineEdit* name = widgetName(c);
+        QComboBox* type = widgetType(c);
+        FieldAttributesWidget* attributes = widgetFieldAttributes(c);
+        IntLineEdit* size = widgetSize(c);
+
+        if (!name || !type || !attributes || !size) {
+            qDebug() << __FILE__ << __LINE__ << name << type << attributes << size;
+            continue;
+        }
+
+        Field field = fields.value(c);
+
+        name->setText(field.name());
+        type->setCurrentText(field.type());
+        attributes->setPrimaryKey(field.primaryKey());
+        attributes->setAutoincrement(field.autoincrement());
+        attributes->setIndex(field.index());
+        attributes->setUnique(field.unique());
+    }
 }
 
 QList<Field> DataImportWidget::fields() const {
@@ -452,6 +489,7 @@ void DataImportWidget::createHeaderViewWidgets() {
 
         widgetName(c)->setReadOnly(!newTable);
         widgetType(c)->setEnabled(newTable);
+        widgetSize(c)->setEnabled(newTable);
         widgetFieldAttributes(c)->setEnabled(newTable);
     }
     view->update();
@@ -465,14 +503,22 @@ void DataImportWidget::onColumnDataChanged(int,QModelIndex,QModelIndex) {
 }*/
 
 void DataImportWidget::onSetColumnNamesAndTypes() {
+
+    DataImportModel* model = dataModel();
+    if (!model) {
+        return;
+    }
+
     qDebug() << "onSetColumnNamesAndTypes";
     QStringList names;
     QList<QVariant::Type> types;
     ui->columns->checked(names,types);
-    setColumnNames(names);
-    setColumnTypes(types);
-    setColumnSizes();
-    setColumnAttributes();
+    QMap<QVariant::Type, QString> m = SqlDataTypes::mapFromVariant();
+    QList<Field> fields;
+    for(int c=0;c<names.size();c++) {
+        fields << Field(names[c],m.value(types[c]));
+    }
+    setFields(fields);
 }
 
 void DataImportWidget::onUpdateTokens(QString connectionName, Tokens tokens)
@@ -541,24 +587,8 @@ void DataImportWidget::newOrExistingTable() {
     ui->format->setEnabled(!newTable);
     mButtons->setVisible(newTable);
     setSpacerEnabled(ui->verticalSpacer,newTable,ui->groupBox->layout());
-    createHeaderViewWidgets();
     onUpdateTitle();
     mUpdatePreview->onPost();
-}
-
-void DataImportWidget::on_optionNewTable_clicked()
-{
-    newOrExistingTable();
-}
-
-void DataImportWidget::on_optionExistingTable_clicked()
-{
-    newOrExistingTable();
-    //onColumnDataChanged(0,QModelIndex(),QModelIndex());
-    mSetColumnNamesAndTypes->onPost();
-    if (!ui->columns->data()->model()) {
-        on_existingTable_currentIndexChanged(ui->existingTable->currentIndex());
-    }
 }
 
 QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
@@ -651,16 +681,13 @@ void DataImportWidget::onDataPaste() {
 
     bool newTable = this->newTable();
 
-    bool appendRows = true;
-    bool appendColumns = newTable;
-
     mAppender->setActive(false);
-    QModelIndex bottomRight = Clipboard::pasteTsv(model,topLeft,appendRows,appendColumns);
+    QModelIndex bottomRight = Clipboard::pasteTsv(model,topLeft,true,true);
     mAppender->setActive(true);
 
-    if (newTable) {
-        createHeaderViewWidgets();
-    } else {
+    createHeaderViewWidgets();
+
+    if (!newTable) {
         return;
     }
 
@@ -686,12 +713,6 @@ QString DataImportWidget::queries(bool preview) {
     if (minYear == -1) {
         return QString();
     }
-
-    /*QStringList names;
-    QStringList types;
-    QList<bool> primaryKeys;
-    QList<bool> autoincrements;
-    namesTypesAndAttributes(names,types,primaryKeys,autoincrements);*/
 
     bool newTable = this->newTable();
 
@@ -762,12 +783,11 @@ void DataImportWidget::on_clearData_clicked()
     DataImportModel* model = dataModel();
     model->clear();
     model->setRowCount(5);
-    if (ui->optionExistingTable->isChecked()) {
-        //onColumnDataChanged(0,QModelIndex(),QModelIndex());
-        mSetColumnNamesAndTypes->onPost();
-    } else {
-        model->setColumnCount(5);
+    model->setColumnCount(5);
+    if (newTable()) {
         createHeaderViewWidgets();
+    } else {
+        mSetColumnNamesAndTypes->onPost();
     }
     mUpdatePreview->onPost();
 }
@@ -797,5 +817,28 @@ void DataImportWidget::on_guessTypes_clicked()
     int columnCount = dataModel()->columnCount();
     for(int column=0;column < columnCount; column++) {
         guessColumnType(column);
+    }
+}
+
+void DataImportWidget::on_optionNewTable_toggled(bool newTable)
+{
+    DataImportModel* model = dataModel();
+    if (!model) {
+        return;
+    }
+
+    if (newTable) {
+        // restore fields
+        setFields(mNewTableFields);
+        newOrExistingTable();
+    } else {
+        // save fields
+        mNewTableFields = fields();
+        newOrExistingTable();
+        if (!ui->columns->data()->model()) {
+            on_existingTable_currentIndexChanged(ui->existingTable->currentIndex());
+        } else {
+            mSetColumnNamesAndTypes->onPost();
+        }
     }
 }

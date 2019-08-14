@@ -27,6 +27,10 @@ public:
 
     void setAutoincrement(bool value);
 
+    void setIndex(bool value);
+
+    void setUnique(bool value);
+
 signals:
     void primaryKeyClicked(bool);
     void autoincrementClicked(bool);

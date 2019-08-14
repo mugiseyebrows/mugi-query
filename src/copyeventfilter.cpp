@@ -37,6 +37,10 @@ bool CopyEventFilter::eventFilter(QObject * object, QEvent * event) {
             emit delete_();
             return true;
         }
+        if (keyEvent->matches(QKeySequence::Cut)) {
+            emit cut();
+            return true;
+        }
     }
     return false;
 }

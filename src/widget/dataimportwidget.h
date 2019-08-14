@@ -54,8 +54,6 @@ public:
 public slots:
     void onUpdateTokens(QString connectionName, Tokens tokens);
 protected slots:
-    void on_optionNewTable_clicked();
-    void on_optionExistingTable_clicked();
     void onDataCopy();
     void onDataPaste();
     void onUpdatePreview();
@@ -79,6 +77,7 @@ protected:
     CallOnce* mSetColumnNamesAndTypes;
     ModelAppender* mAppender;
     TableButtons* mButtons;
+    QList<Field> mNewTableFields;
 
     RichHeaderView *headerView() const;
     void createHeaderViewWidgets();
@@ -94,11 +93,11 @@ protected:
     FieldAttributesWidget *widgetFieldAttributes(int column) const;
     QString tableName();
     QList<Field> fields() const;
-    void setColumnSizes();
-    void setColumnAttributes();
     bool newTable() const;
     static QVariant::Type guessType(QAbstractItemModel *model, const QModelIndex &topLeft, const QModelIndex &bottomRight);
     void guessColumnType(int column);
+    void setFields(const QList<Field> &fields);
+    void setDataModelColumnCount(int count);
 private slots:
     void on_clearData_clicked();
     void on_copyQuery_clicked();
@@ -106,6 +105,7 @@ private slots:
     void on_format_currentIndexChanged(int index);
     void on_guessTypes_clicked();
     void on_existingTable_currentIndexChanged(int index);
+    void on_optionNewTable_toggled(bool checked);
 };
 
 #endif // DATAIMPORTWIDGET_H

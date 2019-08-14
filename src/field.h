@@ -5,8 +5,8 @@
 class Field {
 public:
     Field();
-    Field(const QString& name, const QString& type, int size, bool primaryKey, bool autoincrement,
-          bool index, bool unique);
+    Field(const QString& name, const QString& type = "INT", int size = -1, bool primaryKey = false,
+          bool autoincrement = false, bool index = false, bool unique = false);
     QString name() const;
     void setName(const QString& name);
     QString type() const;

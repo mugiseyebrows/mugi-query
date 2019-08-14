@@ -1,7 +1,8 @@
 #include "field.h"
 
 Field::Field()
-    : mSize(-1), mPrimaryKey(false), mAutoincrement(false), mIndex(false), mUnique(false) {
+    : mType("INT"), mSize(-1), mPrimaryKey(false), mAutoincrement(false), mIndex(false),
+      mUnique(false) {
 }
 
 Field::Field(const QString& name, const QString& type, int size, bool primaryKey,

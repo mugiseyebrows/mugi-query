@@ -340,49 +340,26 @@ QStringList DataStreamer::createIndexStatements(const QSqlDatabase &db, const QS
 
     QSqlDriver* driver = db.driver();
     QMap<QString,QVariant::Type> variant = SqlDataTypes::mapToVariant();
-
     QString driverName = db.driverName();
-
-    if (driverName == "QMYSQL") {
-
-        QStringList result;
-
-        for(int c=0;c<fields.size();c++) {
-
-            const Field& field = fields[c];
-
-            if (field.name().isEmpty()) {
-                continue;
-            }
-
-            if (!field.unique() && !field.index()) {
-                continue;
-            }
-
-            QVariant::Type type = variant[field.type()];
-
-            QString indexType;
-
-            if (field.unique()) {
-                indexType = "UNIQUE";
-            } else if (type == QVariant::String) {
-                if (field.size() < 0) {
-                    indexType = "FULLTEXT";
-                }
-            } else {
-
-            }
-
-            result << QString("CREATE" + spaced(indexType) + "INDEX %1 on %2(%1)")
-                      .arg(driver->escapeIdentifier(field.name(),QSqlDriver::FieldName))
-                      .arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
-
+    QStringList result;
+    for(int c=0;c<fields.size();c++) {
+        const Field& field = fields[c];
+        if (field.name().isEmpty() || (!field.unique() && !field.index())) {
+            continue;
         }
-
-        return result;
+        QVariant::Type type = variant[field.type()];
+        QString indexType;
+        if (field.unique()) {
+            indexType = "UNIQUE";
+        } else if (driverName == "QMYSQL" && type == QVariant::String && field.size() < 0) {
+            indexType = "FULLTEXT";
+        }
+        result << QString("CREATE" + spaced(indexType) + "INDEX %1 ON %2(%1)")
+                  .arg(driver->escapeIdentifier(field.name(),QSqlDriver::FieldName))
+                  .arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
     }
+    return result;
 
-    return {};
 }
 
 QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString &table,
