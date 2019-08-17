@@ -33,6 +33,7 @@
 #include "automation.h"
 #include "model/schemamodel.h"
 #include "widget/dataimportwidgets.h"
+#include "drivernames.h"
 
 #include <QThread>
 #include "datautils.h"
@@ -569,10 +570,10 @@ void MainWindow::on_queryHelp_triggered()
     QString driverName = db.driverName();
 
     QMap<QString,QString> urls;
-    urls["QMYSQL"] = "https://dev.mysql.com/doc/refman/8.0/en/sql-syntax-data-manipulation.html";
-    urls["QODBC"] = "https://docs.microsoft.com/en-us/previous-versions/office/developer/office-2007/bb208930(v%3doffice.12)";
-    urls["QSQLITE"] = "https://www.sqlite.org/lang.html";
-    urls["QPSQL"] = "https://www.postgresql.org/docs/current/queries.html";
+    urls[DRIVER_MYSQL] = "https://dev.mysql.com/doc/refman/8.0/en/sql-syntax-data-manipulation.html";
+    urls[DRIVER_ODBC] = "https://docs.microsoft.com/en-us/previous-versions/office/developer/office-2007/bb208930(v%3doffice.12)";
+    urls[DRIVER_SQLITE] = "https://www.sqlite.org/lang.html";
+    urls[DRIVER_PSQL] = "https://www.postgresql.org/docs/current/queries.html";
     if (urls.contains(driverName)) {
         QDesktopServices::openUrl(QUrl(urls[driverName]));
     }
@@ -678,6 +679,7 @@ void MainWindow::on_queryExecute_triggered()
 
 void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 {
+    return;
 
     QMenu menu;
 

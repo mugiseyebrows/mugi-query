@@ -12,6 +12,7 @@
 
 #include "sqldatatypes.h"
 #include "settings.h"
+#include "drivernames.h"
 
 namespace {
 
@@ -235,7 +236,7 @@ QString DataStreamer::stream(DataFormat::Format format,
 
     QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
 
-    QSqlRecord dataRecord = createDataRecord(fields.mid(0,dataColumns));
+
     QSqlRecord keysRecord = createDataRecord(fields.mid(dataColumns));
 
     *hasMore = false;
@@ -244,7 +245,8 @@ QString DataStreamer::stream(DataFormat::Format format,
 
     for(int r=0;r < model->rowCount();r++) {
 
-        //QVariantList rowValues = filterData(model,r,filter);
+
+        QSqlRecord dataRecord = createDataRecord(fields.mid(0,dataColumns));
 
         bool empty = true;
 
@@ -261,7 +263,14 @@ QString DataStreamer::stream(DataFormat::Format format,
                 empty = false;
             }
             if (c < dataColumns) {
-                dataRecord.setValue(field.name(),v);
+                if (format == DataFormat::SqlInsert && field.autoincrement() && v.isNull()) {
+                    int index = dataRecord.indexOf(field.name());
+                    if (index > -1) {
+                        dataRecord.remove(index);
+                    }
+                } else {
+                    dataRecord.setValue(field.name(),v);
+                }
             } else {
                 keysRecord.setValue(field.name(),v);
             }
@@ -351,7 +360,7 @@ QStringList DataStreamer::createIndexStatements(const QSqlDatabase &db, const QS
         QString indexType;
         if (field.unique()) {
             indexType = "UNIQUE";
-        } else if (driverName == "QMYSQL" && type == QVariant::String && field.size() < 0) {
+        } else if (driverName == DRIVER_MYSQL && type == QVariant::String && field.size() < 0) {
             indexType = "FULLTEXT";
         }
         result << QString("CREATE" + spaced(indexType) + "INDEX %1 ON %2(%1)")
@@ -387,14 +396,14 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
 
         QString type = specific[variant[field.type()]];
 
-        if (driverName == "QPSLQ" && field.autoincrement() && variant[field.type()] == QVariant::Int) {
+        if (driverName == DRIVER_PSQL && field.autoincrement() && variant[field.type()] == QVariant::Int) {
             type = "SERIAL";
         }
 
         static QMap<QString,QString> varchar = {
-            {"QMYSQL", "VARCHAR"},
-            {"QSQLITE", "VARCHAR"},
-            {"QODBC", "VARCHAR"},
+            {DRIVER_MYSQL, "VARCHAR"},
+            {DRIVER_SQLITE, "VARCHAR"},
+            {DRIVER_ODBC, "VARCHAR"},
         };
 
         if (variant[field.type()] == QVariant::String) {
@@ -407,8 +416,8 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
 
         static QMap<QString,QString> driverAutoincrement =
         {
-            {"QMYSQL", "AUTO_INCREMENT"},
-            {"QSQLITE", "AUTOINCREMENT"},
+            {DRIVER_MYSQL, "AUTO_INCREMENT"},
+            {DRIVER_SQLITE, "AUTOINCREMENT"},
         };
 
         QString columnSpec = QString("%1 %2 %3")

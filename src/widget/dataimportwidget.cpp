@@ -77,7 +77,7 @@ void DataImportWidget::init(const QString &connectionName)
 {
     QTimer::singleShot(0,[=](){
         SplitterUtil::setRatio(ui->horizontalSplitter,{1,2});
-        SplitterUtil::setRatio(ui->verticalSplitter,{4,1});
+        SplitterUtil::setRatio(ui->verticalSplitter,{5,1});
     });
 
     ui->columns->setLabelsMode(SelectColumnsWidget::LabelsModeShort);

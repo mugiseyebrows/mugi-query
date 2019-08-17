@@ -6,6 +6,7 @@
 #include <QSqlRecord>
 #include <QSqlField>
 #include <QDebug>
+#include "drivernames.h"
 
 QStringList tableFields(QSqlDatabase db, const QString& table) {
     QSqlRecord record = db.record(table);
@@ -125,7 +126,7 @@ QStringList Tokens::functions() const
 {
     QStringList res;
 
-    if (mDriverName == "QMYSQL") {
+    if (mDriverName == DRIVER_MYSQL) {
 
         /*
            https://dev.mysql.com/doc/refman/8.0/en/func-op-summary-ref.html
@@ -216,7 +217,7 @@ QStringList Tokens::functions() const
              << "uuid_to_bin" << "validate_password_strength" << "var_pop" << "var_samp"
              << "variance" << "version" << "wait_for_executed_gtid_set" << "wait_until_sql_thread_after_gtids" << "week"
              << "weekday" << "weekofyear" << "weight_string" << "year" << "yearweek";
-    } else if (mDriverName == "QPSQL") {
+    } else if (mDriverName == DRIVER_PSQL) {
         /*
 
 https://www.postgresql.org/docs/11/functions-string.html
@@ -407,13 +408,13 @@ QStringList Tokens::autocompletion(const QMap<QString,QString>& aliases) const
 QStringList Tokens::types() const
 {
     QStringList res;
-    if (mDriverName == "QMYSQL") {
+    if (mDriverName == DRIVER_MYSQL) {
         res << "integer" << "smallint" << "decimal" << "numeric" << "float"
             << "real" << "double" << "int" << "dec" << "fixed"
             << "double precision" << "date" << "datetime" << "time"
             << "timestamp" << "year" << "char" << "varchar" << "binary"
             << "varbinary" << "blob" << "text" << "enum";
-    } else if (mDriverName == "QPSQL") {
+    } else if (mDriverName == DRIVER_PSQL) {
 /*
 
 https://www.postgresql.org/docs/11/datatype-numeric.html
@@ -464,7 +465,7 @@ document.body.innerText = tds.map( (e,i) => ` << "${e}"` + ((i % 7) == 6 ? "\n" 
 QStringList Tokens::driverKeywords() const
 {
     QStringList res;
-    if (mDriverName == "QMYSQL") {
+    if (mDriverName == DRIVER_MYSQL) {
 
         /*
             https://dev.mysql.com/doc/refman/8.0/en/select.html
@@ -552,7 +553,7 @@ QStringList Tokens::driverKeywords() const
              << "show relaylog events" << "show slave hosts" << "show slave status"
              << "show status" << "show table status" << "show tables"
              << "show triggers" << "show variables" << "show warnings";
-    } else if (mDriverName == "QPSQL") {
+    } else if (mDriverName == DRIVER_PSQL) {
 /*
 https://www.postgresql.org/docs/9.1/sql-keywords-appendix.html
 let keywords = [...document.querySelectorAll('.CALSTABLE tbody')].slice(0,2).map( tbody => [...tbody.querySelectorAll('tr')].map( e => e.querySelector('td').innerText ) ).reduce( (p,c) => p.concat(c) ).map( e => e.toLowerCase() )

@@ -131,7 +131,8 @@ HEADERS += \
     src/field.h \
     src/testdatetime2sample.h \
     src/datasavedialogstate.h \
-    src/timezones.h
+    src/timezones.h \
+    src/drivernames.h
 
 SOURCES += \
     src/action.cpp \

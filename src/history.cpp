@@ -12,6 +12,7 @@
 #include <QSqlRecord>
 #include <QDebug>
 #include "settings.h"
+#include "drivernames.h"
 
 #define PARENT_WIDGET qobject_cast<QWidget*>(this->parent())
 
@@ -22,7 +23,7 @@ History::History(QObject* parent) : QObject(parent)
 
     QDir d(Settings::instance()->dir());
 
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE","_history");
+    QSqlDatabase db = QSqlDatabase::addDatabase(DRIVER_SQLITE,"_history");
     db.setDatabaseName(d.filePath("history.sqlite"));
     if (!db.open()) {
         QMessageBox::critical(PARENT_WIDGET,"error",db.lastError().text());

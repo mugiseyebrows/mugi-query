@@ -6,6 +6,7 @@
 #include <QTimeZone>
 #include <QRegularExpression>
 #include "datetime.h"
+#include "drivernames.h"
 
 QStringList SqlDataTypes::names()
 {
@@ -56,7 +57,7 @@ QMap<QVariant::Type, QString> SqlDataTypes::mapToDriver(const QString &driver)
 {
     QMap<QVariant::Type, QString> m;
 
-    if (driver == "QMYSQL") {
+    if (driver == DRIVER_MYSQL) {
         m[static_cast<QVariant::Type>(QMetaType::UChar)] = "TINYINT UNSIGNED";
         m[static_cast<QVariant::Type>(QMetaType::Char)] = "TINYINT";
         m[static_cast<QVariant::Type>(QMetaType::UShort)] = "SMALLINT UNSIGNED";

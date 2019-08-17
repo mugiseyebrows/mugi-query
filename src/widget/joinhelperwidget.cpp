@@ -27,6 +27,7 @@
 #include "clipboard.h"
 #include "error.h"
 #include <QClipboard>
+#include "drivernames.h"
 
 namespace  {
 
@@ -190,7 +191,7 @@ void JoinHelperWidget::findPath()
     }
 
     bool leftJoin = ui->joinType->currentIndex() == 0;
-    bool mssql = QSqlDatabase::database(mConnectionName).driverName() == "QODBC";
+    bool mssql = QSqlDatabase::database(mConnectionName).driverName() == DRIVER_ODBC;
 
     Relations::PathList path = relations.findPath(tables);
     if (path.isEmpty()) {
