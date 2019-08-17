@@ -8,7 +8,7 @@ plugins = [p for p in [
 
 conf = {
     'AppName' : 'mugi-query',
-    'AppVersion' : '1.0.1',
+    'AppVersion' : '1.1.0',
     'Binaries' : [{'Source': 'D:\\dev\\mugi-query\\release\\mugi-query.exe', 'Dest': ''}],
 
     'BuildDir' : 'D:\\dev\\mugi-query',
