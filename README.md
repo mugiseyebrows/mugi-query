@@ -14,12 +14,15 @@ Sql client for mysql, sqlite, postgresql, access and mssql databases
 ## Screenshots
 
 Main window
+
 ![mugi-query-plot](https://mugiseyebrows.github.io/img/mugi-query-plot.png)
 
 Join helper
+
 ![mugi-query-join-helper](https://mugiseyebrows.github.io/img/mugi-query-join-helper.png)
 
 Data import
+
 ![mugi-query-import.png](https://mugiseyebrows.github.io/img/mugi-query-import.png)
 
 ## Build 
