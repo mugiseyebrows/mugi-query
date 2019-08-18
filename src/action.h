@@ -16,7 +16,8 @@ public:
         ActionShowJoinHelper,
         ActionShowDistributionPlot,
         ActionShowXYPlot,
-        ActionShowDataImportDialog
+        ActionShowDataImportDialog,
+        ActionShowDateTimeRangeWidget
     };
     Action(Type type = ActionEmpty, const QVariantList& args = QVariantList());
     Type type() const;

@@ -15,7 +15,9 @@
 #include "xyplotmodel.h"
 #include "distributionplotmodel.h"
 #include "distributionplot.h"
-
+#include "widget/datetimerangewidget.h"
+#include "datetimerangewidgetmanager.h"
+#include <QDateTime>
 
 Automation *Automation::mInstance = 0;
 
@@ -82,6 +84,11 @@ void Automation::showJoinHelper()
 void Automation::showDataImportDialog()
 {
     mQueued.enqueue(Action(Action::ActionShowDataImportDialog));
+}
+
+void Automation::showDateTimeRangeWidget()
+{
+    mQueued.enqueue(Action(Action::ActionShowDateTimeRangeWidget));
 }
 
 void Automation::afterDialog(DatabaseConnectDialog *) {
@@ -177,6 +184,22 @@ void Automation::onStart() {
         next();
     } else if (mAction.type() == Action::ActionShowDataImportDialog) {
         mainWindow()->on_dataImport_triggered();
+        next();
+    } else if (mAction.type() == Action::ActionShowDateTimeRangeWidget) {
+
+        DateTimeRangeWidget* widget = new DateTimeRangeWidget();
+        DateTimeRangeWidgetManager* manager = new DateTimeRangeWidgetManager(widget);
+        manager->init(widget);
+
+        connect(widget,&DateTimeRangeWidget::dateTime1Changed,[=](QDateTime v){
+            qDebug() << "dt1" << v;
+        });
+        connect(widget,&DateTimeRangeWidget::dateTime2Changed,[=](QDateTime v){
+            qDebug() << "dt2" << v;
+        });
+
+
+        widget->show();
         next();
     }
 }

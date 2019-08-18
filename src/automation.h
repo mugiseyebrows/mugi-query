@@ -27,6 +27,7 @@ public:
     void showXYPlot();
     void showJoinHelper();
     void showDataImportDialog();
+    void showDateTimeRangeWidget();
 
     void beforeDialog(DatabaseHistoryDialog* dialog);
     void beforeDialog(DatabaseConnectDialog *dialog);

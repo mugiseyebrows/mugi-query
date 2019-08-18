@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>src/icons/undo.png</file>
+    </qresource>
+</RCC>

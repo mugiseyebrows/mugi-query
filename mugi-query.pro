@@ -132,7 +132,9 @@ HEADERS += \
     src/testdatetime2sample.h \
     src/datasavedialogstate.h \
     src/timezones.h \
-    src/drivernames.h
+    src/drivernames.h \
+    src/widget/datetimerangewidget.h \
+    src/datetimerangewidgetmanager.h
 
 SOURCES += \
     src/action.cpp \
@@ -220,7 +222,9 @@ SOURCES += \
     src/field.cpp \
     src/testdatetime2sample.cpp \
     src/datasavedialogstate.cpp \
-    src/timezones.cpp
+    src/timezones.cpp \
+    src/widget/datetimerangewidget.cpp \
+    src/datetimerangewidgetmanager.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \
@@ -241,5 +245,9 @@ FORMS += \
     src/widget/dataimportwidget.ui \
     src/widget/selectcolumnswidget.ui \
     src/widget/selectcolumnslistwidget.ui \
-    src/widget/fieldattributeswidget.ui
+    src/widget/fieldattributeswidget.ui \
+    src/widget/datetimerangewidget.ui
+
+RESOURCES += \
+    icons.qrc
 
