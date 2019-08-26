@@ -3,6 +3,7 @@
 
 #include <QVariant>
 #include <QString>
+#include <QJsonValue>
 
 class QSqlQueryModel;
 class QTextStream;
@@ -36,6 +37,8 @@ public:
     static QString stream(DataFormat::Format format, const QSqlDatabase &db, QAbstractItemModel *model, int rowCount, const QString &table, const QList<Field> &fields, int dataColumns, int minYear, bool inLocal, bool outUtc, const QLocale &locale, bool *hasMore, QString &error);
 
     static QStringList createIndexStatements(const QSqlDatabase &db, const QString &table, const QList<Field> &fields);
+    static QString streamJson(const QSqlDatabase &db, QAbstractItemModel *model, int rowCount, const QString &table, const QList<Field> &fields, int dataColumns, int minYear, bool inLocal, bool outUtc, const QLocale &locale, bool *hasMore, QString &error);
+    static QJsonValue variantToJson(const QVariant &v);
 };
 
 

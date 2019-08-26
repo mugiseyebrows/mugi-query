@@ -13,6 +13,7 @@ class Highlighter;
 class JoinHelperWidgets;
 class SchemaModel;
 class DataImportWidgets;
+class RelationsModel;
 
 #include "tokens.h"
 
@@ -62,6 +63,7 @@ protected:
     int lastTabIndex(const QString &connectionName);
     void selectDatabase(const QString &connectionName);
     void updateSchemaModel();
+    QStringList schemaTreeSelectedTables();
 public slots:
 
     void on_databaseConnect_triggered();
@@ -98,6 +100,7 @@ public slots:
     void onAppendQuery(const QString &connectionName, QString);
     void on_schemaTree_customContextMenuRequested(const QPoint &pos);
     void on_dataImport_triggered();
+    void on_schemaTree_doubleClicked(const QModelIndex &index);
 
 private:
     Ui::MainWindow *ui;

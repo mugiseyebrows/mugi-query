@@ -3,6 +3,10 @@
 #include <QDebug>
 #include <QTextStream>
 #include <QSqlQueryModel>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QTextCodec>
 
 #include <QDate>
 #include <QDateTime>
@@ -87,6 +91,13 @@ QString spaced(const QString& s) {
     return " " + s + " ";
 }
 
+QString jsonToString(const QJsonObject& v) {
+    QJsonDocument document;
+    document.setObject(v);
+    QTextCodec* codec = QTextCodec::codecForName("UTF-8");
+    return codec->toUnicode(document.toJson());
+}
+
 }
 
 QStringList DataStreamer::variantListToStringList(const QVariantList& values,
@@ -165,6 +176,9 @@ QString DataStreamer::variantToString(const QVariant& value,
             error = QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
             return QString();
         }
+
+    } else if (format == DataFormat::Json) {
+        return variantToJson(value).toString();
     } else if (format == DataFormat::SqlInsert || format == DataFormat::SqlUpdate) {
         if (value.isNull()) {
             return "null";
@@ -214,6 +228,88 @@ QSqlRecord createDataRecord(const QList<Field>& fields) {
     return record;
 }
 
+QJsonValue DataStreamer::variantToJson(const QVariant& v) {
+    QVariant::Type type = v.type();
+    if (v.isNull()) {
+        return QJsonValue();
+    } else if (type == QVariant::Int) {
+        return v.toInt();
+    } else if (type == QVariant::Double) {
+        return v.toDouble();
+    } else if (type == QVariant::String) {
+        return v.toString();
+    } else if (type == QVariant::Date || type == QVariant::DateTime) {
+        return v.toDateTime().toString(Qt::ISODateWithMs);
+    } else if (type == QVariant::Time) {
+        return v.toTime().toString("hh:mm:ss.zzz");
+    } else if (type == QVariant::ByteArray) {
+        QJsonArray res;
+        QByteArray d = v.toByteArray();
+        for(int i=0;i<d.size();i++) {
+            res.append((uint8_t) d[i]);
+        }
+        return res;
+    }
+    return QJsonValue();
+}
+
+QString DataStreamer::streamJson(const QSqlDatabase& db,
+                             QAbstractItemModel* model,
+                             int rowCount,
+                             const QString &table,
+                             const QList<Field>& fields,
+                             int dataColumns,
+                             int minYear,
+                             bool inLocal,
+                             bool outUtc,
+                             const QLocale& locale,
+                             bool* hasMore,
+                             QString& error) {
+
+    QJsonArray data;
+    QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
+    *hasMore = false;
+    int nonEmpty = 0;
+    for(int r=0;r<model->rowCount();r++) {
+        bool empty = true;
+        QJsonObject record;
+        for(int c=0;c<fields.size();c++) {
+            const Field& field = fields[c];
+            if (field.name().isEmpty()) {
+                continue;
+            }
+            QModelIndex index = model->index(r,c);
+            bool ok = false;
+
+            QVariant::Type type = m[field.type()];
+
+            QVariant v = SqlDataTypes::tryConvert(model->data(index),type,
+                                                  locale, minYear, inLocal, outUtc, &ok);
+            if (!v.isNull()) {
+                empty = false;
+            }
+            record[field.name()] = variantToJson(v);
+        }
+
+        if (empty) {
+            continue;
+        }
+
+        if (nonEmpty == rowCount) {
+            *hasMore = true;
+            break;
+        }
+
+        data.append(record);
+        nonEmpty++;
+    }
+
+    QJsonObject root;
+    root["table"] = table;
+    root["data"] = data;
+    return jsonToString(root);
+}
+
 QString DataStreamer::stream(DataFormat::Format format,
                              const QSqlDatabase& db,
                              QAbstractItemModel* model,
@@ -227,6 +323,12 @@ QString DataStreamer::stream(DataFormat::Format format,
                              const QLocale& locale,
                              bool* hasMore,
                              QString& error) {
+
+#if 0
+    if (format == DataFormat::Json) {
+        return streamJson(db, model, rowCount, table, fields, dataColumns, minYear, inLocal, outUtc, locale, hasMore, error);
+    }
+#endif
 
     QSqlDriver* driver = db.driver();
 
@@ -469,6 +571,24 @@ void DataStreamer::stream(const QSqlDatabase& db, QTextStream &stream, QSqlQuery
                 return;
             }
         }
+
+    } else if (format == DataFormat::Json) {
+
+        QJsonArray rows;
+        QStringList names = filterHeader(model,data);
+        for(int r=0; r<rowCount; r++) {
+            QJsonObject row;
+            QVariantList values = filterData(model,r,data);
+            for(int i=0;i<values.size();i++) {
+                row[names[i]] = variantToJson(values[i]);
+            }
+            rows.append(row);
+        }
+
+        QJsonObject root;
+        root["table"] = table;
+        root["data"] = rows;
+        stream << jsonToString(root);
 
     } else if (format == DataFormat::SqlInsert) {
 

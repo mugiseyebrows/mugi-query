@@ -147,6 +147,7 @@ JoinHelperWidget::~JoinHelperWidget()
     delete ui;
 }
 
+#if 0
 QString JoinHelperWidget::relationsPath() const
 {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
@@ -161,7 +162,7 @@ QString JoinHelperWidget::relationsPath() const
 
     return QDir(Settings::instance()->dir()).filePath(name);
 }
-
+#endif
 
 namespace {
 
@@ -205,7 +206,7 @@ void JoinHelperWidget::findPath()
 void JoinHelperWidget::saveRelationsModel() {
     RelationsModel* model = qobject_cast<RelationsModel*>(ui->relations->model());
     if (model->changed()) {
-        model->save(relationsPath());
+        model->save(RelationsModel::path(mConnectionName));
     }
 }
 
@@ -213,7 +214,7 @@ void JoinHelperWidget::loadRelationsModel()
 {
     RelationsModel* model = qobject_cast<RelationsModel*>(ui->relations->model());
     mRelationsAppender->setActive(false);
-    model->load(relationsPath());
+    model->load(RelationsModel::path(mConnectionName));
     model->insertRow(model->rowCount());
     mRelationsAppender->setActive(true);
 }

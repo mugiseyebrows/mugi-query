@@ -16,6 +16,9 @@ public:
 
     void load(const QString& path);
     void save(const QString& path);
+
+    static QString path(const QString& connectionName);
+
 protected:
     bool mChanged;
 };

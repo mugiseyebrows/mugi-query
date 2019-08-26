@@ -7,6 +7,9 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QDebug>
+#include <QSqlDatabase>
+#include "settings.h"
+#include <QDir>
 
 RelationsModel::RelationsModel(QObject *parent) : QStandardItemModel(0,2,parent), mChanged(false)
 {
@@ -87,4 +90,19 @@ void RelationsModel::save(const QString &path)
     file.close();
 
     mChanged = false;
+}
+
+QString RelationsModel::path(const QString &connectionName)
+{
+    QSqlDatabase db = QSqlDatabase::database(connectionName);
+
+    QStringList props;
+    props << "relations" << db.driverName() << db.hostName()
+          << db.userName() << db.databaseName();
+
+    QString name = props.join(" ")
+            .replace(QRegExp("[^a-z0-9._ -]",Qt::CaseInsensitive)," ")
+            .replace(QRegExp("[ ]+")," ") + ".txt";
+
+    return QDir(Settings::instance()->dir()).filePath(name);
 }

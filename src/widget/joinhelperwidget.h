@@ -32,7 +32,7 @@ public:
 public slots:
     void onTablesDataChanged(QModelIndex, QModelIndex);
 protected:
-    QString relationsPath() const;
+    //QString relationsPath() const;
     void findPath();
 
     void loadRelationsModel();

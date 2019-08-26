@@ -34,6 +34,9 @@
 #include "model/schemamodel.h"
 #include "widget/dataimportwidgets.h"
 #include "drivernames.h"
+#include "model/relationsmodel.h"
+#include "relations.h"
+#include "error.h"
 
 #include <QThread>
 #include "datautils.h"
@@ -679,15 +682,21 @@ void MainWindow::on_queryExecute_triggered()
 
 void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 {
-    return;
 
     QMenu menu;
 
-    QAction* alter = new QAction("Alter table",&menu);
-    menu.addAction(alter);
+    /*QAction* alter = new QAction("Alter table",&menu);
+    menu.addAction(alter);*/
+
+    QAction* select = new QAction("Select",&menu);
+    menu.addAction(select);
+
+    QAction* join = new QAction("Join",&menu);
+    menu.addAction(join);
 
     QAction* result = menu.exec(QCursor::pos());
 
+#if 0
     if (result == alter) {
 
         QModelIndex index = ui->schemaTree->currentIndex();
@@ -705,5 +714,95 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
         qDebug() << connectionName << table;
     }
+#endif
+
+    if (result == select) {
+
+        QString connectionName = this->connectionName();
+        QSqlDatabase db = QSqlDatabase::database(connectionName);
+        bool mssql = db.driverName() == DRIVER_ODBC;
+
+        QStringList tables = schemaTreeSelectedTables();
+        if (tables.isEmpty()) {
+            return;
+        }
+        QStringList queries;
+        foreach(const QString& table, tables) {
+            QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100").arg(table).arg(table);
+            queries << query;
+        }
+        onAppendQuery(connectionName,queries.join(";\n"));
+    }
+
+    if (result == join) {
+
+        QStringList tables = schemaTreeSelectedTables();
+        if (tables.isEmpty()) {
+            return;
+        }
+
+        QString connectionName = this->connectionName();
+        QSqlDatabase db = QSqlDatabase::database(connectionName);
+        bool mssql = db.driverName() == DRIVER_ODBC;
+
+        if (tables.size() == 1) {
+            QString query = QString("SELECT * FROM %1").arg(tables[0]).arg(tables[0]);
+            onAppendQuery(connectionName, query);
+            return;
+        }
+
+        // TODO relations model singleton
+        bool leftJoin = true;
+        RelationsModel* relationsModel = new RelationsModel(this);
+        relationsModel->load(RelationsModel::path(connectionName));
+        Relations relations(relationsModel);
+        Relations::PathList path = relations.findPath(tables);
+        if (path.isEmpty()) {
+            QString error = "No path found";
+            Error::show(this,error);
+            return;
+        }
+        QString query = relations.expression(path,leftJoin,mssql);
+        onAppendQuery(connectionName, query);
+    }
+
 }
 
+QStringList MainWindow::schemaTreeSelectedTables() {
+    QStringList tables;
+    QModelIndexList indexes = ui->schemaTree->selectionModel()->selectedIndexes();
+    if (indexes.isEmpty()) {
+        return tables;
+    }
+    SchemaModel* model = qobject_cast<SchemaModel*>(ui->schemaTree->model());
+    if (!model) {
+        qDebug() << __FILE__ << __LINE__;
+        return tables;
+    }
+    foreach(const QModelIndex& index, indexes) {
+        if (model->isTable(index)) {
+            tables << model->data(index).toString();
+        }
+    }
+    return tables;
+}
+
+
+
+void MainWindow::on_schemaTree_doubleClicked(const QModelIndex &index)
+{
+    SchemaModel* model = qobject_cast<SchemaModel*>(ui->schemaTree->model());
+    if (!model) {
+        qDebug() << __FILE__ << __LINE__;
+        return;
+    }
+    if (!model->isTable(index)) {
+        return;
+    }
+    QString connectionName = this->connectionName();
+    QSqlDatabase db = QSqlDatabase::database(connectionName);
+    bool mssql = db.driverName() == DRIVER_ODBC;
+    QString table = model->data(index).toString();
+    QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100").arg(table).arg(table);
+    onAppendQuery(connectionName, query);
+}

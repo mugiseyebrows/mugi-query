@@ -134,7 +134,8 @@ HEADERS += \
     src/timezones.h \
     src/drivernames.h \
     src/widget/datetimerangewidget.h \
-    src/datetimerangewidgetmanager.h
+    src/datetimerangewidgetmanager.h \
+    src/model/queryhistorymodel.h
 
 SOURCES += \
     src/action.cpp \
@@ -224,7 +225,8 @@ SOURCES += \
     src/datasavedialogstate.cpp \
     src/timezones.cpp \
     src/widget/datetimerangewidget.cpp \
-    src/datetimerangewidgetmanager.cpp
+    src/datetimerangewidgetmanager.cpp \
+    src/model/queryhistorymodel.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

@@ -49,8 +49,6 @@ clean disconnect
 color input delegate
 combobox delegates with autocompletion instead of lineedit (optional)
 save data:
-    preview
-    table name + '.sql' = filename 
     insert ignore (mysql, psql)
     output directory
     output to temporary file
@@ -69,5 +67,6 @@ dataimport:
     insert ignore
     values(),(),()
     array and json data types
-    fieldspec class: name type attributes
+    import from json
+    export json date, datetime, time options
 edit table data

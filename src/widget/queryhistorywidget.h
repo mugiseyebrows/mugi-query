@@ -14,11 +14,6 @@ class QueryHistoryWidget : public QWidget
     Q_OBJECT
 
 public:
-    enum cols {
-        col_date,
-        col_connectionName,
-        col_query
-    };
 
     explicit QueryHistoryWidget(QWidget *parent = 0);
     ~QueryHistoryWidget();
@@ -26,6 +21,7 @@ public:
     void refresh(const QString &connectionName);
 
     void updateQuery();
+    QStringList selectedQueries() const;
 signals:
     void appendQuery(QString,QString);
 

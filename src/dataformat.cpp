@@ -6,14 +6,14 @@
 
 void DataFormat::initComboBox(QComboBox *comboBox, bool onlySql)
 {
-    static QStringList items = {"Csv", "Tsv", "Sql insert", "Sql update"};
+    static QStringList items = {"Csv", "Tsv", "Json", "Sql insert", "Sql update"};
     comboBox->clear();
-    comboBox->addItems(onlySql ? items.mid(2) : items);
+    comboBox->addItems(onlySql ? items.mid(3) : items);
 }
 
 DataFormat::Format DataFormat::value(QComboBox *comboBox)
 {
-    static QStringList items = {"Csv", "Tsv", "Sql insert", "Sql update"};
+    static QStringList items = {"Csv", "Tsv", "Json", "Sql insert", "Sql update"};
     QString text = comboBox->currentText();
     return static_cast<DataFormat::Format>(items.indexOf(text));
 }
@@ -22,6 +22,7 @@ QString DataFormat::extension(DataFormat::Format format) {
     static QMap<DataFormat::Format,QString> exts = {
         {Csv, ".csv"},
         {Tsv, ".txt"},
+        {Json, ".json"},
         {SqlInsert, ".sql"},
         {SqlUpdate, ".sql"},
     };
@@ -29,18 +30,17 @@ QString DataFormat::extension(DataFormat::Format format) {
 }
 
 QString DataFormat::extensionsRegExp(){
-    return "[.](csv|txt|sql)$";
+    return "[.](csv|txt|sql|json)$";
 }
 
 QString DataFormat::fileDialogFilter(Format format)
 {
-    QString filter;
-    if (format == DataFormat::Csv) {
-        filter = "csv files (*.csv)";
-    } else if (format == DataFormat::Tsv) {
-        filter = "txt files (*.txt)";
-    } else {
-        filter = "sql files (*.sql)";
-    }
-    return filter;
+    static QMap<DataFormat::Format,QString> filter = {
+        {Csv, "csv files (*.csv)"},
+        {Tsv, "txt files (*.txt)"},
+        {Json, "json files (*.json)"},
+        {SqlInsert, "sql files (*.sql)"},
+        {SqlUpdate, "sql files (*.sql)"},
+    };
+    return filter[format];
 }

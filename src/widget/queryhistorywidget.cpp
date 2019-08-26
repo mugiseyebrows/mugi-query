@@ -4,6 +4,25 @@
 #include <QSqlQueryModel>
 #include <QStringListModel>
 #include <QDebug>
+#include "copyeventfilter.h"
+#include "model/queryhistorymodel.h"
+#include <QClipboard>
+
+namespace {
+
+QList<int> partialySelectedRows(QItemSelectionModel* selectionModel) {
+    QModelIndexList indexes = selectionModel->selectedIndexes();
+    QList<int> rows;
+    foreach (const QModelIndex& index, indexes) {
+        rows << index.row();
+    }
+    rows = rows.toSet().toList();
+    qSort(rows.begin(),rows.end());
+    return rows;
+}
+
+}
+
 
 QueryHistoryWidget::QueryHistoryWidget(QWidget *parent) :
     QWidget(parent),
@@ -11,10 +30,23 @@ QueryHistoryWidget::QueryHistoryWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QSqlQueryModel* model = new QSqlQueryModel(this);
+    QueryHistoryModel* model = new QueryHistoryModel(this);
     ui->tableView->setModel(model);
     refresh("all");
     ui->tableView->setColumnWidth(0,160);
+
+    CopyEventFilter* filter = new CopyEventFilter(this);
+    filter->setView(ui->tableView);
+
+    connect(filter,&CopyEventFilter::copy,[=](){
+        QStringList queries = selectedQueries();
+        if (queries.isEmpty()) {
+            return;
+        }
+        QClipboard *clipboard = QApplication::clipboard();
+        clipboard->setText(queries.join(";\n"));
+    });
+
 }
 
 QueryHistoryWidget::~QueryHistoryWidget()
@@ -22,10 +54,20 @@ QueryHistoryWidget::~QueryHistoryWidget()
     delete ui;
 }
 
+QStringList QueryHistoryWidget::selectedQueries() const {
+    QList<int> rows = partialySelectedRows(ui->tableView->selectionModel());
+    QStringList queries;
+    QAbstractItemModel* model = ui->tableView->model();
+    foreach (int row, rows) {
+        queries << model->data(model->index(row,QueryHistoryModel::col_query)).toString();
+    }
+    return queries;
+}
+
 void QueryHistoryWidget::on_tableView_doubleClicked(QModelIndex index) {
     QAbstractItemModel* m = ui->tableView->model();
-    QString connectionName = m->data(m->index(index.row(),col_connectionName)).toString();
-    QString query = m->data(m->index(index.row(),col_query)).toString();
+    QString connectionName = m->data(m->index(index.row(),QueryHistoryModel::col_connectionName)).toString();
+    QString query = m->data(m->index(index.row(),QueryHistoryModel::col_query)).toString();
     emit appendQuery(connectionName,query);
 }
 
@@ -59,12 +101,17 @@ void QueryHistoryWidget::on_refresh_clicked()
 
 void QueryHistoryWidget::on_copy_clicked()
 {
-    //emit copyQuery();
     QModelIndex index = ui->tableView->currentIndex();
     if (!index.isValid()) {
         return;
     }
-    on_tableView_doubleClicked(index);
+    QStringList queries = selectedQueries();
+    if (queries.isEmpty()) {
+        return;
+    }
+    QAbstractItemModel* model = ui->tableView->model();
+    QString connectionName = model->data(model->index(index.row(),QueryHistoryModel::col_connectionName)).toString();
+    emit appendQuery(connectionName,queries.join(";\n"));
 }
 
 void QueryHistoryWidget::on_connectionName_currentIndexChanged(const QString &)

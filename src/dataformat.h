@@ -9,6 +9,7 @@ namespace DataFormat
     enum Format {
         Csv,
         Tsv,
+        Json,
         SqlInsert,
         SqlUpdate
     };

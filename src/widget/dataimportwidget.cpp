@@ -724,7 +724,12 @@ QString DataImportWidget::queries(bool preview) {
 
     QList<Field> fields = this->fields();
 
-    if (newTable) {
+    DataFormat::Format format =
+            newTable ?
+                DataFormat::SqlInsert :
+                DataFormat::value(ui->format);
+
+    if (newTable && (format == DataFormat::SqlInsert) || (format == DataFormat::SqlUpdate)) {
         schemaQueries.append(DataStreamer::createTableStatement(db,table,fields,false));
         schemaQueries.append(DataStreamer::createIndexStatements(db,table,fields));
     }
@@ -733,11 +738,6 @@ QString DataImportWidget::queries(bool preview) {
     bool hasMore;
 
     int rowCount = preview ? 5 : model->rowCount();
-
-    DataFormat::Format format =
-            newTable ?
-                DataFormat::SqlInsert :
-                DataFormat::value(ui->format);
 
     int dataColumns =
             format == DataFormat::SqlInsert ?
