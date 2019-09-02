@@ -94,10 +94,10 @@ void DataImportWidget::init(const QString &connectionName)
     int fontHeight = view->fontMetrics().height();
     int twoLines = fontHeight * 2;
 
-    RichHeaderData* data = view->data();
-    data->subsectionSizes({twoLines, twoLines, twoLines, twoLines * 3 / 2});
+    RichHeaderData data = view->data();
+    data.subsectionSizes({twoLines, twoLines, twoLines, twoLines * 3 / 2});
 
-    DataImportModel* model = new DataImportModel(data->sizeHint(),ui->data);
+    DataImportModel* model = new DataImportModel(ui->data);
     model->setLocale(locale());
 
     connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),
@@ -349,8 +349,8 @@ QWidget* DataImportWidget::widget(int row, int column) const {
     if (!view) {
         return 0;
     }
-    RichHeaderData* data = view->data();
-    return data->cell(row,column).widget();
+    RichHeaderData data = view->data();
+    return data.cell(row,column).widget();
 }
 
 QLineEdit* DataImportWidget::widgetName(int column) const {
@@ -439,7 +439,7 @@ void DataImportWidget::createHeaderViewWidgets() {
 
     bool newTable = this->newTable();
 
-    RichHeaderData* data = view->data();
+    RichHeaderData data = view->data();
     QWidget* viewport = view->viewport();
     for(int c=0;c<model->columnCount();c++) {
 
@@ -448,7 +448,7 @@ void DataImportWidget::createHeaderViewWidgets() {
             name = new QLineEdit(viewport);
             name->setPlaceholderText("name");
 
-            data->cell(WidgetName,c).widget(name);
+            data.cell(WidgetName,c).widget(name);
 
             connect(name, &QLineEdit::textChanged,[=](){
                 onColumnNameChanged(c);
@@ -461,7 +461,7 @@ void DataImportWidget::createHeaderViewWidgets() {
             types = new QComboBox(viewport);
 
             types->addItems(SqlDataTypes::names());
-            data->cell(WidgetType,c).widget(types);
+            data.cell(WidgetType,c).widget(types);
 
             connect(types,qOverload<int>(&QComboBox::currentIndexChanged),[=](){
                 onColumnTypeChanged(c);
@@ -475,13 +475,13 @@ void DataImportWidget::createHeaderViewWidgets() {
             connect(size, &IntLineEdit::textChanged,[=](){
                onColumnSizeChanged(c);
             });
-            data->cell(WidgetSize,c).widget(size);
+            data.cell(WidgetSize,c).widget(size);
         }
 
         FieldAttributesWidget* attributes = widgetFieldAttributes(c);
         if (!attributes) {
             attributes = new FieldAttributesWidget(viewport);
-            data->cell(WidgetFieldAttributes,c).widget(attributes).padding(0,5);
+            data.cell(WidgetFieldAttributes,c).widget(attributes).padding(0,5);
             connect(attributes,&FieldAttributesWidget::attributeClicked,[=](){
                 onFieldAttributeClicked(c);
             });

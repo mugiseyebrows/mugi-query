@@ -3,11 +3,12 @@
 RichHeaderCell::RichHeaderCell(RichHeaderCellImpl* cell) : mCell(cell) {
 }
 
+/*
 RichHeaderCell& RichHeaderCell::cell(int row, int column) {
     mCell->row(row);
     mCell->column(column);
     return *this;
-}
+}*/
 
 RichHeaderCell& RichHeaderCell::span(int rows, int columns) {
     mCell->rowSpan(rows);

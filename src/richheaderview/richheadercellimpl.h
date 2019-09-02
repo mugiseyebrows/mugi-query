@@ -3,6 +3,9 @@
 #include <QDebug>
 #include <QString>
 
+class RichHeaderCellImpl;
+typedef QList<RichHeaderCellImpl*> RichHeaderCellList;
+
 class RichHeaderCellImpl {
 public:
     RichHeaderCellImpl();
@@ -72,4 +75,5 @@ protected:
     int mPaddingLeft;
 };
 QDebug operator<<(QDebug debug, const RichHeaderCellImpl& cell);
+
 #endif // RICHHEADERCELLIMPL_H

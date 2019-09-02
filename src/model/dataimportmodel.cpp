@@ -4,18 +4,10 @@
 #include <QColor>
 #include <QDebug>
 
-DataImportModel::DataImportModel(const QVariant& headerSizeHint, QObject *parent)
-    : QStandardItemModel(5,5,parent), mHeaderSizeHint(headerSizeHint)
+DataImportModel::DataImportModel(QObject *parent)
+    : QStandardItemModel(5,5,parent)
 {
 
-}
-
-QVariant DataImportModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
-    if (role == Qt::SizeHintRole && orientation == Qt::Horizontal) {
-        return mHeaderSizeHint;
-    }
-    return QStandardItemModel::headerData(section,orientation,role);
 }
 
 QVariant DataImportModel::data(const QModelIndex &index, int role) const

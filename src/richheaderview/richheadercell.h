@@ -6,7 +6,7 @@
 class RichHeaderCell {
 public:
     RichHeaderCell(RichHeaderCellImpl* cell);
-    RichHeaderCell& cell(int row, int column);
+    //RichHeaderCell& cell(int row, int column);
     RichHeaderCell& span(int rows, int columns);
     RichHeaderCell& padding(int all);
     RichHeaderCell& padding(int vertical, int horizontal);

@@ -22,6 +22,10 @@ public:
 
     static RichHeaderDirection::DirectionType horizontal(RichHeaderDirection::DirectionType dir1, RichHeaderDirection::DirectionType dir2);
     static RichHeaderDirection::DirectionType vertical(RichHeaderDirection::DirectionType dir1, RichHeaderDirection::DirectionType dir2);
+
+    static DirectionType inverted(RichHeaderDirection::DirectionType direction);
+    static DirectionType maybeInverted(RichHeaderDirection::DirectionType direction, bool inverted);
+
 };
 
 QDebug operator<<(QDebug debug, RichHeaderDirection::DirectionType);

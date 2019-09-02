@@ -32,3 +32,20 @@ RichHeaderDirection::DirectionType RichHeaderDirection::vertical(RichHeaderDirec
     return RichHeaderDirection::vertical(dir1) ? dir1 : dir2;
 }
 
+RichHeaderDirection::DirectionType RichHeaderDirection::inverted(RichHeaderDirection::DirectionType direction)
+{
+    static QMap<RichHeaderDirection::DirectionType,RichHeaderDirection::DirectionType> m;
+    if (m.isEmpty()) {
+        m[DirectionUp] = DirectionDown;
+        m[DirectionLeft] = DirectionRight;
+        m[DirectionDown] = DirectionUp;
+        m[DirectionRight] = DirectionLeft;
+    }
+    return m[direction];
+}
+
+RichHeaderDirection::DirectionType RichHeaderDirection::maybeInverted(RichHeaderDirection::DirectionType direction, bool inverted_)
+{
+    return inverted_ ? inverted(direction) : direction;
+}
+

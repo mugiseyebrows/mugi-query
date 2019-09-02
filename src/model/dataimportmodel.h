@@ -10,9 +10,7 @@ class DataImportModel : public QStandardItemModel
 {
     Q_OBJECT
 public:
-    explicit DataImportModel(const QVariant& headerSizeHint, QObject *parent = nullptr);
-
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    explicit DataImportModel(QObject *parent = nullptr);
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
@@ -21,8 +19,6 @@ public:
     void setLocale(const QLocale& locale);
 
 protected:
-
-    QVariant mHeaderSizeHint;
 
     QMap<int, QVariant::Type> mTypes;
     QMap<int, int> mSizes;

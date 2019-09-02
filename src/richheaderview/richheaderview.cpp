@@ -1,18 +1,20 @@
 #include "richheaderview.h"
 
-#include "richheaderdata.h"
+#include "richheaderdataimpl.h"
 
 #include <QDebug>
 #include <QVariantList>
 #include <QPainter>
 #include <QTextOption>
 #include <QColor>
-#include "richheaderdata.h"
+#include "richheaderdataimpl.h"
 #include <QMouseEvent>
 #include <QStyle>
 #include <math.h>
 #include <QTimer>
 #include "richheadertextfitter.h"
+#include "richheadertabfilter.h"
+#include "richheaderiterator.h"
 
 namespace {
 
@@ -80,7 +82,7 @@ namespace {
 }
 
 RichHeaderView::RichHeaderView(Qt::Orientation orientation, QWidget *parent) :
-    QHeaderView(orientation,parent), mHeaderData(new RichHeaderData()), mFlatStyle(false)
+    QHeaderView(orientation,parent), mHeaderData(new RichHeaderDataImpl()), mTabFilter(new RichHeaderTabFilter(this))
 {
     //viewport()->setMouseTracking(true);
 
@@ -91,6 +93,7 @@ RichHeaderView::RichHeaderView(Qt::Orientation orientation, QWidget *parent) :
 #endif
 
     connect(this,SIGNAL(sectionResized(int,int,int)),this,SLOT(onSectionResized(int,int,int)));
+    connect(mTabFilter,SIGNAL(tabPressed(bool)),this,SLOT(onWidgetTabPressed(bool)));
 }
 
 int RichHeaderView::sectionCount() const {
@@ -124,7 +127,7 @@ void RichHeaderView::setSelectionModel(QItemSelectionModel *selectionModel)
 
 
 void RichHeaderView::onSelectionChanged(QItemSelection,QItemSelection desel) {
-    if (!mHighlighColor.isValid()) {
+    if (!mHeaderData->highlightColor().isValid()) {
         return;
     }
     if (orientation() == Qt::Horizontal) {
@@ -143,7 +146,7 @@ void RichHeaderView::onSelectionChanged(QItemSelection,QItemSelection desel) {
     int section2 = maxElement(cols);
 
     RichHeaderCellList cells = mHeaderData->widgetCellsOverlapsRange(section1,section2);
-    QSet<int> sections = RichHeaderData::cellsSections(cells);
+    QSet<int> sections = RichHeaderDataImpl::cellsSections(cells);
     section1 = minElement(sections);
     section2 = maxElement(sections);
     for(int index=section1;index<=section2;index++) {
@@ -152,32 +155,14 @@ void RichHeaderView::onSelectionChanged(QItemSelection,QItemSelection desel) {
 
 }
 
-RichHeaderData *RichHeaderView::data() const
+RichHeaderData RichHeaderView::data()
 {
-    return mHeaderData;
+    return RichHeaderData(mHeaderData);
 }
 
 QSize RichHeaderView::sizeHint() const
 {
-    return mSizeHint.isValid() ? mSizeHint : QHeaderView::sizeHint();
-}
-
-void RichHeaderView::setSizeHint(const QSize &size)
-{
-    mSizeHint = size;
-}
-
-void RichHeaderView::setHighlightColor(const QColor &color)
-{
-    mHighlighColor = color;
-    if (!color.isValid()) {
-        mHighlighted.clear();
-    }
-}
-
-void RichHeaderView::setFlatStyle(bool value)
-{
-    mFlatStyle = value;
+    return mHeaderData->sizeHint();
 }
 
 void RichHeaderView::update()
@@ -229,6 +214,8 @@ void RichHeaderView::onSectionResized(int logical,int,int) {
 
     QWidget* viewport = this->viewport();
 
+    bool stretchFixed = mHeaderData->stretchFixed();
+
     foreach(RichHeaderCellImpl* cell, cells) {
         QRect rect = cellRect(cell);
 
@@ -242,9 +229,40 @@ void RichHeaderView::onSectionResized(int logical,int,int) {
         rect.moveTo(rect.topLeft() - QPoint(1,1) + QPoint(paddingLeft,paddingTop));
 
         QWidget* widget = cell->widget();
+
+        if (!stretchFixed) {
+            QSizePolicy policy = widget->sizePolicy();
+            if (policy.verticalPolicy() == QSizePolicy::Fixed || policy.horizontalPolicy() == QSizePolicy::Fixed) {
+                QPoint p = rect.center();
+                QSize hint = widget->sizeHint();
+                QSize orig = rect.size();
+                if (policy.verticalPolicy() == QSizePolicy::Fixed) {
+                    rect.setHeight(hint.height());
+                }
+                if (policy.horizontalPolicy() == QSizePolicy::Fixed) {
+                    rect.setWidth(hint.width());
+                }
+                Qt::Alignment align = cell->align();
+                int shiftY = 0;
+                int shiftX = 0;
+
+                if (align != Qt::AlignCenter) {
+                    int halfHeightDiff = (orig.height() - hint.height()) / 2;
+                    int halfWidthDiff = (orig.width() - hint.width()) / 2;
+                    shiftX += (align & Qt::AlignLeft ? -halfWidthDiff : 0) +
+                            (align & Qt::AlignRight ? halfWidthDiff : 0);
+                    shiftY += (align & Qt::AlignTop ? -halfHeightDiff : 0) +
+                            (align & Qt::AlignBottom ? halfHeightDiff : 0);
+                }
+
+                rect.moveCenter(p + QPoint(shiftX, shiftY));
+            }
+        }
+
         widget->setGeometry(rect);
         widget->setVisible(cell->visible());
         widget->setParent(viewport);
+        mTabFilter->watch(widget);
     }
 
     QPair<int,int> spanned = mHeaderData->spannedSections(logical);
@@ -343,7 +361,7 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
         else
             opt.selectedPosition = QStyleOptionHeader::NotAdjacent;
 
-        if (mFlatStyle) {
+        if (mHeaderData->flatStyle()) {
             painter->fillRect(cellRect,Qt::white);
             painter->setPen(QColor("#A0A0A0"));
             painter->drawRect(cellRect);
@@ -352,7 +370,7 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
         }
 
         if (mHighlighted.contains(logicalIndex)) {
-            QBrush brush(mHighlighColor);
+            QBrush brush(mHeaderData->highlightColor());
             painter->fillRect(cellRect,brush);
         }
 
@@ -408,3 +426,87 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
     }
 
 }
+
+QPair<int,int> RichHeaderView::cellOf(QWidget* widget) {
+    RichHeaderCellList cells = mHeaderData->widgetCellsToTheRight(0);
+    foreach(RichHeaderCellImpl* cell, cells) {
+        if (cell->widget() == widget) {
+            return QPair<int,int>(cell->row(),cell->column());
+        }
+    }
+    return QPair<int,int>(-1,-1);
+}
+
+
+
+QPair<int,int> RichHeaderView::nextWidgetCellWithTabFocus(const QPair<int,int>& cell,
+                                                          RichHeaderDirection::DirectionType dir1,
+                                                          RichHeaderDirection::DirectionType dir2) {
+
+    RichHeaderDataImpl* data = mHeaderData;
+    int subsectionCount = data->subsectionSizes().size();
+    int sectionCount = this->sectionCount();
+
+    RichHeaderIterator it(dir1, dir2, subsectionCount, sectionCount);
+    it.set(cell.first, cell.second);
+    QPair<int,int> current = it.next();
+    while(current.first > -1) {
+        //qDebug() << "1" << current;
+        if (data->hasCell(current.first, current.second)
+                && data->cell(current.first, current.second).widget()
+                && data->cell(current.first, current.second).widget()->focusPolicy() & Qt::TabFocus) {
+            return current;
+        }
+        current = it.next();
+    }
+    it.set(RichHeaderDirection::ascending(RichHeaderDirection::vertical(dir1, dir2)) ? 0 : subsectionCount - 1,
+           RichHeaderDirection::ascending(RichHeaderDirection::horizontal(dir1, dir2)) ? 0 : sectionCount - 1);
+
+    current = it.current();
+    while(current.first > -1 && current != cell) {
+        //qDebug() << "2" << current;
+        if (data->hasCell(current.first, current.second)
+                && data->cell(current.first, current.second).widget()
+                && data->cell(current.first, current.second).widget()->focusPolicy() & Qt::TabFocus) {
+            return current;
+        }
+        current = it.next();
+    }
+
+    return QPair<int,int>(-1,-1);
+}
+
+void RichHeaderView::onWidgetTabPressed(bool shift) {
+    qDebug() << "onWidgetTabPressed";
+
+    QWidget* widget = mTabFilter->widget();
+
+    QPair<int,int> index = cellOf(widget);
+    if (index.first < 0) {
+        qDebug() << "index.first < 0" << index << widget;
+        return;
+    }
+
+    Qt::Orientation tabDirection = mHeaderData->tabDirection();
+
+    RichHeaderDirection::DirectionType dir1 =
+            tabDirection == Qt::Horizontal
+            ? RichHeaderDirection::maybeInverted(RichHeaderDirection::DirectionRight, shift)
+            : RichHeaderDirection::maybeInverted(RichHeaderDirection::DirectionDown, shift);
+    RichHeaderDirection::DirectionType dir2 =
+            tabDirection != Qt::Horizontal
+            ? RichHeaderDirection::maybeInverted(RichHeaderDirection::DirectionRight, shift)
+            : RichHeaderDirection::maybeInverted(RichHeaderDirection::DirectionDown, shift);
+
+    QPair<int,int> nextCell = nextWidgetCellWithTabFocus(index, dir1, dir2);
+    if (nextCell.first < 0) {
+        qDebug() << "no next cell";
+        return;
+    }
+
+    QWidget* nextWidget = mHeaderData->cell(nextCell.first, nextCell.second).widget();
+    //nextWidget->focusWidget();
+    nextWidget->setFocus();
+
+}
+

@@ -11,6 +11,9 @@ public:
 
     QPair<int,int> next();
 
+    void set(int row, int column);
+
+    QPair<int, int> current() const;
 protected:
 
     void first();

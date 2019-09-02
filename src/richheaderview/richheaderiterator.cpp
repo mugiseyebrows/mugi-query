@@ -33,6 +33,11 @@ void RichHeaderIterator::first() {
     }
 }
 
+QPair<int, int> RichHeaderIterator::current() const {
+    return QPair<int,int>(maybeReverse(mRow,mRowCount,RichHeaderDirection::horizontal(mDir0,mDir1)),
+                          maybeReverse(mColumn,mColumnCount,RichHeaderDirection::vertical(mDir0,mDir1)));
+}
+
 QPair<int, int> RichHeaderIterator::next() {
 
     if (RichHeaderDirection::horizontal(mDir0)) {
@@ -56,7 +61,11 @@ QPair<int, int> RichHeaderIterator::next() {
             }
         }
     }
+    return current();
+}
 
-    return QPair<int,int>(maybeReverse(mRow,mRowCount,RichHeaderDirection::horizontal(mDir0,mDir1)),
-                          maybeReverse(mColumn,mColumnCount,RichHeaderDirection::vertical(mDir0,mDir1)));
+void RichHeaderIterator::set(int row, int column)
+{
+    mRow = maybeReverse(row, mRowCount, RichHeaderDirection::horizontal(mDir0,mDir1));
+    mColumn = maybeReverse(column, mColumnCount, RichHeaderDirection::horizontal(mDir0,mDir1));
 }
