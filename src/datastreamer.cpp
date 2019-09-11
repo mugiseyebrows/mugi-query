@@ -98,6 +98,16 @@ QString jsonToString(const QJsonObject& v) {
     return codec->toUnicode(document.toJson());
 }
 
+QString joinNonEmpty(const QStringList& values, const QString& glue) {
+    QStringList res;
+    foreach(const QString& value, values) {
+        if (!value.isEmpty()) {
+            res << value;
+        }
+    }
+    return res.join(glue);
+}
+
 }
 
 QStringList DataStreamer::variantListToStringList(const QVariantList& values,
@@ -473,6 +483,7 @@ QStringList DataStreamer::createIndexStatements(const QSqlDatabase &db, const QS
 
 }
 
+
 QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString &table,
                                            const QList<Field>& fields,
                                            bool ifNotExists)
@@ -486,6 +497,19 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
 
     QStringList typed;
     QStringList keys;
+
+
+    int primaryKeyCount = 0;
+    for(int c=0;c<fields.size();c++) {
+        const Field& field = fields[c];
+        if (field.name().isEmpty()) {
+            continue;
+        }
+        if (field.primaryKey()) {
+            primaryKeyCount += 1;
+        }
+    }
+
     for(int c=0;c<fields.size();c++) {
 
         const Field& field = fields[c];
@@ -516,26 +540,31 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
             }
         }
 
+        if (driverName == DRIVER_SQLITE && field.autoincrement()) {
+            type = "INTEGER";
+        }
+
         static QMap<QString,QString> driverAutoincrement =
         {
             {DRIVER_MYSQL, "AUTO_INCREMENT"},
             {DRIVER_SQLITE, "AUTOINCREMENT"},
         };
 
-        QString columnSpec = QString("%1 %2 %3")
-                .arg(identifier)
-                .arg(type)
-                .arg(field.autoincrement() ? driverAutoincrement.value(driverName) : QString())
-                .trimmed();
+        QString columnSpec = joinNonEmpty({identifier,
+                                           type,
+                                           primaryKeyCount == 1 && field.primaryKey() ? "PRIMARY KEY" : QString(),
+                                           field.autoincrement() ? driverAutoincrement.value(driverName) : QString()
+                                          }, " ");
+
+        typed << columnSpec;
 
         if (field.primaryKey()) {
             keys << identifier;
         }
 
-        typed << columnSpec;
     }
 
-    if (!keys.isEmpty()) {
+    if (keys.size() > 1) {
         typed << QString("PRIMARY KEY (%1)").arg(keys.join(", "));
     }
 
