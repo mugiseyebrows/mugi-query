@@ -17,6 +17,7 @@
 #include <QStringListModel>
 #include <QCursor>
 #include <QCloseEvent>
+#include <QSqlDriver>
 
 #include "sessionmodel.h"
 #include "sessiontab.h"
@@ -694,6 +695,12 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
     QAction* join = new QAction("Join",&menu);
     menu.addAction(join);
 
+    QAction* refresh = new QAction("Refresh",&menu);
+    menu.addAction(refresh);
+
+    QAction* drop = new QAction("Drop",&menu);
+    menu.addAction(drop);
+
     QAction* result = menu.exec(QCursor::pos());
 
 #if 0
@@ -720,6 +727,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
         QString connectionName = this->connectionName();
         QSqlDatabase db = QSqlDatabase::database(connectionName);
+        QSqlDriver* driver = db.driver();
         bool mssql = db.driverName() == DRIVER_ODBC;
 
         QStringList tables = schemaTreeSelectedTables();
@@ -728,7 +736,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         }
         QStringList queries;
         foreach(const QString& table, tables) {
-            QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100").arg(table).arg(table);
+            QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100").arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
             queries << query;
         }
         onAppendQuery(connectionName,queries.join(";\n"));
@@ -746,7 +754,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         bool mssql = db.driverName() == DRIVER_ODBC;
 
         if (tables.size() == 1) {
-            QString query = QString("SELECT * FROM %1").arg(tables[0]).arg(tables[0]);
+            QString query = QString("SELECT * FROM %1").arg(tables[0]);
             onAppendQuery(connectionName, query);
             return;
         }
@@ -766,7 +774,31 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         onAppendQuery(connectionName, query);
     }
 
+    if (result == drop) {
+        QString connectionName = this->connectionName();
+        QStringList tables = schemaTreeSelectedTables();
+        QSqlDatabase db = QSqlDatabase::database(connectionName);
+        QSqlDriver* driver = db.driver();
+        if (tables.isEmpty()) {
+            return;
+        }
+        QStringList queries;
+        foreach(const QString& table, tables) {
+            QString query = QString("DROP TABLE %1").arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
+            queries << query;
+        }
+        onAppendQuery(connectionName,queries.join(";\n"));
+    }
+
+    if (result == refresh) {
+        QString connectionName = this->connectionName();
+        updateTokens(connectionName);
+        pushTokens(connectionName);
+    }
+
 }
+
+
 
 QStringList MainWindow::schemaTreeSelectedTables() {
     QStringList tables;
