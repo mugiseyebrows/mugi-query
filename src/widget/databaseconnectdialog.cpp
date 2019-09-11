@@ -11,8 +11,9 @@
 #include <QTimer>
 #include "settings.h"
 #include "automation.h"
-
+#include "drivernames.h"
 #include <QThread>
+#include <QFileDialog>
 
 DatabaseConnectDialog::DatabaseConnectDialog(bool showHistory, QWidget *parent) :
     QDialog(parent),
@@ -124,8 +125,6 @@ void DatabaseConnectDialog::accept()
     QDialog::accept();
 }
 
-
-
 void DatabaseConnectDialog::on_history_clicked()
 {
     DatabaseHistoryDialog dialog;
@@ -158,4 +157,28 @@ void DatabaseConnectDialog::on_savePassword_clicked(bool checked)
         }
     }
     Settings::instance()->setSavePasswords(checked);
+}
+
+void DatabaseConnectDialog::on_pick_clicked()
+{
+    if (ui->driver->currentText() == DRIVER_SQLITE) {
+        QString path = QFileDialog::getOpenFileName(this);
+        if (path.isEmpty()) {
+            return;
+        }
+        ui->database->setText(QDir::toNativeSeparators(path));
+        ui->connectionName->setText(QFileInfo(path).baseName());
+    } else if (ui->driver->currentText() == DRIVER_ODBC) {
+        QString path = QFileDialog::getOpenFileName(this, QString(), QString(), "mdb files (*.mdb)");
+        if (path.isEmpty()) {
+            return;
+        }
+        ui->database->setText(QString("DRIVER={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ=%1").arg(QDir::toNativeSeparators(path)));
+        ui->connectionName->setText(QFileInfo(path).baseName());
+    }
+}
+
+void DatabaseConnectDialog::on_driver_currentIndexChanged(const QString &name)
+{
+    ui->pick->setVisible(name == DRIVER_ODBC || name == DRIVER_SQLITE);
 }

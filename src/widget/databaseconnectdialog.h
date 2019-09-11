@@ -32,6 +32,10 @@ private slots:
 
     void on_savePassword_clicked(bool checked);
 
+    void on_pick_clicked();
+
+    void on_driver_currentIndexChanged(const QString &arg1);
+
 private:
     Ui::DatabaseConnectDialog *ui;
 };

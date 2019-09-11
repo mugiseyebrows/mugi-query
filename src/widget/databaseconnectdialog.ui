@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>434</width>
-    <height>381</height>
+    <width>400</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Connect</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
    <item>
     <layout class="QGridLayout" name="gridLayout">
      <item row="2" column="0">
@@ -94,9 +94,6 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="1">
-      <widget class="QLineEdit" name="database"/>
-     </item>
      <item row="6" column="0">
       <widget class="QLabel" name="label_5">
        <property name="text">
@@ -106,6 +103,23 @@
      </item>
      <item row="6" column="1">
       <widget class="QLineEdit" name="port"/>
+     </item>
+     <item row="5" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QLineEdit" name="database"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pick">
+         <property name="text">
+          <string>pick</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -134,7 +148,6 @@
   <tabstop>host</tabstop>
   <tabstop>user</tabstop>
   <tabstop>password</tabstop>
-  <tabstop>database</tabstop>
   <tabstop>port</tabstop>
   <tabstop>savePassword</tabstop>
   <tabstop>history</tabstop>
