@@ -1,0 +1,29 @@
+[{
+        "table": "database",
+        "columns": [
+            "date",
+            "connectionName",
+            "driver",
+            "host",
+            "user",
+            "password",
+            "database",
+            "port"
+        ]
+    },
+    {
+        "table": "query",
+        "columns": [
+            "date",
+            "connectionName",
+            "query"
+        ]
+    },
+    {
+        "table": "relations",
+        "columns": [
+            "name",
+            "value"
+        ]
+    }
+]

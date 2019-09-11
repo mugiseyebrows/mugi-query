@@ -13,6 +13,7 @@
 #include <QDebug>
 #include "settings.h"
 #include "drivernames.h"
+#include "mugisql/mugisql.h"
 
 #define PARENT_WIDGET qobject_cast<QWidget*>(this->parent())
 
@@ -32,28 +33,56 @@ History::History(QObject* parent) : QObject(parent)
 
     db.exec("create table if not exists database(date datetime, connectionName text, driver text, host text, user text, password text, database text, port int)");
     db.exec("create table if not exists query(date datetime, connectionName text, query text)");
+    db.exec("create table if not exists relations(name text, value text)");
 }
 
-void History::addQuery(const QString& connectionName, const QString& query) {
+void History::addQuery(const QString& connectionName, const QString& query_) {
 
-    QSqlQuery q(QSqlDatabase::database("_history"));
-    q.prepare("insert into query(date,connectionName,query) values(datetime('now','localtime'),?,?)");
-    q.addBindValue(connectionName);
-    q.addBindValue(query);
+    QSqlDatabase db = QSqlDatabase::database("_history");
+
+    using namespace mugisql;
+    using namespace mugisql::sqlite;
+
+    insert_t q = insert(db).into(query, {query.date, query.connectionName, query.query})
+            .values({datetime("now", "localtime"), connectionName, query_});
+
     QUERY_EXEC(q);
 }
 
 // echo ', const QString& '{connectionName,driver,host,user,password,database,port}
 
-void History::addDatabase(const QString &connectionName,const QString &driver, const QString &host, const QString &user, const QString &password, const QString &database, int port)
+
+
+void History::addDatabase(const QString &connectionName, const QString &driver, const QString &host, const QString &user, const QString &password, const QString &database_, int port)
 {
-    QSqlQuery q(QSqlDatabase::database("_history"));
-    q.prepare("insert into database(date,connectionName,driver,host,user,password,database,port) values(datetime('now','localtime'),?,?,?,?,?,?,?)");
-    q.addBindValue(connectionName);
-    q.addBindValue(driver);
-    q.addBindValue(host);
-    q.addBindValue(user);
-    q.addBindValue(Settings::instance()->savePasswords() ? password : QString());    q.addBindValue(database);
-    q.addBindValue(port);
+    QSqlDatabase db = QSqlDatabase::database("_history");
+
+    using namespace mugisql;
+    using namespace mugisql::sqlite;
+
+    exprlist_t fields = {
+        database.date,
+        database.connectionName,
+        database.driver,
+        database.host,
+        database.user,
+        database.password,
+        database.database,
+        database.port
+    };
+
+    exprlist_t values = {
+        datetime("now", "localtime"),
+        connectionName,
+        driver,
+        host,
+        user,
+        (Settings::instance()->savePasswords() ? password : QString()),
+        database_,
+        port
+    };
+
+    insert_t q = insert(db).into(database, fields).values(values);
+
     QUERY_EXEC(q);
 }
