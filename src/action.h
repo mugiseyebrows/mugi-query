@@ -17,7 +17,8 @@ public:
         ActionShowDistributionPlot,
         ActionShowXYPlot,
         ActionShowDataImportDialog,
-        ActionShowDateTimeRangeWidget
+        ActionShowDateTimeRangeWidget,
+        ActionShowQueryHistory,
     };
     Action(Type type = ActionEmpty, const QVariantList& args = QVariantList());
     Type type() const;

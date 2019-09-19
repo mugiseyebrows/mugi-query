@@ -28,6 +28,7 @@ public:
     void showJoinHelper();
     void showDataImportDialog();
     void showDateTimeRangeWidget();
+    void showQueryHistory();
 
     void beforeDialog(DatabaseHistoryDialog* dialog);
     void beforeDialog(DatabaseConnectDialog *dialog);

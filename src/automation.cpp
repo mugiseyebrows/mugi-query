@@ -91,6 +91,11 @@ void Automation::showDateTimeRangeWidget()
     mQueued.enqueue(Action(Action::ActionShowDateTimeRangeWidget));
 }
 
+void Automation::showQueryHistory()
+{
+    mQueued.enqueue(Action(Action::ActionShowQueryHistory));
+}
+
 void Automation::afterDialog(DatabaseConnectDialog *) {
 
 }
@@ -200,6 +205,9 @@ void Automation::onStart() {
 
 
         widget->show();
+        next();
+    } else if (mAction.type() == Action::ActionShowQueryHistory) {
+        mainWindow()->onShowQueryHistory();
         next();
     }
 }
