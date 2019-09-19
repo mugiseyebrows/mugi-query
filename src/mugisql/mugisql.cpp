@@ -2,6 +2,11 @@
 #include "mugisql.h"
 namespace mugisql {
 
+#define DRIVER_MYSQL "QMYSQL"
+#define DRIVER_SQLITE "QSQLITE"
+#define DRIVER_ODBC "QODBC"
+#define DRIVER_PSQL "QPSQL"
+
     QString inParenthesis(const QString& expr, bool yes) {
         return yes ? ("(" + expr + ")") : expr;
     }
@@ -60,13 +65,13 @@ namespace mugisql {
     }
     arg_t::~arg_t() {
     }
-    QString arg_t::toString(QSqlDriver* driver) const {
+    QString arg_t::toString(QSqlDriver* driver, bool fullname) const {
         if (!mField) {
             QSqlField field(QString(), mValue.type());
             field.setValue(mValue);
             return driver->formatValue(field);
         }
-        return mField->aliasName();
+        return fullname ? mField->aliasName() : mField->name();
     }
     const field_t* arg_t::field() const {
         return mField;
@@ -80,6 +85,8 @@ namespace mugisql {
     expr_t::expr_t(const field_t& field) : arg_t(field), mType(expr_leaf) {
     }
     expr_t::expr_t(int value) : arg_t(value), mType(expr_leaf) {
+    }
+    expr_t::expr_t(const QDateTime& value) : arg_t(value), mType(expr_leaf) {
     }
     expr_t::expr_t(const QString& value) : arg_t(value), mType(expr_leaf) {
     }
@@ -98,25 +105,29 @@ namespace mugisql {
     QList<expr_t> expr_t::args() const {
         return mArgs;
     }
-    QString expr_t::infix(QSqlDriver* driver, const QString& name) const {
-        return joinArgs(driver, true, spaced(name));
+    expr_t expr_t::arg(int index) const {
+        return mArgs[index];
     }
-    QString expr_t::func(QSqlDriver* driver, const QString& name) const {
-        return name + inParenthesis(joinArgs(driver, false, ", "));
+    QString expr_t::infix(QSqlDriver* driver, bool fullname, const QString& name) const {
+        return joinArgs(driver, true, fullname, spaced(name));
     }
-    QString expr_t::prefix(QSqlDriver* driver, const QString& name) const {
-        return name + " " + joinArgs(driver, true, ", ");
+    QString expr_t::func(QSqlDriver* driver, bool fullname, const QString& name) const {
+        return name + inParenthesis(joinArgs(driver, false, fullname, ", "));
     }
-    QString expr_t::suffix(QSqlDriver* driver, const QString& name) const {
-        return joinArgs(driver, true, ", ") + " " + name;
+    QString expr_t::prefix(QSqlDriver* driver, bool fullname, const QString& name) const {
+        return name + " " + joinArgs(driver, true, fullname, ", ");
     }
-    QString expr_t::toString(QSqlDriver* driver) const {
+    QString expr_t::suffix(QSqlDriver* driver, bool fullname, const QString& name) const {
+        return joinArgs(driver, true, fullname, ", ") + " " + name;
+    }
+    QString expr_t::toString(QSqlDriver* driver, bool fullname) const {
         static QMap<expr_type, QString> infixmap = {{expr_equal, "="},
                                                     {expr_not_equal, "<>"},
                                                     {expr_less, "<"},
                                                     {expr_more, ">"},
                                                     {expr_less_or_equal, "<="},
                                                     {expr_more_or_equal, ">="},
+                                                    {expr_like, "LIKE"},
                                                     {expr_or_, "OR"},
                                                     {expr_and_, "AND"},
                                                     {expr_add, "+"},
@@ -124,7 +135,8 @@ namespace mugisql {
                                                     {expr_mul, "*"},
                                                     {expr_div, "/"},
                                                     {expr_sqlite_mod, "%"}};
-        static QMap<expr_type, QString> prefixmap = {{expr_not_, "NOT"}};
+        static QMap<expr_type, QString> prefixmap = {{expr_not_, "NOT"},
+                                                     {expr_distinct, "DISTINCT"}};
         static QMap<expr_type, QString> funcmap = {{expr_abs, "ABS"},
                                                    {expr_sum, "SUM"},
                                                    {expr_avg, "AVG"},
@@ -144,32 +156,66 @@ namespace mugisql {
                                                    {expr_mysql_tan, "TAN"},
                                                    {expr_mysql_mod, "MOD"},
                                                    {expr_mysql_power, "POWER"}};
+        static QMap<expr_type, QString> suffixmap = {{expr_is_null, "IS NULL"},
+                                                     {expr_is_not_null, "IS NOT NULL"},
+                                                     {expr_desc, "DESC"},
+                                                     {expr_asc, "ASC"}};
         if (mType == expr_leaf) {
-            return arg_t::toString(driver);
-        } else if (mType == expr_desc) {
-            return suffix(driver, "desc");
-        } else if (mType == expr_asc) {
-            return mArgs[0].toString(driver);
+            return arg_t::toString(driver, fullname);
+        } else if (mType == expr_count) {
+            return "COUNT(*)";
+        } else if (mType == expr_noescape) {
+            return mArgs[0].value().toString();
+        } else if (mType == expr_in) {
+            return mArgs[0].toString(driver, fullname) + spaced("IN") +
+                   inParenthesis(joinArgs(inArgs(mArgs.mid(1)), driver, false, fullname, ", "));
+        } else if (mType == expr_as) {
+            return mArgs[0].toString(driver, fullname) + spaced("AS") + mArgs[1].value().toString();
+        } else if (mType == expr_between) {
+            return mArgs[0].toString(driver, fullname) + spaced("BETWEEN") +
+                   mArgs[1].toString(driver, fullname) + spaced("AND") +
+                   mArgs[2].toString(driver, fullname);
+        } else if (mType == expr_not_between) {
+            return mArgs[0].toString(driver, fullname) + spaced("NOT BETWEEN") +
+                   mArgs[1].toString(driver, fullname) + spaced("AND") +
+                   mArgs[2].toString(driver, fullname);
         } else if (infixmap.contains(mType)) {
-            return infix(driver, infixmap[mType]);
+            return infix(driver, fullname, infixmap[mType]);
         } else if (prefixmap.contains(mType)) {
-            return prefix(driver, prefixmap[mType]);
+            return prefix(driver, fullname, prefixmap[mType]);
+        } else if (suffixmap.contains(mType)) {
+            return suffix(driver, fullname, suffixmap[mType]);
         } else if (funcmap.contains(mType)) {
-            return func(driver, funcmap[mType]);
+            return func(driver, fullname, funcmap[mType]);
         }
         return QString();
     }
-    QString expr_t::joinArgs(QSqlDriver* driver, bool parenthesis, const QString& glue) const {
-        QStringList args;
-        static QSet<expr_type> needParenthesis = {
-            expr_equal,         expr_not_equal, expr_less,      expr_more, expr_less_or_equal,
-            expr_more_or_equal, expr_or_,       expr_and_,      expr_add,  expr_sub,
-            expr_mul,           expr_div,       expr_sqlite_mod};
-        foreach (const expr_t& arg, mArgs) {
-            args << inParenthesis(arg.toString(driver),
-                                  parenthesis && needParenthesis.contains(arg.type()));
+    exprlist_t expr_t::inArgs(const exprlist_t& args) const {
+        if (args.size() == 1 && args[0].value().type() == QVariant::List) {
+            QVariantList values = args[0].value().toList();
+            exprlist_t res;
+            foreach (const QVariant& value, values) { res << expr_t(value); }
         }
-        return args.join(glue);
+        return args;
+    }
+    QString expr_t::joinArgs(QSqlDriver* driver, bool parenthesis, bool fullname,
+                             const QString& glue) const {
+        return joinArgs(mArgs, driver, parenthesis, fullname, glue);
+    }
+    QString expr_t::joinArgs(const exprlist_t& args, QSqlDriver* driver, bool parenthesis,
+                             bool fullname, const QString& glue) const {
+        QStringList res;
+        static QSet<expr_type> noParenthesis = {
+            expr_leaf,       expr_abs,         expr_sum,        expr_avg,
+            expr_min,        expr_max,         expr_round,      expr_sqlite_datetime,
+            expr_mysql_sign, expr_mysql_floor, expr_mysql_ceil, expr_mysql_sqrt,
+            expr_mysql_asin, expr_mysql_acos,  expr_mysql_atan, expr_mysql_sin,
+            expr_mysql_cos,  expr_mysql_tan,   expr_mysql_mod,  expr_mysql_power};
+        foreach (const expr_t& arg, args) {
+            res << inParenthesis(arg.toString(driver, fullname),
+                                 parenthesis && !noParenthesis.contains(arg.type()));
+        }
+        return res.join(glue);
     }
     bool operator==(const expr_t& expr1, const expr_t& expr2) {
         return expr1.type() == expr2.type() && expr1.args() == expr2.args() &&
@@ -184,6 +230,9 @@ namespace mugisql {
     exprlist_t::exprlist_t(const QList<const field_t*>& fields) {
         foreach (const field_t* field, fields) { append(*field); }
     }
+    exprlist_t::exprlist_t(const QList<expr_t>& fields) {
+        append(fields);
+    }
     exprlist_t::exprlist_t(const field_t& field) {
         append(field);
     }
@@ -192,9 +241,9 @@ namespace mugisql {
     }
     exprlist_t::exprlist_t(const std::initializer_list<expr_t>& values) : QList<expr_t>(values) {
     }
-    QString exprlist_t::toString(QSqlDriver* driver) const {
+    QString exprlist_t::toString(QSqlDriver* driver, bool fullname) const {
         QStringList result;
-        foreach (const expr_t& expr, *this) { result << expr.toString(driver); }
+        foreach (const expr_t& expr, *this) { result << expr.toString(driver, fullname); }
         return result.join(", ");
     }
     exprlist_t operator+(const exprlist_t& arg1, const exprlist_t& arg2) {
@@ -256,11 +305,23 @@ namespace mugisql {
         return QString("LIMIT %1, %2").arg(mOffset).arg(mCount);
     }
 
-    expr_t desc(const expr_t& arg) {
-        return expr_t(expr_t::expr_desc, {arg});
+    expr_t count() {
+        return expr_t(expr_t::expr_count, {});
     }
-    expr_t asc(const expr_t& arg) {
-        return expr_t(expr_t::expr_asc, {arg});
+    expr_t noescape(const QString& arg) {
+        return expr_t(expr_t::expr_noescape, {arg});
+    }
+    expr_t in(const expr_t& field, const exprlist_t& values) {
+        return expr_t(expr_t::expr_in, field + values);
+    }
+    expr_t as(const expr_t& expr, const expr_t& alias) {
+        return expr_t(expr_t::expr_as, {expr, alias});
+    }
+    expr_t between(const expr_t& expr, const expr_t& v1, const expr_t& v2) {
+        return expr_t(expr_t::expr_between, {expr, v1, v2});
+    }
+    expr_t notBetween(const expr_t& expr, const expr_t& v1, const expr_t& v2) {
+        return expr_t(expr_t::expr_not_between, {expr, v1, v2});
     }
     expr_t equal(const exprlist_t& args) {
         return expr_t(expr_t::expr_equal, args);
@@ -297,6 +358,12 @@ namespace mugisql {
     }
     expr_t moreOrEqual(const expr_t& arg0, const expr_t& arg1) {
         return moreOrEqual({arg0, arg1});
+    }
+    expr_t like(const exprlist_t& args) {
+        return expr_t(expr_t::expr_like, args);
+    }
+    expr_t like(const expr_t& arg0, const expr_t& arg1) {
+        return like({arg0, arg1});
     }
     expr_t or_(const exprlist_t& args) {
         return expr_t(expr_t::expr_or_, args);
@@ -397,6 +464,21 @@ namespace mugisql {
     expr_t not_(const expr_t& arg) {
         return expr_t(expr_t::expr_not_, {arg});
     }
+    expr_t distinct(const expr_t& arg) {
+        return expr_t(expr_t::expr_distinct, {arg});
+    }
+    expr_t isNull(const expr_t& arg) {
+        return expr_t(expr_t::expr_is_null, {arg});
+    }
+    expr_t isNotNull(const expr_t& arg) {
+        return expr_t(expr_t::expr_is_not_null, {arg});
+    }
+    expr_t desc(const expr_t& arg) {
+        return expr_t(expr_t::expr_desc, {arg});
+    }
+    expr_t asc(const expr_t& arg) {
+        return expr_t(expr_t::expr_asc, {arg});
+    }
     expr_t abs(const expr_t& arg) {
         return expr_t(expr_t::expr_abs, {arg});
     }
@@ -482,6 +564,9 @@ namespace mugisql {
     }
     query_t::query_t(const QSqlDatabase& database) : mDatabase(database) {
     }
+    QSqlQuery query_t::query() const {
+        return mQuery;
+    }
     bool query_t::exec() {
         mQuery = QSqlQuery(mDatabase);
         QString expr = toString();
@@ -499,6 +584,9 @@ namespace mugisql {
     QSqlError query_t::lastError() const {
         return mQuery.lastError();
     }
+    QString query_t::lastQuery() const {
+        return mQuery.lastQuery();
+    }
 
     select_t::select_t(const exprlist_t& fields)
         : mFields(fields), mJoinType(joinexpr_t::join_inner) {
@@ -509,13 +597,51 @@ namespace mugisql {
     QVariant select_t::value(int index) const {
         return mQuery.value(index);
     }
-    QVariant select_t::value(const expr_t& expr) const {
+    QVariant select_t::value(const expr_t& expr) {
+        return value(valueIndex(expr));
+    }
+    int select_t::valueIndex(const expr_t& expr) const {
         int index = mFields.indexOf(expr);
-        Q_ASSERT(index > -1);
-        return value(index);
+        if (index > -1) {
+            return index;
+        }
+        QVariant::Type type = expr.value().type();
+        Q_ASSERT(expr.type() == expr_t::expr_leaf);
+        Q_ASSERT(!expr.value().isNull());
+        if (type == QVariant::Int) {
+            return expr.value().toInt();
+        } else if (type == QVariant::String) {
+            QString name = expr.value().toString();
+            Q_ASSERT(!name.isEmpty());
+            for (index = 0; index < mFields.size(); index++) {
+                if (mFields[index].type() == expr_t::expr_as) {
+                    if (name == mFields[index].arg(1).value().toString()) {
+                        return index;
+                    }
+                }
+            }
+        }
+        Q_ASSERT(0);
+
+        return -1;
     }
     bool select_t::next() {
         return mQuery.next();
+    }
+    select_t& select_t::next(bool* ok) {
+        if (*ok) {
+            *ok = next();
+        }
+        return *this;
+    }
+    bool select_t::exec() {
+        return query_t::exec();
+    }
+    select_t& select_t::exec(bool* ok) {
+        if (*ok) {
+            *ok = exec();
+        }
+        return *this;
     }
     QString select_t::joinExpr() const {
         if (mTables.size() < 2) {
@@ -632,10 +758,13 @@ namespace mugisql {
         mValues = values;
         return *this;
     }
-    insert_t& insert_t::values(const QVariantList& values) {
-        exprlist_t res;
-        foreach (const QVariant& value, values) { res.append(expr_t(value)); }
-        mValues = res;
+    bool insert_t::exec() {
+        return query_t::exec();
+    }
+    insert_t& insert_t::exec(bool* ok) {
+        if (*ok) {
+            *ok = exec();
+        }
         return *this;
     }
     QVariant insert_t::lastInsertId() const {
@@ -654,9 +783,9 @@ namespace mugisql {
         Q_ASSERT(!mFields.isEmpty());
         Q_ASSERT(mFields.size() == mValues.size());
 
-        QSqlDriver* d = mDatabase.driver();
+        QSqlDriver* driver = mDatabase.driver();
         return joinNotEmpty({"INSERT INTO", mTable->tableName() + inParenthesis(fieldsToString()),
-                             "VALUES", inParenthesis(mValues.toString(d))},
+                             "VALUES", inParenthesis(mValues.toString(driver))},
                             " ");
     }
     insert_t insert() {
@@ -686,9 +815,10 @@ namespace mugisql {
         if (mTable == 0 || mWhere.isNull() || mNameValues.isEmpty()) {
             return QString();
         }
+        bool fullname = mDatabase.driverName() != DRIVER_SQLITE;
         expr_t name;
         QStringList res;
-        QSqlDriver* d = mDatabase.driver();
+        QSqlDriver* driver = mDatabase.driver();
         foreach (const expr_t& item, mNameValues) {
             if (name.isNull()) {
                 name = item;
@@ -696,21 +826,32 @@ namespace mugisql {
                     return QString();
                 }
             } else {
-                res << QString("%1 = %2").arg(name.toString(d)).arg(item.toString(d));
+                res << QString("%1 = %2")
+                           .arg(name.field()->name())
+                           .arg(item.toString(driver, fullname));
                 name = expr_t();
             }
         }
         if (!name.isNull()) {
             return QString();
         }
-        return joinNotEmpty(
-            {"UPDATE", mTable->tableName(), "SET", res.join(", "), "WHERE", mWhere.toString(d)},
-            " ");
+        return joinNotEmpty({"UPDATE", mTable->tableName(), "SET", res.join(", "), "WHERE",
+                             mWhere.toString(driver, fullname)},
+                            " ");
     }
-    update_t update(const table_t& table) {
+    bool update_t::exec() {
+        return query_t::exec();
+    }
+    update_t& update_t::exec(bool* ok) {
+        if (*ok) {
+            *ok = exec();
+        }
+        return *this;
+    }
+    update_t update_(const table_t& table) {
         return update_t(table);
     }
-    update_t update(const QSqlDatabase& database, const table_t& table) {
+    update_t update_(const QSqlDatabase& database, const table_t& table) {
         return update_t(database, table);
     }
 
@@ -733,12 +874,231 @@ namespace mugisql {
         }
         return joinNotEmpty({"DELETE FROM", mTable->tableName(), "WHERE", mWhere.toString(d)}, " ");
     }
+    bool delete_t::exec() {
+        return query_t::exec();
+    }
+    delete_t& delete_t::exec(bool* ok) {
+        if (*ok) {
+            *ok = exec();
+        }
+        return *this;
+    }
     delete_t delete_() {
         return delete_t();
     }
     delete_t delete_(const QSqlDatabase& database) {
         return delete_t(database);
     }
+
+    namespace util {
+
+        QList<int> toIntList(select_t& query, const expr_t& key) {
+            QList<int> res;
+            int keyIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                }
+                res << query.value(keyIndex).toInt();
+            }
+            return res;
+        }
+        QMap<int, int> toIntIntMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<int, int> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toInt()] = query.value(valueIndex).toInt();
+            }
+            return res;
+        }
+        QMap<int, QString> toIntStringMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<int, QString> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toInt()] = query.value(valueIndex).toString();
+            }
+            return res;
+        }
+        QMap<int, QVariant> toIntVariantMap(select_t& query, const expr_t& key,
+                                            const expr_t& value) {
+            QMap<int, QVariant> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toInt()] = query.value(valueIndex);
+            }
+            return res;
+        }
+        QMap<int, QDate> toIntDateMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<int, QDate> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toInt()] = query.value(valueIndex).toDate();
+            }
+            return res;
+        }
+        QList<QString> toStringList(select_t& query, const expr_t& key) {
+            QList<QString> res;
+            int keyIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                }
+                res << query.value(keyIndex).toString();
+            }
+            return res;
+        }
+        QMap<QString, int> toStringIntMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<QString, int> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toString()] = query.value(valueIndex).toInt();
+            }
+            return res;
+        }
+        QMap<QString, QString> toStringStringMap(select_t& query, const expr_t& key,
+                                                 const expr_t& value) {
+            QMap<QString, QString> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toString()] = query.value(valueIndex).toString();
+            }
+            return res;
+        }
+        QMap<QString, QVariant> toStringVariantMap(select_t& query, const expr_t& key,
+                                                   const expr_t& value) {
+            QMap<QString, QVariant> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toString()] = query.value(valueIndex);
+            }
+            return res;
+        }
+        QMap<QString, QDate> toStringDateMap(select_t& query, const expr_t& key,
+                                             const expr_t& value) {
+            QMap<QString, QDate> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toString()] = query.value(valueIndex).toDate();
+            }
+            return res;
+        }
+        QList<QVariant> toVariantList(select_t& query, const expr_t& key) {
+            QList<QVariant> res;
+            int keyIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                }
+                res << query.value(keyIndex);
+            }
+            return res;
+        }
+        QList<QDate> toDateList(select_t& query, const expr_t& key) {
+            QList<QDate> res;
+            int keyIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                }
+                res << query.value(keyIndex).toDate();
+            }
+            return res;
+        }
+        QMap<QDate, int> toDateIntMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<QDate, int> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDate()] = query.value(valueIndex).toInt();
+            }
+            return res;
+        }
+        QMap<QDate, QString> toDateStringMap(select_t& query, const expr_t& key,
+                                             const expr_t& value) {
+            QMap<QDate, QString> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDate()] = query.value(valueIndex).toString();
+            }
+            return res;
+        }
+        QMap<QDate, QVariant> toDateVariantMap(select_t& query, const expr_t& key,
+                                               const expr_t& value) {
+            QMap<QDate, QVariant> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDate()] = query.value(valueIndex);
+            }
+            return res;
+        }
+        QMap<QDate, QDate> toDateDateMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<QDate, QDate> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDate()] = query.value(valueIndex).toDate();
+            }
+            return res;
+        }
+    } // namespace util
 
     QString field_database_date_t::name() const {
         return "date";

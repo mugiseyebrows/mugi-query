@@ -24,12 +24,13 @@ public:
 
 protected:
     Ui::DateTimeRangeWidget *ui;
-    QMenu *mMenu1;
+    QMenu *mMenu;
 
 signals:
     void actionTriggered(int);
     void dateTime1Changed(QDateTime);
     void dateTime2Changed(QDateTime);
+    void dateTimesChanged(QDateTime,QDateTime);
 };
 
 #endif // DATETIMERANGEWIDGET_H

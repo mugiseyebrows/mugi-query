@@ -216,6 +216,9 @@ void SessionTab::saveData()
     if (!model) {
         return;
     }
+    while (model->canFetchMore()) {
+        model->fetchMore();
+    }
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 

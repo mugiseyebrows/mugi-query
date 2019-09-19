@@ -7,6 +7,14 @@
 #include "copyeventfilter.h"
 #include "model/queryhistorymodel.h"
 #include <QClipboard>
+#include "richheaderview/richheaderview.h"
+#include "widget/datetimerangewidget.h"
+#include "mugisql/mugisql.h"
+#include <QTimer>
+#include "datetimerangewidgetmanager.h"
+#include "callonce.h"
+#include <QLineEdit>
+#include <QComboBox>
 
 namespace {
 
@@ -32,7 +40,7 @@ QueryHistoryWidget::QueryHistoryWidget(QWidget *parent) :
 
     QueryHistoryModel* model = new QueryHistoryModel(this);
     ui->tableView->setModel(model);
-    refresh("all");
+
     ui->tableView->setColumnWidth(0,160);
 
     CopyEventFilter* filter = new CopyEventFilter(this);
@@ -47,6 +55,61 @@ QueryHistoryWidget::QueryHistoryWidget(QWidget *parent) :
         clipboard->setText(queries.join(";\n"));
     });
 
+    RichHeaderView* view = new RichHeaderView(Qt::Horizontal, ui->tableView);
+
+    RichHeaderData data = view->data();
+
+    data.stretchFixed(false);
+
+    data.subsectionSizes({ui->tableView->verticalHeader()->defaultSectionSize() * 3 / 2});
+
+    DateTimeRangeWidget* dateEdit = new DateTimeRangeWidget(view->viewport());
+    QLineEdit* queryEdit = new QLineEdit(view->viewport());
+    QComboBox* connectionNameEdit = new QComboBox(view->viewport());
+
+    CallOnce* once = new CallOnce("updateQuery", 500);
+    connect(queryEdit,SIGNAL(textChanged(QString)),once,SLOT(onPost()));
+    connect(once,SIGNAL(call()),this,SLOT(onUpdateQuery()));
+
+    connect(dateEdit,SIGNAL(dateTimesChanged(QDateTime,QDateTime)),this,SLOT(onUpdateQuery()));
+    connect(connectionNameEdit,SIGNAL(currentIndexChanged(int)),this,SLOT(onUpdateQuery()));
+
+    DateTimeRangeWidgetManager* manager = new DateTimeRangeWidgetManager(this);
+    manager->init(dateEdit);
+
+    data.cell(0, QueryHistoryModel::col_date).widget(dateEdit).padding(0,5);
+    data.cell(0, QueryHistoryModel::col_query).widget(queryEdit);
+    data.cell(0, QueryHistoryModel::col_connectionName).widget(connectionNameEdit);
+
+    ui->tableView->setHorizontalHeader(view);
+
+    view->setStretchLastSection(true);
+
+}
+
+QWidget* QueryHistoryWidget::edit(int column) {
+    RichHeaderView* view = headerView();
+    if (!view) {
+        return 0;
+    }
+    RichHeaderData data = view->data();
+    return data.cell(0, column).widget();
+}
+
+DateTimeRangeWidget* QueryHistoryWidget::dateEdit() {
+    return qobject_cast<DateTimeRangeWidget*>(edit(QueryHistoryModel::col_date));
+}
+
+QComboBox* QueryHistoryWidget::connectionNameEdit() {
+    return qobject_cast<QComboBox*>(edit(QueryHistoryModel::col_connectionName));
+}
+
+QLineEdit* QueryHistoryWidget::queryEdit() {
+    return qobject_cast<QLineEdit*>(edit(QueryHistoryModel::col_query));
+}
+
+RichHeaderView* QueryHistoryWidget::headerView() {
+    return qobject_cast<RichHeaderView*>(ui->tableView->horizontalHeader());
 }
 
 QueryHistoryWidget::~QueryHistoryWidget()
@@ -73,30 +136,30 @@ void QueryHistoryWidget::on_tableView_doubleClicked(QModelIndex index) {
 
 void QueryHistoryWidget::refresh(const QString& connectionName)
 {
-    /*QSqlQueryModel* model = qobject_cast<QSqlQueryModel*>(ui->tableView->model());
-    QSqlQuery q(QSqlDatabase::database("_history"));
-    q.exec("select * from query order by date desc");
-    model->setQuery(q);*/
 
-    QSqlQuery q(QSqlDatabase::database("_history"));
-    QStringList connectionNames;
-    connectionNames << "all";
-    q.exec("select distinct connectionName from query");
-    while (q.next()) {
-        connectionNames << q.value(0).toString();
+    QComboBox* comboBox = connectionNameEdit();
+    if (!comboBox) {
+        return;
     }
-    ui->connectionName->setModel(new QStringListModel(connectionNames,this));
+
+    using namespace mugisql;
+    QSqlDatabase db = QSqlDatabase::database("_history");
+    select_t q = select(db, distinct(query.connectionName)).from(query);
+    q.exec();
+    QStringList connectionNames;
+    connectionNames << "any";
+    connectionNames << util::toStringList(q, 0);
+    comboBox->setModel(new QStringListModel(connectionNames,this));
     int index = connectionNames.indexOf(connectionName);
     if (index > -1) {
-        ui->connectionName->setCurrentIndex(index);
+        comboBox->setCurrentIndex(index);
     }
-    updateQuery();
+    onUpdateQuery();
 }
 
 void QueryHistoryWidget::on_refresh_clicked()
 {
-    QString connectionName = ui->connectionName->currentText();
-    refresh(connectionName);
+    refresh(connectionNameEdit()->currentText());
 }
 
 void QueryHistoryWidget::on_copy_clicked()
@@ -114,48 +177,41 @@ void QueryHistoryWidget::on_copy_clicked()
     emit appendQuery(connectionName,queries.join(";\n"));
 }
 
-void QueryHistoryWidget::on_connectionName_currentIndexChanged(const QString &)
-{
-    updateQuery();
-}
+void QueryHistoryWidget::onUpdateQuery() {
 
-void QueryHistoryWidget::on_search_clicked()
-{
-    updateQuery();
-}
-
-void QueryHistoryWidget::on_all_clicked()
-{
-    ui->filter->setText("");
-    updateQuery();
-}
-
-void QueryHistoryWidget::updateQuery() {
-
-    QStringList conditions;
-    QVariantList binds;
-    conditions << "?";
-    binds << "1";
-    QString connectionName = ui->connectionName->currentText();
-    if (connectionName != "all") {
-        conditions << "connectionName=?";
-        binds << connectionName;
+    if (!headerView()) {
+        return;
     }
-    QString filter = ui->filter->text();
-    if (!filter.isEmpty()) {
-        conditions << "query like ?";
-        binds << ("%" + filter + "%");
+
+    QSqlDatabase db = QSqlDatabase::database("_history");
+    QString like_ = "%" + queryEdit()->text() + "%";
+
+    DateTimeRangeWidget* dateEdit = this->dateEdit();
+
+    QDateTime date1 = dateEdit->dateTime1();
+    QDateTime date2 = dateEdit->dateTime2();
+    QString connectionName = connectionNameEdit()->currentText();
+    int any = connectionName == "any" ? 1 : 0;
+
+    using namespace mugisql;
+
+    select_t q = select(db, query._all).from(query).where(
+                and_(
+                    between(query.date, date1, date2),
+                    like(query.query, like_),
+                    or_(equal(query.connectionName, connectionName),any)))
+            .orderBy(desc(query.date));
+
+    if (!q.exec()) {
+        qDebug() << q.lastError().text();
     }
-    QSqlQuery q(QSqlDatabase::database("_history"));
-    q.prepare(QString("select * from query where %1 order by date desc").arg(conditions.join(" and ")));
-    foreach(const QVariant& v, binds) {
-        q.addBindValue(v);
-    }
-    q.exec();
+
     QSqlQueryModel* model = qobject_cast<QSqlQueryModel*>(ui->tableView->model());
     if (!model) {
         qDebug() << "not model";
         return;
     }
-    model->setQuery(q);
+    model->setQuery(q.query());
+
+    ui->tableView->setColumnWidth(QueryHistoryModel::col_date, dateEdit->sizeHint().width() + 10);
 }

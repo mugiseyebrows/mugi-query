@@ -9,6 +9,11 @@ namespace Ui {
 class QueryHistoryWidget;
 }
 
+class RichHeaderView;
+class DateTimeRangeWidget;
+class QComboBox;
+class QLineEdit;
+
 class QueryHistoryWidget : public QWidget
 {
     Q_OBJECT
@@ -20,8 +25,13 @@ public:
 
     void refresh(const QString &connectionName);
 
-    void updateQuery();
+
     QStringList selectedQueries() const;
+    RichHeaderView *headerView();
+    DateTimeRangeWidget *dateEdit();
+    QComboBox *connectionNameEdit();
+    QLineEdit *queryEdit();
+    QWidget *edit(int column);
 signals:
     void appendQuery(QString,QString);
 
@@ -29,9 +39,7 @@ private slots:
     void on_refresh_clicked();
     void on_copy_clicked();
     void on_tableView_doubleClicked(QModelIndex index);
-    void on_connectionName_currentIndexChanged(const QString &arg1);
-    void on_search_clicked();
-    void on_all_clicked();
+    void onUpdateQuery();
 
 private:
     Ui::QueryHistoryWidget *ui;

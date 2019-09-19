@@ -31,24 +31,17 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="connectionName"/>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="filter"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="search">
-       <property name="text">
-        <string>search</string>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="all">
-       <property name="text">
-        <string>all</string>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
        </property>
-      </widget>
+      </spacer>
      </item>
     </layout>
    </item>
@@ -67,10 +60,6 @@
  <tabstops>
   <tabstop>refresh</tabstop>
   <tabstop>copy</tabstop>
-  <tabstop>connectionName</tabstop>
-  <tabstop>filter</tabstop>
-  <tabstop>search</tabstop>
-  <tabstop>all</tabstop>
   <tabstop>tableView</tabstop>
  </tabstops>
  <resources/>

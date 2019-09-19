@@ -5,12 +5,19 @@
 DateTimeRangeWidget::DateTimeRangeWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DateTimeRangeWidget),
-    mMenu1(0)
+    mMenu(0)
 {
     ui->setupUi(this);
 
-    connect(ui->dateTime1,SIGNAL(dateTimeChanged(QDateTime)),this,SIGNAL(dateTime1Changed(QDateTime)));
-    connect(ui->dateTime2,SIGNAL(dateTimeChanged(QDateTime)),this,SIGNAL(dateTime2Changed(QDateTime)));
+    connect(ui->dateTime1,&QDateTimeEdit::dateTimeChanged,[=](QDateTime dateTime){
+        emit dateTime1Changed(dateTime);
+        emit dateTimesChanged(dateTime,ui->dateTime2->dateTime());
+    });
+    connect(ui->dateTime2,&QDateTimeEdit::dateTimeChanged,[=](QDateTime dateTime){
+        emit dateTime2Changed(dateTime);
+        emit dateTimesChanged(ui->dateTime1->dateTime(),dateTime);
+    });
+
 }
 
 DateTimeRangeWidget::~DateTimeRangeWidget()
@@ -25,30 +32,31 @@ void DateTimeRangeWidget::init(const QDateTime& dateTime1,
     ui->dateTime1->setDateTime(dateTime1);
     ui->dateTime2->setDateTime(dateTime2);
 
-    mMenu1 = new QMenu(this);
+    mMenu = new QMenu(this);
     //mMenu2 = new QMenu(this);
 
     for(int i=0;i<options.size();i++) {
         QString option = options[i];
         QAction* action = new QAction(option, this);
-        mMenu1->addAction(action);
+        mMenu->addAction(action);
         connect(action,&QAction::triggered,[=](){
            emit actionTriggered(i);
         });
     }
 
-    QAction* menuAction1 = mMenu1->menuAction();
-    menuAction1->setIcon(QIcon(":/icons/src/icons/undo.png"));
-    ui->toolBar1->addAction(menuAction1);
+    QAction* menuAction = mMenu->menuAction();
+    menuAction->setIcon(QIcon(":/icons/src/icons/undo.png"));
+    ui->toolBar2->addAction(menuAction);
 
-    QAction* action2 = new QAction(QIcon(":/icons/src/icons/undo.png"),QString(),this);
+    QAction* action = new QAction(QIcon(":/icons/src/icons/undo.png"),QString(),this);
 
-    ui->toolBar2->addAction(action2);
+    ui->toolBar1->addAction(action);
 
-    connect(menuAction1,&QAction::triggered,[=](){
+    connect(action,&QAction::triggered,[=](){
         ui->dateTime1->setDateTime(dateTime1);
     });
-    connect(action2,&QAction::triggered,[=](){
+
+    connect(menuAction,&QAction::triggered,[=](){
         ui->dateTime2->setDateTime(dateTime2);
     });
 
