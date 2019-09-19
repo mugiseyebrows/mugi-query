@@ -32,6 +32,7 @@ public:
     RichHeaderCell cell(int row, int column);
     bool hasCell(int row, int column);
     RichHeaderData& pull(RichHeaderDirection::DirectionType direction, int sectionCount);
+    RichHeaderData& clear();
     RichHeaderData& pullUp(int sectionCount);
     RichHeaderData& pullDown(int sectionCount);
     RichHeaderData& pullLeft(int sectionCount);

@@ -2,7 +2,6 @@
 #ifndef RICHHEADERDATAIMPL_H
 #define RICHHEADERDATAIMPL_H
 #include "richheadercell.h"
-#include "richheaderdata.h"
 #include "richheaderdataimplbase.h"
 #include <QColor>
 #include <QList>
@@ -12,6 +11,7 @@ class RichHeaderDataImpl : public RichHeaderDataImplBase {
 public:
     RichHeaderDataImpl();
     RichHeaderCell cell(int row, int column);
+    void clear();
     void pullUp(int sectionCount);
     void pullDown(int sectionCount);
     void pullLeft(int sectionCount);

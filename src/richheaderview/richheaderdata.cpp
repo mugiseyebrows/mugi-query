@@ -78,6 +78,10 @@ RichHeaderData& RichHeaderData::pull(RichHeaderDirection::DirectionType directio
     mImpl->pull(direction, sectionCount);
     return *this;
 }
+RichHeaderData& RichHeaderData::clear() {
+    mImpl->clear();
+    return *this;
+}
 RichHeaderData& RichHeaderData::pullUp(int sectionCount) {
     mImpl->pullUp(sectionCount);
     return *this;

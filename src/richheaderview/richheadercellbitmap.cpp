@@ -1,6 +1,8 @@
 #include "richheadercellbitmap.h"
 #include "richheadercellimpl.h"
 
+#include <QDebug>
+
 RichHeaderCellBitmap::RichHeaderCellBitmap(int rowCount, int columnCount) : mRowCount(rowCount), mColumnCount(columnCount)
 {
     mData.fill(false, mRowCount * mColumnCount);

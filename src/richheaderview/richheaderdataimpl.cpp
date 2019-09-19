@@ -3,6 +3,7 @@
 #include "richheaderdirection.h"
 #include <QPair>
 #include <QString>
+#include <QWidget>
 
 RichHeaderDataImpl::RichHeaderDataImpl()
     : mMultiline(true), mElide(Qt::ElideNone), mAlign(Qt::AlignCenter), mRotation(0.0),
@@ -63,13 +64,22 @@ void RichHeaderDataImpl::flatStyle(bool value) {
     mFlatStyle = value;
 }
 RichHeaderCell RichHeaderDataImpl::cell(int row, int column) {
-
     QPair<int, int> index(row, column);
     if (!mCells.contains(index)) {
         mCells[index] = new RichHeaderCellImpl(row, column, 1, 1, QString(), mMultiline, mElide,
                                                mAlign, mRotation, 0);
     }
     return RichHeaderCell(mCells[index]);
+}
+void RichHeaderDataImpl::clear() {
+    RichHeaderCellList widgets = widgetCellsToTheRight(0);
+    foreach (RichHeaderCellImpl* cell, widgets) {
+        QWidget* widget = cell->widget();
+        widget->setParent(0);
+        widget->deleteLater();
+    }
+    qDeleteAll(mCells.values());
+    mCells.clear();
 }
 void RichHeaderDataImpl::pullUp(int sectionCount) {
     pull(RichHeaderDirection::DirectionUp, sectionCount);
