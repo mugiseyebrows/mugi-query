@@ -40,6 +40,8 @@
 #include "error.h"
 
 #include <QThread>
+#include <QSqlRecord>
+#include <QSqlField>
 #include "datautils.h"
 using namespace DataUtils;
 
@@ -49,6 +51,13 @@ void showOnTop(QWidget* widget) {
     widget->show();
     widget->activateWindow();
     widget->raise();
+}
+
+void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QVariant::Type>& types) {
+    for(int c=0;c<record.count();c++) {
+        names << record.fieldName(c);
+        types << record.field(c).type();
+    }
 }
 
 }
@@ -681,6 +690,8 @@ void MainWindow::on_queryExecute_triggered()
     tab->on_execute_clicked();
 }
 
+#include "widget/selectcolumnsdialog.h"
+
 void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 {
 
@@ -694,6 +705,9 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     QAction* join = new QAction("Join",&menu);
     menu.addAction(join);
+
+    QAction* update = new QAction("Update",&menu);
+    menu.addAction(update);
 
     QAction* refresh = new QAction("Refresh",&menu);
     menu.addAction(refresh);
@@ -788,6 +802,31 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
             queries << query;
         }
         onAppendQuery(connectionName,queries.join(";\n"));
+    }
+
+    if (result == update) {
+        QString connectionName = this->connectionName();
+        QStringList tables = schemaTreeSelectedTables();
+        QSqlDatabase db = QSqlDatabase::database(connectionName);
+        QSqlDriver* driver = db.driver();
+        if (tables.isEmpty()) {
+            return;
+        }
+        QString table = tables.first();
+        QSqlRecord record = db.record(table);
+        QStringList names;
+        QList<QVariant::Type> types;
+        recordToNamesTypes(record,names,types);
+        SelectColumnsDialog dialog;
+        dialog.init(table, names, types);
+        if (dialog.exec() != QDialog::Accepted) {
+            return;
+        }
+        QString query = QString("UPDATE %1 SET %2 WHERE %3")
+                .arg(driver->escapeIdentifier(table,QSqlDriver::TableName))
+                .arg(dialog.dataChecked().join(" = , ") + " = ")
+                .arg(dialog.keysChecked().join(" "));
+        onAppendQuery(connectionName,query);
     }
 
     if (result == refresh) {

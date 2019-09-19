@@ -136,7 +136,8 @@ HEADERS += \
     src/widget/datetimerangewidget.h \
     src/datetimerangewidgetmanager.h \
     src/model/queryhistorymodel.h \
-    src/mugisql/mugisql.h
+    src/mugisql/mugisql.h \
+    src/widget/selectcolumnsdialog.h
 
 SOURCES += \
     src/action.cpp \
@@ -228,7 +229,8 @@ SOURCES += \
     src/widget/datetimerangewidget.cpp \
     src/datetimerangewidgetmanager.cpp \
     src/model/queryhistorymodel.cpp \
-    src/mugisql/mugisql.cpp
+    src/mugisql/mugisql.cpp \
+    src/widget/selectcolumnsdialog.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \
@@ -250,7 +252,8 @@ FORMS += \
     src/widget/selectcolumnswidget.ui \
     src/widget/selectcolumnslistwidget.ui \
     src/widget/fieldattributeswidget.ui \
-    src/widget/datetimerangewidget.ui
+    src/widget/datetimerangewidget.ui \
+    src/widget/selectcolumnsdialog.ui
 
 RESOURCES += \
     icons.qrc

@@ -38,6 +38,16 @@ void SelectColumnsWidget::checked(QStringList &fields, QList<QVariant::Type> &ty
     }
 }
 
+void SelectColumnsWidget::dataChecked(QStringList &fields, QList<QVariant::Type> &types)
+{
+    ui->data->model()->checked(fields, types);
+}
+
+void SelectColumnsWidget::keysChecked(QStringList &fields, QList<QVariant::Type> &types)
+{
+    ui->keys->model()->checked(fields, types);
+}
+
 void SelectColumnsWidget::setLabelsMode(SelectColumnsWidget::LabelsMode mode)
 {
     mLabelsMode = mode;

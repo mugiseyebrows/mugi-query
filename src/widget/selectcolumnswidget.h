@@ -35,6 +35,9 @@ public:
 
     void checked(QStringList &fields, QList<QVariant::Type> &types);
 
+    void dataChecked(QStringList &fields, QList<QVariant::Type> &types);
+    void keysChecked(QStringList &fields, QList<QVariant::Type> &types);
+
     void setLabelsMode(LabelsMode mode);
 
     bool hasAnyChecked() const;
