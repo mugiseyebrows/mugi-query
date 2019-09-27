@@ -1,6 +1,6 @@
-[{
-        "table": "database",
-        "columns": [
+{
+    "tables": {
+        "database": [
             "date",
             "connectionName",
             "driver",
@@ -9,21 +9,15 @@
             "password",
             "database",
             "port"
-        ]
-    },
-    {
-        "table": "query",
-        "columns": [
+        ],
+        "query": [
             "date",
             "connectionName",
             "query"
-        ]
-    },
-    {
-        "table": "relations",
-        "columns": [
+        ],
+        "relations": [
             "name",
             "value"
         ]
     }
-]
+}

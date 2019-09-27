@@ -35,18 +35,6 @@ namespace mugisql {
     }
     aliasedtable_t::aliasedtable_t(const table_t& table) : mTable(&table), mAlias(0) {
     }
-    const table_t* aliasedtable_t::table() const {
-        return mTable;
-    }
-    void aliasedtable_t::setTable(const table_t* value) {
-        mTable = value;
-    }
-    const alias_t* aliasedtable_t::alias() const {
-        return mAlias;
-    }
-    void aliasedtable_t::setAlias(const alias_t* value) {
-        mAlias = value;
-    }
     QString aliasedtable_t::toString() const {
         if (!mTable) {
             return QString();
@@ -195,6 +183,7 @@ namespace mugisql {
             QVariantList values = args[0].value().toList();
             exprlist_t res;
             foreach (const QVariant& value, values) { res << expr_t(value); }
+            return res;
         }
         return args;
     }
@@ -233,6 +222,9 @@ namespace mugisql {
     exprlist_t::exprlist_t(const QList<expr_t>& fields) {
         append(fields);
     }
+    exprlist_t::exprlist_t(const QVariantList& values) {
+        append(expr_t(values));
+    }
     exprlist_t::exprlist_t(const field_t& field) {
         append(field);
     }
@@ -263,12 +255,6 @@ namespace mugisql {
     }
     joinexpr_t::joinexpr_t(join_type type, const expr_t& expr) : mExpr(expr), mType(type) {
     }
-    expr_t joinexpr_t::expr() const {
-        return mExpr;
-    }
-    joinexpr_t::join_type joinexpr_t::type() const {
-        return mType;
-    }
     QString joinexpr_t::toString(const aliasedtable_t& table, QSqlDriver* driver) const {
         static QStringList joins = {"INNER JOIN", "LEFT JOIN", "RIGHT JOIN"};
         return QString("%1 %2 ON %3")
@@ -282,18 +268,6 @@ namespace mugisql {
     limit_t::limit_t(int offset, int count) : mOffset(offset), mCount(count) {
     }
     limit_t::limit_t(int count) : mOffset(0), mCount(count) {
-    }
-    int limit_t::offset() const {
-        return mOffset;
-    }
-    void limit_t::setOffset(int value) {
-        mOffset = value;
-    }
-    int limit_t::count() const {
-        return mCount;
-    }
-    void limit_t::setCount(int value) {
-        mCount = value;
     }
     QString limit_t::toString() const {
         if (mCount == 0) {
@@ -586,6 +560,9 @@ namespace mugisql {
     }
     QString query_t::lastQuery() const {
         return mQuery.lastQuery();
+    }
+    int query_t::numRowsAffected() const {
+        return mQuery.numRowsAffected();
     }
 
     select_t::select_t(const exprlist_t& fields)
@@ -956,6 +933,33 @@ namespace mugisql {
             }
             return res;
         }
+        QMap<int, QDateTime> toIntDateTimeMap(select_t& query, const expr_t& key,
+                                              const expr_t& value) {
+            QMap<int, QDateTime> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toInt()] = query.value(valueIndex).toDateTime();
+            }
+            return res;
+        }
+        QMap<int, bool> toIntBoolMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<int, bool> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toInt()] = query.value(valueIndex).toBool();
+            }
+            return res;
+        }
         QList<QString> toStringList(select_t& query, const expr_t& key) {
             QList<QString> res;
             int keyIndex = -1;
@@ -1019,6 +1023,34 @@ namespace mugisql {
                     valueIndex = query.valueIndex(value);
                 }
                 res[query.value(keyIndex).toString()] = query.value(valueIndex).toDate();
+            }
+            return res;
+        }
+        QMap<QString, QDateTime> toStringDateTimeMap(select_t& query, const expr_t& key,
+                                                     const expr_t& value) {
+            QMap<QString, QDateTime> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toString()] = query.value(valueIndex).toDateTime();
+            }
+            return res;
+        }
+        QMap<QString, bool> toStringBoolMap(select_t& query, const expr_t& key,
+                                            const expr_t& value) {
+            QMap<QString, bool> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toString()] = query.value(valueIndex).toBool();
             }
             return res;
         }
@@ -1095,6 +1127,220 @@ namespace mugisql {
                     valueIndex = query.valueIndex(value);
                 }
                 res[query.value(keyIndex).toDate()] = query.value(valueIndex).toDate();
+            }
+            return res;
+        }
+        QMap<QDate, QDateTime> toDateDateTimeMap(select_t& query, const expr_t& key,
+                                                 const expr_t& value) {
+            QMap<QDate, QDateTime> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDate()] = query.value(valueIndex).toDateTime();
+            }
+            return res;
+        }
+        QMap<QDate, bool> toDateBoolMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<QDate, bool> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDate()] = query.value(valueIndex).toBool();
+            }
+            return res;
+        }
+        QList<QDateTime> toDateTimeList(select_t& query, const expr_t& key) {
+            QList<QDateTime> res;
+            int keyIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                }
+                res << query.value(keyIndex).toDateTime();
+            }
+            return res;
+        }
+        QMap<QDateTime, int> toDateTimeIntMap(select_t& query, const expr_t& key,
+                                              const expr_t& value) {
+            QMap<QDateTime, int> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDateTime()] = query.value(valueIndex).toInt();
+            }
+            return res;
+        }
+        QMap<QDateTime, QString> toDateTimeStringMap(select_t& query, const expr_t& key,
+                                                     const expr_t& value) {
+            QMap<QDateTime, QString> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDateTime()] = query.value(valueIndex).toString();
+            }
+            return res;
+        }
+        QMap<QDateTime, QVariant> toDateTimeVariantMap(select_t& query, const expr_t& key,
+                                                       const expr_t& value) {
+            QMap<QDateTime, QVariant> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDateTime()] = query.value(valueIndex);
+            }
+            return res;
+        }
+        QMap<QDateTime, QDate> toDateTimeDateMap(select_t& query, const expr_t& key,
+                                                 const expr_t& value) {
+            QMap<QDateTime, QDate> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDateTime()] = query.value(valueIndex).toDate();
+            }
+            return res;
+        }
+        QMap<QDateTime, QDateTime> toDateTimeDateTimeMap(select_t& query, const expr_t& key,
+                                                         const expr_t& value) {
+            QMap<QDateTime, QDateTime> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDateTime()] = query.value(valueIndex).toDateTime();
+            }
+            return res;
+        }
+        QMap<QDateTime, bool> toDateTimeBoolMap(select_t& query, const expr_t& key,
+                                                const expr_t& value) {
+            QMap<QDateTime, bool> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toDateTime()] = query.value(valueIndex).toBool();
+            }
+            return res;
+        }
+        QList<bool> toBoolList(select_t& query, const expr_t& key) {
+            QList<bool> res;
+            int keyIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                }
+                res << query.value(keyIndex).toBool();
+            }
+            return res;
+        }
+        QMap<bool, int> toBoolIntMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<bool, int> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toBool()] = query.value(valueIndex).toInt();
+            }
+            return res;
+        }
+        QMap<bool, QString> toBoolStringMap(select_t& query, const expr_t& key,
+                                            const expr_t& value) {
+            QMap<bool, QString> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toBool()] = query.value(valueIndex).toString();
+            }
+            return res;
+        }
+        QMap<bool, QVariant> toBoolVariantMap(select_t& query, const expr_t& key,
+                                              const expr_t& value) {
+            QMap<bool, QVariant> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toBool()] = query.value(valueIndex);
+            }
+            return res;
+        }
+        QMap<bool, QDate> toBoolDateMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<bool, QDate> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toBool()] = query.value(valueIndex).toDate();
+            }
+            return res;
+        }
+        QMap<bool, QDateTime> toBoolDateTimeMap(select_t& query, const expr_t& key,
+                                                const expr_t& value) {
+            QMap<bool, QDateTime> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toBool()] = query.value(valueIndex).toDateTime();
+            }
+            return res;
+        }
+        QMap<bool, bool> toBoolBoolMap(select_t& query, const expr_t& key, const expr_t& value) {
+            QMap<bool, bool> res;
+            int keyIndex = -1;
+            int valueIndex = -1;
+            while (query.next()) {
+                if (keyIndex < 0) {
+                    keyIndex = query.valueIndex(key);
+                    valueIndex = query.valueIndex(value);
+                }
+                res[query.value(keyIndex).toBool()] = query.value(valueIndex).toBool();
             }
             return res;
         }
