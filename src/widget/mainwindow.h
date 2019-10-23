@@ -102,6 +102,7 @@ public slots:
     void on_dataImport_triggered();
     void on_schemaTree_doubleClicked(const QModelIndex &index);
 
+    void onShowDatabaseDialog(bool showHistory);
 private:
     Ui::MainWindow *ui;
 };

@@ -19,6 +19,7 @@ public:
         ActionShowDataImportDialog,
         ActionShowDateTimeRangeWidget,
         ActionShowQueryHistory,
+        ActionShowDatabaseHistory
     };
     Action(Type type = ActionEmpty, const QVariantList& args = QVariantList());
     Type type() const;

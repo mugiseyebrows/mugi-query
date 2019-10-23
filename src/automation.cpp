@@ -96,6 +96,10 @@ void Automation::showQueryHistory()
     mQueued.enqueue(Action(Action::ActionShowQueryHistory));
 }
 
+void Automation::showDatabaseHistory() {
+    mQueued.enqueue(Action(Action::ActionShowDatabaseHistory));
+}
+
 void Automation::afterDialog(DatabaseConnectDialog *) {
 
 }
@@ -208,6 +212,9 @@ void Automation::onStart() {
         next();
     } else if (mAction.type() == Action::ActionShowQueryHistory) {
         mainWindow()->onShowQueryHistory();
+        next();
+    } else if (mAction.type() == Action::ActionShowDatabaseHistory) {
+        mainWindow()->onShowDatabaseDialog(true);
         next();
     }
 }

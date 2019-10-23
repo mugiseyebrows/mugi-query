@@ -29,6 +29,7 @@ public:
     void showDataImportDialog();
     void showDateTimeRangeWidget();
     void showQueryHistory();
+    void showDatabaseHistory();
 
     void beforeDialog(DatabaseHistoryDialog* dialog);
     void beforeDialog(DatabaseConnectDialog *dialog);
@@ -39,6 +40,7 @@ public:
     void start();
 
     void next();
+
 protected:
 
     QQueue<Action> mQueued;

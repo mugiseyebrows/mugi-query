@@ -7,6 +7,11 @@ namespace Ui {
 class DatabaseHistoryDialog;
 }
 
+class DateTimeRangeWidget;
+class QLineEdit;
+class QComboBox;
+class IntLineEdit;
+
 class DatabaseHistoryDialog : public QDialog
 {
     Q_OBJECT
@@ -35,17 +40,27 @@ public:
     QString host() const;
     QString user() const;
     QString password() const;
-    QString database() const;
+    QString database_() const;
     int port() const;
-    void refresh();
 
     void select(const QString& connectionName);
+
+public slots:
+    void onUpdateQuery();
 
 private slots:
     void on_tableView_doubleClicked(const QModelIndex &index);
 
-private:
+protected:
     Ui::DatabaseHistoryDialog *ui;
+    DateTimeRangeWidget* mDateEdit;
+    QLineEdit* mConnectionNameEdit;
+    QComboBox* mDriverEdit;
+    QLineEdit* mHostEdit;
+    QLineEdit* mUserEdit;
+    QLineEdit* mDatabaseEdit;
+    IntLineEdit* mPortEdit;
 };
+
 
 #endif // DATABASEHISTORYDIALOG_H

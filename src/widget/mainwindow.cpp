@@ -424,7 +424,10 @@ void MainWindow::pushTokens(const QString &connectionName)
     }
 }
 
-
+void MainWindow::onShowDatabaseDialog(bool showHistory) {
+    DatabaseConnectDialog dialog(showHistory, this);
+    dialog.exec();
+}
 
 void MainWindow::databaseConnect(bool showHistory)
 {

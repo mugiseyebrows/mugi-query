@@ -15,20 +15,27 @@
 #include <QThread>
 #include <QFileDialog>
 
-DatabaseConnectDialog::DatabaseConnectDialog(bool showHistory, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::DatabaseConnectDialog)
-{
-    ui->setupUi(this);
-    QStringList drivers = QSqlDatabase::drivers();
+namespace {
 
+QStringList availableSqlDrivers() {
+    QStringList drivers = QSqlDatabase::drivers();
     drivers.removeAll("QMYSQL3");
     drivers.removeAll("QOCI8");
     drivers.removeAll("QODBC3");
     drivers.removeAll("QPSQL7");
     drivers.removeAll("QTDS7");
+    return drivers;
+}
 
-    ui->driver->addItems(drivers);
+}
+
+DatabaseConnectDialog::DatabaseConnectDialog(bool showHistory, QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::DatabaseConnectDialog)
+{
+    ui->setupUi(this);
+
+    ui->driver->addItems(availableSqlDrivers());
 
     this->adjustSize();
 
@@ -141,7 +148,7 @@ void DatabaseConnectDialog::on_history_clicked()
     ui->host->setText(dialog.host());
     ui->user->setText(dialog.user());
     ui->password->setText(dialog.password());
-    ui->database->setText(dialog.database());
+    ui->database->setText(dialog.database_());
     ui->port->setText(dialog.port() > -1 ? QString::number(dialog.port()) : QString());
 
     Automation::instance()->afterDialog(&dialog);
