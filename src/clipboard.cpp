@@ -124,7 +124,33 @@ void Clipboard::copySelected(QAbstractItemModel *model, const QItemSelection& se
 
 }
 
+void Clipboard::copyAsKeyValue(QSqlQueryModel *model, const QItemSelection &selection)
+{
+    QStringList result;
+    const QSqlDriver* driver = model->query().driver();
 
+    QMap<int, QStringList> data;
+
+    foreach(const QItemSelectionRange& range, selection) {
+        QModelIndexList indexes = range.indexes();
+        foreach(const QModelIndex& index, indexes) {
+            const QSqlRecord& record = model->record(index.row());
+            if (!data.contains(index.row())) {
+                data[index.row()] = QStringList();
+            }
+            data[index.row()] << QString("%1=%2").arg(record.fieldName(index.column())).arg(driver->formatValue(record.field(index.column())));
+        }
+    }
+
+    QList<int> keys = data.keys();
+    qSort(keys.begin(),keys.end());
+    foreach(int key, keys) {
+        result << data[key].join(" and ");
+    }
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(result.join("\n"));
+    return;
+}
 
 void Clipboard::copySelectedAsList(QSqlQueryModel *model,
                                          const QItemSelection &selection)

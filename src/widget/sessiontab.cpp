@@ -278,7 +278,7 @@ void SessionTab::saveData()
 
 }
 
-void SessionTab::copySelected(bool asList)
+void SessionTab::copySelected(CopyMode mode)
 {
     QSqlQueryModel* model = currentModel();
     if (!model) {
@@ -286,12 +286,14 @@ void SessionTab::copySelected(bool asList)
     }
     QString error;
     QItemSelection selection = currentView()->selectionModel()->selection();
-    if (asList) {
+    if (mode == CopyAsList) {
         Clipboard::copySelectedAsList(model, selection);
-    } else {
+    } else if (mode == CopyAsTSV) {
         QString separator = "\t";
         DataFormat::Format format = DataFormat::Csv;
         Clipboard::copySelected(model, selection, format, separator, locale(), error);
+    } else if (mode == CopyAsKeyValue) {
+        Clipboard::copyAsKeyValue(model, selection);
     }
     if (!error.isEmpty()) {
         QMessageBox::critical(this,"Error",error);

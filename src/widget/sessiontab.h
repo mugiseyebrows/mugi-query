@@ -22,6 +22,12 @@ class SessionTab : public QWidget
     Q_OBJECT
     
 public:
+    enum CopyMode {
+        CopyAsTSV,
+        CopyAsList,
+        CopyAsKeyValue,
+    };
+
     explicit SessionTab(const QString& connectionName, const QString name, QWidget *parent = 0);
     ~SessionTab();
 
@@ -42,7 +48,7 @@ public:
 
     void saveData();
 
-    void copySelected(bool asList);
+    void copySelected(CopyMode mode);
     QueryModelView *currentView();
     QTextDocument *document() const;
 

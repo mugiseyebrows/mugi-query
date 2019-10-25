@@ -16,6 +16,7 @@ class DataImportWidgets;
 class RelationsModel;
 
 #include "tokens.h"
+#include "sessiontab.h"
 
 #include <QSqlDatabase>
 
@@ -28,6 +29,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     
 public:
+
+
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     SessionModel* model() const;
@@ -58,7 +61,7 @@ protected:
 
     QString mQuery;
 
-    void copySelected(bool asList);
+    void copySelected(SessionTab::CopyMode mode);
 
     int lastTabIndex(const QString &connectionName);
     void selectDatabase(const QString &connectionName);
@@ -103,6 +106,9 @@ public slots:
     void on_schemaTree_doubleClicked(const QModelIndex &index);
 
     void onShowDatabaseDialog(bool showHistory);
+private slots:
+    void on_selectionCopyAsKeyValue_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

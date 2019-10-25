@@ -20,6 +20,8 @@ public:
                              DataFormat::Format format, const QString& separator,
                              const QLocale &locale, QString &error);
 
+    static void copyAsKeyValue(QSqlQueryModel *model, const QItemSelection& selection);
+
     static void copySelectedAsList(QSqlQueryModel *model,
                                    const QItemSelection& selection);
 
