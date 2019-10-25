@@ -14,6 +14,18 @@
 #include <QSqlRecord>
 #include <QSqlField>
 
+void Clipboard::streamHeader(QTextStream& stream, const QItemSelectionRange &rng, const QString &separator) {
+
+
+    QAbstractItemModel* model = const_cast<QAbstractItemModel*>(rng.model());
+    int col = rng.topLeft().column();
+    stream << model->headerData(col++, Qt::Horizontal).toString();
+    for(; col <= rng.bottomRight().column(); col++) {
+        stream << separator << model->headerData(col, Qt::Horizontal).toString();
+    }
+    stream << "\n";
+}
+
 void Clipboard::streamRange(QTextStream& stream, const QItemSelectionRange &rng,
                                   DataFormat::Format format,
                                   const QString &separator,
@@ -91,40 +103,47 @@ QModelIndex Clipboard::pasteTsv(QAbstractItemModel *model, const QModelIndex &in
 
 void Clipboard::copySelected(QAbstractItemModel *model, const QItemSelection& selection,
                                    DataFormat::Format format, const QString &separator,
-                                   const QLocale& locale, QString& error) {
+                                   bool header, const QLocale& locale, QString& error) {
+
+    QString data = selectedToString(model, selection, format, separator, header, locale, error);
+    if (!error.isEmpty()) {
+        return;
+    }
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(data);
+}
+
+QString Clipboard::selectedToString(QAbstractItemModel *model, const QItemSelection& selection,
+                                   DataFormat::Format format, const QString &separator,
+                                   bool header, const QLocale& locale, QString& error) {
 
     DataFormat::ActionType action = DataFormat::ActionCopy;
     Formats formats(action);
 
     // one range of one index
     if (selection.size() == 1 && selection[0].topLeft() == selection[0].bottomRight()) {
-        QClipboard *clipboard = QApplication::clipboard();
         QString data = DataStreamer::variantToString(model->data(selection[0].topLeft()),format,formats,locale,error);
         if (!error.isEmpty()) {
-            return;
+            return QString();
         }
-        clipboard->setText(data);
-        return;
+        return data;
     }
-
-
 
     // many ranges
     QString data;
     QTextStream stream(&data);
     foreach(const QItemSelectionRange& rng, selection) {
+        if (header) {
+            streamHeader(stream, rng, separator);
+        }
         streamRange(stream, rng, format, separator, action, locale, error);
         if (!error.isEmpty()) {
-            return;
+            return QString();
         }
     }
     stream.flush();
-    QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(data);
-
+    return data;
 }
-
-
 
 void Clipboard::copySelectedAsList(QSqlQueryModel *model,
                                          const QItemSelection &selection)

@@ -699,7 +699,8 @@ void DataImportWidget::onDataPaste() {
 
 void DataImportWidget::onDataCopy() {
     QString error;
-    Clipboard::copySelected(dataModel(),ui->data->selectionModel()->selection(), DataFormat::Csv, "\t", locale(), error);
+    QItemSelection selection = ui->data->selectionModel()->selection();
+    Clipboard::copySelected(dataModel(), selection, DataFormat::Csv, "\t", false, locale(), error);
     Error::show(this,error);
 }
 

@@ -17,7 +17,7 @@ class Clipboard
 public:
 
     static void copySelected(QAbstractItemModel *model, const QItemSelection& selection,
-                             DataFormat::Format format, const QString& separator,
+                             DataFormat::Format format, const QString& separator, bool header,
                              const QLocale &locale, QString &error);
 
     static void copySelectedAsList(QSqlQueryModel *model,
@@ -30,6 +30,8 @@ public:
     static QModelIndex pasteTsv(QAbstractItemModel *model, const QModelIndex& index,
                                 bool appendRows = false, bool appendColumns = false);
 
+    static void streamHeader(QTextStream &stream, const QItemSelectionRange &rng, const QString &separator);
+    static QString selectedToString(QAbstractItemModel *model, const QItemSelection &selection, DataFormat::Format format, const QString &separator, bool header, const QLocale &locale, QString &error);
 };
 
 #endif // CLIPBOARD_H

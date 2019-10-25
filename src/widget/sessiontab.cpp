@@ -26,6 +26,7 @@
 #include "clipboard.h"
 #include <QSharedPointer>
 #include "error.h"
+#include "copyeventfilter.h"
 
 namespace {
 
@@ -60,6 +61,8 @@ QStringList unquote(const QStringList& items) {
 
 }
 
+
+
 SessionTab::SessionTab(const QString &connectionName, const QString name, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SessionTab), mConnectionName(connectionName), mName(name), mFirstQuery(true)
@@ -72,6 +75,15 @@ SessionTab::SessionTab(const QString &connectionName, const QString name, QWidge
     ui->resultTabs->insertTab(ui->resultTabs->count(),view,"stat");
     view->verticalHeader()->setDefaultSectionSize(40);
     view->horizontalHeader()->setStretchLastSection(true);
+
+    CopyEventFilter* filter = new CopyEventFilter(view);
+    filter->setView(view);
+    connect(filter, &CopyEventFilter::copy, [=](){
+        QString error;
+        const QItemSelection selection = view->selectionModel()->selection();
+        Clipboard::copySelected(view->model(), selection, DataFormat::Csv, "\t", true, locale(), error);
+        Error::show(this,error);
+    });
 }
 
 void SessionTab::on_resultTabs_currentChanged(int index) {
@@ -192,6 +204,11 @@ void SessionTab::setQuery(const QString &query)
     ui->query->setPlainText(query);
 }
 
+QString SessionTab::query() const
+{
+    return ui->query->toPlainText();
+}
+
 void SessionTab::focusQuery()
 {
     ui->query->setFocus();
@@ -291,7 +308,7 @@ void SessionTab::copySelected(bool asList)
     } else {
         QString separator = "\t";
         DataFormat::Format format = DataFormat::Csv;
-        Clipboard::copySelected(model, selection, format, separator, locale(), error);
+        Clipboard::copySelected(model, selection, format, separator, true, locale(), error);
     }
     if (!error.isEmpty()) {
         QMessageBox::critical(this,"Error",error);
@@ -300,7 +317,7 @@ void SessionTab::copySelected(bool asList)
 
 void SessionTab::on_execute_clicked()
 {
-    emit query(ui->query->toPlainText());
+    emit query(query());
 }
 
 void SessionTab::on_history_clicked()
@@ -310,12 +327,12 @@ void SessionTab::on_history_clicked()
 
 void SessionTab::quoteQuery() {
     TextEdit* edit = ui->query;
-    edit->setPlainText(quote(edit->toPlainText().split("\n")).join("\n"));
+    edit->setPlainText(quote(query().split("\n")).join("\n"));
 }
 
 void SessionTab::unquoteQuery() {
     TextEdit* edit = ui->query;
-    edit->setPlainText(unquote(edit->toPlainText().split("\n")).join("\n"));
+    edit->setPlainText(unquote(query().split("\n")).join("\n"));
 }
 
 QueryModelView *SessionTab::tab(int index)

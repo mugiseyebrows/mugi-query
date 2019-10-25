@@ -160,7 +160,7 @@ void QueryModelView::onCopy() {
     }
     QItemSelection selection = view->selectionModel()->selection();
     QString error;
-    Clipboard::copySelected(model, selection, DataFormat::Csv, "\t", view->locale(), error);
+    Clipboard::copySelected(model, selection, DataFormat::Csv, "\t", false, view->locale(), error);
     if (!error.isEmpty()) {
         QMessageBox::critical(this,"Error",error);
         return;

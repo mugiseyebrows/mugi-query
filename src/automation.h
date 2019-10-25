@@ -31,6 +31,9 @@ public:
     void showQueryHistory();
     void showDatabaseHistory();
 
+    void saveStat(const QString& path);
+    void saveQuery(const QString& path);
+
     void beforeDialog(DatabaseHistoryDialog* dialog);
     void beforeDialog(DatabaseConnectDialog *dialog);
 

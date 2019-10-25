@@ -17,7 +17,28 @@
 #include "distributionplot.h"
 #include "widget/datetimerangewidget.h"
 #include "datetimerangewidgetmanager.h"
+#include <QTextCodec>
+#include "statview.h"
+#include "clipboard.h"
 #include <QDateTime>
+
+namespace {
+
+bool saveToFile(const QString& path, const QString& data) {
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << "cannot open" << path;
+        return false;
+    }
+    file.write(QTextCodec::codecForName("UTF-8")->fromUnicode(data));
+    file.close();
+
+    qDebug() << path << "saved";
+
+    return true;
+}
+
+}
 
 Automation *Automation::mInstance = 0;
 
@@ -96,8 +117,19 @@ void Automation::showQueryHistory()
     mQueued.enqueue(Action(Action::ActionShowQueryHistory));
 }
 
-void Automation::showDatabaseHistory() {
+void Automation::showDatabaseHistory() 
+{
     mQueued.enqueue(Action(Action::ActionShowDatabaseHistory));
+}
+
+void Automation::saveStat(const QString &path)
+{
+    mQueued.enqueue(Action(Action::ActionSaveStat,{path}));
+}
+
+void Automation::saveQuery(const QString &path)
+{
+    mQueued.enqueue(Action(Action::ActionSaveQuery,{path}));
 }
 
 void Automation::afterDialog(DatabaseConnectDialog *) {
@@ -129,6 +161,9 @@ void Automation::onStart() {
     }
 
     mAction = mQueued.dequeue();
+
+    qDebug() << "action" << mAction.type();
+
     if (mAction.type() == Action::ActionConnectToDatabaseFromHistory) {
         mainWindow()->databaseConnect(true);
     } else if (mAction.type() == Action::ActionAppendQuery) {
@@ -211,13 +246,37 @@ void Automation::onStart() {
         widget->show();
         next();
     } else if (mAction.type() == Action::ActionShowQueryHistory) {
+
         mainWindow()->onShowQueryHistory();
         next();
+
     } else if (mAction.type() == Action::ActionShowDatabaseHistory) {
+
         mainWindow()->onShowDatabaseDialog(true);
+        
+    } else if (mAction.type() == Action::ActionSaveStat) {
+
+        QString path = mAction.arg(0).toString();
+        SessionTab* tab = mainWindow()->currentTab();
+        StatView* statView = tab->statView();
+        QAbstractItemModel* model = statView->model();
+        QItemSelection selection(model->index(0,0),model->index(model->rowCount()-1,model->columnCount()-1));
+        QString error;
+        QString text = Clipboard::selectedToString(model, selection, DataFormat::Csv, "\t", true, statView->locale(), error);
+        saveToFile(path, text);
+        next();
+
+    } else if (mAction.type() == Action::ActionSaveQuery) {
+
+        QString path = mAction.arg(0).toString();
+        SessionTab* tab = mainWindow()->currentTab();
+        QString query = tab->query();
+        saveToFile(path, query);
         next();
     }
 }
+
+
 
 void Automation::beforeDialog(DatabaseConnectDialog *dialog)
 {

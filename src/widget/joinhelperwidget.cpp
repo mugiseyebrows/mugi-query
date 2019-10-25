@@ -70,7 +70,9 @@ JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
 
 void JoinHelperWidget::onRelationsCopy() {
     QString error;
-    Clipboard::copySelected(ui->relations->model(),ui->relations->selectionModel()->selection(), DataFormat::Csv, "\t", locale(), error);
+    QAbstractItemModel* model = ui->relations->model();
+    QItemSelection selection = ui->relations->selectionModel()->selection();
+    Clipboard::copySelected(model,selection, DataFormat::Csv, "\t", false, locale(), error);
     Error::show(this,error);
 }
 

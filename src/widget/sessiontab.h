@@ -36,6 +36,8 @@ public:
 
     void setQuery(const QString& query);
 
+    QString query() const;
+
     void focusQuery();
 
     QSqlQueryModel *currentModel();
@@ -51,6 +53,8 @@ public:
 
     QueryModelView *tab(int index);
 
+    StatView *statView();
+
 signals:
     void query(QString);
     void showQueryHistory();
@@ -58,7 +62,6 @@ signals:
     
 protected:
 
-    StatView *statView();
     QueryModelView *tab(int index, bool *insert);
 
     Ui::SessionTab *ui;
