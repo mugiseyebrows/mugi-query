@@ -15,8 +15,10 @@
 #include "queryparser.h"
 #include <QStyle>
 
+#define BASE_CLASS QPlainTextEdit
+
 TextEdit::TextEdit(QWidget *parent)
-: QTextEdit(parent), mCompleter(nullptr), mHighlighter(nullptr)
+: QPlainTextEdit(parent), mCompleter(nullptr), mHighlighter(nullptr)
 {
     const QFont defaultFont = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
 
@@ -140,13 +142,13 @@ void TextEdit::focusInEvent(QFocusEvent *e)
 {
     if (mCompleter)
         mCompleter->setWidget(this);
-    QTextEdit::focusInEvent(e);
+    BASE_CLASS::focusInEvent(e);
 }
 
 void TextEdit::keyPressEvent(QKeyEvent *e)
 {
     if (!mCompleter) {
-        return QTextEdit::keyPressEvent(e);
+        return BASE_CLASS::keyPressEvent(e);
     }
 
     if (mCompleter && mCompleter->popup()->isVisible()) {
@@ -173,7 +175,7 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
 
     bool isShortcut = ((e->modifiers() & Qt::ControlModifier) && e->key() == Qt::Key_E); // CTRL+E
     if (!mCompleter || !isShortcut) // do not process the shortcut when we have a completer
-        QTextEdit::keyPressEvent(e);
+        BASE_CLASS::keyPressEvent(e);
 
     const bool ctrlOrShift = e->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier);
     if (!mCompleter || (ctrlOrShift && e->text().isEmpty()))
@@ -206,6 +208,11 @@ void TextEdit::updateCompleter() {
     QStringListModel* stringListModel = new QStringListModel(mTokens.autocompletion(mAliases),completer);
     completer->setModel(stringListModel);
     setCompleter(completer);
+}
+
+void TextEdit::setText(const QString &text)
+{
+    setPlainText(text);
 }
 
 void TextEdit::onTextChanged() {

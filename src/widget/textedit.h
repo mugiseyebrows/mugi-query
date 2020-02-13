@@ -9,7 +9,7 @@ class QCompleter;
 class Highlighter;
 
 
-class TextEdit : public QTextEdit
+class TextEdit : public QPlainTextEdit
 {
     Q_OBJECT
 
@@ -20,6 +20,9 @@ public:
     void setTokens(const Tokens &tokens);
     Tokens tokens() const;
     void updateCompleter();
+
+    void setText(const QString& text);
+
 signals:
     void submit();
 
