@@ -35,6 +35,7 @@ public:
         WidgetType,
         WidgetSize,
         WidgetFieldAttributes,
+        WidgetForeignKey
     };
 
     enum ButtonIndex {
@@ -65,6 +66,7 @@ protected slots:
     void onModelSetTypes();
     void onSetColumnNamesAndTypes();
     void onColumnSizeChanged(int);
+    void onColumnForeignKeyChanged(int);
 signals:
     void appendQuery(QString);
 
@@ -91,6 +93,7 @@ protected:
     QComboBox *widgetType(int column) const;
     IntLineEdit *widgetSize(int column) const;
     FieldAttributesWidget *widgetFieldAttributes(int column) const;
+    QLineEdit *widgetForeignKey(int column) const;
     QString tableName();
     QList<Field> fields() const;
     bool newTable() const;
@@ -98,6 +101,7 @@ protected:
     void guessColumnType(int column);
     void setFields(const QList<Field> &fields);
     void setDataModelColumnCount(int count);
+
 private slots:
     void on_clearData_clicked();
     void on_copyQuery_clicked();

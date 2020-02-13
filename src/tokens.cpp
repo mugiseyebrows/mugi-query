@@ -552,7 +552,9 @@ QStringList Tokens::driverKeywords() const
              << "show processlist" << "show profile" << "show profiles"
              << "show relaylog events" << "show slave hosts" << "show slave status"
              << "show status" << "show table status" << "show tables"
-             << "show triggers" << "show variables" << "show warnings";
+             << "show triggers" << "show variables" << "show warnings"
+
+             << "references";
     } else if (mDriverName == DRIVER_PSQL) {
 /*
 https://www.postgresql.org/docs/9.1/sql-keywords-appendix.html

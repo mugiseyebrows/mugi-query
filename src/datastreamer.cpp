@@ -13,6 +13,7 @@
 #include <QSqlRecord>
 #include <QSqlDriver>
 #include <QSqlField>
+#include <QRegularExpression>
 
 #include "sqldatatypes.h"
 #include "settings.h"
@@ -484,6 +485,15 @@ QStringList DataStreamer::createIndexStatements(const QSqlDatabase &db, const QS
 }
 
 
+QString fixForeignKey(const QString& key) {
+    QRegularExpression exp("^(.*)[.](.*)$");
+    QRegularExpressionMatch m = exp.match(key);
+    if (m.hasMatch()) {
+        return QString("%1(%2)").arg(m.captured(1)).arg(m.captured(2));
+    }
+    return key;
+}
+
 QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString &table,
                                            const QList<Field>& fields,
                                            bool ifNotExists)
@@ -509,6 +519,8 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
             primaryKeyCount += 1;
         }
     }
+
+    QStringList foreignKeys;
 
     for(int c=0;c<fields.size();c++) {
 
@@ -562,11 +574,16 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
             keys << identifier;
         }
 
+        if (!field.foreignKey().isEmpty()) {
+            foreignKeys << QString("FOREIGN KEY(%1) REFERENCES %2").arg(field.name()).arg(fixForeignKey(field.foreignKey()));
+        }
+
     }
 
     if (keys.size() > 1) {
         typed << QString("PRIMARY KEY (%1)").arg(keys.join(", "));
     }
+    typed.append(foreignKeys);
 
     QString statement = QString("CREATE TABLE %1(%2)")
             .arg(driver->escapeIdentifier(table, QSqlDriver::TableName))

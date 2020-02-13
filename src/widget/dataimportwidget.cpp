@@ -95,7 +95,7 @@ void DataImportWidget::init(const QString &connectionName)
     int twoLines = fontHeight * 2;
 
     RichHeaderData data = view->data();
-    data.subsectionSizes({twoLines, twoLines, twoLines, twoLines * 3 / 2});
+    data.subsectionSizes({twoLines, twoLines, twoLines, twoLines * 3 / 2, twoLines});
 
     DataImportModel* model = new DataImportModel(ui->data);
     model->setLocale(locale());
@@ -369,6 +369,10 @@ FieldAttributesWidget* DataImportWidget::widgetFieldAttributes(int column) const
     return qobject_cast<FieldAttributesWidget*>(widget(WidgetFieldAttributes,column));
 }
 
+QLineEdit* DataImportWidget::widgetForeignKey(int column) const {
+    return qobject_cast<QLineEdit*>(widget(WidgetForeignKey,column));
+}
+
 void DataImportWidget::setFields(const QList<Field>& fields) {
     RichHeaderView* view = headerView();
     QAbstractItemModel* model = dataModel();
@@ -383,6 +387,7 @@ void DataImportWidget::setFields(const QList<Field>& fields) {
         QComboBox* type = widgetType(c);
         FieldAttributesWidget* attributes = widgetFieldAttributes(c);
         IntLineEdit* size = widgetSize(c);
+        QLineEdit* foreignKey = widgetForeignKey(c);
 
         if (!name || !type || !attributes || !size) {
             qDebug() << __FILE__ << __LINE__ << name << type << attributes << size;
@@ -397,6 +402,7 @@ void DataImportWidget::setFields(const QList<Field>& fields) {
         attributes->setAutoincrement(field.autoincrement());
         attributes->setIndex(field.index());
         attributes->setUnique(field.unique());
+        foreignKey->setText(field.foreignKey());
     }
 }
 
@@ -413,6 +419,7 @@ QList<Field> DataImportWidget::fields() const {
         QComboBox* type = widgetType(c);
         FieldAttributesWidget* attributes = widgetFieldAttributes(c);
         IntLineEdit* size = widgetSize(c);
+        QLineEdit* foreignKey = widgetForeignKey(c);
 
         if (!name || !type || !attributes || !size) {
             qDebug() << __FILE__ << __LINE__ << name << type << attributes << size;
@@ -421,7 +428,7 @@ QList<Field> DataImportWidget::fields() const {
 
         Field field(name->text(), type->currentText(), size->value(-1),
                     attributes->primaryKey(), attributes->autoincrement(),
-                    attributes->index(), attributes->unique());
+                    attributes->index(), attributes->unique(), foreignKey->text());
         result << field;
     }
     return result;
@@ -484,6 +491,16 @@ void DataImportWidget::createHeaderViewWidgets() {
             data.cell(WidgetFieldAttributes,c).widget(attributes).padding(0,5);
             connect(attributes,&FieldAttributesWidget::attributeClicked,[=](){
                 onFieldAttributeClicked(c);
+            });
+        }
+
+        QLineEdit* foreignKey = widgetForeignKey(c);
+        if (!foreignKey) {
+            foreignKey = new QLineEdit(viewport);
+            foreignKey->setPlaceholderText("foreign key");
+            data.cell(WidgetForeignKey, c).widget(foreignKey);
+            connect(foreignKey, &QLineEdit::textChanged,[=](){
+                onColumnForeignKeyChanged(c);
             });
         }
 
@@ -572,6 +589,10 @@ void DataImportWidget::onColumnSizeChanged(int) {
 
 void DataImportWidget::onColumnNameChanged(int) {
     mSetModelTypes->onPost();
+}
+
+void DataImportWidget::onColumnForeignKeyChanged(int) {
+    mUpdatePreview->onPost();
 }
 
 void DataImportWidget::onFieldAttributeClicked(int)
