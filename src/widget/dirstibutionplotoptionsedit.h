@@ -29,8 +29,12 @@ public:
     double min(bool *ok = 0) const;
     double max(bool *ok = 0) const;
 
+    void setManualRange(double vmin, double vmax);
+
 protected:
+    Ui::DirstibutionPlotOptionsEdit *ui;
     bool mSwitchMode;
+    int mPrec;
 
 signals:
     void valuesChanged(int,double,double);
@@ -38,9 +42,6 @@ signals:
 protected slots:
     void on_autoRange_clicked();
     void on_manualRange_clicked();
-
-private:
-    Ui::DirstibutionPlotOptionsEdit *ui;
 };
 
 #endif // DIRSTIBUTIONPLOTOPTIONSEDIT_H

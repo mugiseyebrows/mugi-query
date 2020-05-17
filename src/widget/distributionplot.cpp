@@ -44,6 +44,11 @@ QAbstractItemModel *DistributionPlot::tableModel() const
     return ui->table->model();
 }
 
+void DistributionPlot::setManualRange(double vmin, double vmax)
+{
+    ui->options->setManualRange(vmin, vmax);
+}
+
 void DistributionPlot::init() {
     QwtPlotMultiBarChart* chart = new QwtPlotMultiBarChart();
     chart->setLayoutPolicy( QwtPlotMultiBarChart::AutoAdjustSamples );
@@ -126,9 +131,13 @@ void DistributionPlot::onBinsValueChanged(int) {
 
 void DistributionPlot::updateSeries() {
     int bins = ui->options->bins();
-    double min = ui->options->min();
-    double max = ui->options->max();
-    onOptionsChanged(bins, min, max);
+    bool ok1 = false;
+    bool ok2 = false;
+    double min = ui->options->min(&ok1);
+    double max = ui->options->max(&ok2);
+    if (max > min && ok1 && ok2) {
+        onOptionsChanged(bins, min, max);
+    }
 }
 
 void DistributionPlot::updateDataset()

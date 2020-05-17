@@ -87,6 +87,11 @@ void Automation::setDistributionPlot(int row, const QString &v, const QString &c
     mQueued.enqueue(Action(Action::ActionSetDistributionPlot, {row, v, color}));
 }
 
+void Automation::setDistributionPlotManualRange(double vmin, double vmax)
+{
+    mQueued.enqueue(Action(Action::ActionSetDistributionPlotManualRange, {vmin, vmax}));
+}
+
 void Automation::showDistributionPlot()
 {
     mQueued.enqueue(Action(Action::ActionShowDistributionPlot));
@@ -211,6 +216,17 @@ void Automation::onStart() {
 
         s(DistributionPlotModel::col_v,v);
         s(DistributionPlotModel::col_color,color);
+
+        next();
+    } else if (mAction.type() == Action::ActionSetDistributionPlotManualRange) {
+
+        double vmin = mAction.arg(0).toDouble();
+        double vmax = mAction.arg(1).toDouble();
+
+        SessionTab* tab = mainWindow()->currentTab();
+        QueryModelView* view = tab->tab(0);
+        DistributionPlot* plot = view->distributionPlot();
+        plot->setManualRange(vmin, vmax);
 
         next();
     } else if (mAction.type() == Action::ActionShowJoinHelper) {

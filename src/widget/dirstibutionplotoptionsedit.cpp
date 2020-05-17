@@ -6,8 +6,9 @@
 
 DirstibutionPlotOptionsEdit::DirstibutionPlotOptionsEdit(QWidget *parent) :
     QWidget(parent),
+    ui(new Ui::DirstibutionPlotOptionsEdit),
     mSwitchMode(true),
-    ui(new Ui::DirstibutionPlotOptionsEdit)
+    mPrec(0)
 {
     ui->setupUi(this);
 
@@ -30,11 +31,11 @@ void DirstibutionPlotOptionsEdit::init(int bins, double vmin, double vmax)
 {
     mSwitchMode = false;
     ui->bins->setIfNoValue(bins);
-    int prec = qMax(0, (int) log10(500.0/(vmax-vmin)));
-    ui->minAuto->setValue(vmin,prec);
-    ui->minManual->setIfNoValue(vmin,prec);
-    ui->maxAuto->setValue(vmax,prec);
-    ui->maxManual->setIfNoValue(vmax,prec);
+    mPrec = vmin == vmax ? 0 : qMax(0, (int) log10(500.0/(vmax-vmin)));
+    ui->minAuto->setValue(vmin,mPrec);
+    ui->minManual->setIfNoValue(vmin,mPrec);
+    ui->maxAuto->setValue(vmax,mPrec);
+    ui->maxManual->setIfNoValue(vmax,mPrec);
     mSwitchMode = true;
 }
 
@@ -51,11 +52,11 @@ void DirstibutionPlotOptionsEdit::onValuesChanged(Sender sender) {
         return;
     }
 
-    bool ok[3];
-    int bins = this->bins(ok);
-    double min = this->min(ok + 1);
-    double max = this->max(ok + 2);
-    if (!ok[0] || !ok[1] || !ok[2]) {
+    bool ok1,ok2,ok3;
+    int bins = this->bins(&ok1);
+    double min = this->min(&ok2);
+    double max = this->max(&ok3);
+    if (!(ok1 && ok2 && ok3) || min == max) {
         return;
     }
 
@@ -82,6 +83,12 @@ double DirstibutionPlotOptionsEdit::max(bool* ok) const
 {
     DoubleLineEdit* edit = autoRange() ? ui->maxAuto : ui->maxManual;
     return edit->value(ok);
+}
+
+void DirstibutionPlotOptionsEdit::setManualRange(double vmin, double vmax)
+{
+    ui->minManual->setValue(vmin, mPrec);
+    ui->maxManual->setValue(vmax, mPrec);
 }
 
 void DirstibutionPlotOptionsEdit::on_autoRange_clicked()

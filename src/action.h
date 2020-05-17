@@ -13,6 +13,7 @@ public:
         ActionShowSaveDataDialog,
         ActionSetXYPlot,
         ActionSetDistributionPlot,
+        ActionSetDistributionPlotManualRange,
         ActionShowJoinHelper,
         ActionShowDistributionPlot,
         ActionShowXYPlot,

@@ -27,6 +27,8 @@ public:
 
     QAbstractItemModel* tableModel() const;
 
+    void setManualRange(double vmin, double vmax);
+
 protected:
     void init();
     QStringList modelHeader() const;
