@@ -27,6 +27,7 @@
 #include "widget/intlineedit.h"
 #include "modelappender.h"
 #include "tablebuttons/tablebuttons.h"
+#include "clipboardutil.h"
 
 namespace  {
 
@@ -718,11 +719,14 @@ void DataImportWidget::onDataPaste() {
 
 }
 
+
+
 void DataImportWidget::onDataCopy() {
-    QString error;
+    /*QString error;
     QItemSelection selection = ui->data->selectionModel()->selection();
     Clipboard::copySelected(dataModel(), selection, DataFormat::Csv, "\t", false, locale(), error);
-    Error::show(this,error);
+    Error::show(this,error);*/
+    ClipboardUtil::copyTsv(ui->data);
 }
 
 QString DataImportWidget::queries(bool preview) {

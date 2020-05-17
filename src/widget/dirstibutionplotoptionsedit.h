@@ -31,6 +31,9 @@ public:
 
     void setManualRange(double vmin, double vmax);
 
+    void setNAuto(int value);
+    void setNManual(int value);
+
 protected:
     Ui::DirstibutionPlotOptionsEdit *ui;
     bool mSwitchMode;

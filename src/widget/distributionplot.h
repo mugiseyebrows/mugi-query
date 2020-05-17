@@ -29,6 +29,7 @@ public:
 
     void setManualRange(double vmin, double vmax);
 
+    void setHistogramTableColumnPrec(int column, int prec);
 protected:
     void init();
     QStringList modelHeader() const;

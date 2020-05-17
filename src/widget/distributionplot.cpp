@@ -17,6 +17,10 @@
 #include "canvaspicker.h"
 #include "histogram.h"
 #include "distributiondataset.h"
+#include "model/distributionhistogrammodel.h"
+#include "doubleitemdelegate.h"
+#include "copyeventfilter.h"
+#include "clipboardutil.h"
 
 using namespace DataUtils;
 
@@ -86,9 +90,28 @@ void DistributionPlot::init() {
 
     connect(ui->options,SIGNAL(valuesChanged(int,double,double)),this,SLOT(onOptionsChanged(int,double,double)));
 
-    //mPicker = new CanvasPicker(ui->plot);
-}
+    DistributionHistogramModel* histModel = new DistributionHistogramModel(ui->histogramTable);
 
+    ui->histogramTable->setModel(histModel);
+
+    CopyEventFilter* filter = new CopyEventFilter(ui->histogramTable);
+    filter->setView(ui->histogramTable);
+    connect(filter,&CopyEventFilter::copy,[=](){
+        ClipboardUtil::copyTsv(ui->histogramTable);
+    });
+
+    /*for(int c=0;c<histModel->columnCount();c++) {
+        ui->histogramTable->setItemDelegateForColumn(c,new DoubleItemDelegate(ui->histogramTable));
+    }*/
+
+    //mPicker = new CanvasPicker(ui->plot);
+
+    QList<int> columns = {DistributionHistogramModel::col_percent1, DistributionHistogramModel::col_percent2};
+    foreach(int column, columns) {
+        setHistogramTableColumnPrec(column, 2);
+    }
+
+}
 
 QStringList DistributionPlot::modelHeader() const {
     return toLower(headerData(mModel,Qt::Horizontal));
@@ -149,10 +172,18 @@ void DistributionPlot::updateDataset()
     ui->options->init(12,mDataset.min(),mDataset.max());
 }
 
+void DistributionPlot::setHistogramTableColumnPrec(int column, int prec) {
+    DoubleItemDelegate* d = new DoubleItemDelegate(ui->histogramTable, prec);
+    ui->histogramTable->setItemDelegateForColumn(column, d);
+}
+
 void DistributionPlot::onOptionsChanged(int bins, double min, double max) {
 
     QList<QwtPlotMultiBarChart*> barCharts = filterMultiBarCharts(ui->plot);
     QwtPlotMultiBarChart* chart = barCharts[0];
+
+    DistributionHistogramModel* histModel = qobject_cast<DistributionHistogramModel*>(ui->histogramTable->model());
+
 
     if (mDataset.isEmpty() || bins < 2) {
         chart->setSamples(QVector<QwtSetSample>());
@@ -163,6 +194,23 @@ void DistributionPlot::onOptionsChanged(int bins, double min, double max) {
 
     Histogram hist(bins, mDataset, min, max);
     chart->setBarTitles(hist.titles());
+
+    if (hist.size() > 0) {
+        ui->options->setNAuto(hist.total(0));
+        if (!ui->options->autoRange()) {
+            ui->options->setNManual(hist.filtered(0));
+        }
+    }
+
+    histModel->setHistogram(hist);
+
+    if (hist.size() > 0) {
+        int prec = hist.prec();
+        QList<int> columns = {DistributionHistogramModel::col_min, DistributionHistogramModel::col_max, DistributionHistogramModel::col_mid};
+        foreach(int column, columns) {
+            setHistogramTableColumnPrec(column, prec);
+        }
+    }
 
     for (int i=0; i<mItems.size(); i++)
     {
@@ -175,5 +223,6 @@ void DistributionPlot::onOptionsChanged(int bins, double min, double max) {
     }
     chart->setSamples(hist.samples());
     ui->plot->replot();
+
 }
 

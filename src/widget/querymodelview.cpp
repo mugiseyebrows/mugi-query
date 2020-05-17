@@ -13,6 +13,7 @@
 #include "mainwindow.h"
 #include <QMessageBox>
 #include "clipboard.h"
+#include "clipboardutil.h"
 
 namespace {
 
@@ -150,19 +151,8 @@ void QueryModelView::onTableCustomContextMenuRequested(const QPoint &)
     menu->exec(QCursor::pos());
 }
 
+
+
 void QueryModelView::onCopy() {
-
-    QTableView* view = ui->table;
-
-    QAbstractItemModel* model = view->model();
-    if (!model) {
-        return;
-    }
-    QItemSelection selection = view->selectionModel()->selection();
-    QString error;
-    Clipboard::copySelected(model, selection, DataFormat::Csv, "\t", false, view->locale(), error);
-    if (!error.isEmpty()) {
-        QMessageBox::critical(this,"Error",error);
-        return;
-    }
+    ClipboardUtil::copyTsv(ui->table);
 }

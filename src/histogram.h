@@ -17,15 +17,30 @@ public:
 
     QVector<QwtSetSample> samples() const;
 
+    QList<QList<double> > histRows(int index) const;
+
+    int size() const;
+
+    double min() const;
+
+    double max() const;
+
+    int total(int index) const;
+    int filtered(int index) const;
+
+    int prec();
 protected:
 
     int mBins;
     double mMin;
     double mMax;
 
+    QList<int> mTotal;
+    QList<int> mFiltered;
+
     QList<DistributionPlotItem> mItems;
-    QList<QVector<double> > hist;
-    QList<QList<double> > values;
+    QList<QVector<double> > mHist; // [bins][]
+    //QList<QList<double> > mValues;
 
 };
 

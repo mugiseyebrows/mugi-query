@@ -137,7 +137,10 @@ HEADERS += \
     src/datetimerangewidgetmanager.h \
     src/model/queryhistorymodel.h \
     src/mugisql/mugisql.h \
-    src/widget/selectcolumnsdialog.h
+    src/widget/selectcolumnsdialog.h \
+    src/model/distributionhistogrammodel.h \
+    src/doubleitemdelegate.h \
+    src/widget/clipboardutil.h
 
 SOURCES += \
     src/action.cpp \
@@ -230,7 +233,10 @@ SOURCES += \
     src/datetimerangewidgetmanager.cpp \
     src/model/queryhistorymodel.cpp \
     src/mugisql/mugisql.cpp \
-    src/widget/selectcolumnsdialog.cpp
+    src/widget/selectcolumnsdialog.cpp \
+    src/model/distributionhistogrammodel.cpp \
+    src/doubleitemdelegate.cpp \
+    src/widget/clipboardutil.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \

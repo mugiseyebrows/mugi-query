@@ -91,6 +91,16 @@ void DirstibutionPlotOptionsEdit::setManualRange(double vmin, double vmax)
     ui->maxManual->setValue(vmax, mPrec);
 }
 
+void DirstibutionPlotOptionsEdit::setNAuto(int value)
+{
+    ui->nAuto->setValue(value);
+}
+
+void DirstibutionPlotOptionsEdit::setNManual(int value)
+{
+    ui->nManual->setValue(value);
+}
+
 void DirstibutionPlotOptionsEdit::on_autoRange_clicked()
 {
     onValuesChanged(SenderRangeSelect);

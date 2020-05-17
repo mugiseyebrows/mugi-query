@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>545</width>
+    <width>615</width>
     <height>432</height>
    </rect>
   </property>
@@ -30,6 +30,11 @@
       </layout>
      </widget>
      <widget class="QwtPlot" name="plot"/>
+     <widget class="QTableView" name="histogramTable">
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>50</number>
+      </attribute>
+     </widget>
     </widget>
    </item>
   </layout>
