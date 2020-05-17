@@ -43,7 +43,6 @@ void DoubleLineEdit::setValue(double value, int prec)
     if (prec == mPrec || prec == -1) {
         double eps = pow(10.0,-(mPrec+1));
         if (fabs(value_ - value) < eps) {
-            //qDebug() << "same value" << value_ << value << mPrec;
             return;
         }
     } else if (prec != -1){

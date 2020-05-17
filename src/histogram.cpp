@@ -9,7 +9,7 @@ using namespace DataUtils;
 namespace  {
 
 double round_(double sum, double prec) {
-    return round((sum)*pow(10.0,prec))/pow(10.0,prec);
+    return round(sum*pow(10.0,prec))/pow(10.0,prec);
 }
 
 double round0(double sum) {

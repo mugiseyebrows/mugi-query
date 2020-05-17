@@ -4,6 +4,18 @@
 #include <math.h>
 #include <QDebug>
 
+namespace  {
+
+double floor_(double sum, double prec) {
+    return floor(sum*pow(10.0,prec))/pow(10.0,prec);
+}
+
+double ceil_(double sum, double prec) {
+    return ceil(sum*pow(10.0,prec))/pow(10.0,prec);
+}
+
+}
+
 DirstibutionPlotOptionsEdit::DirstibutionPlotOptionsEdit(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DirstibutionPlotOptionsEdit),
@@ -27,15 +39,19 @@ DirstibutionPlotOptionsEdit::~DirstibutionPlotOptionsEdit()
     delete ui;
 }
 
+
+
 void DirstibutionPlotOptionsEdit::init(int bins, double vmin, double vmax)
 {
     mSwitchMode = false;
     ui->bins->setIfNoValue(bins);
     mPrec = vmin == vmax ? 0 : qMax(0, (int) log10(500.0/(vmax-vmin)));
-    ui->minAuto->setValue(vmin,mPrec);
-    ui->minManual->setIfNoValue(vmin,mPrec);
-    ui->maxAuto->setValue(vmax,mPrec);
-    ui->maxManual->setIfNoValue(vmax,mPrec);
+    double vmin_ = floor_(vmin, mPrec);
+    double vmax_ = ceil_(vmax, mPrec);
+    ui->minAuto->setValue(vmin_, mPrec);
+    ui->minManual->setIfNoValue(vmin_,mPrec);
+    ui->maxAuto->setValue(vmax_,mPrec);
+    ui->maxManual->setIfNoValue(vmax_,mPrec);
     mSwitchMode = true;
 }
 
