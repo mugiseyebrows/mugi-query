@@ -157,6 +157,9 @@ namespace mugisql {
         } else if (mType == expr_in) {
             return mArgs[0].toString(driver, fullname) + spaced("IN") +
                    inParenthesis(joinArgs(inArgs(mArgs.mid(1)), driver, false, fullname, ", "));
+        } else if (mType == expr_not_in) {
+            return mArgs[0].toString(driver, fullname) + spaced("NOT IN") +
+                   inParenthesis(joinArgs(inArgs(mArgs.mid(1)), driver, false, fullname, ", "));
         } else if (mType == expr_as) {
             return mArgs[0].toString(driver, fullname) + spaced("AS") + mArgs[1].value().toString();
         } else if (mType == expr_between) {
@@ -287,6 +290,9 @@ namespace mugisql {
     }
     expr_t in(const expr_t& field, const exprlist_t& values) {
         return expr_t(expr_t::expr_in, field + values);
+    }
+    expr_t notIn(const expr_t& field, const exprlist_t& values) {
+        return expr_t(expr_t::expr_not_in, field + values);
     }
     expr_t as(const expr_t& expr, const expr_t& alias) {
         return expr_t(expr_t::expr_as, {expr, alias});
@@ -571,11 +577,11 @@ namespace mugisql {
     select_t::select_t(const QSqlDatabase& database, const exprlist_t& fields)
         : query_t(database), mFields(fields), mJoinType(joinexpr_t::join_inner) {
     }
-    QVariant select_t::value(int index) const {
+    QVariant select_t::valueAt(int index) const {
         return mQuery.value(index);
     }
     QVariant select_t::value(const expr_t& expr) {
-        return value(valueIndex(expr));
+        return valueAt(valueIndex(expr));
     }
     int select_t::valueIndex(const expr_t& expr) const {
         int index = mFields.indexOf(expr);
@@ -625,8 +631,10 @@ namespace mugisql {
             return QString();
         }
         QStringList joins;
+        bool needParenthesis = mDatabase.driverName() == DRIVER_ODBC;
         for (int i = 1; i < mTables.size(); i++) {
-            joins << mJoinExprs[i].toString(mTables[i], mDatabase.driver());
+            QString parenthesis = (needParenthesis && i < mTables.size() - 1) ? ")" : "";
+            joins << mJoinExprs[i].toString(mTables[i], mDatabase.driver()) + parenthesis;
         }
         return joins.join(" ");
     }
@@ -634,7 +642,11 @@ namespace mugisql {
         if (mTables.isEmpty()) {
             return QString();
         }
-        return QString("FROM %1").arg(mTables[0].toString());
+        QString parenthesis = "";
+        if (mDatabase.driverName() == DRIVER_ODBC && mTables.size() > 2) {
+            parenthesis.fill('(', mTables.size() - 2);
+        }
+        return QString("FROM %1%2").arg(parenthesis, mTables[0].toString());
     }
     QString select_t::toString(const QString& prefix, const exprlist_t& exprs) const {
         if (exprs.isEmpty()) {
@@ -876,7 +888,7 @@ namespace mugisql {
                 if (keyIndex < 0) {
                     keyIndex = query.valueIndex(key);
                 }
-                res << query.value(keyIndex).toInt();
+                res << query.valueAt(keyIndex).toInt();
             }
             return res;
         }
@@ -967,7 +979,7 @@ namespace mugisql {
                 if (keyIndex < 0) {
                     keyIndex = query.valueIndex(key);
                 }
-                res << query.value(keyIndex).toString();
+                res << query.valueAt(keyIndex).toString();
             }
             return res;
         }
@@ -1061,7 +1073,7 @@ namespace mugisql {
                 if (keyIndex < 0) {
                     keyIndex = query.valueIndex(key);
                 }
-                res << query.value(keyIndex);
+                res << query.valueAt(keyIndex);
             }
             return res;
         }
@@ -1072,7 +1084,7 @@ namespace mugisql {
                 if (keyIndex < 0) {
                     keyIndex = query.valueIndex(key);
                 }
-                res << query.value(keyIndex).toDate();
+                res << query.valueAt(keyIndex).toDate();
             }
             return res;
         }
@@ -1164,7 +1176,7 @@ namespace mugisql {
                 if (keyIndex < 0) {
                     keyIndex = query.valueIndex(key);
                 }
-                res << query.value(keyIndex).toDateTime();
+                res << query.valueAt(keyIndex).toDateTime();
             }
             return res;
         }
@@ -1259,7 +1271,7 @@ namespace mugisql {
                 if (keyIndex < 0) {
                     keyIndex = query.valueIndex(key);
                 }
-                res << query.value(keyIndex).toBool();
+                res << query.valueAt(keyIndex).toBool();
             }
             return res;
         }
