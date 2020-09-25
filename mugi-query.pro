@@ -103,7 +103,6 @@ HEADERS += \
     src/widget/userhelperdialog.h \
     src/widget/xyplot.h \
     src/plotpicker.h \
-    src/canvaspicker.h \
     src/plotmultibarchart.h \
     src/clipboard.h \
     src/error.h \
@@ -200,7 +199,6 @@ SOURCES += \
     src/widget/userhelperdialog.cpp \
     src/widget/xyplot.cpp \
     src/plotpicker.cpp \
-    src/canvaspicker.cpp \
     src/plotmultibarchart.cpp \
     src/clipboard.cpp \
     src/error.cpp \
