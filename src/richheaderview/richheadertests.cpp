@@ -10,7 +10,7 @@ RichHeaderTests::RichHeaderTests()
 
 bool RichHeaderTests::run()
 {
-    testRangesOverlap();
+    return testRangesOverlap();
 }
 
 bool RichHeaderTests::testRangesOverlap()

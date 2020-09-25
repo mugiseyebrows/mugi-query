@@ -21,6 +21,7 @@
 #include "statview.h"
 #include "clipboard.h"
 #include <QDateTime>
+#include <QFile>
 
 namespace {
 
