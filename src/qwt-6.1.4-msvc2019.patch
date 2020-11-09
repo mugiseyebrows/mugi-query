@@ -1,0 +1,111 @@
+diff -ruN qwt-6.1.4_orig/src/qwt_compass_rose.cpp qwt-6.1.4/src/qwt_compass_rose.cpp
+--- qwt-6.1.4_orig/src/qwt_compass_rose.cpp	2019-01-02 19:22:31.000000000 +0300
++++ qwt-6.1.4/src/qwt_compass_rose.cpp	2020-09-23 19:11:21.706206000 +0300
+@@ -11,6 +11,7 @@
+ #include "qwt_point_polar.h"
+ #include "qwt_painter.h"
+ #include <qpainter.h>
++#include <qpainterpath.h>
+ 
+ static QPointF qwtIntersection(
+     QPointF p11, QPointF p12, QPointF p21, QPointF p22 )
+diff -ruN qwt-6.1.4_orig/src/qwt_dial_needle.cpp qwt-6.1.4/src/qwt_dial_needle.cpp
+--- qwt-6.1.4_orig/src/qwt_dial_needle.cpp	2019-01-02 19:22:31.000000000 +0300
++++ qwt-6.1.4/src/qwt_dial_needle.cpp	2020-09-23 19:11:58.895313800 +0300
+@@ -13,6 +13,7 @@
+ #include "qwt_painter.h"
+ #include <qapplication.h>
+ #include <qpainter.h>
++#include <qpainterpath.h>
+ 
+ #if QT_VERSION < 0x040601
+ #define qFastSin(x) qSin(x)
+diff -ruN qwt-6.1.4_orig/src/qwt_null_paintdevice.cpp qwt-6.1.4/src/qwt_null_paintdevice.cpp
+--- qwt-6.1.4_orig/src/qwt_null_paintdevice.cpp	2019-01-02 19:22:31.000000000 +0300
++++ qwt-6.1.4/src/qwt_null_paintdevice.cpp	2020-09-23 19:25:04.045860400 +0300
+@@ -10,6 +10,7 @@
+ #include "qwt_null_paintdevice.h"
+ #include <qpaintengine.h>
+ #include <qpixmap.h>
++#include <qpainterpath.h>
+ 
+ class QwtNullPaintDevice::PrivateData
+ {
+diff -ruN qwt-6.1.4_orig/src/qwt_painter.cpp qwt-6.1.4/src/qwt_painter.cpp
+--- qwt-6.1.4_orig/src/qwt_painter.cpp	2019-01-02 19:22:31.000000000 +0300
++++ qwt-6.1.4/src/qwt_painter.cpp	2020-09-23 19:23:37.403452700 +0300
+@@ -27,6 +27,7 @@
+ #include <qpaintengine.h>
+ #include <qapplication.h>
+ #include <qdesktopwidget.h>
++#include <qpainterpath.h>
+ 
+ #if QT_VERSION >= 0x050000
+ #include <qwindow.h>
+diff -ruN qwt-6.1.4_orig/src/qwt_painter_command.h qwt-6.1.4/src/qwt_painter_command.h
+--- qwt-6.1.4_orig/src/qwt_painter_command.h	2019-01-02 19:22:30.000000000 +0300
++++ qwt-6.1.4/src/qwt_painter_command.h	2020-09-23 19:23:52.097524100 +0300
+@@ -16,7 +16,7 @@
+ #include <qimage.h>
+ #include <qpolygon.h>
+ 
+-class QPainterPath;
++#include <qpainterpath.h>
+ 
+ /*!
+   QwtPainterCommand represents the attributes of a paint operation
+diff -ruN qwt-6.1.4_orig/src/qwt_plot_glcanvas.cpp qwt-6.1.4/src/qwt_plot_glcanvas.cpp
+--- qwt-6.1.4_orig/src/qwt_plot_glcanvas.cpp	2019-01-02 19:22:31.000000000 +0300
++++ qwt-6.1.4/src/qwt_plot_glcanvas.cpp	2020-09-23 19:11:40.685572400 +0300
+@@ -15,6 +15,7 @@
+ #include <qdrawutil.h>
+ #include <qstyle.h>
+ #include <qstyleoption.h>
++#include <qpainterpath.h>
+ 
+ #define FIX_GL_TRANSLATION 0
+ 
+diff -ruN qwt-6.1.4_orig/src/qwt_plot_glcanvas.h qwt-6.1.4/src/qwt_plot_glcanvas.h
+--- qwt-6.1.4_orig/src/qwt_plot_glcanvas.h	2019-01-02 19:22:30.000000000 +0300
++++ qwt-6.1.4/src/qwt_plot_glcanvas.h	2020-09-23 19:15:08.620840300 +0300
+@@ -13,6 +13,7 @@
+ #include "qwt_global.h"
+ #include <qframe.h>
+ #include <qgl.h>
++#include <qpainterpath.h>
+ 
+ class QwtPlot;
+ 
+diff -ruN qwt-6.1.4_orig/src/qwt_plot_panner.cpp qwt-6.1.4/src/qwt_plot_panner.cpp
+--- qwt-6.1.4_orig/src/qwt_plot_panner.cpp	2019-01-02 19:22:31.000000000 +0300
++++ qwt-6.1.4/src/qwt_plot_panner.cpp	2020-09-23 19:11:06.208648600 +0300
+@@ -14,6 +14,7 @@
+ #include <qbitmap.h>
+ #include <qstyle.h>
+ #include <qstyleoption.h>
++#include <qpainterpath.h>
+ 
+ #if QT_VERSION >= 0x050000
+ #if QT_VERSION < 0x050100
+diff -ruN qwt-6.1.4_orig/src/qwt_plot_renderer.cpp qwt-6.1.4/src/qwt_plot_renderer.cpp
+--- qwt-6.1.4_orig/src/qwt_plot_renderer.cpp	2019-01-02 19:22:31.000000000 +0300
++++ qwt-6.1.4/src/qwt_plot_renderer.cpp	2020-09-23 19:10:50.030616100 +0300
+@@ -26,6 +26,7 @@
+ #include <qfileinfo.h>
+ #include <qimagewriter.h>
+ #include <qvariant.h>
++#include <qpainterpath.h>
+ 
+ #ifndef QWT_NO_SVG
+ #ifdef QT_SVG_LIB
+diff -ruN qwt-6.1.4_orig/src/qwt_widget_overlay.cpp qwt-6.1.4/src/qwt_widget_overlay.cpp
+--- qwt-6.1.4_orig/src/qwt_widget_overlay.cpp	2019-01-02 19:22:31.000000000 +0300
++++ qwt-6.1.4/src/qwt_widget_overlay.cpp	2020-09-23 19:24:59.463625400 +0300
+@@ -13,6 +13,7 @@
+ #include <qpaintengine.h>
+ #include <qimage.h>
+ #include <qevent.h>
++#include <qpainterpath.h>
+ 
+ static QImage::Format qwtMaskImageFormat()
+ {
