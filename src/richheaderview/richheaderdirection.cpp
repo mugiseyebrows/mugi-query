@@ -2,7 +2,7 @@
 
 QDebug operator<<(QDebug debug, RichHeaderDirection::DirectionType value) {
 
-    char* vs[] = {"DirectionUp","DirectionRight","DirectionDown","DirectionLeft"};
+    const char* vs[] = {"DirectionUp","DirectionRight","DirectionDown","DirectionLeft"};
     debug.nospace() << vs[value];
     return debug.space();
 }

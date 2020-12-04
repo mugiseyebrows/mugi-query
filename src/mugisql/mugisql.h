@@ -83,6 +83,7 @@ namespace mugisql {
             expr_leaf,
             expr_count,
             expr_in,
+            expr_not_in,
             expr_as,
             expr_noescape,
             expr_between,
@@ -204,6 +205,7 @@ namespace mugisql {
     expr_t count();
     expr_t noescape(const QString& arg);
     expr_t in(const expr_t& field, const exprlist_t& values);
+    expr_t notIn(const expr_t& field, const exprlist_t& values);
     expr_t as(const expr_t& expr, const expr_t& alias);
     expr_t between(const expr_t& expr, const expr_t& v1, const expr_t& v2);
     expr_t notBetween(const expr_t& expr, const expr_t& v1, const expr_t& v2);
@@ -321,7 +323,7 @@ namespace mugisql {
     public:
         select_t(const exprlist_t& fields);
         select_t(const QSqlDatabase& database, const exprlist_t& fields);
-        QVariant value(int index) const;
+        QVariant valueAt(int index) const;
         QVariant value(const expr_t& expr);
         int valueIndex(const expr_t& expr) const;
         bool next();

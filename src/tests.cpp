@@ -318,36 +318,33 @@ bool Tests::testAliases() {
 bool Tests::testJoinSplit() {
     QList<bool> ok;
 
-    using namespace JoinTokenList;
-    using namespace JoinToken;
-
     QString q;
     QList<QPair<JoinToken::JoinToken,QString> > e, a;
 
     q = "foo, bar left join baz on baz.id=bar.id join qix";
-    e = jtl(JoinTokenTable,"foo",
-            JoinTokenComma,",",
-            JoinTokenTable,"bar",
-            JoinTokenJoin,"left join",
-            JoinTokenTable,"baz",
-            JoinTokenOn,"on",
-            JoinTokenCondition,"baz.id=bar.id",
-            JoinTokenJoin,"join",
-            JoinTokenTable,"qix");
+    e = JoinTokenList::jtl(JoinToken::JoinTokenTable,"foo",
+            JoinToken::JoinTokenComma,",",
+            JoinToken::JoinTokenTable,"bar",
+            JoinToken::JoinTokenJoin,"left join",
+            JoinToken::JoinTokenTable,"baz",
+            JoinToken::JoinTokenOn,"on",
+            JoinToken::JoinTokenCondition,"baz.id=bar.id",
+            JoinToken::JoinTokenJoin,"join",
+            JoinToken::JoinTokenTable,"qix");
 
     a = QueryParser::joinSplit(q);
     ok << equals(__LINE__,e,a);
 
     q = "foo f1, bar b1 left join baz b2 on baz.id=bar.id join qix q1";
-    e = jtl(JoinTokenTable,"foo f1",
-            JoinTokenComma,",",
-            JoinTokenTable,"bar b1",
-            JoinTokenJoin,"left join",
-            JoinTokenTable,"baz b2",
-            JoinTokenOn,"on",
-            JoinTokenCondition,"baz.id=bar.id",
-            JoinTokenJoin,"join",
-            JoinTokenTable,"qix q1");
+    e = JoinTokenList::jtl(JoinToken::JoinTokenTable,"foo f1",
+            JoinToken::JoinTokenComma,",",
+            JoinToken::JoinTokenTable,"bar b1",
+            JoinToken::JoinTokenJoin,"left join",
+            JoinToken::JoinTokenTable,"baz b2",
+            JoinToken::JoinTokenOn,"on",
+            JoinToken::JoinTokenCondition,"baz.id=bar.id",
+            JoinToken::JoinTokenJoin,"join",
+            JoinToken::JoinTokenTable,"qix q1");
 
     a = QueryParser::joinSplit(q);
     ok << equals(__LINE__,e,a);

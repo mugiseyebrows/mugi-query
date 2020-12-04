@@ -4,7 +4,7 @@
 #include <QWidget>
 class QAbstractItemModel;
 class ModelAppender;
-class CanvasPicker;
+
 
 namespace Ui {
 class DistributionPlot;
@@ -39,7 +39,7 @@ protected:
     QAbstractItemModel* mModel;
     DistributionDataset mDataset;
 
-    //CanvasPicker* mPicker;
+
 protected slots:
     void onDataChanged(QModelIndex, QModelIndex, QVector<int>);
     void setDefaultColors();

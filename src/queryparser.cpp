@@ -370,7 +370,7 @@ QStringList filter(const QList<QPair<JoinToken::JoinToken,QString> >& tokens, Jo
 
 QList<QPair<JoinToken::JoinToken,QString> > QueryParser::joinSplit(const QString& joinExpr) {
 
-    using namespace JoinToken;
+    //using namespace JoinToken;
 
     QRegularExpression::PatternOptions opt = QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption;
     QRegularExpression comma(",", opt);
@@ -386,7 +386,7 @@ QList<QPair<JoinToken::JoinToken,QString> > QueryParser::joinSplit(const QString
     QStringList tokens;
     QList<JoinToken::JoinToken> types;
 
-    JoinToken::JoinToken nextType = JoinTokenTable;
+    JoinToken::JoinToken nextType = JoinToken::JoinTokenTable;
 
     while(commaMatch.hasMatch() || joinMatch.hasMatch() || onMatch.hasMatch()) {
 
@@ -397,10 +397,10 @@ QList<QPair<JoinToken::JoinToken,QString> > QueryParser::joinSplit(const QString
             types << nextType;
 
             tokens << onMatch.captured(0);
-            types << JoinTokenOn;
+            types << JoinToken::JoinTokenOn;
 
             tail = tail.mid(onMatch.capturedStart(0) + onMatch.capturedLength());
-            nextType = JoinTokenCondition;
+            nextType = JoinToken::JoinTokenCondition;
         } else {
 
             QRegularExpressionMatch m = goesFirst(commaMatch, joinMatch) ? commaMatch : joinMatch;
@@ -410,10 +410,10 @@ QList<QPair<JoinToken::JoinToken,QString> > QueryParser::joinSplit(const QString
             types << nextType;
 
             tokens << m.captured(0);
-            types.append(goesFirst(commaMatch, joinMatch) ? JoinTokenComma : JoinTokenJoin);
+            types.append(goesFirst(commaMatch, joinMatch) ? JoinToken::JoinTokenComma : JoinToken::JoinTokenJoin);
 
             tail = tail.mid(m.capturedStart(0) + m.capturedLength());
-            nextType = JoinTokenTable;
+            nextType = JoinToken::JoinTokenTable;
         }
 
         commaMatch = comma.match(tail);

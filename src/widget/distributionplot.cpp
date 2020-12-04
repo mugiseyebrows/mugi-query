@@ -14,7 +14,7 @@
 #include "colorpalette.h"
 #include "filterplotitem.h"
 #include <qwt_column_symbol.h>
-#include "canvaspicker.h"
+
 #include "histogram.h"
 #include "distributiondataset.h"
 #include "model/distributionhistogrammodel.h"
@@ -104,7 +104,7 @@ void DistributionPlot::init() {
         ui->histogramTable->setItemDelegateForColumn(c,new DoubleItemDelegate(ui->histogramTable));
     }*/
 
-    //mPicker = new CanvasPicker(ui->plot);
+
 
     QList<int> columns = {DistributionHistogramModel::col_percent1, DistributionHistogramModel::col_percent2};
     foreach(int column, columns) {

@@ -2,6 +2,7 @@
 #define SCHEMAITEM_H
 
 #include <QList>
+#include <QVariant>
 
 class SchemaItem
 {
