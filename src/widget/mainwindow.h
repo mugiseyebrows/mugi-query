@@ -18,6 +18,7 @@ class RelationsModel;
 #include "tokens.h"
 
 #include <QSqlDatabase>
+#include <enums.h>
 
 namespace Ui {
 class MainWindow;
@@ -58,7 +59,7 @@ protected:
 
     QString mQuery;
 
-    void copySelected(bool asList);
+    void copySelected(CopyFormat fmt);
 
     int lastTabIndex(const QString &connectionName);
     void selectDatabase(const QString &connectionName);
@@ -85,6 +86,7 @@ public slots:
 
     void on_selectionCopy_triggered();
     void on_selectionCopyAsList_triggered();
+    void on_selectionCopyAsCondition_triggered();
 
     void on_settingsFormat_triggered();
 

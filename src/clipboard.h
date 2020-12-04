@@ -32,6 +32,7 @@ public:
 
     static void streamHeader(QTextStream &stream, const QItemSelectionRange &rng, const QString &separator);
     static QString selectedToString(QAbstractItemModel *model, const QItemSelection &selection, DataFormat::Format format, const QString &separator, bool header, const QLocale &locale, QString &error);
+    static void copySelectedAsCondition(QSqlQueryModel *model, const QItemSelection &selection);
 };
 
 #endif // CLIPBOARD_H

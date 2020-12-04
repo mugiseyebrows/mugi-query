@@ -598,24 +598,26 @@ void MainWindow::on_queryHelp_triggered()
 
 void MainWindow::on_selectionCopy_triggered()
 {
-    //qDebug() << "on_selectionCopy_triggered";
-    copySelected(false);
+    copySelected(CopyFormat::Table);
 }
 
 void MainWindow::on_selectionCopyAsList_triggered()
 {
-    //qDebug() << "on_selectionCopyAsList_triggered";
-    copySelected(true);
+    copySelected(CopyFormat::List);
 }
 
+void MainWindow::on_selectionCopyAsCondition_triggered()
+{
+    copySelected(CopyFormat::Condition);
+}
 
-void MainWindow::copySelected(bool asList)
+void MainWindow::copySelected(CopyFormat fmt)
 {
     SessionTab* tab = currentTab();
     if (!tab) {
         return;
     }
-    tab->copySelected(asList);
+    tab->copySelected(fmt);
 }
 
 void MainWindow::on_dataSave_triggered()
@@ -880,3 +882,4 @@ void MainWindow::on_schemaTree_doubleClicked(const QModelIndex &index)
     QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100").arg(table).arg(table);
     onAppendQuery(connectionName, query);
 }
+

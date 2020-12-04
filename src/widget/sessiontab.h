@@ -2,6 +2,7 @@
 #define SESSIONTAB_H
 
 #include <QWidget>
+#include "enums.h"
 
 namespace Ui {
 class SessionTab;
@@ -16,6 +17,7 @@ class QTextDocument;
 class Tokens;
 class StatView;
 class QueryModelView;
+
 
 class SessionTab : public QWidget
 {
@@ -44,7 +46,7 @@ public:
 
     void saveData();
 
-    void copySelected(bool asList);
+    void copySelected(CopyFormat fmt);
     QueryModelView *currentView();
     QTextDocument *document() const;
 

@@ -13,6 +13,7 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QSqlField>
+#include <QDebug>
 
 void Clipboard::streamHeader(QTextStream& stream, const QItemSelectionRange &rng, const QString &separator) {
 
@@ -160,5 +161,84 @@ void Clipboard::copySelectedAsList(QSqlQueryModel *model,
     }
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText("(" + result.join(",") + ")");
-    return;
 }
+
+class ExprArg {
+public:
+    ExprArg(const QString name, const QString value, bool isDouble) :
+        name(name),value(value),isDouble(isDouble) {
+
+    }
+
+    QString name;
+    QString value;
+    bool isDouble;
+    QString toString(double eps) const {
+        /*if (isDouble) {
+            return QString("abs(%1-%2)<%3").arg(name).arg(value).arg(eps);
+        }*/
+        return QString("%1=%2").arg(name).arg(value);
+    }
+
+};
+
+class Expr {
+public:
+    QList<ExprArg> args;
+    QString toString() const {
+        double eps=1e-6;
+        if (args.size() == 1) {
+            return args[0].toString(eps);
+        }
+        QStringList args_;
+        for(const ExprArg& arg: args) {
+            args_.append(arg.toString(eps));
+        }
+        return "(" + args_.join(" and ") + ")";
+    }
+};
+
+void Clipboard::copySelectedAsCondition(QSqlQueryModel *model,
+                             const QItemSelection &selection) {
+
+    const QSqlDriver* driver = model->query().driver();
+
+    QList<QPair<int,int> > ranges_;
+    for(const QItemSelectionRange& range: selection) {
+        QModelIndexList indexes = range.indexes();
+        for(const QModelIndex& index: indexes) {
+            ranges_.append(QPair<int,int>(index.row(),index.column()));
+        }
+    }
+    QSet<int> rows;
+    for(const QPair<int,int>& index: ranges_) {
+        rows.insert(index.first);
+    }
+    QList<int> rows_ = rows.toList();
+    qSort(rows_.begin(),rows_.end());
+
+    QStringList exprs;
+
+    for(int row: rows_) {
+        QList<int> columns;
+        for(const QPair<int,int>& index: ranges_) {
+            if (index.first == row) {
+                columns.append(index.second);
+            }
+        }
+        Expr expr;
+        const QSqlRecord& record = model->record(row);
+        for(int column: columns) {
+            QString name = record.fieldName(column);
+            QSqlField field = record.field(column);
+            QVariant value_ = field.value();
+            QString value = driver->formatValue(field);
+            expr.args.append(ExprArg(name,value,value_.type() == QVariant::Double));
+        }
+        exprs.append(expr.toString());
+    }
+
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(exprs.join(" or "));
+}
+

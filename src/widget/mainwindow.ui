@@ -125,6 +125,7 @@
     </property>
     <addaction name="selectionCopy"/>
     <addaction name="selectionCopyAsList"/>
+    <addaction name="selectionCopyAsCondition"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -291,6 +292,11 @@
   <action name="dataImport">
    <property name="text">
     <string>&amp;Import</string>
+   </property>
+  </action>
+  <action name="selectionCopyAsCondition">
+   <property name="text">
+    <string>Copy as condition</string>
    </property>
   </action>
  </widget>

@@ -140,7 +140,8 @@ HEADERS += \
     src/widget/selectcolumnsdialog.h \
     src/model/distributionhistogrammodel.h \
     src/doubleitemdelegate.h \
-    src/widget/clipboardutil.h
+    src/widget/clipboardutil.h \
+    src/enums.h
 
 SOURCES += \
     src/action.cpp \
