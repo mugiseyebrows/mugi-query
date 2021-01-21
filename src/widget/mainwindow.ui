@@ -118,6 +118,7 @@
     </property>
     <addaction name="dataSave"/>
     <addaction name="dataImport"/>
+    <addaction name="dataCompare"/>
    </widget>
    <widget class="QMenu" name="menuSelection">
     <property name="title">
@@ -297,6 +298,11 @@
   <action name="selectionCopyAsCondition">
    <property name="text">
     <string>Copy as condition</string>
+   </property>
+  </action>
+  <action name="dataCompare">
+   <property name="text">
+    <string>&amp;Compare</string>
    </property>
   </action>
  </widget>

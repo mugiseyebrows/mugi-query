@@ -183,6 +183,18 @@ QString DataStreamer::variantToString(const QVariant& value,
             return value.toString().replace(QRegExp("\\n[\\r]?\\s*")," ");
         case QVariant::ByteArray:
             return "0x" + value.toByteArray().toHex();
+
+        case QVariant::List:
+        {
+            QVariantList vs = value.toList();
+            QVariant v1 = vs.value(0);
+            QVariant v2 = vs.value(1);
+            return QString("%1 -> %2")
+                    .arg(variantToString(v1, format, formats, locale, error))
+                    .arg(variantToString(v2, format, formats, locale, error));
+            break;
+        }
+
         default:
             error = QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
             return QString();

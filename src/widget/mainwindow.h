@@ -14,6 +14,7 @@ class JoinHelperWidgets;
 class SchemaModel;
 class DataImportWidgets;
 class RelationsModel;
+class QSqlQueryModel;
 
 #include "tokens.h"
 
@@ -59,6 +60,8 @@ protected:
 
     QString mQuery;
 
+    QList<QSqlQueryModel*> mCompareModels;
+
     void copySelected(CopyFormat fmt);
 
     int lastTabIndex(const QString &connectionName);
@@ -82,7 +85,7 @@ public slots:
     void on_queryJoin_triggered();
     void on_queryExecute_triggered();
 
-    void on_dataSave_triggered();
+
 
     void on_selectionCopy_triggered();
     void on_selectionCopyAsList_triggered();
@@ -101,10 +104,16 @@ public slots:
     //void onAddSessionWithQuery(QString);
     void onAppendQuery(const QString &connectionName, QString);
     void on_schemaTree_customContextMenuRequested(const QPoint &pos);
-    void on_dataImport_triggered();
+
     void on_schemaTree_doubleClicked(const QModelIndex &index);
 
     void onShowDatabaseDialog(bool showHistory);
+
+    void on_dataSave_triggered();
+    void on_dataImport_triggered();
+    void on_dataCompare_triggered();
+
+
 private:
     Ui::MainWindow *ui;
 };

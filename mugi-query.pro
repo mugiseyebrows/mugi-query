@@ -140,7 +140,9 @@ HEADERS += \
     src/model/distributionhistogrammodel.h \
     src/doubleitemdelegate.h \
     src/widget/clipboardutil.h \
-    src/enums.h
+    src/enums.h \
+    src/widget/datacomparewidget.h \
+    src/model/datacomparemodel.h
 
 SOURCES += \
     src/action.cpp \
@@ -235,7 +237,9 @@ SOURCES += \
     src/widget/selectcolumnsdialog.cpp \
     src/model/distributionhistogrammodel.cpp \
     src/doubleitemdelegate.cpp \
-    src/widget/clipboardutil.cpp
+    src/widget/clipboardutil.cpp \
+    src/widget/datacomparewidget.cpp \
+    src/model/datacomparemodel.cpp
 
 FORMS += \
     src/widget/databasehistorydialog.ui \
@@ -258,7 +262,8 @@ FORMS += \
     src/widget/selectcolumnslistwidget.ui \
     src/widget/fieldattributeswidget.ui \
     src/widget/datetimerangewidget.ui \
-    src/widget/selectcolumnsdialog.ui
+    src/widget/selectcolumnsdialog.ui \
+    src/widget/datacomparewidget.ui
 
 RESOURCES += \
     icons.qrc

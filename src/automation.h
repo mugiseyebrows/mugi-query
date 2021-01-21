@@ -33,6 +33,8 @@ public:
     void showQueryHistory();
     void showDatabaseHistory();
 
+    void compareData();
+
     void saveStat(const QString& path);
     void saveQuery(const QString& path);
 

@@ -11,6 +11,7 @@ public:
 
     void checkState(Qt::CheckState state, QStringList &names, QList<QVariant::Type> &types) const;
     void checked(QStringList &names, QList<QVariant::Type> &types) const;
+    QList<bool> checkList() const;
 protected:
     QList<QVariant::Type> mTypes;
 };

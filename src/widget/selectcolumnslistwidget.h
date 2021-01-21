@@ -27,6 +27,7 @@ public:
     void setAllUnchecked();
     void setAllChecked();
 
+    QList<bool> checkList() const;
 signals:
     void dataChanged(QModelIndex,QModelIndex);
 protected slots:

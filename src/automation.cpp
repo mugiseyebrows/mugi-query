@@ -128,6 +128,11 @@ void Automation::showDatabaseHistory()
     mQueued.enqueue(Action(Action::ActionShowDatabaseHistory));
 }
 
+void Automation::compareData()
+{
+    mQueued.enqueue(Action(Action::ActionCompareData));
+}
+
 void Automation::saveStat(const QString &path)
 {
     mQueued.enqueue(Action(Action::ActionSaveStat,{path}));
@@ -290,6 +295,11 @@ void Automation::onStart() {
         QString query = tab->query();
         saveToFile(path, query);
         next();
+    } else if (mAction.type() == Action::ActionCompareData) {
+
+        mainWindow()->on_dataCompare_triggered();
+        next();
+
     }
 }
 

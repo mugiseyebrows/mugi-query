@@ -42,6 +42,9 @@ public:
 
     bool hasAnyChecked() const;
 
+    void setLabelText(const QString &dataLabel, const QString &keysLabel);
+    QList<bool> keysCheckList() const;
+    QList<bool> dataCheckList() const;
 signals:
     void dataChanged(int,QModelIndex,QModelIndex);
 

@@ -22,7 +22,8 @@ public:
         ActionShowQueryHistory,
         ActionShowDatabaseHistory,
         ActionSaveStat,
-        ActionSaveQuery
+        ActionSaveQuery,
+        ActionCompareData,
     };
     Action(Type type = ActionEmpty, const QVariantList& args = QVariantList());
     Type type() const;

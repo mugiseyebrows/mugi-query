@@ -38,6 +38,7 @@
 #include "model/relationsmodel.h"
 #include "relations.h"
 #include "error.h"
+#include "widget/datacomparewidget.h"
 
 #include <QThread>
 #include <QSqlRecord>
@@ -627,6 +628,28 @@ void MainWindow::on_dataSave_triggered()
         return;
     }
     tab->saveData();
+}
+
+
+
+void MainWindow::on_dataCompare_triggered()
+{
+    SessionTab* tab = currentTab();
+    if (!tab) {
+        return;
+    }
+    tab->fetchAll();
+    QSqlQueryModel* model = tab->currentModel();
+    if (!model) {
+        return;
+    }
+    mCompareModels.append(model);
+    if (mCompareModels.size() > 1) {
+        DataCompareWidget* widget = new DataCompareWidget();
+        widget->setModels(mCompareModels[0], mCompareModels[1]);
+        widget->show();
+        mCompareModels.clear();
+    }
 }
 
 void MainWindow::on_queryJoin_triggered()

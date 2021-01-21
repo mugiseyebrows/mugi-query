@@ -227,8 +227,7 @@ QSqlQueryModel *SessionTab::currentModel()
     return qobject_cast<QSqlQueryModel*>(view->model());
 }
 
-void SessionTab::saveData()
-{
+void SessionTab::fetchAll() {
     QSqlQueryModel* model = currentModel();
     if (!model) {
         return;
@@ -236,6 +235,16 @@ void SessionTab::saveData()
     while (model->canFetchMore()) {
         model->fetchMore();
     }
+}
+
+void SessionTab::saveData()
+{
+    QSqlQueryModel* model = currentModel();
+    if (!model) {
+        return;
+    }
+
+    fetchAll();
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 

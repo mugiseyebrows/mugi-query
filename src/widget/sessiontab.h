@@ -57,6 +57,7 @@ public:
 
     StatView *statView();
 
+    void fetchAll();
 signals:
     void query(QString);
     void showQueryHistory();

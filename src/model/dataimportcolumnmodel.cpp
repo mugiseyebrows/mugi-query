@@ -19,3 +19,11 @@ void DataImportColumnModel::checkState(Qt::CheckState state, QStringList& names,
         }
     }
 }
+
+QList<bool> DataImportColumnModel::checkList() const {
+    QList<bool> res;
+    for(int r=0;r<rowCount();r++) {
+        res << (data(index(r,0),Qt::CheckStateRole).toInt() == Qt::Checked);
+    }
+    return res;
+}

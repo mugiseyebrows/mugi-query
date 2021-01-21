@@ -47,6 +47,13 @@ QString ItemDelegate::displayText(const QVariant &value, const QLocale &locale) 
             hex << "...";
         }
         return hex.join(" ");
+    } else if (t == QVariant::List) {
+        QVariantList vs = value.toList();
+        QVariant v1 = vs.value(0);
+        QVariant v2 = vs.value(1);
+        return QString("%1 -> %2")
+                .arg(v1.isNull() ? QString() : displayText(v1, locale))
+                .arg(v2.isNull() ? QString() : displayText(v2, locale));
     }
     return QStyledItemDelegate::displayText(value,locale);
 }

@@ -26,6 +26,15 @@ void SelectColumnsWidget::setFields(const QStringList& fields, const QList<QVari
     ui->keys->setFields(fields, types);
 }
 
+QList<bool> SelectColumnsWidget::keysCheckList() const {
+    return ui->keys->checkList();
+}
+
+QList<bool> SelectColumnsWidget::dataCheckList() const {
+    return ui->data->checkList();
+}
+
+
 void SelectColumnsWidget::checked(QStringList &fields, QList<QVariant::Type> &types)
 {
     if (!ui->data->model()) {
@@ -87,6 +96,10 @@ void SelectColumnsWidget::setFormat(DataFormat::Format f)
     ui->keys->setVisible(f == DataFormat::SqlUpdate);
 }
 
+void SelectColumnsWidget::setLabelText(const QString& dataLabel, const QString& keysLabel) {
+    ui->data->setLabelText(dataLabel);
+    ui->keys->setLabelText(keysLabel);
+}
 
 SelectColumnsListWidget *SelectColumnsWidget::data() const
 {

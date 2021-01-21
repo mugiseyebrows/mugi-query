@@ -29,6 +29,12 @@ void SelectColumnsListWidget::setLabelText(const QString &text)
     ui->label->setVisible(!text.isEmpty());
 }
 
+QList<bool> SelectColumnsListWidget::checkList() const {
+    if (!model()) {
+        return {};
+    }
+    return model()->checkList();
+}
 
 DataImportColumnModel *SelectColumnsListWidget::model() const
 {
