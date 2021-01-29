@@ -278,6 +278,15 @@ void DataImportWidget::setDataModelColumnCount(int count) {
     }
 }
 
+void DataImportWidget::setDataModelRowCount(int count)
+{
+    QAbstractItemModel* model = dataModel();
+    if (model->rowCount() < count) {
+        int insert = count - model->columnCount();
+        model->insertRows(model->rowCount(), insert);
+    }
+}
+
 void DataImportWidget::setColumnNames(const QStringList& names) {
     setDataModelColumnCount(names.size());
     createHeaderViewWidgets();
@@ -522,12 +531,13 @@ void DataImportWidget::onColumnDataChanged(int,QModelIndex,QModelIndex) {
 
 void DataImportWidget::onSetColumnNamesAndTypes() {
 
+    qDebug() << "DataImportWidget::onSetColumnNamesAndTypes";
+
     DataImportModel* model = dataModel();
     if (!model) {
         return;
     }
 
-    qDebug() << "onSetColumnNamesAndTypes";
     QStringList names;
     QList<QVariant::Type> types;
     ui->columns->checked(names,types);
@@ -548,6 +558,8 @@ void DataImportWidget::onUpdateTokens(QString connectionName, Tokens tokens)
 }
 
 void DataImportWidget::onModelSetTypes() {
+
+    qDebug() << "DataImportWidget::onModelSetTypes";
 
     DataImportModel* model = dataModel();
     if (!model) {
@@ -668,6 +680,8 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
         return QVariant::Invalid;
     }
 
+    qDebug() << dates << ints << doubles << times << strings << dateTimes << total;
+
     if (dates * 100 / total > 90) {
         return QVariant::Date;
     } else if (ints * 100 / total > 90) {
@@ -688,7 +702,8 @@ void DataImportWidget::guessColumnType(int column) {
     QAbstractItemModel* model = dataModel();
     QMap<QVariant::Type, QString> m = SqlDataTypes::mapFromVariant();
     QStringList ts = SqlDataTypes::names();
-    QVariant::Type type = guessType(model,model->index(0,column),model->index(model->rowCount()-1,column));
+    int rowCount = qMin(model->rowCount(), 1000);
+    QVariant::Type type = guessType(model,model->index(0,column),model->index(rowCount-1,column));
     if (type == QVariant::Invalid) {
         return;
     }
@@ -703,8 +718,40 @@ void DataImportWidget::onDataPaste() {
 
     bool newTable = this->newTable();
 
+    disconnect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)), mUpdatePreview,SLOT(onPost()));
+
     mAppender->setActive(false);
-    QModelIndex bottomRight = Clipboard::pasteTsv(model,topLeft,true,true);
+    //QModelIndex bottomRight = Clipboard::pasteTsv(model,topLeft,true,true);
+
+    QAbstractItemModel* clipboardModel = Clipboard::clipboardToModel();
+
+    /*int rowCount = topLeft.row() + clipboardModel->rowCount();
+    int columnCount = topLeft.column() + clipboardModel->columnCount();*/
+
+    /*if (rowCount > model->rowCount()) {
+        int count = rowCount - model->rowCount();
+        model->insertRows(model->rowCount(), count);
+    }
+    if (columnCount > model->columnCount()) {
+        int count = columnCount - model->columnCount();
+        model->insertColumns(model->columnCount(), count);
+    }*/
+    setDataModelColumnCount(topLeft.column() + clipboardModel->columnCount());
+    setDataModelRowCount(topLeft.row() + clipboardModel->rowCount());
+
+    for(int row=0;row<clipboardModel->rowCount();row++) {
+        if ((row % 1000) == 0) {
+            qDebug() << "row" << row;
+        }
+        for(int column=0;column<clipboardModel->columnCount();column++) {
+            QModelIndex index = model->index(row + topLeft.row(), column + topLeft.column());
+            QVariant value = clipboardModel->data(clipboardModel->index(row, column));
+            model->setData(index, value);
+        }
+    }
+
+    QModelIndex bottomRight = model->index(topLeft.row() + clipboardModel->rowCount() - 1, topLeft.column() + clipboardModel->columnCount() - 1);
+
     mAppender->setActive(true);
 
     createHeaderViewWidgets();
@@ -714,8 +761,11 @@ void DataImportWidget::onDataPaste() {
     }
 
     for(int column = topLeft.column(); column <= bottomRight.column(); column++) {
+        qDebug() << "guessColumnType" << column;
         guessColumnType(column);
     }
+
+    connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)), mUpdatePreview,SLOT(onPost()));
 
 }
 
@@ -730,6 +780,7 @@ void DataImportWidget::onDataCopy() {
 }
 
 QString DataImportWidget::queries(bool preview) {
+    qDebug() << "DataImportWidget::queries";
     DataImportModel* model = dataModel();
     if (!model) {
         return QString();
@@ -820,7 +871,12 @@ void DataImportWidget::on_clearData_clicked()
 
 void DataImportWidget::on_copyQuery_clicked()
 {
-    emit appendQuery(queries(false));
+    emit appendQueries(queries(false));
+}
+
+void DataImportWidget::on_executeQuery_clicked()
+{
+    emit executeQueries(queries(false));
 }
 
 void DataImportWidget::on_abc_clicked()

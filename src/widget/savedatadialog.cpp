@@ -18,7 +18,7 @@
 #include "splitterutil.h"
 
 /*static*/
-DataSaveDialogState SaveDataDialog::mState = DataSaveDialogState();
+SaveDataDialogState SaveDataDialog::mState = SaveDataDialogState();
 
 QString unescapeIdentifier(const QString identifier) {
     if (identifier.startsWith("`") && identifier.endsWith("`")) {
@@ -74,6 +74,11 @@ DataFormat::Format SaveDataDialog::format() const
     return DataFormat::value(ui->format);
 }
 
+void SaveDataDialog::setFormat(DataFormat::Format format)
+{
+    ui->format->setCurrentIndex((int) format);
+}
+
 QList<bool> SaveDataDialog::keysChecked() const
 {
     return keysModel()->checkedAsBoolList();
@@ -94,6 +99,11 @@ OutputType::Type SaveDataDialog::output() const
     return OutputType::value(ui->output);
 }
 
+void SaveDataDialog::setOutput(OutputType::Type type) const
+{
+    return ui->output->setCurrentIndex((int) type);
+}
+
 void SaveDataDialog::accept()
 {
     if (!dataModel()->hasAnyChecked()) {
@@ -105,6 +115,10 @@ void SaveDataDialog::accept()
             Error::show(this,"You need to check at least one field for where clause");
             return;
         }
+    }
+    if (format() == DataFormat::Xlsx && output() != OutputType::File) {
+        Error::show(this,"Can only output xlsx to file");
+        return;
     }
     if (output() == OutputType::File) {
         if (ui->outputDir->text().isEmpty()) {

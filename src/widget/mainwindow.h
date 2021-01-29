@@ -58,6 +58,8 @@ protected:
     JoinHelperWidgets* mJoinHelpers;
     DataImportWidgets* mDataImport;
 
+    bool mSaveToHistory;
+
     QString mQuery;
 
     QList<QSqlQueryModel*> mCompareModels;
@@ -102,7 +104,8 @@ public slots:
     void onQuery(QString query);
     void onShowQueryHistory();
     //void onAddSessionWithQuery(QString);
-    void onAppendQuery(const QString &connectionName, QString);
+    void onAppendQueries(const QString& connectionName, const QString& queries);
+    void onExecuteQueries(const QString &connectionName, const QString &queries);
     void on_schemaTree_customContextMenuRequested(const QPoint &pos);
 
     void on_schemaTree_doubleClicked(const QModelIndex &index);
@@ -112,6 +115,7 @@ public slots:
     void on_dataSave_triggered();
     void on_dataImport_triggered();
     void on_dataCompare_triggered();
+
 
 
 private:

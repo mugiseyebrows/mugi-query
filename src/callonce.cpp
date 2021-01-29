@@ -31,6 +31,11 @@ int CallOnce::timeout() const
 void CallOnce::onPost()
 {
     mId++;
+
+    if ((mId % 1000) == 0) {
+        qDebug() << "CallOnce::onPost" << mName;
+    }
+
     int id = mId;
     QTimer::singleShot(mTimeout,[=](){
         if (id == mId) {

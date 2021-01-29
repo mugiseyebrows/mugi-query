@@ -10,6 +10,10 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++14
 
+include(src/3rdparty/QtXlsxWriter/src/xlsx/qtxlsx.pri)
+
+INCLUDEPATH += ./src/3rdparty/QtXlsxWriter/src
+
 win32 {
 
 CONFIG(debug, debug|release) {
@@ -129,7 +133,7 @@ HEADERS += \
     src/widget/fieldattributeswidget.h \
     src/field.h \
     src/testdatetime2sample.h \
-    src/datasavedialogstate.h \
+    src/savedatadialogstate.h \
     src/timezones.h \
     src/drivernames.h \
     src/widget/datetimerangewidget.h \
@@ -228,7 +232,7 @@ SOURCES += \
     src/widget/fieldattributeswidget.cpp \
     src/field.cpp \
     src/testdatetime2sample.cpp \
-    src/datasavedialogstate.cpp \
+    src/savedatadialogstate.cpp \
     src/timezones.cpp \
     src/widget/datetimerangewidget.cpp \
     src/datetimerangewidgetmanager.cpp \

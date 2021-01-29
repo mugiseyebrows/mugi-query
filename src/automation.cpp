@@ -73,9 +73,9 @@ void Automation::query(const QString &connectionName, const QString &query) {
     mQueued.enqueue(Action(Action::ActionExecuteCurrentQuery));
 }
 
-void Automation::showSaveDataDialog()
+void Automation::showSaveDataDialog(int type, int format, const QString& dir)
 {
-    mQueued.enqueue(Action(Action::ActionShowSaveDataDialog));
+    mQueued.enqueue(Action(Action::ActionShowSaveDataDialog, {type, format, dir}));
 }
 
 void Automation::setXYPlot(int row, const QString &x, const QString &y, const QString &line, const QString &marker)
@@ -164,6 +164,8 @@ void Automation::next() {
     start();
 }
 
+#include "savedatadialog.h"
+
 void Automation::onStart() {
 
     if (mQueued.isEmpty()) {
@@ -180,12 +182,22 @@ void Automation::onStart() {
     } else if (mAction.type() == Action::ActionAppendQuery) {
         QString connectionName = mAction.arg(0).toString();
         QString query = mAction.arg(1).toString();
-        mainWindow()->onAppendQuery(connectionName,query);
+        mainWindow()->onAppendQueries(connectionName,query);
         next();
     } else if (mAction.type() == Action::ActionExecuteCurrentQuery) {
         mainWindow()->currentTab()->on_execute_clicked();
         next();
     } else if (mAction.type() == Action::ActionShowSaveDataDialog) {
+
+        int type = mAction.arg(0).toInt();
+        int format = mAction.arg(1).toInt();
+        QString dir = mAction.arg(2).toString();
+        if (type > -1 || format > -1 || !dir.isEmpty()) {
+            SaveDataDialogState& state = SaveDataDialog::mState;
+            state.setOutputType(type);
+            state.setOutputDir(dir);
+            state.setDataFormat(format);
+        }
         mainWindow()->on_dataSave_triggered();
         next();
     } else if (mAction.type() == Action::ActionSetXYPlot) {

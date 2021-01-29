@@ -250,6 +250,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="executeQuery">
+           <property name="text">
+            <string>Execute</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -260,15 +267,15 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>TextEdit</class>
+   <extends>QTextEdit</extends>
+   <header>textedit.h</header>
+  </customwidget>
+  <customwidget>
    <class>SelectColumnsWidget</class>
    <extends>QWidget</extends>
    <header>widget/selectcolumnswidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>TextEdit</class>
-   <extends>QTextEdit</extends>
-   <header>textedit.h</header>
   </customwidget>
   <customwidget>
    <class>IntLineEdit</class>

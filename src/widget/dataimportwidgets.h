@@ -27,7 +27,8 @@ protected:
 
 
 signals:
-    void appendQuery(QString,QString);
+    void appendQueries(QString,QString);
+    void executeQueries(QString,QString);
     void updateTokens(QString,Tokens);
 protected:
     void closeTab(const QString &connectionName);

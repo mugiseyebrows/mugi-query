@@ -13,7 +13,7 @@ class CallOnce;
 
 #include "dataformat.h"
 #include "outputtype.h"
-#include "datasavedialogstate.h"
+#include "savedatadialogstate.h"
 #include <QSqlDatabase>
 
 
@@ -31,12 +31,16 @@ public:
 
     DataFormat::Format format() const;
 
+    void setFormat(DataFormat::Format format);
+
     QList<bool> keysChecked() const;
     QList<bool> dataChecked() const;
 
     QString table() const;
 
     OutputType::Type output() const;
+
+    void setOutput(OutputType::Type type) const;
 
     DataImportColumnModel *dataModel() const;
     DataImportColumnModel *keysModel() const;
@@ -45,7 +49,7 @@ public:
 
     void save();
 
-    static DataSaveDialogState mState;
+    static SaveDataDialogState mState;
 
     QString filePath() const;
 

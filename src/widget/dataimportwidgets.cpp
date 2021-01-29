@@ -55,9 +55,13 @@ void DataImportWidgets::closeTab(const QString &connectionName)
 void DataImportWidgets::create(const QString &connectionName, const Tokens& tokens) {
     DataImportWidget* widget = new DataImportWidget();
     widget->init(connectionName);
-    connect(widget,&DataImportWidget::appendQuery,[=](QString query){
-        emit appendQuery(connectionName,query);
+    connect(widget,&DataImportWidget::appendQueries,[=](QString query){
+        emit appendQueries(connectionName, query);
     });
+    connect(widget,&DataImportWidget::executeQueries,[=](QString queries){
+        emit executeQueries(connectionName, queries);
+    });
+
     connect(this,SIGNAL(updateTokens(QString,Tokens)),widget,SLOT(onUpdateTokens(QString,Tokens)));
     emit updateTokens(connectionName,tokens);
     showOnTop(widget);

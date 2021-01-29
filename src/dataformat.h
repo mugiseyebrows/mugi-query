@@ -9,6 +9,7 @@ namespace DataFormat
     enum Format {
         Csv,
         Tsv,
+        Xlsx,
         Json,
         SqlInsert,
         SqlUpdate
@@ -23,6 +24,10 @@ namespace DataFormat
     void initComboBox(QComboBox* comboBox, bool onlySql = false);
 
     Format value(QComboBox* comboBox);
+
+    Format value(const QString& text);
+
+    QString name(Format format);
 
     QString extension(Format format);
 

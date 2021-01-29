@@ -68,7 +68,8 @@ protected slots:
     void onColumnSizeChanged(int);
     void onColumnForeignKeyChanged(int);
 signals:
-    void appendQuery(QString);
+    void appendQueries(QString);
+    void executeQueries(QString);
 
 protected:
     Ui::DataImportWidget *ui;
@@ -101,6 +102,7 @@ protected:
     void guessColumnType(int column);
     void setFields(const QList<Field> &fields);
     void setDataModelColumnCount(int count);
+    void setDataModelRowCount(int count);
 
 private slots:
     void on_clearData_clicked();
@@ -110,6 +112,7 @@ private slots:
     void on_guessTypes_clicked();
     void on_existingTable_currentIndexChanged(int index);
     void on_optionNewTable_toggled(bool checked);
+    void on_executeQuery_clicked();
 };
 
 #endif // DATAIMPORTWIDGET_H

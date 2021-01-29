@@ -1,11 +1,11 @@
-#ifndef DATASAVEDIALOGSTATE_H
-#define DATASAVEDIALOGSTATE_H
+#ifndef SAVEDATADIALOGSTATE_H
+#define SAVEDATADIALOGSTATE_H
 #include <QString>
 
-class DataSaveDialogState {
+class SaveDataDialogState {
 public:
-    DataSaveDialogState();
-    DataSaveDialogState(const QString& outputType, const QString& dataFormat,
+    SaveDataDialogState();
+    SaveDataDialogState(const QString& outputType, const QString& dataFormat,
                         const QString& outputDir);
     QString outputType() const;
     void setOutputType(const QString& outputType);
@@ -15,9 +15,11 @@ public:
     void setOutputDir(const QString& outputDir);
     bool isValid() const;
 
+    void setOutputType(int type);
+    void setDataFormat(int format);
 protected:
     QString mOutputType;
     QString mDataFormat;
     QString mOutputDir;
 };
-#endif // DATASAVEDIALOGSTATE_H
+#endif // SAVEDATADIALOGSTATE_H

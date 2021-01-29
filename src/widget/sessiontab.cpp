@@ -21,12 +21,13 @@
 #include "tokens.h"
 #include "highlighter.h"
 #include "querymodelview.h"
-
 #include "statview.h"
 #include "clipboard.h"
 #include <QSharedPointer>
 #include "error.h"
 #include "copyeventfilter.h"
+#include "xlsx/xlsxdocument.h"
+#include <QProgressDialog>
 
 namespace {
 
@@ -237,6 +238,14 @@ void SessionTab::fetchAll() {
     }
 }
 
+
+void cleanup(QFile* file, QTextStream* stream) {
+    delete file;
+    delete stream;
+}
+
+
+
 void SessionTab::saveData()
 {
     QSqlQueryModel* model = currentModel();
@@ -257,40 +266,107 @@ void SessionTab::saveData()
 
     //qDebug() << "dialog.output()" << dialog.output();
 
-    QSharedPointer<QFile> file;
-    QSharedPointer<QTextStream> stream;
+    QFile* file = 0;
+    QTextStream* stream = 0;
     QString output;
 
     if (dialog.output() == OutputType::File) {
 
-        QString filePath = dialog.filePath();
-        if (filePath.isEmpty()) {
-            qDebug() << __FILE__ << __LINE__;
-            return;
+        if (dialog.format() != DataFormat::Xlsx) {
+
+
+
+            QString filePath = dialog.filePath();
+
+            if (filePath.isEmpty()) {
+                qDebug() << __FILE__ << __LINE__;
+                return;
+            }
+
+            file = new QFile(filePath);
+            if (!file->open(QIODevice::WriteOnly)) {
+                QMessageBox::critical(this,"Error",QString("Can not open file %1").arg(filePath));
+                cleanup(file, stream);
+                return;
+            }
+
+            stream = new QTextStream(file);
         }
-        file = QSharedPointer<QFile>(new QFile(filePath));
-        if (!file->open(QIODevice::WriteOnly)) {
-            QMessageBox::critical(this,"Error",QString("Can not open file %1").arg(filePath));
-            return;
-        }
-        stream = QSharedPointer<QTextStream>(new QTextStream(file.get()));
+
     } else {
-        stream = QSharedPointer<QTextStream>(new QTextStream(&output,QIODevice::WriteOnly));
+        stream = new QTextStream(&output,QIODevice::WriteOnly);
     }
 
-    if (!stream.isNull()) {
+    if (stream) {
         stream->setCodec(QTextCodec::codecForName("UTF-8"));
     }
 
     QString error;
     bool hasMore;
 
-    DataStreamer::stream(db,*stream,model,dialog.format(),dialog.table(),
-                         dialog.dataChecked(),dialog.keysChecked(),
-                         DataFormat::ActionSave,false,&hasMore,locale(),error);
+    if (dialog.format() == DataFormat::Xlsx) {
+
+        QProgressDialog* progress = 0;
+
+        QXlsx::Document doc;
+
+        QMap<int,int> m;
+        QList<bool> checked = dialog.dataChecked();
+        int j = 0;
+        for(int i=0;i<checked.size();i++) {
+            if (checked[i]) {
+                m[i] = j;
+                j++;
+            } else {
+                m[i] = -1;
+            }
+        }
+
+        if (model->rowCount() > 1000) {
+            progress = new QProgressDialog();
+            progress->setWindowModality(Qt::WindowModal);
+            progress->setMaximum(model->rowCount() - 1);
+            progress->show();
+        }
+
+        for (int column=0;column<model->columnCount();column++) {
+            int column_ = m[column];
+            if (column_ < 0) {
+                continue;
+            }
+            doc.write(1, column_ + 1, model->headerData(column, Qt::Horizontal));
+        }
+        for(int row = 0; row < model->rowCount(); row++) {
+
+            if (progress) {
+                progress->setValue(row);
+                progress->setLabelText(QString("%1 / %2").arg(row + 1).arg(model->rowCount()));
+            }
+
+            for (int column=0;column<model->columnCount();column++) {
+                int column_ = m[column];
+                if (column_ < 0) {
+                    continue;
+                }
+                doc.write(row + 2, column_ + 1, model->data(model->index(row, column)));
+            }
+        }
+        doc.saveAs(dialog.filePath());
+
+        if (progress) {
+            progress->close();
+            progress->deleteLater();
+        }
+
+    } else {
+        DataStreamer::stream(db,*stream,model,dialog.format(),dialog.table(),
+                             dialog.dataChecked(),dialog.keysChecked(),
+                             DataFormat::ActionSave,false,&hasMore,locale(),error);
+    }
 
     if (!error.isEmpty()) {
         Error::show(this,error);
+        cleanup(file, stream);
         return;
     }
 
@@ -301,7 +377,7 @@ void SessionTab::saveData()
         clipboard->setText(output);
     }
 
-
+    cleanup(file, stream);
 }
 
 void SessionTab::copySelected(CopyFormat fmt)

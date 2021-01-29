@@ -102,6 +102,27 @@ QModelIndex Clipboard::pasteTsv(QAbstractItemModel *model, const QModelIndex &in
     return model->index(maxRow, maxColumn);
 }
 
+#include <QStandardItemModel>
+
+QAbstractItemModel *Clipboard::clipboardToModel()
+{
+    QString text = QApplication::clipboard()->text();
+    QStringList lines = text.split("\n");
+    int columns = 0;
+    for(QString line: lines) {
+        columns = qMax(columns, line.split("\t").size());
+    }
+    int rows = lines.size();
+    QStandardItemModel* model = new QStandardItemModel(rows, columns);
+    for(int row=0;row<lines.size();row++) {
+        QStringList columns = lines[row].split("\t");
+        for(int column=0;column<columns.size();column++) {
+            model->setData(model->index(row, column), columns[column]);
+        }
+    }
+    return model;
+}
+
 void Clipboard::copySelected(QAbstractItemModel *model, const QItemSelection& selection,
                                    DataFormat::Format format, const QString &separator,
                                    bool header, const QLocale& locale, QString& error) {

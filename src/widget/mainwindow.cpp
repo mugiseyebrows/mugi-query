@@ -43,6 +43,7 @@
 #include <QThread>
 #include <QSqlRecord>
 #include <QSqlField>
+#include <QProgressDialog>
 #include "datautils.h"
 using namespace DataUtils;
 
@@ -76,6 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mQueryHistory(nullptr),
     mJoinHelpers(nullptr),
     mDataImport(nullptr),
+    mSaveToHistory(true),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -306,7 +308,7 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
     connect(tab,SIGNAL(query(QString)),this,SLOT(onQuery(QString)));
 
     connect(tab,&SessionTab::appendQuery,[=](QString query){
-        onAppendQuery(connectionName,query);
+        onAppendQueries(connectionName,query);
     });
 
     tab->setTokens(mTokens[connectionName]);
@@ -317,24 +319,34 @@ void MainWindow::onSessionAdded(QString connectionName, QString name, QString na
         tab->setQuery(mQuery);
         mQuery = QString();
     }
-
 }
 
-
-void MainWindow::onAppendQuery(const QString& connectionName, QString query)
+void MainWindow::onAppendQueries(const QString& connectionName, const QString& queries)
 {
-
-    mQuery = query;
+    mQuery = queries;
     selectDatabase(connectionName);
     on_sessionAdd_triggered();
     showOnTop(this);
+    mQuery = QString();
+}
+
+void MainWindow::onExecuteQueries(const QString& connectionName, const QString& queries) {
+    mQuery = QString();
+    qDebug() << "mSaveToHistory = false";
+    mSaveToHistory = false;
+    selectDatabase(connectionName);
+    on_sessionAdd_triggered();
+    showOnTop(this);
+    onQuery(queries);
+    qDebug() << "mSaveToHistory = true";
+    mSaveToHistory = true;
 }
 
 void MainWindow::onShowQueryHistory() {
     if (!mQueryHistory) {
         mQueryHistory = new QueryHistoryWidget();
         connect(mQueryHistory,SIGNAL(appendQuery(QString,QString)),
-                this,SLOT(onAppendQuery(QString,QString)));
+                this,SLOT(onAppendQueries(QString,QString)));
     }
     mQueryHistory->refresh(currentTab()->connectionName());
     showOnTop(mQueryHistory);
@@ -349,6 +361,8 @@ QStringList filterBlank(const QStringList items) {
     }
     return res;
 }
+
+
 
 void MainWindow::onQuery(QString queries) {
 
@@ -370,9 +384,23 @@ void MainWindow::onQuery(QString queries) {
 
     bool schemaChanged = false;
 
+    int index = 0;
+    int count = queries_.size();
+
+    QProgressDialog* progress = 0;
+
+    if (queries_.size() > 100) {
+        progress = new QProgressDialog(this);
+        progress->setMaximum(queries_.size() - 1);
+        progress->setWindowModality(Qt::WindowModal);
+        progress->show();
+    }
+
     foreach(QString query, queries_) {
 
-        mHistory->addQuery(connectionName,query.trimmed());
+        if (mSaveToHistory) {
+            mHistory->addQuery(connectionName,query.trimmed());
+        }
 
         schemaChanged = schemaChanged | QueryParser::isAlterSchemaQuery(query);
 
@@ -393,6 +421,15 @@ void MainWindow::onQuery(QString queries) {
         models << model;
         errors << error;
         rowsAffected << rowsAffected_;
+
+        //qDebug() << QString("query %1 / %2").arg(index + 1).arg(count);
+
+        if (progress) {
+            progress->setLabelText(QString("%1 / %2").arg(index + 1).arg(count));
+            progress->setValue(index);
+        }
+
+        index++;
     }
 
     tab->setResult(queries_,errors,models,perf,rowsAffected);
@@ -400,6 +437,11 @@ void MainWindow::onQuery(QString queries) {
     if (schemaChanged) {
         updateTokens(connectionName);
         pushTokens(connectionName);
+    }
+
+    if (progress) {
+        progress->close();
+        progress->deleteLater();
     }
 
 }
@@ -630,8 +672,6 @@ void MainWindow::on_dataSave_triggered()
     tab->saveData();
 }
 
-
-
 void MainWindow::on_dataCompare_triggered()
 {
     SessionTab* tab = currentTab();
@@ -661,7 +701,7 @@ void MainWindow::on_queryJoin_triggered()
 
     if (!mJoinHelpers) {
         mJoinHelpers = new JoinHelperWidgets();
-        connect(mJoinHelpers,SIGNAL(appendQuery(QString,QString)),this,SLOT(onAppendQuery(QString,QString)));
+        connect(mJoinHelpers,SIGNAL(appendQuery(QString,QString)),this,SLOT(onAppendQueries(QString,QString)));
     }
 
     mJoinHelpers->update(connectionName,mTokens[connectionName],true);
@@ -676,7 +716,8 @@ void MainWindow::on_dataImport_triggered()
     }
     if (!mDataImport) {
         mDataImport = new DataImportWidgets();
-        connect(mDataImport,SIGNAL(appendQuery(QString,QString)),this,SLOT(onAppendQuery(QString,QString)));
+        connect(mDataImport,SIGNAL(appendQueries(QString,QString)),this,SLOT(onAppendQueries(QString,QString)));
+        connect(mDataImport,SIGNAL(executeQueries(QString,QString)),this,SLOT(onExecuteQueries(QString,QString)));
     }
 
     mDataImport->create(connectionName,mTokens[connectionName]);
@@ -781,7 +822,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
             QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100").arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
             queries << query;
         }
-        onAppendQuery(connectionName,queries.join(";\n"));
+        onAppendQueries(connectionName,queries.join(";\n"));
     }
 
     if (result == join) {
@@ -797,7 +838,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
         if (tables.size() == 1) {
             QString query = QString("SELECT * FROM %1").arg(tables[0]);
-            onAppendQuery(connectionName, query);
+            onAppendQueries(connectionName, query);
             return;
         }
 
@@ -813,7 +854,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
             return;
         }
         QString query = relations.expression(path,leftJoin,mssql);
-        onAppendQuery(connectionName, query);
+        onAppendQueries(connectionName, query);
     }
 
     if (result == drop) {
@@ -829,7 +870,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
             QString query = QString("DROP TABLE %1").arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
             queries << query;
         }
-        onAppendQuery(connectionName,queries.join(";\n"));
+        onAppendQueries(connectionName,queries.join(";\n"));
     }
 
     if (result == update) {
@@ -854,7 +895,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
                 .arg(driver->escapeIdentifier(table,QSqlDriver::TableName))
                 .arg(dialog.dataChecked().join(" = , ") + " = ")
                 .arg(dialog.keysChecked().join(" "));
-        onAppendQuery(connectionName,query);
+        onAppendQueries(connectionName,query);
     }
 
     if (result == refresh) {
@@ -903,6 +944,6 @@ void MainWindow::on_schemaTree_doubleClicked(const QModelIndex &index)
     bool mssql = db.driverName() == DRIVER_ODBC;
     QString table = model->data(index).toString();
     QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100").arg(table).arg(table);
-    onAppendQuery(connectionName, query);
+    onAppendQueries(connectionName, query);
 }
 
