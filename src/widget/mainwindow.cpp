@@ -61,6 +61,14 @@ void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QVar
     }
 }
 
+QStringList repeat(const QString& item, int n) {
+    QStringList res;
+    for(int i=0;i<n;i++) {
+        res.append(item);
+    }
+    return res;
+}
+
 }
 
 #if 0
@@ -731,6 +739,9 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
     QAction* select = new QAction("Select",&menu);
     menu.addAction(select);
 
+    QAction* insert = new QAction("Insert",&menu);
+    menu.addAction(insert);
+
     QAction* join = new QAction("Join",&menu);
     menu.addAction(join);
 
@@ -832,7 +843,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         onAppendQuery(connectionName,queries.join(";\n"));
     }
 
-    if (result == update) {
+    if (result == update || result == insert) {
         QString connectionName = this->connectionName();
         QStringList tables = schemaTreeSelectedTables();
         QSqlDatabase db = QSqlDatabase::database(connectionName);
@@ -846,14 +857,46 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         QList<QVariant::Type> types;
         recordToNamesTypes(record,names,types);
         SelectColumnsDialog dialog;
-        dialog.init(table, names, types);
+
+        if (result == update) {
+            dialog.initUpdate(table, names, types);
+        } else if (result == insert) {
+            dialog.initInsert(table, names, types);
+        }
+
         if (dialog.exec() != QDialog::Accepted) {
             return;
         }
-        QString query = QString("UPDATE %1 SET %2 WHERE %3")
-                .arg(driver->escapeIdentifier(table,QSqlDriver::TableName))
-                .arg(dialog.dataChecked().join(" = , ") + " = ")
-                .arg(dialog.keysChecked().join(" "));
+
+        QString query;
+        if (result == update) {
+
+            auto dataChecked = dialog.dataChecked();
+            auto keysChecked = dialog.keysChecked();
+
+            if (dataChecked.isEmpty()) {
+                return;
+            }
+
+            query = QString("UPDATE %1 SET %2 WHERE %3")
+                    .arg(driver->escapeIdentifier(table,QSqlDriver::TableName))
+                    .arg(dataChecked.join(" = , ") + " = ")
+                    .arg(keysChecked.join(" "));
+
+        } else if (result == insert) {
+
+            auto checked = dialog.checked();
+
+            if (checked.isEmpty()) {
+                return;
+            }
+
+            query = QString("INSERT INTO %1(%2) VALUES (%3)")
+                    .arg(driver->escapeIdentifier(table,QSqlDriver::TableName))
+                    .arg(checked.join(", "))
+                    .arg(repeat("", checked.size()).join(", "));
+
+        }
         onAppendQuery(connectionName,query);
     }
 

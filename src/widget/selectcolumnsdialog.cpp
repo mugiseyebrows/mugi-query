@@ -13,11 +13,17 @@ SelectColumnsDialog::~SelectColumnsDialog()
     delete ui;
 }
 
-void SelectColumnsDialog::init(const QString &table, const QStringList &fields, const QList<QVariant::Type> &types)
+void SelectColumnsDialog::initUpdate(const QString &table, const QStringList &fields, const QList<QVariant::Type> &types)
 {
     ui->columns->setFields(fields, types);
     ui->columns->setTable(table);
     ui->columns->setFormat(DataFormat::SqlUpdate);
+}
+
+void SelectColumnsDialog::initInsert(const QString &table, const QStringList &fields, const QList<QVariant::Type> &types) {
+    ui->columns->setFields(fields, types);
+    ui->columns->setTable(table);
+    ui->columns->setFormat(DataFormat::SqlInsert);
 }
 
 QStringList SelectColumnsDialog::dataChecked() const
@@ -33,5 +39,12 @@ QStringList SelectColumnsDialog::keysChecked() const
     QStringList fields;
     QList<QVariant::Type> types;
     ui->columns->keysChecked(fields, types);
+    return fields;
+}
+
+QStringList SelectColumnsDialog::checked() const {
+    QStringList fields;
+    QList<QVariant::Type> types;
+    ui->columns->checked(fields, types);
     return fields;
 }
