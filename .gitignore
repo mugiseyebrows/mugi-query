@@ -14,3 +14,4 @@ mugi-query/
 src/automate_p.cpp
 .vscode/
 data/
+mugi-query_resource.rc
