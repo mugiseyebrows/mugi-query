@@ -14,6 +14,7 @@
 #include "drivernames.h"
 #include <QThread>
 #include <QFileDialog>
+#include "accessuri.h"
 
 namespace {
 
@@ -180,7 +181,7 @@ void DatabaseConnectDialog::on_pick_clicked()
         if (path.isEmpty()) {
             return;
         }
-        ui->database->setText(QString("DRIVER={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ=%1").arg(QDir::toNativeSeparators(path)));
+        ui->database->setText(accessUri(path));
         ui->connectionName->setText(QFileInfo(path).baseName());
     }
 }
