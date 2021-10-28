@@ -12,35 +12,6 @@ double round_(double sum, double prec) {
     return round(sum*pow(10.0,prec))/pow(10.0,prec);
 }
 
-double round0(double sum) {
-    return round_(sum,0.0);
-}
-
-double round2(double sum) {
-    return round_(sum,2.0);
-}
-
-double round1(double sum) {
-    return round_(sum,1.0);
-}
-
-bool equal(double v1, double v2, double eps) {
-    return fabs(v1 - v2) < eps;
-}
-
-/*
-int sampleStatPrec(int n) {
-    double v =  100.0 / (double) n;
-    double eps = 1e-6;
-    if (equal(round0(v), v, eps)) {
-        return 0;
-    }
-    if (equal(round1(v), v, eps)) {
-        return 1;
-    }
-    return 2;
-}*/
-
 }
 
 Histogram::Histogram(int bins, const DistributionDataset &dataset, double min, double max) {
