@@ -1,4 +1,5 @@
 #include "plotpicker.h"
+#include <QRectF>
 
 PlotPicker::PlotPicker(QWidget *canvas) : QwtPlotPicker(canvas)
 {
