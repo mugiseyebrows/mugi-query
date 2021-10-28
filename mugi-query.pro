@@ -44,6 +44,7 @@ include(src/richheaderview/richheaderview.pri)
 include(src/tablebuttons/tablebuttons.pri)
 
 HEADERS += \
+    src/accessuri.h \
     src/action.h \
     src/automation.h \
     src/colorpalette.h \
@@ -145,6 +146,7 @@ HEADERS += \
     src/model/datacomparemodel.h
 
 SOURCES += \
+    src/accessuri.cpp \
     src/action.cpp \
     src/automation.cpp \
     src/colorpalette.cpp \
