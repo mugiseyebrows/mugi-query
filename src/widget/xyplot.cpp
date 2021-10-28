@@ -75,7 +75,7 @@ void XYPlot::init() {
     panner->setMouseButton( Qt::MidButton );
 
     QwtPlotLegendItem* legend = new QwtPlotLegendItem();
-    legend->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    legend->setAlignmentInCanvas(Qt::AlignTop | Qt::AlignLeft);
     legend->setMaxColumns(1);
     legend->attach(ui->plot);
 }
