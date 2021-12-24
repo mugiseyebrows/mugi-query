@@ -20,6 +20,7 @@
 #include <QDebug>
 #include "splitterutil.h"
 #include <QTimer>
+#include "qwt_compat.h"
 using namespace DataUtils;
 
 XYPlot::XYPlot(QWidget *parent) :
@@ -75,7 +76,7 @@ void XYPlot::init() {
     panner->setMouseButton( Qt::MidButton );
 
     QwtPlotLegendItem* legend = new QwtPlotLegendItem();
-    legend->setAlignmentInCanvas(Qt::AlignTop | Qt::AlignLeft);
+    setAlignmentInCanvas(legend, Qt::AlignTop | Qt::AlignLeft);
     legend->setMaxColumns(1);
     legend->attach(ui->plot);
 }

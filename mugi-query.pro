@@ -65,6 +65,7 @@ HEADERS += \
     src/outputtype.h \
     src/qisnumerictype.h \
     src/queryparser.h \
+    src/qwt_compat.h \
     src/relation.h \
     src/relations.h \
     src/rowvaluegetter.h \
@@ -167,6 +168,7 @@ SOURCES += \
     src/outputtype.cpp \
     src/qisnumerictype.cpp \
     src/queryparser.cpp \
+    src/qwt_compat.cpp \
     src/relation.cpp \
     src/relations.cpp \
     src/rowvaluegetter.cpp \

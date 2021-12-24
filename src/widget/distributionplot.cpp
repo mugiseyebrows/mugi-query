@@ -21,6 +21,7 @@
 #include "doubleitemdelegate.h"
 #include "copyeventfilter.h"
 #include "clipboardutil.h"
+#include "qwt_compat.h"
 
 using namespace DataUtils;
 
@@ -66,7 +67,7 @@ void DistributionPlot::init() {
     //ui->distributionPlot->insertLegend(new QwtLegend());
 
     QwtPlotLegendItem* legend = new QwtPlotLegendItem();
-    legend->setAlignmentInCanvas(Qt::AlignTop | Qt::AlignLeft);
+    setAlignmentInCanvas(legend, Qt::AlignTop | Qt::AlignLeft);
     legend->setMaxColumns(1);
     legend->attach(ui->plot);
 
