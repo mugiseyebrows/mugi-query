@@ -23,7 +23,7 @@ CONFIG(debug, debug|release) {
 
 unix {
     CONFIG += qwt
-
+    INCLUDEPATH += /usr/include/qwt
 }
 
 TARGET = mugi-query
