@@ -11,6 +11,7 @@ icons = os.path.expanduser('~/.local/share/icons/hicolor')
 for size in sizes:
     src = os.path.join('./icons',size,'%s.png' % name)
     dst = os.path.join(icons,size,'apps','%s.png' % name)
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
     shutil.copy(src,dst)
 
 icon = dst = os.path.join(icons,'256x256','apps','%s.png' % name)
