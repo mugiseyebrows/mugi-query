@@ -344,7 +344,11 @@ void MainWindow::onShowQueryHistory() {
         connect(mQueryHistory,SIGNAL(appendQuery(QString,QString)),
                 this,SLOT(onAppendQuery(QString,QString)));
     }
-    mQueryHistory->refresh(currentTab()->connectionName());
+    auto* tab = currentTab();
+    if (tab == nullptr) {
+        return;
+    }
+    mQueryHistory->refresh(tab->connectionName());
     showOnTop(mQueryHistory);
 }
 
