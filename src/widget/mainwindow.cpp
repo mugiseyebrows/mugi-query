@@ -49,7 +49,7 @@ using namespace DataUtils;
 namespace {
 
 void showOnTop(QWidget* widget) {
-    widget->show();
+    widget->showNormal();
     widget->activateWindow();
     widget->raise();
 }
