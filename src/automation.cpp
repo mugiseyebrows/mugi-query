@@ -164,6 +164,16 @@ void Automation::next() {
     start();
 }
 
+void Automation::toolMysql()
+{
+    mQueued.append(Action(Action::ActionToolMysql));
+}
+
+void Automation::toolMysqldump(const QStringList& tables)
+{
+    mQueued.append(Action(Action::ActionToolMysqldump, {tables}));
+}
+
 void Automation::onStart() {
 
     if (mQueued.isEmpty()) {
@@ -300,7 +310,19 @@ void Automation::onStart() {
         mainWindow()->on_dataCompare_triggered();
         next();
 
+    } else if (mAction.type() == Action::ActionToolMysql) {
+
+        mainWindow()->on_toolsMysql_triggered();
+        next();
+
+    } else if (mAction.type() == Action::ActionToolMysqldump) {
+
+        mainWindow()->on_toolsMysqldump_triggered();
+        next();
+
     }
+
+
 }
 
 

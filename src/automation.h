@@ -48,6 +48,9 @@ public:
 
     void next();
 
+    void toolMysql();
+
+    void toolMysqldump(const QStringList &tables = QStringList());
 protected:
 
     QQueue<Action> mQueued;

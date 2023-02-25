@@ -44,7 +44,7 @@ public:
     void databaseConnect(bool showHistory = false);
 
     QString connectionName() const;
-
+    QSqlDatabase database() const;
 
     void selectTab(const QString &name);
     QMenu* selectionMenu() const;
@@ -113,6 +113,8 @@ public slots:
     void on_dataImport_triggered();
     void on_dataCompare_triggered();
 
+    void on_toolsMysql_triggered();
+    void on_toolsMysqldump_triggered();
 
 private:
     Ui::MainWindow *ui;

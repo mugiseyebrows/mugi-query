@@ -24,6 +24,8 @@ public:
         ActionSaveStat,
         ActionSaveQuery,
         ActionCompareData,
+        ActionToolMysql,
+        ActionToolMysqldump,
     };
     Action(Type type = ActionEmpty, const QVariantList& args = QVariantList());
     Type type() const;

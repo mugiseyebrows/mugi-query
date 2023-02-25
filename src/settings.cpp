@@ -32,6 +32,7 @@ Settings::Settings()
     }
     mDir = appData;
     load();
+    findTools();
 }
 
 Settings *Settings::instance()
@@ -67,6 +68,8 @@ void Settings::save()
     obj["DateFormat"] = mDateFormat;
     obj["TimeFormat"] = mTimeFormat;
     obj["DateTimeUseLocale"] = mDateTimeUseLocale;
+    obj["MysqlPath"] = mMysqlPath;
+    obj["MysqldumpPath"] = mMysqldumpPath;
     saveJson(settingsPath(),obj);
 }
 
@@ -111,6 +114,8 @@ void Settings::load()
     loadValue(obj,"DateFormat",&mDateFormat);
     loadValue(obj,"TimeFormat",&mTimeFormat);
     loadValue(obj,"DateTimeUseLocale",&mDateTimeUseLocale);
+    loadValue(obj,"MysqlPath",&mMysqlPath);
+    loadValue(obj,"MysqldumpPath",&mMysqldumpPath);
 
 }
 
@@ -169,4 +174,65 @@ void Settings::setTimeFormat(const QString& value) {
 }
 void Settings::setDateTimeUseLocale(bool value) {
     mDateTimeUseLocale = value;
+}
+
+QString Settings::mysqlPath() const
+{
+    return mMysqlPath;
+}
+
+void Settings::setMysqlPath(const QString &path)
+{
+    mMysqlPath = path;
+}
+
+QString Settings::mysqldumpPath() const
+{
+    return mMysqldumpPath;
+}
+
+void Settings::setMysqldumpPath(const QString &path)
+{
+    mMysqldumpPath = path;
+}
+
+static QString pathJoin(const QStringList path) {
+    QDir dir(path[0]);
+    for(int i=1;i<path.size();i++) {
+        dir = QDir(dir.filePath(path[i]));
+    }
+    return dir.path();
+}
+
+static QString existing(const QStringList& bases, const QString& path) {
+    for(const QString& base: bases) {
+        if (base.isEmpty()) {
+            continue;
+        }
+        QString path_ = pathJoin({base, path});
+        if (QFile::exists(path_)) {
+            return QDir::toNativeSeparators(path_);
+        }
+    }
+    return QString();
+}
+
+void Settings::findTools()
+{
+    if (mMysqlPath.isEmpty() || !QFile::exists(mMysqlPath)) {
+        QString path = existing({"C:\\Program Files\\MariaDB 10.10\\bin"}, "mysql.exe");
+        if (path.isEmpty()) {
+            mMysqlPath = QString();
+            return;
+        }
+        mMysqlPath = path;
+    }
+    if (mMysqldumpPath.isEmpty() || !QFile::exists(mMysqldumpPath)) {
+        QString path = existing({"C:\\Program Files\\MariaDB 10.10\\bin"}, "mysqldump.exe");
+        if (path.isEmpty()) {
+            mMysqldumpPath = QString();
+            return;
+        }
+        mMysqldumpPath = path;
+    }
 }

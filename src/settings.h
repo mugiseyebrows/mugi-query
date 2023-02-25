@@ -46,6 +46,13 @@ public:
     void setTimeFormat(const QString& value);
     void setDateTimeUseLocale(bool value);
 
+    QString mysqlPath() const;
+    void setMysqlPath(const QString& path);
+    QString mysqldumpPath() const;
+    void setMysqldumpPath(const QString& path);
+
+    void findTools();
+
 private:
 
     Settings();
@@ -61,6 +68,8 @@ private:
     QString mDateFormat;
     QString mTimeFormat;
     bool mDateTimeUseLocale;
+    QString mMysqlPath;
+    QString mMysqldumpPath;
 
     QString mDir;
 

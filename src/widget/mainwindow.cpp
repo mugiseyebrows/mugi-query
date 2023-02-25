@@ -44,6 +44,11 @@
 #include <QSqlRecord>
 #include <QSqlField>
 #include "datautils.h"
+#include "toolmysqldialog.h"
+#include <QProcess>
+#include "settings.h"
+#include <QFileDialog>
+
 using namespace DataUtils;
 
 namespace {
@@ -71,7 +76,8 @@ QStringList repeat(const QString& item, int n) {
 
 }
 
-#if 0
+
+#if 1
 #include "automate_p.cpp"
 #else
 void automate(QWidget* widget) {
@@ -559,6 +565,15 @@ QString MainWindow::connectionName() const {
     return m->connectionName(index);
 }
 
+QSqlDatabase MainWindow::database() const
+{
+    QString connectionName = this->connectionName();
+    if (connectionName.isEmpty()) {
+        return QSqlDatabase();
+    }
+    return QSqlDatabase::database(connectionName);
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (mQueryHistory) {
@@ -662,6 +677,26 @@ void MainWindow::on_dataCompare_triggered()
         widget->show();
         mCompareModels.clear();
     }
+}
+
+#include "tools.h"
+
+void MainWindow::on_toolsMysql_triggered()
+{
+    QSqlDatabase db = database();
+    if (!db.isValid() || db.driverName() != DRIVER_MYSQL) {
+        return;
+    }
+    Tools::mysql(db, this);
+}
+
+void MainWindow::on_toolsMysqldump_triggered()
+{
+    QSqlDatabase db = database();
+    if (!db.isValid() || db.driverName() != DRIVER_MYSQL) {
+        return;
+    }
+    Tools::mysqldump(db, this);
 }
 
 void MainWindow::on_queryJoin_triggered()

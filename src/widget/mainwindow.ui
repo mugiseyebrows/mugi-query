@@ -81,7 +81,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>32</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatabase">
@@ -134,12 +134,20 @@
     </property>
     <addaction name="settingsFormat"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>&amp;Tools</string>
+    </property>
+    <addaction name="toolsMysql"/>
+    <addaction name="toolsMysqldump"/>
+   </widget>
    <addaction name="menuDatabase"/>
    <addaction name="menuSession"/>
    <addaction name="menuQuery"/>
    <addaction name="menuData"/>
    <addaction name="menuSelection"/>
    <addaction name="menuSettings"/>
+   <addaction name="menuTools"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -295,6 +303,11 @@
     <string>&amp;Import</string>
    </property>
   </action>
+  <action name="dataImportMysql">
+   <property name="text">
+    <string>Import with &amp;mysql</string>
+   </property>
+  </action>
   <action name="selectionCopyAsCondition">
    <property name="text">
     <string>Copy as condition</string>
@@ -303,6 +316,16 @@
   <action name="dataCompare">
    <property name="text">
     <string>&amp;Compare</string>
+   </property>
+  </action>
+  <action name="toolsMysql">
+   <property name="text">
+    <string>&amp;Mysql</string>
+   </property>
+  </action>
+  <action name="toolsMysqldump">
+   <property name="text">
+    <string>Mysql&amp;dump</string>
    </property>
   </action>
  </widget>

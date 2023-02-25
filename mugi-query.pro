@@ -11,13 +11,15 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 win32 {
 
 INCLUDEPATH += C:/Qwt-6.2.0/include
-LIBS += -LC:/Qwt-6.2.0/lib
+LIBS += -LC:/Qwt-6.2.0/lib -LC:/mysql-8.0.31-winx64/bin
 
 CONFIG(debug, debug|release) {
     LIBS += -lqwtd
 } else {
     LIBS += -lqwt
 }
+
+LIBS += -lmysql
 
 }
 
@@ -77,7 +79,11 @@ HEADERS += \
     src/splitterutil.h \
     src/tests.h \
     src/tokens.h \
+    src/tools.h \
     src/version.h \
+    src/widget/lineselect.h \
+    src/widget/toolmysqldialog.h \
+    src/widget/toolmysqldumpdialog.h \
     src/zipunzip.h \
     src/model/checkablestringlistmodel.h \
     src/model/distributionplotitem.h \
@@ -189,11 +195,13 @@ SOURCES += \
     src/model/stringlistmodelwithheader.cpp \
     src/model/xyplotmodel.cpp \
     src/model/xyplotmodelitem.cpp \
+    src/tools.cpp \
     src/widget/databasehistorydialog.cpp \
     src/widget/distributionplot.cpp \
     src/widget/intlineedit.cpp \
     src/widget/joinhelperwidget.cpp \
     src/widget/joinhelperwidgets.cpp \
+    src/widget/lineselect.cpp \
     src/widget/mainwindow.cpp \
     src/widget/queryhistorywidget.cpp \
     src/widget/querymodelview.cpp \
@@ -202,6 +210,8 @@ SOURCES += \
     src/widget/settingsdialog.cpp \
     src/widget/statview.cpp \
     src/widget/textedit.cpp \
+    src/widget/toolmysqldialog.cpp \
+    src/widget/toolmysqldumpdialog.cpp \
     src/widget/userhelperdialog.cpp \
     src/widget/xyplot.cpp \
     src/plotpicker.cpp \
@@ -249,12 +259,15 @@ FORMS += \
     src/widget/distributionplot.ui \
     src/widget/joinhelperwidget.ui \
     src/widget/joinhelperwidgets.ui \
+    src/widget/lineselect.ui \
     src/widget/mainwindow.ui \
     src/widget/queryhistorywidget.ui \
     src/widget/querymodelview.ui \
     src/widget/savedatadialog.ui \
     src/widget/sessiontab.ui \
     src/widget/settingsdialog.ui \
+    src/widget/toolmysqldialog.ui \
+    src/widget/toolmysqldumpdialog.ui \
     src/widget/userhelperdialog.ui \
     src/widget/xyplot.ui \
     src/widget/databaseconnectdialog.ui \
