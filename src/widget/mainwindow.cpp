@@ -49,7 +49,7 @@ using namespace DataUtils;
 namespace {
 
 void showOnTop(QWidget* widget) {
-    widget->show();
+    widget->showNormal();
     widget->activateWindow();
     widget->raise();
 }
@@ -344,8 +344,12 @@ void MainWindow::onShowQueryHistory() {
         connect(mQueryHistory,SIGNAL(appendQuery(QString,QString)),
                 this,SLOT(onAppendQuery(QString,QString)));
     }
-    mQueryHistory->refresh(currentTab()->connectionName());
     showOnTop(mQueryHistory);
+    auto* tab = currentTab();
+    if (tab == nullptr) {
+        return;
+    }
+    mQueryHistory->refresh(tab->connectionName());
 }
 
 QStringList filterBlank(const QStringList items) {
