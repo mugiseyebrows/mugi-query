@@ -116,6 +116,9 @@ public slots:
     void on_toolsMysql_triggered();
     void on_toolsMysqldump_triggered();
 
+    void on_codePython_triggered();
+    void on_codePandas_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

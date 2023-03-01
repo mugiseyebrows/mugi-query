@@ -699,6 +699,42 @@ void MainWindow::on_toolsMysqldump_triggered()
     Tools::mysqldump(db, this);
 }
 
+#include <QClipboard>
+
+void MainWindow::on_codePython_triggered()
+{
+    // todo parse and transpile queries
+
+    QSqlDatabase db = database();
+
+    QString databaseName = db.databaseName();
+    QString userName = db.userName();
+    QString password = db.password();
+    QString hostName = db.hostName();
+
+    QString connectionName = this->connectionName();
+
+    if (db.driverName() == DRIVER_MYSQL) {
+        QString code = QString("import mysql.connector\n"
+                "%1 = mysql.connector.connect(host=\"%2\",user=\"%3\",password=\"%4\",database=\"%5\")")
+                .arg(connectionName)
+                .arg(hostName)
+                .arg(userName)
+                .arg(password)
+                .arg(databaseName);
+        qApp->clipboard()->setText(code);
+        QMessageBox::information(this, "Success", "Text copied into clipboard");
+    } else {
+        QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
+    }
+
+}
+
+void MainWindow::on_codePandas_triggered()
+{
+
+}
+
 void MainWindow::on_queryJoin_triggered()
 {
     QString connectionName = this->connectionName();

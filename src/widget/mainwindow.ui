@@ -141,6 +141,13 @@
     <addaction name="toolsMysql"/>
     <addaction name="toolsMysqldump"/>
    </widget>
+   <widget class="QMenu" name="menuCode">
+    <property name="title">
+     <string>&amp;Code</string>
+    </property>
+    <addaction name="codePython"/>
+    <addaction name="codePandas"/>
+   </widget>
    <addaction name="menuDatabase"/>
    <addaction name="menuSession"/>
    <addaction name="menuQuery"/>
@@ -148,6 +155,7 @@
    <addaction name="menuSelection"/>
    <addaction name="menuSettings"/>
    <addaction name="menuTools"/>
+   <addaction name="menuCode"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -326,6 +334,16 @@
   <action name="toolsMysqldump">
    <property name="text">
     <string>Mysql&amp;dump</string>
+   </property>
+  </action>
+  <action name="codePython">
+   <property name="text">
+    <string>&amp;Python</string>
+   </property>
+  </action>
+  <action name="codePandas">
+   <property name="text">
+    <string>P&amp;andas</string>
    </property>
   </action>
  </widget>
