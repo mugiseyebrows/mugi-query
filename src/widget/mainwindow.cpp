@@ -77,7 +77,7 @@ QStringList repeat(const QString& item, int n) {
 }
 
 
-#if 1
+#if 0
 #include "automate_p.cpp"
 #else
 void automate(QWidget* widget) {
