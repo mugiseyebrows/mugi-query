@@ -12,7 +12,7 @@ if not defined CURL (
 echo CURL not found
 exit /b
 )
-set PATH=C:\Qt\Tools\mingw810_64\bin;C:\Qt\5.15.2\mingw81_64\bin;C:\mysql-8.0.31-winx64\bin;C:\Qwt-6.2.0\lib;C:\Program Files\PostgreSQL\14\bin;C:\Miniconda3;C:\Miniconda3\Scripts;%USERPROFILE%\Miniconda3;%USERPROFILE%\Miniconda3\Scripts;%PATH%
+set PATH=C:\Qt\Tools\mingw810_64\bin;C:\Qt\5.15.2\mingw81_64\bin;C:\mysql-8.0.31-winx64\lib;C:\mysql-8.0.31-winx64\bin;C:\Qwt-6.2.0\lib;C:\Program Files\PostgreSQL\14\bin;C:\Miniconda3;C:\Miniconda3\Scripts;%USERPROFILE%\Miniconda3;%USERPROFILE%\Miniconda3\Scripts;%PATH%
 pip install mugicli
 pip install mugideploy
 pip install aqtinstall
@@ -21,7 +21,6 @@ aqt install-qt windows desktop 5.15.2 win64_mingw81 -O C:\Qt
 if not exist qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip "%CURL%" -L -o qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip https://github.com/mugiseyebrows/qsqlmysql-builds/releases/download/5.15.2/qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip
 "%P7Z%" x -y -oC:\Qt\5.15.2\mingw81_64\plugins\sqldrivers qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip
 pyfind C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
-pyfind C:\mysql -iname *.dll
 if not exist mysql-8.0.31-winx64.zip "%CURL%" -L -o mysql-8.0.31-winx64.zip https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-8.0.31-winx64.zip
 "%P7Z%" x -y -oC:\ mysql-8.0.31-winx64.zip
 if not exist qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip "%CURL%" -L -o qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip https://github.com/mugiseyebrows/qwt-builds/releases/download/qwt6.2.0-qt5.15.2/qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip
