@@ -33,7 +33,7 @@ def main
     set VERSION=1.1.0
     mugideploy collect --app mugi-query --version %VERSION% --bin release\mugi-query.exe --plugins odbc mysql sqlite psql
     zip(mugi-query-%VERSION%-win64, mugi-query-%VERSION%-win64.zip)
-    github_upload(mugi-query-*-win64.zip)
+    github_upload(mugi-query-*-win64, :n=mugi-query-win64)
     github_release(mugi-query-*-win64.zip)
 
 github_workflow 1

@@ -30,8 +30,8 @@ jobs:
     - name: upload
       uses: actions/upload-artifact@v3
       with:
-        name: mugi-query-*-win64
-        path: mugi-query-*-win64.zip
+        name: mugi-query-win64
+        path: mugi-query-*-win64
     - name: release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
