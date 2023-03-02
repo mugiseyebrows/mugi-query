@@ -21,12 +21,14 @@ jobs:
         curl -L -o mysql-8.0.31-winx64.zip https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-8.0.31-winx64.zip
         7z x -y -oC:\ mysql-8.0.31-winx64.zip
         curl -L -o qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip https://github.com/mugiseyebrows/qwt-builds/releases/download/qwt6.2.0-qt5.15.2/qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip
-        7z x -y -oC:\ qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip
+        if not exist qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64 7z x -y qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip
+        copy /y qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64\qsqlmysql.dll C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
+        copy /y qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64\qsqlmysqld.dll C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
         qmake
         mingw32-make release -j4
         set VERSION=1.1.0
         mugideploy collect --app mugi-query --version %VERSION% --bin release\mugi-query.exe --plugins odbc mysql sqlite psql
-        if not exist "mugi-query-%VERSION%-win64.zip" 7z a -y "mugi-query-%VERSION%-win64.zip" "mugi-query-%VERSION%-win64"
+        7z a -y "mugi-query-%VERSION%-win64.zip" "mugi-query-%VERSION%-win64"
     - name: upload
       uses: actions/upload-artifact@v3
       with:

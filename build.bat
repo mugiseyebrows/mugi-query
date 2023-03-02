@@ -24,9 +24,11 @@ pyfind C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
 if not exist mysql-8.0.31-winx64.zip "%CURL%" -L -o mysql-8.0.31-winx64.zip https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-8.0.31-winx64.zip
 "%P7Z%" x -y -oC:\ mysql-8.0.31-winx64.zip
 if not exist qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip "%CURL%" -L -o qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip https://github.com/mugiseyebrows/qwt-builds/releases/download/qwt6.2.0-qt5.15.2/qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip
-"%P7Z%" x -y -oC:\ qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip
+if not exist qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64 "%P7Z%" x -y qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip
+copy /y qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64\qsqlmysql.dll C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
+copy /y qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64\qsqlmysqld.dll C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
 qmake
 mingw32-make release -j4
 set VERSION=1.1.0
 mugideploy collect --app mugi-query --version %VERSION% --bin release\mugi-query.exe --plugins odbc mysql sqlite psql
-if not exist "mugi-query-%VERSION%-win64.zip" "%P7Z%" a -y "mugi-query-%VERSION%-win64.zip" "mugi-query-%VERSION%-win64"
+"%P7Z%" a -y "mugi-query-%VERSION%-win64.zip" "mugi-query-%VERSION%-win64"

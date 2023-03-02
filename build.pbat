@@ -27,7 +27,9 @@ def main
     download(https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-8.0.31-winx64.zip, mysql-8.0.31-winx64.zip)
     unzip(mysql-8.0.31-winx64.zip, :o=C:\)
     download(https://github.com/mugiseyebrows/qwt-builds/releases/download/qwt6.2.0-qt5.15.2/qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip, qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip)
-    unzip(qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip, :o=C:\)
+    unzip(qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip, qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64)
+    copy_file(qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64\qsqlmysql.dll, C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers)
+    copy_file(qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64\qsqlmysqld.dll, C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers)
     qmake
     mingw32-make release -j4
     set VERSION=1.1.0
@@ -36,5 +38,6 @@ def main
     github_upload(mugi-query-*-win64, :n=mugi-query-win64)
     github_release(mugi-query-*-win64.zip)
 
-github_workflow 1
-github_image windows-latest
+github-workflow 1
+github-image windows-latest
+zip-test 0
