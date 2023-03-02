@@ -19,14 +19,14 @@ pip install aqtinstall
 aqt install-tool windows desktop tools_mingw qt.tools.win64_mingw810 -O C:\Qt
 aqt install-qt windows desktop 5.15.2 win64_mingw81 -O C:\Qt
 if not exist qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip "%CURL%" -L -o qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip https://github.com/mugiseyebrows/qsqlmysql-builds/releases/download/5.15.2/qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip
-"%P7Z%" x -y -oC:\Qt\5.15.2\mingw81_64\plugins\sqldrivers qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip
+if not exist qsqlmysql-qt5.15.2-mingw8.1.0-x86_64 "%P7Z%" x -y qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip
+copy /y qsqlmysql-qt5.15.2-mingw8.1.0-x86_64\qsqlmysql.dll C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
+copy /y qsqlmysql-qt5.15.2-mingw8.1.0-x86_64\qsqlmysqld.dll C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
 pyfind C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
 if not exist mysql-8.0.31-winx64.zip "%CURL%" -L -o mysql-8.0.31-winx64.zip https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-8.0.31-winx64.zip
 "%P7Z%" x -y -oC:\ mysql-8.0.31-winx64.zip
 if not exist qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip "%CURL%" -L -o qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip https://github.com/mugiseyebrows/qwt-builds/releases/download/qwt6.2.0-qt5.15.2/qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip
-if not exist qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64 "%P7Z%" x -y qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip
-copy /y qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64\qsqlmysql.dll C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
-copy /y qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64\qsqlmysqld.dll C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
+"%P7Z%" x -y -oC:\ qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip
 qmake
 mingw32-make release -j4
 set VERSION=1.1.0
