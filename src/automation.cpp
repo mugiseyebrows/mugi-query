@@ -174,6 +174,11 @@ void Automation::toolMysqldump(const QStringList& tables)
     mQueued.append(Action(Action::ActionToolMysqldump, {tables}));
 }
 
+void Automation::schemaEdit()
+{
+    mQueued.append(Action(Action::ActionSchemaEdit));
+}
+
 void Automation::onStart() {
 
     if (mQueued.isEmpty()) {
@@ -318,6 +323,11 @@ void Automation::onStart() {
     } else if (mAction.type() == Action::ActionToolMysqldump) {
 
         mainWindow()->on_toolsMysqldump_triggered();
+        next();
+
+    } else if (mAction.type() == Action::ActionSchemaEdit) {
+
+        mainWindow()->on_schemaEdit_triggered();
         next();
 
     }

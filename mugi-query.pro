@@ -31,7 +31,7 @@ unix {
 TARGET = mugi-query
 TEMPLATE = app
 
-INCLUDEPATH += src src/model src/widget
+INCLUDEPATH += src src/model src/widget src/schema2
 
 RC_ICONS += mugi-query.ico
 
@@ -47,6 +47,7 @@ include(src/tablebuttons/tablebuttons.pri)
 HEADERS += \
     src/accessuri.h \
     src/action.h \
+    src/automate.h \
     src/automation.h \
     src/colorpalette.h \
     src/copyeventfilter.h \
@@ -72,6 +73,12 @@ HEADERS += \
     src/relations.h \
     src/rowvaluegetter.h \
     src/rowvaluesetter.h \
+    src/schema2/schema2relationitem.h \
+    src/schema2/schema2relationmodel.h \
+    src/schema2/schema2tableitem.h \
+    src/schema2/schema2tablemodel.h \
+    src/schema2/schema2tableview.h \
+    src/schema2/schema2view.h \
     src/sessionitem.h \
     src/setdefaultcolors.h \
     src/setheaderdata.h \
@@ -82,6 +89,7 @@ HEADERS += \
     src/tools.h \
     src/version.h \
     src/widget/lineselect.h \
+    src/schema2/schema2data.h \
     src/widget/toolmysqldialog.h \
     src/widget/toolmysqldumpdialog.h \
     src/zipunzip.h \
@@ -154,6 +162,7 @@ HEADERS += \
 SOURCES += \
     src/accessuri.cpp \
     src/action.cpp \
+    src/automate.cpp \
     src/automation.cpp \
     src/colorpalette.cpp \
     src/copyeventfilter.cpp \
@@ -179,6 +188,12 @@ SOURCES += \
     src/relations.cpp \
     src/rowvaluegetter.cpp \
     src/rowvaluesetter.cpp \
+    src/schema2/schema2relationitem.cpp \
+    src/schema2/schema2relationmodel.cpp \
+    src/schema2/schema2tableitem.cpp \
+    src/schema2/schema2tablemodel.cpp \
+    src/schema2/schema2tableview.cpp \
+    src/schema2/schema2view.cpp \
     src/sessionitem.cpp \
     src/setdefaultcolors.cpp \
     src/setheaderdata.cpp \
@@ -206,6 +221,7 @@ SOURCES += \
     src/widget/queryhistorywidget.cpp \
     src/widget/querymodelview.cpp \
     src/widget/savedatadialog.cpp \
+    src/schema2/schema2data.cpp \
     src/widget/sessiontab.cpp \
     src/widget/settingsdialog.cpp \
     src/widget/statview.cpp \
@@ -255,6 +271,8 @@ SOURCES += \
     src/model/datacomparemodel.cpp
 
 FORMS += \
+    src/schema2/schema2tableview.ui \
+    src/schema2/schema2view.ui \
     src/widget/databasehistorydialog.ui \
     src/widget/distributionplot.ui \
     src/widget/joinhelperwidget.ui \

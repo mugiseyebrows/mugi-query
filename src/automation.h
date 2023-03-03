@@ -51,6 +51,9 @@ public:
     void toolMysql();
 
     void toolMysqldump(const QStringList &tables = QStringList());
+
+    void schemaEdit();
+
 protected:
 
     QQueue<Action> mQueued;

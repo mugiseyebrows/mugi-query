@@ -119,6 +119,8 @@ public slots:
     void on_codePython_triggered();
     void on_codePandas_triggered();
 
+    void on_schemaEdit_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

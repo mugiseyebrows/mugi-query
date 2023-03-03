@@ -48,14 +48,17 @@
 #include <QProcess>
 #include "settings.h"
 #include <QFileDialog>
+#include "automate.h"
 
 using namespace DataUtils;
 
 namespace {
 
 void showOnTop(QWidget* widget) {
-    widget->showNormal();
-    widget->activateWindow();
+    //widget->showNormal();
+    widget->show();
+    widget->setWindowState(widget->windowState() & ~Qt::WindowMinimized | Qt::WindowActive);
+    //widget->activateWindow();
     widget->raise();
 }
 
@@ -80,9 +83,7 @@ QStringList repeat(const QString& item, int n) {
 #if 0
 #include "automate_p.cpp"
 #else
-void automate(QWidget* widget) {
 
-}
 #endif
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -1022,5 +1023,19 @@ void MainWindow::on_schemaTree_doubleClicked(const QModelIndex &index)
     QString table = model->data(index).toString();
     QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100").arg(table).arg(table);
     onAppendQuery(connectionName, query);
+}
+
+#include "schema2data.h"
+#include "schema2view.h"
+
+void MainWindow::on_schemaEdit_triggered()
+{
+    QString connectionName = this->connectionName();
+    if (connectionName.isEmpty()) {
+        return;
+    }
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    Schema2View* view = data->view();
+    showOnTop(view);
 }
 

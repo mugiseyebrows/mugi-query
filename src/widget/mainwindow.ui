@@ -148,8 +148,15 @@
     <addaction name="codePython"/>
     <addaction name="codePandas"/>
    </widget>
+   <widget class="QMenu" name="menuSchema">
+    <property name="title">
+     <string>S&amp;chema</string>
+    </property>
+    <addaction name="schemaEdit"/>
+   </widget>
    <addaction name="menuDatabase"/>
    <addaction name="menuSession"/>
+   <addaction name="menuSchema"/>
    <addaction name="menuQuery"/>
    <addaction name="menuData"/>
    <addaction name="menuSelection"/>
@@ -344,6 +351,11 @@
   <action name="codePandas">
    <property name="text">
     <string>P&amp;andas</string>
+   </property>
+  </action>
+  <action name="schemaEdit">
+   <property name="text">
+    <string>&amp;Edit</string>
    </property>
   </action>
  </widget>
