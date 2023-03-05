@@ -2,16 +2,7 @@
 #include "ui_dataimportwidgets.h"
 
 #include "dataimportwidget.h"
-
-namespace {
-
-void showOnTop(QWidget* widget) {
-    widget->show();
-    widget->activateWindow();
-    widget->raise();
-}
-
-}
+#include "showandraise.h"
 
 DataImportWidgets::DataImportWidgets(QWidget *parent) :
     QWidget(parent),
@@ -60,7 +51,7 @@ void DataImportWidgets::create(const QString &connectionName, const Tokens& toke
     });
     connect(this,SIGNAL(updateTokens(QString,Tokens)),widget,SLOT(onUpdateTokens(QString,Tokens)));
     emit updateTokens(connectionName,tokens);
-    showOnTop(widget);
+    showAndRaise(widget);
 }
 
 void DataImportWidgets::update(const QString &connectionName, const Tokens& tokens)

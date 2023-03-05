@@ -14,6 +14,8 @@ class QGraphicsItem;
 class Schema2RelationModel;
 class Schema2RelationItem;
 class Schema2TableItem;
+class ClickListener;
+class Schema2AlterView;
 
 #include <QHash>
 
@@ -38,6 +40,14 @@ public:
 
     Schema2View* view();
 
+    QGraphicsScene* scene();
+
+    void showRelateView(const QString &tableName);
+
+    void showAlterView(const QString& tableName);
+
+    void showInsertView(const QString &tableName);
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 
@@ -45,13 +55,17 @@ protected:
 
     QGraphicsScene* mScene;
 
+    ClickListener* mClickLister;
+
     Schema2View* mView;
 
     QHash<QString, Schema2TableItem*> mTableItems;
 
-    QHash<QString, Schema2TableModel*> mTables;
+    QHash<QString, Schema2TableModel*> mTableModels;
 
-    QHash<QString, Schema2TableView*> mViews;
+    //QHash<QString, Schema2TableView*> mViews;
+
+    QHash<QString, Schema2AlterView*> mAlterViews;
 
     QHash<QString, QPointF> mTablePos;
 
@@ -59,12 +73,18 @@ protected:
 
     QHash<QStringList, Schema2RelationItem*> mRelationItems;
 
+    QList<Schema2TableItem*> mSetPosQueue;
+
+
+
     void pullTables();
     void pullRelations();
     void pullRelationsMysql();
 
+    void unoverlapTables();
+    void setTableItemsPos();
 signals:
-
+    void tableClicked(QString);
 };
 
 #endif // SCHEMA2DATA_H

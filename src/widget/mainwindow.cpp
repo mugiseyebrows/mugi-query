@@ -49,18 +49,13 @@
 #include "settings.h"
 #include <QFileDialog>
 #include "automate.h"
+#include "showandraise.h"
 
 using namespace DataUtils;
 
 namespace {
 
-void showOnTop(QWidget* widget) {
-    //widget->showNormal();
-    widget->show();
-    widget->setWindowState(widget->windowState() & ~Qt::WindowMinimized | Qt::WindowActive);
-    //widget->activateWindow();
-    widget->raise();
-}
+
 
 void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QVariant::Type>& types) {
     for(int c=0;c<record.count();c++) {
@@ -78,13 +73,6 @@ QStringList repeat(const QString& item, int n) {
 }
 
 }
-
-
-#if 0
-#include "automate_p.cpp"
-#else
-
-#endif
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -342,7 +330,7 @@ void MainWindow::onAppendQuery(const QString& connectionName, QString query)
     mQuery = query;
     selectDatabase(connectionName);
     on_sessionAdd_triggered();
-    showOnTop(this);
+    showAndRaise(this);
 }
 
 void MainWindow::onShowQueryHistory() {
@@ -351,7 +339,7 @@ void MainWindow::onShowQueryHistory() {
         connect(mQueryHistory,SIGNAL(appendQuery(QString,QString)),
                 this,SLOT(onAppendQuery(QString,QString)));
     }
-    showOnTop(mQueryHistory);
+    showAndRaise(mQueryHistory);
     auto* tab = currentTab();
     if (tab == nullptr) {
         return;
@@ -749,7 +737,7 @@ void MainWindow::on_queryJoin_triggered()
     }
 
     mJoinHelpers->update(connectionName,mTokens[connectionName],true);
-    showOnTop(mJoinHelpers);
+    showAndRaise(mJoinHelpers);
 }
 
 void MainWindow::on_dataImport_triggered()
@@ -1036,6 +1024,6 @@ void MainWindow::on_schemaEdit_triggered()
     }
     Schema2Data* data = Schema2Data::instance(connectionName, this);
     Schema2View* view = data->view();
-    showOnTop(view);
+    showAndRaise(view);
 }
 

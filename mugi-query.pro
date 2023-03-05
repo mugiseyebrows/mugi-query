@@ -49,6 +49,7 @@ HEADERS += \
     src/action.h \
     src/automate.h \
     src/automation.h \
+    src/clicklistener.h \
     src/colorpalette.h \
     src/copyeventfilter.h \
     src/dataformat.h \
@@ -73,16 +74,18 @@ HEADERS += \
     src/relations.h \
     src/rowvaluegetter.h \
     src/rowvaluesetter.h \
+    src/schema2/schema2alterview.h \
+    src/schema2/schema2arrange.h \
     src/schema2/schema2relationitem.h \
     src/schema2/schema2relationmodel.h \
     src/schema2/schema2tableitem.h \
     src/schema2/schema2tablemodel.h \
-    src/schema2/schema2tableview.h \
     src/schema2/schema2view.h \
     src/sessionitem.h \
     src/setdefaultcolors.h \
     src/setheaderdata.h \
     src/settings.h \
+    src/showandraise.h \
     src/splitterutil.h \
     src/tests.h \
     src/tokens.h \
@@ -164,6 +167,7 @@ SOURCES += \
     src/action.cpp \
     src/automate.cpp \
     src/automation.cpp \
+    src/clicklistener.cpp \
     src/colorpalette.cpp \
     src/copyeventfilter.cpp \
     src/dataformat.cpp \
@@ -188,16 +192,18 @@ SOURCES += \
     src/relations.cpp \
     src/rowvaluegetter.cpp \
     src/rowvaluesetter.cpp \
+    src/schema2/schema2alterview.cpp \
+    src/schema2/schema2arrange.cpp \
     src/schema2/schema2relationitem.cpp \
     src/schema2/schema2relationmodel.cpp \
     src/schema2/schema2tableitem.cpp \
     src/schema2/schema2tablemodel.cpp \
-    src/schema2/schema2tableview.cpp \
     src/schema2/schema2view.cpp \
     src/sessionitem.cpp \
     src/setdefaultcolors.cpp \
     src/setheaderdata.cpp \
     src/settings.cpp \
+    src/showandraise.cpp \
     src/splitterutil.cpp \
     src/tests.cpp \
     src/tokens.cpp \
@@ -271,7 +277,7 @@ SOURCES += \
     src/model/datacomparemodel.cpp
 
 FORMS += \
-    src/schema2/schema2tableview.ui \
+    src/schema2/schema2alterview.ui \
     src/schema2/schema2view.ui \
     src/widget/databasehistorydialog.ui \
     src/widget/distributionplot.ui \

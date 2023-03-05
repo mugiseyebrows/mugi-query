@@ -5,7 +5,7 @@
 
 void automate(QWidget *widget)
 {
-#if 0
+#if 1
     Automation* automation = Automation::instance(widget);
     automation->connectToDatabaseFromHistory("dvdrental");
     automation->schemaEdit();

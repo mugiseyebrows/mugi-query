@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>583</width>
+    <width>617</width>
     <height>436</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
      <item>
       <widget class="QPushButton" name="move">
        <property name="text">
-        <string>move</string>
+        <string>Move</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -29,7 +29,7 @@
      <item>
       <widget class="QPushButton" name="relate">
        <property name="text">
-        <string>relate</string>
+        <string>Relate</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -39,7 +39,7 @@
      <item>
       <widget class="QPushButton" name="alter">
        <property name="text">
-        <string>alter</string>
+        <string>Alter</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -49,7 +49,7 @@
      <item>
       <widget class="QPushButton" name="insert">
        <property name="text">
-        <string>insert</string>
+        <string>Insert</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -59,7 +59,28 @@
      <item>
       <widget class="QPushButton" name="create">
        <property name="text">
-        <string>create</string>
+        <string>Create</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="arrange">
+       <property name="text">
+        <string>Arrange</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pull">
+       <property name="text">
+        <string>Pull</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="push">
+       <property name="text">
+        <string>Push</string>
        </property>
       </widget>
      </item>

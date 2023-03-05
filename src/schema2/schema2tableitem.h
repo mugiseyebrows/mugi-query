@@ -22,6 +22,10 @@ protected:
     // QGraphicsItem interface
 protected:
     QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+
+    // QGraphicsItem interface
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
 
 #endif // SCHEMA2TABLEITEM_H

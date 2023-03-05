@@ -15,7 +15,7 @@ public:
         cols_count
     };
 
-    explicit Schema2TableModel(const QString& name, QObject *parent = nullptr);
+    explicit Schema2TableModel(const QString& name, bool existing, QObject *parent = nullptr);
 
     void insertIfNotContains(const QString& name, const QString& type, const QString &prev);
 
@@ -29,9 +29,16 @@ public:
 
     QString newType(int row) const;
 
+    bool hasPendingChanges() const;
+
+signals:
+    void tableClicked(QString);
+
 protected:
     QList<QStringList> mColumns;
     QString mName;
+
+    bool mExisting;
 
 signals:
 
@@ -39,6 +46,12 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 };
 
 #endif // SCHEMA2TABLEMODEL_H

@@ -3,6 +3,8 @@
 #include "schema2tablemodel.h"
 #include "schema2relationitem.h"
 #include <QPainter>
+#include <QDebug>
+
 
 Schema2TableItem::Schema2TableItem(Schema2TableModel *model, QGraphicsItem *parent)
     : mModel(model), QGraphicsItem(parent)
@@ -84,4 +86,9 @@ QVariant Schema2TableItem::itemChange(GraphicsItemChange change, const QVariant 
         }
     }
     return QGraphicsItem::itemChange(change, value);
+}
+
+void Schema2TableItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    emit mModel->tableClicked(mModel->tableName());
 }
