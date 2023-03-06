@@ -39,6 +39,8 @@ protected:
 
     Schema2Data* mData;
 
+    QStringList mRelationTables;
+
 private slots:
 
     void on_move_clicked(bool checked);

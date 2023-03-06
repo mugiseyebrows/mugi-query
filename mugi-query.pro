@@ -74,8 +74,10 @@ HEADERS += \
     src/relations.h \
     src/rowvaluegetter.h \
     src/rowvaluesetter.h \
+    src/schema2/reporterror.h \
     src/schema2/schema2alterview.h \
     src/schema2/schema2arrange.h \
+    src/schema2/schema2relationdialog.h \
     src/schema2/schema2relationitem.h \
     src/schema2/schema2relationmodel.h \
     src/schema2/schema2tableitem.h \
@@ -192,8 +194,10 @@ SOURCES += \
     src/relations.cpp \
     src/rowvaluegetter.cpp \
     src/rowvaluesetter.cpp \
+    src/schema2/reporterror.cpp \
     src/schema2/schema2alterview.cpp \
     src/schema2/schema2arrange.cpp \
+    src/schema2/schema2relationdialog.cpp \
     src/schema2/schema2relationitem.cpp \
     src/schema2/schema2relationmodel.cpp \
     src/schema2/schema2tableitem.cpp \
@@ -278,6 +282,7 @@ SOURCES += \
 
 FORMS += \
     src/schema2/schema2alterview.ui \
+    src/schema2/schema2relationdialog.ui \
     src/schema2/schema2view.ui \
     src/widget/databasehistorydialog.ui \
     src/widget/distributionplot.ui \

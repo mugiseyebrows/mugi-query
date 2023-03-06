@@ -1,7 +1,9 @@
 #include "schema2tablemodel.h"
 
+// todo table renames
+
 Schema2TableModel::Schema2TableModel(const QString &name, bool existing, QObject *parent)
-    : mName(name), QAbstractTableModel{parent}
+    : mTableName(name), QAbstractTableModel{parent}
 {
 
 }
@@ -26,7 +28,7 @@ void Schema2TableModel::insertIfNotContains(const QString &name, const QString &
 
 QString Schema2TableModel::tableName() const
 {
-    return mName;
+    return mTableName;
 }
 
 QString Schema2TableModel::name(int row) const
@@ -52,6 +54,15 @@ QString Schema2TableModel::newType(int row) const
 bool Schema2TableModel::hasPendingChanges() const
 {
     return false;
+}
+
+QStringList Schema2TableModel::newNames() const
+{
+    QStringList res;
+    for(int row=0;row<mColumns.size();row++) {
+        res.append(mColumns[row][col_newname]);
+    }
+    return res;
 }
 
 int Schema2TableModel::rowCount(const QModelIndex &parent) const

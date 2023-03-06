@@ -127,6 +127,8 @@ void Schema2Data::pullTables() {
 
 void Schema2Data::pullRelationsMysql() {
 
+    //return;
+
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
     QStringList tables = db.tables();
@@ -148,19 +150,19 @@ void Schema2Data::pullRelationsMysql() {
         }
         if (tables.contains(childTable) && tables.contains(parentTable)) {
 
-            QStringList key = {parentTable, childTable};
+            QStringList key = {childTable, parentTable};
 
             if (!mRelationModels.contains(key)) {
-                Schema2RelationModel* relationModel = new Schema2RelationModel(parentTable, parentColumn, childTable, childColumn);
+                Schema2RelationModel* relationModel = new Schema2RelationModel(childTable, childColumn, parentTable, parentColumn, true, true);
                 mRelationModels[key] = relationModel;
             }
 
             if (!mRelationItems.contains(key)) {
 
-                Schema2TableItem* parentTableItem = mTableItems[parentTable];
                 Schema2TableItem* childTableItem = mTableItems[childTable];
+                Schema2TableItem* parentTableItem = mTableItems[parentTable];
 
-                Schema2RelationItem* item = new Schema2RelationItem(mRelationModels[key], parentTableItem, childTableItem);
+                Schema2RelationItem* item = new Schema2RelationItem(mRelationModels[key], childTableItem, parentTableItem);
                 mRelationItems[key] = item;
 
                 parentTableItem->addRelation(item);
@@ -170,6 +172,12 @@ void Schema2Data::pullRelationsMysql() {
             }
 
 
+        } else {
+            // not an error: mariadb stores all databases data in one INFORMATION_SCHEMA
+            qDebug() << "childTable" << childTable << "parentTable" << parentTable
+                     << "tables.contains(childTable)" << tables.contains(childTable)
+                     << "tables.contains(parentTable)" << tables.contains(parentTable)
+                     << __FILE__ << __LINE__;
         }
     }
 }
@@ -232,16 +240,23 @@ void Schema2Data::load()
 
 bool Schema2Data::hasPendingChanges() const
 {
+    if (!mRemoveRelationsQueue.isEmpty()) {
+        return true;
+    }
     QList<Schema2TableModel*> models = mTableModels.values();
     for(Schema2TableModel* model: models) {
         if (model->hasPendingChanges()) {
             return true;
         }
     }
+    QList<Schema2RelationModel*> relations = mRelationModels.values();
+    for(Schema2RelationModel* relation: relations) {
+        if (relation->hasPendingChanges()) {
+            return true;
+        }
+    }
     return false;
 }
-
-
 
 Schema2View *Schema2Data::view()
 {
@@ -259,12 +274,68 @@ QGraphicsScene *Schema2Data::scene()
     return mScene;
 }
 
-void Schema2Data::showRelateView(const QString &tableName)
+#include "schema2relationdialog.h"
+#include "reporterror.h"
+
+void Schema2Data::showRelationDialog(const QString &childTable, const QString& parentTable, QWidget *parent)
 {
 
+    if (!mTableModels.contains(childTable)
+            || !mTableModels.contains(parentTable)
+            || !mTableItems.contains(childTable)
+            || !mTableItems.contains(parentTable)
+            ) {
+        report_error("!mTableModels.contains() || !mTableItems.contains()", __FILE__, __LINE__, parent);
+        return;
+    }
+
+    QStringList key = {childTable, parentTable};
+
+    Schema2RelationModel* model = 0;
+    bool newRelation = true;
+
+    if (mRelationModels.contains(key)) {
+        model = mRelationModels[key];
+        newRelation = false;
+    }
+
+    Schema2TableModel* childModel = mTableModels[childTable];
+    Schema2TableModel* parentModel = mTableModels[parentTable];
+
+    Schema2TableItem* childItem = mTableItems[childTable];
+    Schema2TableItem* parentItem = mTableItems[parentTable];
+
+    Schema2RelationDialog dialog(parent);
+    dialog.init(childModel, parentModel, model);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    if (dialog.remove()) {
+        // todo implement relation removal
+
+    } else {
+
+        if (newRelation) {
+
+            Schema2RelationModel* model = new Schema2RelationModel(childTable, dialog.childColumn(), parentTable, dialog.parentColumn(), dialog.constrained(), false);
+            mRelationModels[key] = model;
+            Schema2RelationItem* item = new Schema2RelationItem(model, childItem, parentItem);
+            mRelationItems[key] = item;
+            mScene->addItem(item);
+
+            childItem->addRelation(item);
+            parentItem->addRelation(item);
+
+        } else {
+
+
+        }
+
+    }
+
+
 }
-
-
 
 void Schema2Data::showAlterView(const QString &tableName)
 {

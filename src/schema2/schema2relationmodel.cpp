@@ -1,7 +1,12 @@
 #include "schema2relationmodel.h"
 
-Schema2RelationModel::Schema2RelationModel(const QString &parentTable, const QString &parentColumn, const QString &childTable, const QString &childColumn, QObject *parent)
-    : QAbstractTableModel(parent)
+Schema2RelationModel::Schema2RelationModel(const QString &childTable, const QString &childColumn,
+                                           const QString &parentTable, const QString &parentColumn,
+                                           bool constrained, bool existing, QObject *parent)
+    : mChildTable(childTable), mChildColumn(childColumn),
+      mParentTable(parentTable), mParentColumn(parentColumn),
+      mConstrained(constrained), mExisting(existing),
+      QAbstractTableModel(parent)
 {
 
 }

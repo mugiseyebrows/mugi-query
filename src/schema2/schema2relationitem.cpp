@@ -4,8 +4,8 @@
 
 #include "schema2tableitem.h"
 
-Schema2RelationItem::Schema2RelationItem(Schema2RelationModel *model, Schema2TableItem *parentTable, Schema2TableItem *childTable, QGraphicsItem *parent)
-    : mModel(model), mParentTable(parentTable), mChildTable(childTable), QGraphicsItem(parent)
+Schema2RelationItem::Schema2RelationItem(Schema2RelationModel *model, Schema2TableItem *childTable, Schema2TableItem *parentTable, QGraphicsItem *parent)
+    : mModel(model), mChildTable(childTable), mParentTable(parentTable), QGraphicsItem(parent)
 {
 
 }
@@ -156,10 +156,10 @@ void Schema2RelationItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
     if (ok1 && ok2) {
         //painter->drawLine(p1, p2);
-        drawArrow(painter, QLineF(p2, p1), 15, M_PI / 4);
+        drawArrow(painter, QLineF(p2, p1), 15, M_PI / 5);
     } else {
         //painter->drawLine(c1, c2);
-        drawArrow(painter, QLineF(c2, c1), 15, M_PI / 4);
+        drawArrow(painter, QLineF(c2, c1), 15, M_PI / 5);
     }
 
     /*QPointF p1 = mParentTable->sceneBoundingRect().center();

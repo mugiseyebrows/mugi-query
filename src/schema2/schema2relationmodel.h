@@ -8,22 +8,60 @@ class Schema2RelationModel : public QAbstractTableModel
     Q_OBJECT
 public:
     enum rows {
-        row_parent_table,
-        row_parent_column,
         row_child_table,
         row_child_column,
+        row_parent_table,
+        row_parent_column,
         rows_count
     };
 
-    Schema2RelationModel(const QString& parentTable, const QString& parentColumn,
-                                  const QString& childTable, const QString& childColumn,
-                                  QObject *parent = nullptr);
+    Schema2RelationModel(const QString& childTable, const QString& childColumn,
+                         const QString& parentTable, const QString& parentColumn,
+                         bool constrained, bool existing, QObject *parent = nullptr);
+
+    QString childTable() const {
+        return mChildTable;
+    }
+
+    QString childColumn() const {
+        return mChildColumn;
+    }
+
+    QString parentTable() const {
+        return mParentTable;
+    }
+
+    QString parentColumn() const {
+        return mParentColumn;
+    }
+
+    void setChildColumn(const QString& name) {
+        if (mChildColumn == name) {
+            return;
+        }
+        mChildColumn = name;
+        mExisting = false;
+    }
+
+    void setParentColumn(const QString& name) {
+        if (mParentColumn == name) {
+            return;
+        }
+        mParentColumn = name;
+        mExisting = false;
+    }
+
+    bool hasPendingChanges() const {
+        return mConstrained && !mExisting;
+    }
 
 protected:
-    QString mParentTable;
-    QString mParentColumn;
     QString mChildTable;
     QString mChildColumn;
+    QString mParentTable;
+    QString mParentColumn;
+    bool mExisting;
+    bool mConstrained;
 
 signals:
 

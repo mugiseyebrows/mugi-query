@@ -9,13 +9,13 @@ class Schema2RelationItem : public QGraphicsItem
 {
 public:
     Schema2RelationItem(Schema2RelationModel* model,
-                        Schema2TableItem* parentTable,
                         Schema2TableItem* childTable,
+                        Schema2TableItem* parentTable,
                         QGraphicsItem *parent = nullptr);
 protected:
     Schema2RelationModel* mModel;
-    Schema2TableItem* mParentTable;
     Schema2TableItem* mChildTable;
+    Schema2TableItem* mParentTable;
 
     // QGraphicsItem interface
 public:

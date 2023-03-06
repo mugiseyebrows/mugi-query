@@ -31,12 +31,14 @@ public:
 
     bool hasPendingChanges() const;
 
+    QStringList newNames() const;
+
 signals:
     void tableClicked(QString);
 
 protected:
     QList<QStringList> mColumns;
-    QString mName;
+    QString mTableName;
 
     bool mExisting;
 

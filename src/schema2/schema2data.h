@@ -42,7 +42,7 @@ public:
 
     QGraphicsScene* scene();
 
-    void showRelateView(const QString &tableName);
+    void showRelationDialog(const QString &childTable, const QString &parentTable, QWidget* parent);
 
     void showAlterView(const QString& tableName);
 
@@ -75,7 +75,7 @@ protected:
 
     QList<Schema2TableItem*> mSetPosQueue;
 
-
+    QList<Schema2RelationModel*> mRemoveRelationsQueue;
 
     void pullTables();
     void pullRelations();

@@ -35,7 +35,17 @@ void Schema2View::onTableClicked(QString tableName)
     switch (mMode) {
     case ModeNone: break;
     case ModeMove: break;
-    case ModeRelate: mData->showRelateView(tableName); break;
+    case ModeRelate:
+        mRelationTables.append(tableName);
+        if (mRelationTables.size() == 2) {
+            QString childTable = mRelationTables[0];
+            QString parentTable = mRelationTables[1];
+            if (childTable != parentTable) {
+                mData->showRelationDialog(childTable, parentTable, this);
+            }
+            mRelationTables.clear();
+        }
+        break;
     case ModeAlter: mData->showAlterView(tableName); break;
     case ModeInsert: mData->showInsertView(tableName); break;
     }
@@ -63,6 +73,7 @@ void Schema2View::on_relate_clicked(bool checked)
 {
     uncheckAllExcept(ui->relate);
     mMode = checked ? ModeRelate : ModeNone;
+    mRelationTables.clear();
 }
 
 void Schema2View::on_alter_clicked(bool checked)
