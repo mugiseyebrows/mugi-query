@@ -13,6 +13,8 @@ public:
 
     void addRelation(Schema2RelationItem* relation);
 
+    QString tableName() const;
+
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 protected:

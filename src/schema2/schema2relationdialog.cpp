@@ -26,13 +26,24 @@ static void setCurrentText(QComboBox* combo, const QString& text) {
     }
 }
 
+#include <QSet>
+
 static QString findCommon(const QStringList& names1, const QStringList& names2) {
+#if 0
     for(int i=0;i<names1.size();i++) {
         for(int j=0;j<names2.size();j++) {
             if (names1[i] == names2[j]) {
                 return names1[i];
             }
         }
+    }
+    return QString();
+#endif
+    QSet<QString> names1_ = names1.toSet();
+    QSet<QString> names2_ = names2.toSet();
+    QSet<QString> intersection = names1_.intersect(names2_);
+    if (intersection.isEmpty()) {
+        return intersection.values()[0];
     }
     return QString();
 }

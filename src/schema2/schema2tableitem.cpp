@@ -18,6 +18,11 @@ void Schema2TableItem::addRelation(Schema2RelationItem *relation)
     mRelations.append(relation);
 }
 
+QString Schema2TableItem::tableName() const
+{
+    return mModel->tableName();
+}
+
 QRectF Schema2TableItem::boundingRect() const
 {
     int w = 200;

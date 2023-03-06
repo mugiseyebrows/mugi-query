@@ -15,6 +15,9 @@
 #include "schema2alterview.h"
 #include "showandraise.h"
 #include "datautils.h"
+#include "schema2store.h"
+#include "schema2relationdialog.h"
+#include "reporterror.h"
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -173,11 +176,14 @@ void Schema2Data::pullRelationsMysql() {
 
 
         } else {
+
+#if 0
             // not an error: mariadb stores all databases data in one INFORMATION_SCHEMA
             qDebug() << "childTable" << childTable << "parentTable" << parentTable
                      << "tables.contains(childTable)" << tables.contains(childTable)
                      << "tables.contains(parentTable)" << tables.contains(parentTable)
                      << __FILE__ << __LINE__;
+#endif
         }
     }
 }
@@ -225,6 +231,7 @@ void Schema2Data::pull()
 
 void Schema2Data::push()
 {
+    savePos();
 
 }
 
@@ -235,6 +242,7 @@ void Schema2Data::save()
 
 void Schema2Data::load()
 {
+    loadPos();
     pull();
 }
 
@@ -274,8 +282,7 @@ QGraphicsScene *Schema2Data::scene()
     return mScene;
 }
 
-#include "schema2relationdialog.h"
-#include "reporterror.h"
+
 
 void Schema2Data::showRelationDialog(const QString &childTable, const QString& parentTable, QWidget *parent)
 {
@@ -352,6 +359,21 @@ void Schema2Data::showAlterView(const QString &tableName)
 void Schema2Data::showInsertView(const QString &tableName)
 {
 
+}
+
+void Schema2Data::loadPos()
+{
+    mTablePos = Schema2Store::instance(this)->loadPos(mConnectionName);
+}
+
+void Schema2Data::savePos()
+{
+    QHash<QString, QPointF> pos;
+    QList<Schema2TableItem*> items = mTableItems.values();
+    for(Schema2TableItem* item: items) {
+        pos[item->tableName()] = item->pos();
+    }
+    Schema2Store::instance(this)->savePos(mConnectionName, pos);
 }
 
 Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)

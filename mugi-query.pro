@@ -80,6 +80,7 @@ HEADERS += \
     src/schema2/schema2relationdialog.h \
     src/schema2/schema2relationitem.h \
     src/schema2/schema2relationmodel.h \
+    src/schema2/schema2store.h \
     src/schema2/schema2tableitem.h \
     src/schema2/schema2tablemodel.h \
     src/schema2/schema2view.h \
@@ -200,6 +201,7 @@ SOURCES += \
     src/schema2/schema2relationdialog.cpp \
     src/schema2/schema2relationitem.cpp \
     src/schema2/schema2relationmodel.cpp \
+    src/schema2/schema2store.cpp \
     src/schema2/schema2tableitem.cpp \
     src/schema2/schema2tablemodel.cpp \
     src/schema2/schema2view.cpp \

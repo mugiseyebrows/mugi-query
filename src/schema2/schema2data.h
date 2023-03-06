@@ -48,6 +48,10 @@ public:
 
     void showInsertView(const QString &tableName);
 
+    void loadPos();
+
+    void savePos();
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 
