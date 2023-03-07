@@ -18,6 +18,7 @@
 #include "schema2store.h"
 #include "schema2relationdialog.h"
 #include "reporterror.h"
+#include "schema2arrange.h"
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -56,7 +57,7 @@ void Schema2Data::pullTables() {
     QSet<QPair<int,int> > grid;
 #endif
 
-    for(const QString& table: tables) {
+    for(const QString& table: qAsConst(tables)) {
         if (!mTableModels.contains(table)) {
             Schema2TableModel* model = new Schema2TableModel(table, true);
             mTableModels[table] = model;
@@ -259,7 +260,7 @@ bool Schema2Data::hasPendingChanges() const
         }
     }
     QList<Schema2RelationModel*> relations = mRelationModels.values();
-    for(Schema2RelationModel* relation: relations) {
+    for(Schema2RelationModel* relation: qAsConst(relations)) {
         if (relation->hasPendingChanges()) {
             return true;
         }
@@ -371,15 +372,19 @@ void Schema2Data::savePos()
 {
     QHash<QString, QPointF> pos;
     QList<Schema2TableItem*> items = mTableItems.values();
-    for(Schema2TableItem* item: items) {
+    for(Schema2TableItem* item: qAsConst(items)) {
         pos[item->tableName()] = item->pos();
     }
     Schema2Store::instance(this)->savePos(mConnectionName, pos);
 }
 
+
+
 void Schema2Data::arrange()
 {
-    squareArrange(mTableItems.keys(), mRelationModels, mTableItems);
+    //squareArrange(mTableItems.keys(), mRelationModels, mTableItems);
+
+    arrangeTables(GridTriangle, mTableItems.keys(), mRelationModels, mTableItems);
 }
 
 Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)

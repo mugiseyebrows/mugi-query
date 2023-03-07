@@ -3,6 +3,8 @@
 #include "schema2tableitem.h"
 #include <QDebug>
 
+#if 0
+
 template<class T>
 QList<T> shuffled(const QList<T>& items) {
 
@@ -149,6 +151,8 @@ void arrangeInGrid(const QList<Schema2TableItem *> &items, int width, int heigth
     }
 }
 
+#endif
+
 class Node {
 public:
     Node(const QString& name) : name(name) {
@@ -156,12 +160,20 @@ public:
     }
     QString name;
     QStringList connections;
-    QPoint pos;
+    QPointF pos;
 };
 
-bool moreThan(const Node& node1, const Node& node2) {
+static bool lessThan(const Node& node1, const Node& node2) {
+    return node1.connections.size() < node2.connections.size();
+}
+
+#if 0
+static bool moreThan(const Node& node1, const Node& node2) {
     return node1.connections.size() > node2.connections.size();
 }
+#endif
+
+#if 0
 
 bool containsOne(const Node& node, const QList<Node>& finished) {
     int count = 0;
@@ -183,21 +195,25 @@ bool containsTwo(const Node& node, const QList<Node>& finished) {
     return count > 1;
 }
 
+#endif
+
 #include <QPointF>
 #include <math.h>
 
-double dist(const QPoint& p1, const QPoint& p2) {
-    QPointF p = QPointF(p2) - QPointF(p1);
+double dist(const QPointF& p1, const QPointF& p2) {
+    QPointF p = p2 - p1;
     return sqrt(p.x()*p.x() + p.y()*p.y());
 }
 
-double distSum(const QPoint& pos, const QList<QPoint>& related) {
+double distSum(const QPointF& pos, const QList<QPointF>& related) {
     double res = 0;
     for(int i=0;i<related.size();i++) {
         res += dist(related[i], pos);
     }
     return res;
 }
+
+#if 0
 
 bool isOccupied(const QPoint& pos, const QList<Node>& finished) {
     for(const Node& other: finished) {
@@ -229,19 +245,22 @@ QPoint findPosAroundCenter(const Node& node, const QList<Node>& finished) {
     }
     return best;
 }
+#endif
 
+
+#if 0
 QPoint findBestPos(const Node& node, const QList<Node>& finished) {
-    QList<QPoint> related;
+    QList<QPointF> related;
     for(const Node& other: finished) {
         if (node.connections.contains(other.name)) {
             related.append(other.pos);
         }
     }
-    QPoint best = {-3,-3};
+    QPointF best = {-3,-3};
     double bestDist = distSum(best, related);
     for(int i=-3;i<=3;i++) {
         for(int j=-3;j<=3;j++) {
-            QPoint pos = QPoint(i,j);
+            QPointF pos = QPointF(i,j);
             double dist = distSum(pos, related);
             if (dist < bestDist) {
                 if (!isOccupied(pos, finished)) {
@@ -253,7 +272,157 @@ QPoint findBestPos(const Node& node, const QList<Node>& finished) {
     }
     return best;
 }
+#endif
 
+QList<QPointF> createGrid(GridType type, int n) {
+
+    QList<QPointF> res;
+
+    if (type == GridSquare) {
+
+        double w = 200 + 40;
+
+        for(int i=-3;i<=3;i++) {
+            for(int j=-3;j<=3;j++) {
+                res.append(QPointF(i * w, j * w));
+            }
+        }
+
+    } else if (type == GridTriangle) {
+
+        double w = 300 + 40;
+
+        double h = cos(M_PI / 3) * w;
+        double s = w / 2;
+
+        for(int i=-3;i<=3;i++) {
+            for(int j=-3;j<=3;j++) {
+                res.append(QPointF(i * w + (j % 2) * s, j * h));
+            }
+        }
+
+    }
+
+    return res;
+}
+
+int countConnections(const Node& node, const QList<Node>& positioned) {
+    int count = 0;
+    for(const Node& other: positioned) {
+        if (node.connections.contains(other.name)) {
+            count += 1;
+        }
+    }
+    return count;
+}
+
+int findMostConnected(QList<Node>& nodes, QList<Node>& positioned) {
+    int bestIndex = 0;
+    int bestConnections = countConnections(nodes[bestIndex], positioned);
+    for(int index=1;index < nodes.size();index++) {
+        int connections = countConnections(nodes[index], positioned);
+        if (connections >= bestConnections) {
+            bestIndex = index;
+            bestConnections = connections;
+        }
+    }
+    return bestIndex;
+}
+
+int findCenter(const QList<QPointF>& grid) {
+    for(int i=0;i<grid.size();i++) {
+        if (dist(grid[i],{0,0}) < 10) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int findBestPos(const Node& node, const QList<Node>& positioned, const QList<QPointF>& grid) {
+    QList<QPointF> related;
+    for(const Node& other: positioned) {
+        if (node.connections.contains(other.name)) {
+            related.append(other.pos);
+        }
+    }
+
+    int bestIndex = 0;
+    double bestDist = distSum(grid[bestIndex], related);
+
+    for(int index=1;index<grid.size();index++) {
+        double dist = distSum(grid[index], related);
+        if (dist < bestDist) {
+            bestIndex = index;
+            bestDist = dist;
+        }
+    }
+
+    return bestIndex;
+}
+
+QList<Node> buildNodes(const QStringList tables,
+                       const QHash<QStringList, Schema2RelationModel *> &relationModels) {
+
+    QList<Node> nodes;
+
+    QList<QStringList> keys = relationModels.keys();
+
+    for(const QString& table: tables) {
+        Node node(table);
+        for(const QStringList& key: qAsConst(keys)) {
+            if (key[0] == table) {
+                node.connections.append(key[1]);
+            } else if (key[1] == table) {
+                node.connections.append(key[0]);
+            }
+        }
+        nodes.append(node);
+    }
+    qSort(nodes.begin(), nodes.end(), lessThan);
+
+    return nodes;
+}
+
+void setPos(QList<Node>& nodes, int nodeIndex, QList<Node>& positioned, int gridIndex, QList<QPointF>& grid) {
+    Node node = nodes.takeAt(nodeIndex);
+    QPointF pos = grid.takeAt(gridIndex);
+    node.pos = pos;
+    positioned.append(node);
+}
+
+void arrangeTables(GridType type, const QStringList tables,
+             const QHash<QStringList, Schema2RelationModel *> &relationModels,
+             const QHash<QString, Schema2TableItem*>& tableItems) {
+
+    if (tables.isEmpty()) {
+        return;
+    }
+
+    QList<QPointF> grid = createGrid(type, tables.size());
+
+    QList<Node> nodes = buildNodes(tables, relationModels);
+
+    QList<Node> positioned = {};
+
+    int gridIndex = findCenter(grid);
+
+    int nodeIndex = nodes.size() - 1;
+
+    setPos(nodes, nodeIndex, positioned, gridIndex, grid);
+
+    while(!nodes.isEmpty()) {
+        nodeIndex = findMostConnected(nodes, positioned);
+        gridIndex = findBestPos(nodes[nodeIndex], positioned, grid);
+        setPos(nodes, nodeIndex, positioned, gridIndex, grid);
+    }
+
+    for(const Node& node: qAsConst(positioned)) {
+        tableItems[node.name]->setPos(node.pos);
+    }
+
+}
+
+#if 0
 void squareArrange(const QStringList tables,
                    const QHash<QStringList, Schema2RelationModel *> &relationModels,
                    const QHash<QString, Schema2TableItem*>& tableItems)
@@ -347,3 +516,4 @@ void squareArrange(const QStringList tables,
 
 
 }
+#endif
