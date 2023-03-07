@@ -95,7 +95,7 @@ void Schema2View::on_create_clicked()
 
 void Schema2View::on_arrange_clicked()
 {
-
+    mData->arrange();
 }
 
 void Schema2View::on_pull_clicked()

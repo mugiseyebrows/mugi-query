@@ -148,3 +148,202 @@ void arrangeInGrid(const QList<Schema2TableItem *> &items, int width, int heigth
         }
     }
 }
+
+class Node {
+public:
+    Node(const QString& name) : name(name) {
+
+    }
+    QString name;
+    QStringList connections;
+    QPoint pos;
+};
+
+bool moreThan(const Node& node1, const Node& node2) {
+    return node1.connections.size() > node2.connections.size();
+}
+
+bool containsOne(const Node& node, const QList<Node>& finished) {
+    int count = 0;
+    for(const Node& other: finished) {
+        if (node.connections.contains(other.name)) {
+            count += 1;
+        }
+    }
+    return count > 0;
+}
+
+bool containsTwo(const Node& node, const QList<Node>& finished) {
+    int count = 0;
+    for(const Node& other: finished) {
+        if (node.connections.contains(other.name)) {
+            count += 1;
+        }
+    }
+    return count > 1;
+}
+
+#include <QPointF>
+#include <math.h>
+
+double dist(const QPoint& p1, const QPoint& p2) {
+    QPointF p = QPointF(p2) - QPointF(p1);
+    return sqrt(p.x()*p.x() + p.y()*p.y());
+}
+
+double distSum(const QPoint& pos, const QList<QPoint>& related) {
+    double res = 0;
+    for(int i=0;i<related.size();i++) {
+        res += dist(related[i], pos);
+    }
+    return res;
+}
+
+bool isOccupied(const QPoint& pos, const QList<Node>& finished) {
+    for(const Node& other: finished) {
+        if (other.pos == pos) {
+            return true;
+        }
+    }
+    return false;
+}
+
+double distFromCenter(const QPoint& pos) {
+    return dist(pos, QPoint(0,0));
+}
+
+QPoint findPosAroundCenter(const Node& node, const QList<Node>& finished) {
+    QPoint best = {-3,-3};
+    double bestDist = distFromCenter(best);
+    for(int i=-3;i<=3;i++) {
+        for(int j=-3;j<=3;j++) {
+            QPoint pos(i,j);
+            double dist = distFromCenter(pos);
+            if (dist < bestDist) {
+                if (!isOccupied(pos, finished)) {
+                    best = pos;
+                    bestDist = dist;
+                }
+            }
+        }
+    }
+    return best;
+}
+
+QPoint findBestPos(const Node& node, const QList<Node>& finished) {
+    QList<QPoint> related;
+    for(const Node& other: finished) {
+        if (node.connections.contains(other.name)) {
+            related.append(other.pos);
+        }
+    }
+    QPoint best = {-3,-3};
+    double bestDist = distSum(best, related);
+    for(int i=-3;i<=3;i++) {
+        for(int j=-3;j<=3;j++) {
+            QPoint pos = QPoint(i,j);
+            double dist = distSum(pos, related);
+            if (dist < bestDist) {
+                if (!isOccupied(pos, finished)) {
+                    best = pos;
+                    bestDist = dist;
+                }
+            }
+        }
+    }
+    return best;
+}
+
+void squareArrange(const QStringList tables,
+                   const QHash<QStringList, Schema2RelationModel *> &relationModels,
+                   const QHash<QString, Schema2TableItem*>& tableItems)
+{
+    QList<QStringList> keys = relationModels.keys();
+
+    QList<Node> nodes;
+
+    for(const QString& table: tables) {
+        Node node(table);
+        for(const QStringList& key: keys) {
+            if (key[0] == table) {
+                node.connections.append(key[1]);
+            } else if (key[1] == table) {
+                node.connections.append(key[0]);
+            }
+        }
+        nodes.append(node);
+    }
+    qSort(nodes.begin(), nodes.end(), moreThan);
+
+    QList<Node> finished;
+    Node center = nodes.takeFirst();
+    center.pos = {0,0};
+    finished.append(center);
+
+    QList<QPoint> queue = {{1,0}, {0,1}, {-1,0}, {0,-1}};
+
+    int i=0;
+    while(i < nodes.size()) {
+        if (nodes[i].connections.contains(center.name)) {
+            QPoint pos = queue.takeFirst();
+            auto node = nodes.takeAt(i);
+            node.pos = pos;
+            finished.append(node);
+            if (queue.isEmpty()) {
+                break;
+            }
+            i--;
+        }
+        i++;
+    }
+    i = 0;
+    while(i < nodes.size()) {
+        if (containsTwo(nodes[i], finished)) {
+            QPoint pos = findBestPos(nodes[i], finished);
+            auto node = nodes.takeAt(i);
+            node.pos = pos;
+            finished.append(node);
+            if (nodes.isEmpty()) {
+                break;
+            }
+            i = -1;
+        }
+        i++;
+    }
+    i = 0;
+    while(i < nodes.size()) {
+        if (containsOne(nodes[i], finished)) {
+            QPoint pos = findBestPos(nodes[i], finished);
+            auto node = nodes.takeAt(i);
+            node.pos = pos;
+            finished.append(node);
+            if (nodes.isEmpty()) {
+                break;
+            }
+            i = -1;
+        }
+        i++;
+    }
+    while(!nodes.isEmpty()) {
+        QPoint pos = findPosAroundCenter(nodes[0], finished);
+        auto node = nodes.takeAt(0);
+        node.pos = pos;
+        finished.append(node);
+    }
+
+    int w = 200 + 40;
+
+    for(const Node& node: finished) {
+
+        QPointF p(node.pos);
+        p.setX(p.x() * w);
+        p.setY(p.y() * w);
+        tableItems[node.name]->setPos(p);
+
+    }
+
+    int t = 0;
+
+
+
+}

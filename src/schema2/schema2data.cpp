@@ -244,6 +244,7 @@ void Schema2Data::load()
 {
     loadPos();
     pull();
+
 }
 
 bool Schema2Data::hasPendingChanges() const
@@ -374,6 +375,11 @@ void Schema2Data::savePos()
         pos[item->tableName()] = item->pos();
     }
     Schema2Store::instance(this)->savePos(mConnectionName, pos);
+}
+
+void Schema2Data::arrange()
+{
+    squareArrange(mTableItems.keys(), mRelationModels, mTableItems);
 }
 
 Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)

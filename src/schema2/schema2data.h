@@ -52,6 +52,8 @@ public:
 
     void savePos();
 
+    void arrange();
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 

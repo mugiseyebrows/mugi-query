@@ -3,7 +3,12 @@
 
 #include <QList>
 class Schema2TableItem;
+class Schema2RelationModel;
+class Schema2RelationItem;
 
 void arrangeInGrid(const QList<Schema2TableItem*>& items, int width, int heigth, int spacing);
+
+void squareArrange(const QStringList tables, const QHash<QStringList, Schema2RelationModel*>& relationModels,
+                      const QHash<QString, Schema2TableItem *> &tableItems);
 
 #endif // SCHEMA2ARRANGE_H
