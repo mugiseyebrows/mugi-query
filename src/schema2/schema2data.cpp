@@ -31,11 +31,13 @@ Schema2Data *Schema2Data::instance(const QString &connectionName, QObject *paren
     return mData[connectionName];
 }
 
+#if 0
 void Schema2Data::unoverlapTables() {
 
     int w = 200;
     arrangeInGrid(mTableItems.values(), w, 700, 40);
 }
+#endif
 
 void Schema2Data::pullTables() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);

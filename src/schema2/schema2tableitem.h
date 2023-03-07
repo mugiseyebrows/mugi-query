@@ -17,6 +17,9 @@ public:
 
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+
+    void setCenterPos(const QPointF& point);
+
 protected:
     Schema2TableModel* mModel;
     QList<Schema2RelationItem*> mRelations;

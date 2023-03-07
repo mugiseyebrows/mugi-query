@@ -87,7 +87,7 @@ protected:
     void pullRelations();
     void pullRelationsMysql();
 
-    void unoverlapTables();
+    //void unoverlapTables();
     void setTableItemsPos();
 signals:
     void tableClicked(QString);

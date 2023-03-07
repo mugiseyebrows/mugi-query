@@ -83,6 +83,11 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
 }
 
+void Schema2TableItem::setCenterPos(const QPointF &point)
+{
+    setPos(point - boundingRect().center());
+}
+
 QVariant Schema2TableItem::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     if (change == ItemPositionHasChanged) {
