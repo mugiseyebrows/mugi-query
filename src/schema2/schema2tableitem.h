@@ -20,9 +20,16 @@ public:
 
     void setCenterPos(const QPointF& point);
 
+    void setGrayed(bool value);
+
+    bool grayed() const {
+        return mGrayed;
+    }
+
 protected:
     Schema2TableModel* mModel;
     QList<Schema2RelationItem*> mRelations;
+    bool mGrayed;
 
     // QGraphicsItem interface
 protected:

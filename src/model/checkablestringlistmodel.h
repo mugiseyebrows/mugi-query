@@ -15,6 +15,11 @@ public:
 
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
 
+    void setChecked(const QStringList &itemsToCheck, bool checked = true);
+    void setChecked(const QString& item, bool checked = true);
+
+    void setList(const QStringList& items);
+
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
     QStringList checked() const;
@@ -34,6 +39,11 @@ public:
     int count(Qt::CheckState state) const;
     int countChecked() const;
     int countUnchecked() const;
+
+    void toggleChecked(const QString& item);
+
+    QList<QPair<QString,bool>> dataAsTupleList() const;
+
 
 protected:
     QSet<int> mChecked;

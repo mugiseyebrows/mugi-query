@@ -121,14 +121,12 @@ void drawArrow(QPainter *painter, const QLineF& line, double size, double angle)
     QPointF p2;
 
 
-
-
     QPointF p3 = line.p2() + QPointF(-cos(angle1) * size, -sin(angle1) * size);
     //painter->drawLine(line.p2(), p2);
     QPointF p4 = line.p2() + QPointF(-cos(angle2) * size, -sin(angle2) * size);
     //painter->drawLine(line.p2(), p2);
 
-    painter->setBrush(Qt::black);
+    //painter->setBrush(Qt::black);
 
     painter->drawPolygon(QVector<QPointF> {line.p2(), p3, p4});
 
@@ -150,6 +148,11 @@ void Schema2RelationItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
     bool ok1;
     bool ok2;
+
+    bool grayed = mParentTable->grayed() || mChildTable->grayed();
+
+    painter->setPen(grayed ? QColor("#888888") : QColor("#000000"));
+    painter->setBrush(grayed ? QColor("#888888") : QColor("#000000"));
 
     QPointF p1 = intersection(line, rect1, &ok1);
     QPointF p2 = intersection(line, rect2, &ok2);

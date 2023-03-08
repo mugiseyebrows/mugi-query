@@ -19,6 +19,8 @@
 #include "schema2relationdialog.h"
 #include "reporterror.h"
 #include "schema2arrange.h"
+#include <QSortFilterProxyModel>
+#include "checkablestringlistmodel.h"
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -44,21 +46,6 @@ void Schema2Data::pullTables() {
 
     QStringList tables = db.tables();
 
-#if 0
-    int w = 200;
-    int s = 25;
-
-    int gw = w + 20;
-    int gh = s * 7;
-
-    int gcc = (1920 - 200) / gw ;
-    int grc = (1080 - 200) / gh ;
-
-    qDebug() << "cc rc" << gcc << grc;
-
-    QSet<QPair<int,int> > grid;
-#endif
-
     for(const QString& table: qAsConst(tables)) {
         if (!mTableModels.contains(table)) {
             Schema2TableModel* model = new Schema2TableModel(table, true);
@@ -72,30 +59,10 @@ void Schema2Data::pullTables() {
             if (mTablePos.contains(table)) {
                 item->setPos(mTablePos[table]);
             } else {
-
-#if 0
-                int c;
-                int r;
-                for(int i=0;i<100;i++) {
-                    c = rand() % gcc;
-                    r = rand() % grc;
-                    if (!grid.contains({r, c})) {
-                        grid.insert({r, c});
-                        break;
-                    }
-                    //qDebug() << "rc" << r << c;
-                }
-                int x = c * gw;
-                int y = r * gh;
-                item->setPos(x, y);
-#endif
                 mSetPosQueue.append(item);
-
-                //item->setPos(qreal(rand() % 800), qreal(rand() % 600));
             }
             mTableItems[table] = item;
             mScene->addItem(item);
-
         }
 
         if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_QMARIADB) {
@@ -215,10 +182,122 @@ void Schema2Data::setTableItemsPos() {
 
 }
 
+#include <QRegularExpression>
+
+static QString unquoted(const QString& path) {
+    if (path.startsWith("\"") && path.endsWith("\"")) {
+        return path.mid(1, path.size()-2);
+    }
+    return path;
+}
+
+#include <QAxObject>
+
+template <class T>
+T* hash_find(const QHash<QString, T*>& hash, const QString& key) {
+    if (hash.contains(key)) {
+        return hash[key];
+    }
+    QStringList keys = hash.keys();
+    for(const QString& other: keys) {
+        if (other.toLower() == key.toLower()) {
+            return hash[other];
+        }
+    }
+    return 0;
+}
+
+void Schema2Data::pullRelationsOdbc() {
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    QString databaseName = db.databaseName();
+    QStringList props = databaseName.split(";");
+    QRegularExpression rx("DBQ\\s*=\\s*(.*)");
+    QString filePath;
+    for(const QString& prop: props) {
+        QRegularExpressionMatch m = rx.match(prop);
+        if (m.hasMatch()) {
+            filePath = unquoted(m.captured(1).trimmed());
+        }
+    }
+    // todo pullRelationsOdbc for sql server
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    QAxObject engine("DAO.DBEngine.120");
+    QAxObject* database = engine.querySubObject("OpenDatabase(QString, bool)", filePath, false);
+    QAxObject* relations = database->querySubObject("Relations");
+    int count = relations->property("Count").toInt();
+
+    for(int i=0;i<count;i++) {
+        QAxObject* relation = database->querySubObject("Relations(int)", i);
+        QString constraintName = relation->property("Name").toString();
+        QString parentTable = relation->property("Table").toString();
+        QString childTable = relation->property("ForeignTable").toString();
+        //qDebug() << name << table << foreignTable;
+
+        QAxObject* fields = relation->querySubObject("Fields");
+        int fieldCount = fields->property("Count").toInt();
+
+        if (fieldCount != 1) {
+            qDebug() << "pullRelationsOdbc fieldCount != 1" << childTable << parentTable;
+        }
+
+        fieldCount = 1;
+
+        QString childColumn;
+        QString parentColumn;
+        for(int j=0;j<fieldCount;j++) {
+            QAxObject* field = relation->querySubObject("Fields(int)", j);
+            parentColumn = field->property("Name").toString();
+            childColumn = field->property("ForeignName").toString();
+        }
+
+        QStringList key = {childTable, parentTable};
+
+        if (!mRelationModels.contains(key)) {
+            Schema2RelationModel* relationModel = new Schema2RelationModel(childTable, childColumn, parentTable, parentColumn, true, true);
+            mRelationModels[key] = relationModel;
+        }
+
+        if (!mRelationItems.contains(key)) {
+
+            Schema2TableItem* childTableItem = hash_find(mTableItems, childTable);
+            Schema2TableItem* parentTableItem = hash_find(mTableItems, parentTable);
+
+            if (childTableItem && parentTableItem) {
+
+                Schema2RelationItem* item = new Schema2RelationItem(mRelationModels[key], childTableItem, parentTableItem);
+                mRelationItems[key] = item;
+
+                parentTableItem->addRelation(item);
+                childTableItem->addRelation(item);
+
+                mScene->addItem(item);
+            } else {
+                if (!childTableItem) {
+                    qDebug() << "!mTableItems.contains(childTable)" << childTable;
+                }
+                if (!parentTableItem) {
+                    qDebug() << "!mTableItems.contains(parentTable)" << parentTable;
+                }
+            }
+
+
+        }
+
+
+    }
+
+
+}
+
 void Schema2Data::pullRelations() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
     if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_QMARIADB) {
         pullRelationsMysql();
+    } else if (db.driverName() == DRIVER_ODBC) {
+        pullRelationsOdbc();
     } else {
         // todo implement pullRelations for QSQLITE QODBC QPSQL
     }
@@ -230,6 +309,9 @@ void Schema2Data::pull()
     pullTables();
     pullRelations();
     setTableItemsPos();
+
+    mSelectModel->setList(mTableModels.keys());
+
 }
 
 void Schema2Data::push()
@@ -286,7 +368,11 @@ QGraphicsScene *Schema2Data::scene()
     return mScene;
 }
 
+void Schema2Data::selectOrDeselect(const QString& tableName) {
 
+    mSelectModel->toggleChecked(tableName);
+
+}
 
 void Schema2Data::showRelationDialog(const QString &childTable, const QString& parentTable, QWidget *parent)
 {
@@ -380,8 +466,6 @@ void Schema2Data::savePos()
     Schema2Store::instance(this)->savePos(mConnectionName, pos);
 }
 
-
-
 void Schema2Data::arrange()
 {
     //squareArrange(mTableItems.keys(), mRelationModels, mTableItems);
@@ -389,8 +473,28 @@ void Schema2Data::arrange()
     arrangeTables(GridTriangle, mTableItems.keys(), mRelationModels, mTableItems);
 }
 
-Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)
-    : mConnectionName(connectionName), mScene(new QGraphicsScene), mView(nullptr), QObject{parent}
+QList<Schema2Join> Schema2Data::findJoin(const QStringList &join)
 {
+    return findJoinImpl(join, mTableModels, mRelationModels);
+}
+
+
+
+void Schema2Data::onSelectModelChanged(QModelIndex, QModelIndex) {
+    QList<QPair<QString,bool>> data = mSelectModel->dataAsTupleList();
+    for(int i=0;i<data.size();i++) {
+        QPair<QString,bool> item = data[i];
+        mTableItems[item.first]->setGrayed(!item.second);
+    }
+}
+
+Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)
+    : mConnectionName(connectionName), mScene(new QGraphicsScene),
+      mView(nullptr), mSelectModel(new CheckableStringListModel({}, this)),
+      mSelectProxyModel(new QSortFilterProxyModel(this)), QObject{parent}
+{
+    mSelectProxyModel->setSourceModel(mSelectModel);
+    connect(mSelectModel,SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(onSelectModelChanged(QModelIndex,QModelIndex)));
     load();
+    mSelectModel->setAllChecked();
 }

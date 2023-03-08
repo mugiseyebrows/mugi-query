@@ -28,6 +28,7 @@
 #include "error.h"
 #include <QClipboard>
 #include "drivernames.h"
+#include "schema2data.h"
 
 namespace  {
 
@@ -64,6 +65,8 @@ JoinHelperWidget::JoinHelperWidget(QWidget *parent) :
     connect(filter,SIGNAL(copy()),this,SLOT(onRelationsCopy()));
     connect(filter,SIGNAL(paste()),this,SLOT(onRelationsPaste()));
     connect(filter,SIGNAL(delete_()),filter,SLOT(onDeleteSelected()));
+
+    ui->joinType->addItems(joinTypes());
 
     QTimer::singleShot(0,this,SLOT(onAdjustSplitters()));
 }
@@ -180,8 +183,12 @@ QStringList filterEmpty(const QStringList& items) {
 
 }
 
+
+
 void JoinHelperWidget::findPath()
 {
+    bool mssql = QSqlDatabase::database(mConnectionName).driverName() == DRIVER_ODBC;
+#if 0
     Relations relations(ui->relations->model());
 
     QStringListModel* tablesModel = qobject_cast<QStringListModel*>(ui->tables->model());
@@ -194,7 +201,7 @@ void JoinHelperWidget::findPath()
     }
 
     bool leftJoin = ui->joinType->currentIndex() == 0;
-    bool mssql = QSqlDatabase::database(mConnectionName).driverName() == DRIVER_ODBC;
+
 
     Relations::PathList path = relations.findPath(tables);
     if (path.isEmpty()) {
@@ -202,6 +209,29 @@ void JoinHelperWidget::findPath()
     } else {
         ui->query->setText(relations.expression(path,leftJoin,mssql));
     }
+#endif
+
+    QStringListModel* tablesModel = qobject_cast<QStringListModel*>(ui->tables->model());
+
+    QStringList tables = filterEmpty(tablesModel->stringList());
+
+    if (tables.size() < 2) {
+        ui->query->setText("select two or more tables");
+        return;
+    }
+
+    JoinType jointype = (JoinType) ui->joinType->currentIndex();
+
+    Schema2Data* data = Schema2Data::instance(mConnectionName, this);
+    QList<Schema2Join> join = data->findJoin(tables);
+
+    if (join.isEmpty()) {
+        ui->query->setText("no path found");
+    } else {
+        ui->query->setText(toString(join, mssql, jointype));
+    }
+
+
 
 }
 

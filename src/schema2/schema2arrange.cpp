@@ -52,7 +52,7 @@ static QList<QPointF> createGrid(GridType type, int n) {
         N = 2;
     }
 
-    qDebug() << QString("%1 tables, grid %2..%3 x %2..%3").arg(n).arg(-N).arg(N);
+    //qDebug() << QString("%1 tables, grid %2..%3 x %2..%3").arg(n).arg(-N).arg(N);
 
     if (type == GridSquare) {
 
@@ -120,6 +120,10 @@ static int findBestPos(const Node& node, const QList<Node>& positioned, const QL
         if (node.connections.contains(other.name)) {
             related.append(other.pos);
         }
+    }
+
+    if (related.isEmpty()) {
+        related.append({0, 0});
     }
 
     int bestIndex = 0;

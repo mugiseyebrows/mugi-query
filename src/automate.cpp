@@ -7,8 +7,9 @@ void automate(QWidget *widget)
 {
 #if 1
     Automation* automation = Automation::instance(widget);
-    automation->connectToDatabaseFromHistory("dvdrental");
+    automation->connectToDatabaseFromHistory("testaccess");
     automation->schemaEdit();
+    //automation->showJoinHelper();
     automation->start();
 #endif
 }

@@ -22,12 +22,16 @@ public:
         ModeRelate,
         ModeAlter,
         ModeInsert,
+        ModeSelect
     };
 
     explicit Schema2View(QWidget *parent = nullptr);
     ~Schema2View();
 
     void setData(Schema2Data* data);
+
+    static QList<double> mScales;
+    static QStringList mScalesText;
 
 public slots:
     void onTableClicked(QString tableName);
@@ -40,6 +44,8 @@ protected:
     Schema2Data* mData;
 
     QStringList mRelationTables;
+
+    int mScaleIndex;
 
 private slots:
 
@@ -55,11 +61,17 @@ private slots:
 
     void on_arrange_clicked();
 
-
-
     void on_pull_clicked();
 
     void on_push_clicked();
+
+    void on_zoomOut_clicked();
+
+    void on_zoomIn_clicked();
+
+    void on_scale_currentIndexChanged(int index);
+
+    void on_select_clicked(bool checked);
 
 private:
     Ui::Schema2View *ui;

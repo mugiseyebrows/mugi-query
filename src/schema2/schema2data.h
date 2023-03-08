@@ -5,6 +5,7 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QModelIndex>
 
 class Schema2TableModel;
 class Schema2TableView;
@@ -16,8 +17,11 @@ class Schema2RelationItem;
 class Schema2TableItem;
 class ClickListener;
 class Schema2AlterView;
+class CheckableStringListModel;
+class QSortFilterProxyModel;
 
 #include <QHash>
+#include "schema2join.h"
 
 class Schema2Data : public QObject
 {
@@ -54,6 +58,15 @@ public:
 
     void arrange();
 
+    QList<Schema2Join> findJoin(const QStringList& join);
+
+    QSortFilterProxyModel* selectProxyModel() {
+        return mSelectProxyModel;
+    }
+
+    void selectOrDeselect(const QString& table);
+
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 
@@ -83,14 +96,21 @@ protected:
 
     QList<Schema2RelationModel*> mRemoveRelationsQueue;
 
+    CheckableStringListModel* mSelectModel;
+
+    QSortFilterProxyModel* mSelectProxyModel;
+
     void pullTables();
     void pullRelations();
     void pullRelationsMysql();
 
     //void unoverlapTables();
     void setTableItemsPos();
+    void pullRelationsOdbc();
 signals:
     void tableClicked(QString);
+protected slots:
+    void onSelectModelChanged(QModelIndex, QModelIndex);
 };
 
 #endif // SCHEMA2DATA_H

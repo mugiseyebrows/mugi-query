@@ -7,7 +7,7 @@
 
 
 Schema2TableItem::Schema2TableItem(Schema2TableModel *model, QGraphicsItem *parent)
-    : mModel(model), QGraphicsItem(parent)
+    : mModel(model), QGraphicsItem(parent), mGrayed(false)
 {
     setFlag(QGraphicsItem::ItemIsMovable, true);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges);
@@ -36,7 +36,11 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     int w = 200;
     int s = 25;
 
+
+
     painter->setFont(QFont("Liberation Sans", 11));
+
+    painter->setPen(mGrayed ? QColor("#888888") : QColor("#000000"));
 
     {
         QRectF rect = boundingRect();
@@ -44,13 +48,17 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
         painter->save();
 
-        painter->setBrush(QColor("#FFFBAC"));
+        QBrush bodyBrush = mGrayed ? QColor("#ffffff") : QColor("#FFFBAC");
+
+        painter->setBrush(bodyBrush);
         painter->drawRect(rect);
         //painter->drawLine(0,s,w,s);
 
-
         rect = QRectF(0,0,w,s);
-        painter->setBrush(QColor("#FFD495"));
+
+        QBrush titleBrush = mGrayed ? QColor("#ffffff") : QColor("#FFD495");
+
+        painter->setBrush(titleBrush);
         //painter->setPen(Qt::NoPen);
         painter->drawRect(rect);
         painter->restore();
@@ -86,6 +94,18 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 void Schema2TableItem::setCenterPos(const QPointF &point)
 {
     setPos(point - boundingRect().center());
+}
+
+void Schema2TableItem::setGrayed(bool value)
+{
+    if (mGrayed == value) {
+        return;
+    }
+    mGrayed = value;
+    update();
+    for(Schema2RelationItem* item: mRelations) {
+        item->update();
+    }
 }
 
 QVariant Schema2TableItem::itemChange(GraphicsItemChange change, const QVariant &value)

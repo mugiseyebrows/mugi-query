@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql
+QT       += core gui sql axcontainer
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -77,6 +77,7 @@ HEADERS += \
     src/schema2/reporterror.h \
     src/schema2/schema2alterview.h \
     src/schema2/schema2arrange.h \
+    src/schema2/schema2join.h \
     src/schema2/schema2relationdialog.h \
     src/schema2/schema2relationitem.h \
     src/schema2/schema2relationmodel.h \
@@ -198,6 +199,7 @@ SOURCES += \
     src/schema2/reporterror.cpp \
     src/schema2/schema2alterview.cpp \
     src/schema2/schema2arrange.cpp \
+    src/schema2/schema2join.cpp \
     src/schema2/schema2relationdialog.cpp \
     src/schema2/schema2relationitem.cpp \
     src/schema2/schema2relationmodel.cpp \

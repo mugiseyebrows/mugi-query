@@ -33,6 +33,35 @@ bool CheckableStringListModel::setData(const QModelIndex &index, const QVariant 
     return QStringListModel::setData(index,value,role);
 }
 
+void CheckableStringListModel::setChecked(const QStringList &itemsToCheck, bool checked) {
+    Q_ASSERT(checked); // todo implement unchecking
+    QStringList items = stringList();
+    QSet<int> prev = mChecked;
+    mChecked.clear();
+    for(int row=0;row<items.size();row++) {
+        if (itemsToCheck.contains(items[row])) {
+            mChecked.insert(row);
+        }
+    }
+    if (mChecked != prev) {
+        emit dataChanged(index(0,0), index(rowCount()-1,0));
+    }
+}
+
+void CheckableStringListModel::setChecked(const QString &item, bool checked)
+{
+    int index = stringList().indexOf(item);
+    setData(this->index(index, 0), checked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
+}
+
+void CheckableStringListModel::setList(const QStringList &items)
+{
+    QStringList checked = this->checked();
+    mChecked.clear();
+    setStringList(items);
+    setChecked(checked);
+}
+
 Qt::ItemFlags CheckableStringListModel::flags(const QModelIndex &index) const
 {
     if (index.column() == 0) {
@@ -126,6 +155,29 @@ int CheckableStringListModel::countChecked() const
 int CheckableStringListModel::countUnchecked() const
 {
     return count(Qt::Unchecked);
+}
+
+void CheckableStringListModel::toggleChecked(const QString &item)
+{
+    int row = stringList().indexOf(item);
+    QModelIndex index = this->index(row, 0);
+    int value = data(index, Qt::CheckStateRole).toInt();
+    setData(index, value == Qt::Checked ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole);
+}
+
+template <class T1, class T2>
+QList<QPair<T1, T2>> zip(const QList<T1>& values1, const QList<T2>& values2) {
+    QList<QPair<T1, T2>> res;
+    Q_ASSERT(values1.size() == values2.size());
+    for(int i=0;i<values1.size();i++) {
+        res.append({values1[i], values2[i]});
+    }
+    return res;
+}
+
+QList<QPair<QString, bool> > CheckableStringListModel::dataAsTupleList() const
+{
+    return zip(stringList(), checkedAsBoolList());
 }
 
 int CheckableStringListModel::count(Qt::CheckState state) const
