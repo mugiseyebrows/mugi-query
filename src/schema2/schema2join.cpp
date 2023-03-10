@@ -12,7 +12,7 @@ static bool containsAll(const QList<int>& item, const QList<int> join) {
     return true;
 }
 
-QStringList toLower(const QStringList& items) {
+static QStringList toLower(const QStringList& items) {
     QStringList res;
     for(const QString& item: items) {
         res.append(item.toLower());
@@ -20,11 +20,11 @@ QStringList toLower(const QStringList& items) {
     return res;
 }
 
-static QStringList childColumnParentColumn(const QHash<QStringList, Schema2RelationModel *>& relationModels,
+static QStringList childColumnParentColumn(const StringListHash<Schema2RelationModel *>& relationModels,
                                const QStringList& key, bool reverse = false) {
     if (relationModels.contains(key)) {
-        QString childColumn = relationModels[key]->childColumn();
-        QString parentColumn = relationModels[key]->parentColumn();
+        QString childColumn = relationModels.get(key)->childColumn();
+        QString parentColumn = relationModels.get(key)->parentColumn();
         if (reverse) {
             return {parentColumn, childColumn};
         } else {
@@ -35,7 +35,7 @@ static QStringList childColumnParentColumn(const QHash<QStringList, Schema2Relat
 }
 
 static QStringList findChildColumnParentColumn(const QString &childTable, const QString &parentTable,
-                           const QHash<QStringList, Schema2RelationModel *>& relationModels) {
+                           const StringListHash<Schema2RelationModel *>& relationModels) {
 
     QStringList key1 = {childTable, parentTable};
     if (relationModels.contains(key1)) {
@@ -62,8 +62,8 @@ static QStringList findChildColumnParentColumn(const QString &childTable, const 
 }
 
 QList<Schema2Join> findJoinImpl(const QStringList &join_,
-                 const QHash<QString, Schema2TableModel *>& tableModels,
-                 const QHash<QStringList, Schema2RelationModel *>& relationModels)
+                 const StringHash<Schema2TableModel *>& tableModels,
+                 const StringListHash<Schema2RelationModel *>& relationModels)
 {
     QStringList tables_ = tableModels.keys();
 

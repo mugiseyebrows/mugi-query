@@ -2,10 +2,11 @@
 
 Schema2RelationModel::Schema2RelationModel(const QString &childTable, const QString &childColumn,
                                            const QString &parentTable, const QString &parentColumn,
+                                           const QString& constraintName,
                                            bool constrained, bool existing, QObject *parent)
     : mChildTable(childTable), mChildColumn(childColumn),
       mParentTable(parentTable), mParentColumn(parentColumn),
-      mConstrained(constrained), mExisting(existing),
+      mConstrained(constrained), mExisting(existing), mConstraintName(constraintName),
       QAbstractTableModel(parent)
 {
 

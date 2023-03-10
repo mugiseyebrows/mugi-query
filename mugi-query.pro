@@ -58,6 +58,7 @@ HEADERS += \
     src/deleteeventfilter.h \
     src/filterplotitem.h \
     src/formats.h \
+    src/hash.h \
     src/highlighter.h \
     src/history.h \
     src/itemdelegate.h \
@@ -77,10 +78,15 @@ HEADERS += \
     src/schema2/reporterror.h \
     src/schema2/schema2alterview.h \
     src/schema2/schema2arrange.h \
+    src/schema2/schema2changeset.h \
     src/schema2/schema2join.h \
+    src/schema2/schema2pushview.h \
     src/schema2/schema2relationdialog.h \
     src/schema2/schema2relationitem.h \
     src/schema2/schema2relationmodel.h \
+    src/schema2/schema2relationsfiltermodel.h \
+    src/schema2/schema2relationslistdialog.h \
+    src/schema2/schema2relationslistmodel.h \
     src/schema2/schema2store.h \
     src/schema2/schema2tableitem.h \
     src/schema2/schema2tablemodel.h \
@@ -91,6 +97,7 @@ HEADERS += \
     src/settings.h \
     src/showandraise.h \
     src/splitterutil.h \
+    src/sqlhelper.h \
     src/tests.h \
     src/tokens.h \
     src/tools.h \
@@ -180,6 +187,7 @@ SOURCES += \
     src/deleteeventfilter.cpp \
     src/filterplotitem.cpp \
     src/formats.cpp \
+    src/hash.cpp \
     src/highlighter.cpp \
     src/history.cpp \
     src/itemdelegate.cpp \
@@ -199,10 +207,15 @@ SOURCES += \
     src/schema2/reporterror.cpp \
     src/schema2/schema2alterview.cpp \
     src/schema2/schema2arrange.cpp \
+    src/schema2/schema2changeset.cpp \
     src/schema2/schema2join.cpp \
+    src/schema2/schema2pushview.cpp \
     src/schema2/schema2relationdialog.cpp \
     src/schema2/schema2relationitem.cpp \
     src/schema2/schema2relationmodel.cpp \
+    src/schema2/schema2relationsfiltermodel.cpp \
+    src/schema2/schema2relationslistdialog.cpp \
+    src/schema2/schema2relationslistmodel.cpp \
     src/schema2/schema2store.cpp \
     src/schema2/schema2tableitem.cpp \
     src/schema2/schema2tablemodel.cpp \
@@ -213,6 +226,7 @@ SOURCES += \
     src/settings.cpp \
     src/showandraise.cpp \
     src/splitterutil.cpp \
+    src/sqlhelper.cpp \
     src/tests.cpp \
     src/tokens.cpp \
     src/model/checkablestringlistmodel.cpp \
@@ -286,7 +300,9 @@ SOURCES += \
 
 FORMS += \
     src/schema2/schema2alterview.ui \
+    src/schema2/schema2pushview.ui \
     src/schema2/schema2relationdialog.ui \
+    src/schema2/schema2relationslistdialog.ui \
     src/schema2/schema2view.ui \
     src/widget/databasehistorydialog.ui \
     src/widget/distributionplot.ui \

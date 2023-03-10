@@ -119,7 +119,7 @@ void Schema2View::on_pull_clicked()
 
 void Schema2View::on_push_clicked()
 {
-    mData->push();
+    mData->push(this);
 }
 
 void Schema2View::on_zoomOut_clicked()
@@ -145,4 +145,14 @@ void Schema2View::on_scale_currentIndexChanged(int index)
 }
 
 
+
+
+void Schema2View::on_relations_clicked()
+{
+
+    mData->showRelationsListDialog(this);
+
+
+
+}
 

@@ -3,6 +3,7 @@
 
 #include <QStringList>
 #include <QHash>
+#include "hash.h"
 
 class Schema2TableModel;
 class Schema2RelationModel;
@@ -38,7 +39,7 @@ public:
 QString toString(const QList<Schema2Join>& expr, bool mssql, JoinType exprType);
 
 QList<Schema2Join> findJoinImpl(const QStringList& join,
-                                       const QHash<QString, Schema2TableModel *> &tableModels,
-                                       const QHash<QStringList, Schema2RelationModel *> &relationModels);
+                                const StringHash<Schema2TableModel *>& tableModels,
+                                const StringListHash<Schema2RelationModel *> &relationModels);
 
 #endif // SCHEMA2JOIN_H

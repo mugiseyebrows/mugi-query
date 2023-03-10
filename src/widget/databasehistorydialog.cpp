@@ -25,11 +25,15 @@ QStringList availableSqlDrivers() {
 
 }
 
+#include "history.h"
+
 DatabaseHistoryDialog::DatabaseHistoryDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DatabaseHistoryDialog)
 {
     ui->setupUi(this);
+
+    History::instance();
 
     RichHeaderView* view = new RichHeaderView(Qt::Horizontal);
     //view->setSec

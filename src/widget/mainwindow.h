@@ -52,7 +52,6 @@ public:
     SchemaModel *schemaModel();
 protected:
     void closeEvent(QCloseEvent *event);
-    History* mHistory;
     QueryHistoryWidget* mQueryHistory;
     QMap<QString,Tokens> mTokens;
     JoinHelperWidgets* mJoinHelpers;

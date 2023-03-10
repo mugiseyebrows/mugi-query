@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1099</width>
-    <height>436</height>
+    <width>1199</width>
+    <height>451</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -108,6 +108,13 @@
       <widget class="QPushButton" name="zoomIn">
        <property name="text">
         <string>+</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="relations">
+       <property name="text">
+        <string>Relations</string>
        </property>
       </widget>
      </item>

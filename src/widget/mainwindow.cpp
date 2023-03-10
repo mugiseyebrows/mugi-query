@@ -91,8 +91,6 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->sessionTabs->removeTab(0);
     }
 
-    mHistory = new History(this);
-
     SessionModel* sessionModel = new SessionModel(ui->sessionTree);
     ui->sessionTree->setModel(sessionModel);
 
@@ -379,7 +377,7 @@ void MainWindow::onQuery(QString queries) {
 
     foreach(QString query, queries_) {
 
-        mHistory->addQuery(connectionName,query.trimmed());
+        History::instance()->addQuery(connectionName,query.trimmed());
 
         schemaChanged = schemaChanged | QueryParser::isAlterSchemaQuery(query);
 
@@ -450,7 +448,7 @@ void MainWindow::databaseConnect(bool showHistory)
 
     connectionName = dialog.connectionName();
     m->addDatabase(connectionName);
-    mHistory->addDatabase(connectionName,dialog.driver(),dialog.host(),dialog.user(),dialog.password(),dialog.database(),dialog.port());
+    History::instance()->addDatabase(connectionName,dialog.driver(),dialog.host(),dialog.user(),dialog.password(),dialog.database(),dialog.port());
     updateTokens(connectionName);
     ui->sessionTree->setCurrentIndex(m->index(m->rowCount()-1,0));
     on_sessionAdd_triggered();

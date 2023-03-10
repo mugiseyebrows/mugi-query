@@ -9,7 +9,7 @@ void automate(QWidget *widget)
     Automation* automation = Automation::instance(widget);
     automation->connectToDatabaseFromHistory("testaccess");
     automation->schemaEdit();
-    //automation->showJoinHelper();
+    automation->showJoinHelper();
     automation->start();
 #endif
 }

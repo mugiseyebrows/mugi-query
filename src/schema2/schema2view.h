@@ -73,6 +73,8 @@ private slots:
 
     void on_select_clicked(bool checked);
 
+    void on_relations_clicked();
+
 private:
     Ui::Schema2View *ui;
 };

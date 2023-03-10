@@ -141,7 +141,7 @@ static int findBestPos(const Node& node, const QList<Node>& positioned, const QL
 }
 
 static QList<Node> buildNodes(const QStringList tables,
-                       const QHash<QStringList, Schema2RelationModel *> &relationModels) {
+                       const StringListHash<Schema2RelationModel *> &relationModels) {
 
     QList<Node> nodes;
 
@@ -171,8 +171,8 @@ static void setPos(QList<Node>& nodes, int nodeIndex, QList<Node>& positioned, i
 }
 
 void arrangeTables(GridType type, const QStringList tables,
-             const QHash<QStringList, Schema2RelationModel *> &relationModels,
-             const QHash<QString, Schema2TableItem*>& tableItems) {
+             const StringListHash<Schema2RelationModel *> &relationModels,
+             const StringHash<Schema2TableItem *> &tableItems) {
 
     if (tables.isEmpty()) {
         return;
@@ -193,7 +193,7 @@ void arrangeTables(GridType type, const QStringList tables,
     }
 
     for(const Node& node: qAsConst(positioned)) {
-        tableItems[node.name]->setCenterPos(node.pos);
+        tableItems.get(node.name)->setCenterPos(node.pos);
     }
 
 }

@@ -20,8 +20,8 @@ class Schema2AlterView;
 class CheckableStringListModel;
 class QSortFilterProxyModel;
 
-#include <QHash>
 #include "schema2join.h"
+#include "hash.h"
 
 class Schema2Data : public QObject
 {
@@ -34,7 +34,7 @@ public:
 
     void pull();
 
-    void push();
+    void push(QWidget* widget);
 
     void save();
 
@@ -46,7 +46,7 @@ public:
 
     QGraphicsScene* scene();
 
-    void showRelationDialog(const QString &childTable, const QString &parentTable, QWidget* parent);
+    void showRelationDialog(const QString &childTable, const QString &parentTable, QWidget* widget);
 
     void showAlterView(const QString& tableName);
 
@@ -60,13 +60,11 @@ public:
 
     QList<Schema2Join> findJoin(const QStringList& join);
 
-    QSortFilterProxyModel* selectProxyModel() {
-        return mSelectProxyModel;
-    }
+    QSortFilterProxyModel* selectProxyModel();
 
     void selectOrDeselect(const QString& table);
 
-
+    void showRelationsListDialog(QWidget *widget);
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 
@@ -78,19 +76,19 @@ protected:
 
     Schema2View* mView;
 
-    QHash<QString, Schema2TableItem*> mTableItems;
+    StringHash<Schema2TableItem*> mTableItems;
 
-    QHash<QString, Schema2TableModel*> mTableModels;
+    StringHash<Schema2TableModel*> mTableModels;
 
     //QHash<QString, Schema2TableView*> mViews;
 
-    QHash<QString, Schema2AlterView*> mAlterViews;
+    StringHash<Schema2AlterView*> mAlterViews;
 
-    QHash<QString, QPointF> mTablePos;
+    StringHash<QPointF> mTablePos;
 
-    QHash<QStringList, Schema2RelationModel*> mRelationModels;
+    StringListHash<Schema2RelationModel*> mRelationModels;
 
-    QHash<QStringList, Schema2RelationItem*> mRelationItems;
+    StringListHash<Schema2RelationItem*> mRelationItems;
 
     QList<Schema2TableItem*> mSetPosQueue;
 

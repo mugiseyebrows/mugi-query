@@ -5,6 +5,7 @@
 class Schema2TableItem;
 class Schema2RelationModel;
 class Schema2RelationItem;
+#include "hash.h"
 
 void arrangeInGrid(const QList<Schema2TableItem*>& items, int width, int heigth, int spacing);
 
@@ -19,8 +20,8 @@ enum GridType {
 };
 
 void arrangeTables(GridType type, const QStringList tables,
-             const QHash<QStringList, Schema2RelationModel *> &relationModels,
-             const QHash<QString, Schema2TableItem*>& tableItems);
+             const StringListHash<Schema2RelationModel *> &relationModels,
+             const StringHash<Schema2TableItem*>& tableItems);
 
 
 #endif // SCHEMA2ARRANGE_H

@@ -15,11 +15,11 @@
 #include "drivernames.h"
 #include "mugisql/mugisql.h"
 
-#define PARENT_WIDGET qobject_cast<QWidget*>(this->parent())
+#define PARENT_WIDGET 0
 
 #define QUERY_EXEC(q) do { if (!q.exec()) QMessageBox::critical(PARENT_WIDGET,"Error",q.lastError().text()); } while (0)
 
-History::History(QObject* parent) : QObject(parent)
+History::History(QObject* parent)
 {
 
     QDir d(Settings::instance()->dir());
@@ -34,6 +34,16 @@ History::History(QObject* parent) : QObject(parent)
     db.exec("create table if not exists database(date datetime, connectionName text, driver text, host text, user text, password text, database text, port int)");
     db.exec("create table if not exists query(date datetime, connectionName text, query text)");
     db.exec("create table if not exists relations(name text, value text)");
+}
+
+History *History::mInstance = 0;
+
+History *History::instance()
+{
+    if (!mInstance) {
+        mInstance = new History();
+    }
+    return mInstance;
 }
 
 void History::addQuery(const QString& connectionName, const QString& query_) {

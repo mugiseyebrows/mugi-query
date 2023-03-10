@@ -28,6 +28,7 @@ public:
 
     bool constrained() const;
 
+    QString constraintName() const;
 protected:
     Ui::Schema2RelationDialog *ui;
     Schema2RelationModel* mModel;
