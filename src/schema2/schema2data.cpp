@@ -77,7 +77,7 @@ void Schema2Data::pullTables() {
             while(q.next()) {
                 QString name = q.value(0).toString();
                 QString type = q.value(1).toString();
-                model->insertIfNotContains(name, type, prev);
+                model->insertColumnsIfNotContains(name, type, prev);
                 prev = name;
             }
 
@@ -89,7 +89,7 @@ void Schema2Data::pullTables() {
             for(int i=0;i<r.count();i++) {
                 QString name = r.fieldName(i);
                 QString type;
-                model->insertIfNotContains(name, type, prev);
+                model->insertColumnsIfNotContains(name, type, prev);
                 prev = name;
             }
 
@@ -208,8 +208,7 @@ static T* hash_find(const QHash<QString, T*>& hash, const QString& key) {
     return 0;
 }
 
-void Schema2Data::pullRelationsOdbc() {
-    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+QString accessFilePath(QSqlDatabase db) {
     QString databaseName = db.databaseName();
     QStringList props = databaseName.split(";");
     QRegularExpression rx("DBQ\\s*=\\s*(.*)");
@@ -220,6 +219,92 @@ void Schema2Data::pullRelationsOdbc() {
             filePath = unquoted(m.captured(1).trimmed());
         }
     }
+    return filePath;
+}
+
+
+void Schema2Data::pullIndexesOdbc() {
+
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
+    QString filePath = accessFilePath(db);
+
+    // todo pullIndexesOdbc for sql server
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    QAxObject engine("DAO.DBEngine.120");
+
+    QAxObject* database = engine.querySubObject("OpenDatabase(QString)", filePath);
+
+    QAxObject* tableDefs = database->querySubObject("TableDefs");
+
+    int tableDefsCount = tableDefs->property("Count").toInt();
+
+#if 0
+    QSet<QString> systemTables = {
+        "MSysNavPaneGroupCategories",
+        "MSysNavPaneGroups",
+        "MSysNavPaneGroupToObjects",
+        "MSysNavPaneObjectIDs",
+        "MSysObjects",
+        "MSysQueries",
+        "MSysRelationships",
+        "MSysACEs"
+    };
+#endif
+
+    QStringList tables = db.tables();
+
+    for(int i=0;i<tables.size();i++) {
+
+        QString tableName = tables[i];
+
+        QAxObject* tableDef = database->querySubObject("TableDefs(QString)", tableName);
+
+        //QString tableName = tableDef->property("Name").toString();
+
+        /*if (systemTables.contains(tableName)) {
+            continue;
+        }*/
+
+        //qDebug() << "tableName" << tableName;
+
+        QAxObject* indexes = tableDef->querySubObject("Indexes");
+        int indexesCount = indexes->property("Count").toInt();
+
+        for(int j=0;j<indexesCount;j++) {
+            QAxObject* index = tableDef->querySubObject("Indexes(int)", j);
+
+            QString indexName = index->property("Name").toString();
+
+            QStringList columns;
+
+            QAxObject* fields = index->querySubObject("Fields");
+            int fieldCount = fields->property("Count").toInt();
+            for(int k=0;k<fieldCount;k++) {
+                QAxObject* field = index->querySubObject("Fields(int)", k);
+                QString fieldName = field->property("Name").toString();
+                columns.append(fieldName);
+            }
+            if (mTableModels.contains(tableName)) {
+                mTableModels.get(tableName)->insertIndex(indexName, columns, false);
+            } else {
+                qDebug() << "!mTableModels.contains(tableName)" << tableName;
+            }
+        }
+    }
+
+
+}
+
+
+void Schema2Data::pullRelationsOdbc() {
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
+    QString filePath = accessFilePath(db);
+
     // todo pullRelationsOdbc for sql server
     if (filePath.isEmpty()) {
         return;
@@ -307,10 +392,26 @@ void Schema2Data::pullRelations() {
 
 }
 
+void Schema2Data::pullIndexesMysql() {
+
+}
+
+void Schema2Data::pullIndexes() {
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_QMARIADB) {
+        pullIndexesMysql();
+    } else if (db.driverName() == DRIVER_ODBC) {
+        pullIndexesOdbc();
+    } else {
+        // todo implement pullRelations for QSQLITE QODBC QPSQL
+    }
+}
+
 void Schema2Data::pull()
 {
     pullTables();
     pullRelations();
+    pullIndexes();
     setTableItemsPos();
 
     mSelectModel->setList(mTableModels.keys());
@@ -520,7 +621,15 @@ void Schema2Data::showAlterView(const QString &tableName)
 {
     if (!mAlterViews.contains(tableName)) {
         Schema2AlterView* view = new Schema2AlterView();
-        view->setModel(mTableModels.get(tableName));
+        Schema2TableModel* table = mTableModels.get(tableName);
+        QList<Schema2RelationModel*> allRelations = mRelationModels.values();
+        QList<Schema2RelationModel*> relations;
+        for(Schema2RelationModel* relation: allRelations) {
+            if (relation->childTable().toLower() == tableName.toLower()) {
+                relations.append(relation);
+            }
+        }
+        view->init(table, relations);
         view->setWindowTitle(tableName);
         mAlterViews.set(tableName, view);
     }

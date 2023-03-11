@@ -39,6 +39,11 @@ public:
         mCase[key.toLower()] = key;
     }
 
+    void remove(const QString& key) {
+        mData.remove(key.toLower());
+        mCase.remove(key.toLower());
+    }
+
     bool contains(const QString &key) const {
         return mData.contains(key.toLower());
     }

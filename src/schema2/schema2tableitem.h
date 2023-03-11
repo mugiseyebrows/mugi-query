@@ -26,6 +26,8 @@ public:
         return mGrayed;
     }
 
+    bool isIndexColumn(const QString& column) const;
+
 protected:
     Schema2TableModel* mModel;
     QList<Schema2RelationItem*> mRelations;

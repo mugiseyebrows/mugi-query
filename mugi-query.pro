@@ -79,6 +79,7 @@ HEADERS += \
     src/schema2/schema2alterview.h \
     src/schema2/schema2arrange.h \
     src/schema2/schema2changeset.h \
+    src/schema2/schema2index.h \
     src/schema2/schema2join.h \
     src/schema2/schema2pushview.h \
     src/schema2/schema2relationdialog.h \
@@ -208,6 +209,7 @@ SOURCES += \
     src/schema2/schema2alterview.cpp \
     src/schema2/schema2arrange.cpp \
     src/schema2/schema2changeset.cpp \
+    src/schema2/schema2index.cpp \
     src/schema2/schema2join.cpp \
     src/schema2/schema2pushview.cpp \
     src/schema2/schema2relationdialog.cpp \

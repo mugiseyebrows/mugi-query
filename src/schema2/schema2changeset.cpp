@@ -1,4 +1,8 @@
 #include "schema2changeset.h"
+#include "history.h"
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 
 Schema2ChangeSet::Schema2ChangeSet(QObject *parent)
     : QAbstractTableModel{parent}
@@ -6,10 +10,7 @@ Schema2ChangeSet::Schema2ChangeSet(QObject *parent)
 
 }
 
-#include "history.h"
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
+
 
 bool Schema2ChangeSet::execute(const QString& connectionName)
 {

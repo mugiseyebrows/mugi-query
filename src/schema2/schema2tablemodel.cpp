@@ -1,5 +1,7 @@
 #include "schema2tablemodel.h"
 
+#include "schema2index.h"
+
 // todo table renames
 
 Schema2TableModel::Schema2TableModel(const QString &name, bool existing, QObject *parent)
@@ -8,7 +10,7 @@ Schema2TableModel::Schema2TableModel(const QString &name, bool existing, QObject
 
 }
 
-void Schema2TableModel::insertIfNotContains(const QString &name, const QString &type, const QString& prev)
+void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QString &type, const QString& prev)
 {
     int insertRow = rowCount();
 
@@ -63,6 +65,32 @@ QStringList Schema2TableModel::newNames() const
         res.append(mColumns[row][col_newname]);
     }
     return res;
+}
+
+Schema2Index *Schema2TableModel::getIndex(const QString &name) const
+{
+    return mIndexes.get(name);
+}
+
+void Schema2TableModel::insertIndex(const QString &name, const QStringList &columns, bool existing)
+{
+    mIndexes.set(name, new Schema2Index(name, columns, existing));
+}
+
+void Schema2TableModel::removeIndex(const QString &name)
+{
+    mIndexes.remove(name);
+}
+
+bool Schema2TableModel::isIndexColumn(const QString &column) const
+{
+    QList<Schema2Index*> indexes = mIndexes.values();
+    for(Schema2Index* index: indexes) {
+        if (index->isIndexColumn(column)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 int Schema2TableModel::rowCount(const QModelIndex &parent) const

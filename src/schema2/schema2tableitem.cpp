@@ -72,14 +72,21 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
     QRectF rect(0,0,w,s);
 
-    QTextOption opt(Qt::AlignCenter);
 
+    QTextOption opt(Qt::AlignCenter);
     painter->drawText(rect, mModel->tableName(), opt);
     for(int row=0;row<mModel->rowCount();row++) {
         QRectF rect(0,(row + 1)*s,w,s);
         QString name = mModel->newName(row);
+        QTextOption opt(Qt::AlignCenter);
         painter->drawText(rect, name, opt);
+        /*if (mModel->isIndexColumn(name)) {
+            QTextOption opt(Qt::AlignRight | Qt::AlignVCenter);
+            rect.setWidth(rect.width() - 10);
+            painter->drawText(rect, "I", opt);
+        }*/
     }
+
 
     painter->setPen(Qt::white);
 
@@ -106,6 +113,11 @@ void Schema2TableItem::setGrayed(bool value)
     for(Schema2RelationItem* item: mRelations) {
         item->update();
     }
+}
+
+bool Schema2TableItem::isIndexColumn(const QString &column) const
+{
+    return mModel->isIndexColumn(column);
 }
 
 QVariant Schema2TableItem::itemChange(GraphicsItemChange change, const QVariant &value)

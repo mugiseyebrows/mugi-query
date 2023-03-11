@@ -2,6 +2,8 @@
 #define SCHEMA2TABLEMODEL_H
 
 #include <QAbstractItemModel>
+#include "hash.h"
+class Schema2Index;
 
 class Schema2TableModel : public QAbstractTableModel
 {
@@ -17,7 +19,7 @@ public:
 
     explicit Schema2TableModel(const QString& name, bool existing, QObject *parent = nullptr);
 
-    void insertIfNotContains(const QString& name, const QString& type, const QString &prev);
+    void insertColumnsIfNotContains(const QString& name, const QString& type, const QString &prev);
 
     QString tableName() const;
 
@@ -33,12 +35,26 @@ public:
 
     QStringList newNames() const;
 
+    Schema2Index* getIndex(const QString& name) const;
+
+    QList<Schema2Index*> getIndexes() const {
+        return mIndexes.values();
+    }
+
+    void insertIndex(const QString& name, const QStringList& columns, bool existing);
+
+    void removeIndex(const QString& name);
+
+    bool isIndexColumn(const QString &column) const;
+
 signals:
     void tableClicked(QString);
 
 protected:
     QList<QStringList> mColumns;
     QString mTableName;
+
+    StringHash<Schema2Index*> mIndexes;
 
     bool mExisting;
 

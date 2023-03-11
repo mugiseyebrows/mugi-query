@@ -8,6 +8,7 @@ class Schema2AlterView;
 }
 
 class Schema2TableModel;
+class Schema2RelationModel;
 
 class Schema2AlterView : public QWidget
 {
@@ -17,8 +18,9 @@ public:
     explicit Schema2AlterView(QWidget *parent = nullptr);
     ~Schema2AlterView();
 
-    void setModel(Schema2TableModel* model);
+    //void setModel(Schema2TableModel* model);
 
+    void init(Schema2TableModel *model, const QList<Schema2RelationModel *> &relations);
 protected:
     Schema2TableModel* mModel;
 

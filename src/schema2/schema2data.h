@@ -101,10 +101,15 @@ protected:
     void pullTables();
     void pullRelations();
     void pullRelationsMysql();
+    void pullRelationsOdbc();
+    void pullIndexes();
+    void pullIndexesOdbc();
+    void pullIndexesMysql();
 
     //void unoverlapTables();
     void setTableItemsPos();
-    void pullRelationsOdbc();
+
+
 signals:
     void tableClicked(QString);
 protected slots:
