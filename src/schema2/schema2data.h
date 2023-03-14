@@ -28,6 +28,38 @@ class Schema2Data : public QObject
 {
     Q_OBJECT
 public:
+    enum OdbcType {
+        dbBoolean = 1,
+        dbByte = 2,
+        dbInteger = 3,
+        dbLong = 4,
+        dbCurrency = 5,
+        dbSingle = 6,
+        dbDouble = 7,
+        dbDate = 8,
+        dbBinary = 9,
+        dbText = 10,
+        dbLongBinary = 11,
+        dbMemo = 12,
+        dbGUID = 15,
+        dbBigInt = 16,
+        dbVarBinary = 17,
+        dbChar = 18,
+        dbNumeric = 19,
+        dbDecimal = 20,
+        dbFloat = 21,
+        dbTime = 22,
+        dbTimeStamp = 23,
+        dbAttachment = 101,
+        dbComplexByte = 102,
+        dbComplexInteger = 103,
+        dbComplexLong = 104,
+        dbComplexSingle = 105,
+        dbComplexDouble = 106,
+        dbComplexGUID = 107,
+        dbComplexDecimal = 108,
+        dbComplexText = 109
+    };
 
     static Schema2Data* instance(const QString& connectionName, QObject *parent = nullptr);
 
@@ -104,18 +136,28 @@ protected:
 
     QSortFilterProxyModel* mSelectProxyModel;
 
+
     void pullTables();
-    void pullRelations();
-    void pullRelationsMysql();
-    void pullRelationsOdbc();
     void pullIndexes();
+    void pullRelations();
+
+    void pullTablesOdbc();
+    void pullTablesMysql();
+    void pullTablesOther();
+
     void pullIndexesOdbc();
     void pullIndexesMysql();
+
+    void pullRelationsMysql();
+    void pullRelationsOdbc();
 
     //void unoverlapTables();
     void setTableItemsPos();
 
 
+    void relationPulled(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns);
+
+    void tablePulled(const QString &tableName);
 signals:
     void tableClicked(QString);
 protected slots:

@@ -7,7 +7,8 @@ void automate(QWidget *widget)
 {
 #if 1
     Automation* automation = Automation::instance(widget);
-    automation->connectToDatabaseFromHistory("testaccess");
+    QString database = 0 ? "testaccess" : "test2";
+    automation->connectToDatabaseFromHistory(database);
     automation->schemaEdit();
     automation->showJoinHelper();
     automation->start();

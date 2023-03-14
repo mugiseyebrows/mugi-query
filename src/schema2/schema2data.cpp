@@ -23,6 +23,15 @@
 #include <QSortFilterProxyModel>
 #include "checkablestringlistmodel.h"
 #include "schema2relationslistdialog.h"
+#include <QAxObject>
+#include <QStandardItemModel>
+#include "history.h"
+#include <QSqlError>
+#include <QTableView>
+#include "showandraise.h"
+#include <QRegularExpression>
+
+#include "schema2changeset.h"
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -35,6 +44,27 @@ Schema2Data *Schema2Data::instance(const QString &connectionName, QObject *paren
     return mData[connectionName];
 }
 
+static QString unquoted(const QString& path) {
+    if (path.startsWith("\"") && path.endsWith("\"")) {
+        return path.mid(1, path.size()-2);
+    }
+    return path;
+}
+
+static QString accessFilePath(QSqlDatabase db) {
+    QString databaseName = db.databaseName();
+    QStringList props = databaseName.split(";");
+    QRegularExpression rx("DBQ\\s*=\\s*(.*)");
+    QString filePath;
+    for(const QString& prop: props) {
+        QRegularExpressionMatch m = rx.match(prop);
+        if (m.hasMatch()) {
+            filePath = unquoted(m.captured(1).trimmed());
+        }
+    }
+    return filePath;
+}
+
 #if 0
 void Schema2Data::unoverlapTables() {
 
@@ -43,59 +73,165 @@ void Schema2Data::unoverlapTables() {
 }
 #endif
 
-void Schema2Data::pullTables() {
+
+void Schema2Data::tablePulled(const QString& table) {
+    if (!mTableModels.contains(table)) {
+        Schema2TableModel* model = new Schema2TableModel(table, true);
+        mTableModels.set(table, model);
+        connect(model, SIGNAL(tableClicked(QString)), this, SIGNAL(tableClicked(QString)));
+    }
+    Schema2TableModel* model = mTableModels.get(table);
+    if (!mTableItems.contains(table)) {
+        Schema2TableItem* item = new Schema2TableItem(model);
+        if (mTablePos.contains(table)) {
+            item->setPos(mTablePos.get(table));
+        } else {
+            mSetPosQueue.append(item);
+        }
+        mTableItems.set(table, item);
+        mScene->addItem(item);
+    }
+}
+
+
+void Schema2Data::pullTablesMysql() {
+
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
     QStringList tables = db.tables();
 
     for(const QString& table: qAsConst(tables)) {
-        if (!mTableModels.contains(table)) {
-            Schema2TableModel* model = new Schema2TableModel(table, true);
-            mTableModels.set(table, model);
-            connect(model, SIGNAL(tableClicked(QString)), this, SIGNAL(tableClicked(QString)));
-        }
+
+        tablePulled(table);
+
         Schema2TableModel* model = mTableModels.get(table);
 
-        if (!mTableItems.contains(table)) {
-            Schema2TableItem* item = new Schema2TableItem(model);
-            if (mTablePos.contains(table)) {
-                item->setPos(mTablePos.get(table));
-            } else {
-                mSetPosQueue.append(item);
-            }
-            mTableItems.set(table, item);
-            mScene->addItem(item);
+        // todo character_maximum_length, numeric_precision
+        QSqlQuery q(db);
+        q.prepare("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?");
+        q.addBindValue(table);
+        q.exec();
+
+        QString prev;
+        while(q.next()) {
+            QString name = q.value(0).toString();
+            QString type = q.value(1).toString();
+            model->insertColumnsIfNotContains(name, type, prev);
+            prev = name;
         }
 
-        if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_QMARIADB) {
-            // todo character_maximum_length, numeric_precision
-            QSqlQuery q(db);
-            q.prepare("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?");
-            q.addBindValue(table);
-            q.exec();
+    }
+}
 
-            QString prev;
-            while(q.next()) {
-                QString name = q.value(0).toString();
-                QString type = q.value(1).toString();
-                model->insertColumnsIfNotContains(name, type, prev);
-                prev = name;
+
+void Schema2Data::pullTablesOdbc() {
+
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
+    QStringList tables = db.tables();
+
+    QString filePath = accessFilePath(db);
+
+    // todo pullRelationsOdbc for sql server
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    QAxObject engine("DAO.DBEngine.120");
+    QAxObject* database = engine.querySubObject("OpenDatabase(QString, bool)", filePath, false);
+
+    static QHash<int, QString> types = {
+        {dbByte, "BYTE"},
+        {dbBinary, "BINARY"},
+        {dbBoolean, "BIT"},
+        {dbCurrency, "MONEY"},
+        {dbDate, "DATETIME"},
+        {dbSingle, "SINGLE"}, // REAL
+        {dbDouble, "DOUBLE"},  // FLOAT
+        {dbInteger, "SMALLINT"},
+        {dbLong, "INTEGER"},
+        {dbText, "TEXT"},
+        {dbLongBinary, "LONGBINARY"},
+        {dbMemo, "MEMO"},
+        {dbGUID, "GUID"},
+    };
+
+    for(const QString& tableName: tables) {
+
+        tablePulled(tableName);
+
+        Schema2TableModel* model = mTableModels.get(tableName);
+
+        QAxObject* tableDef = database->querySubObject("TableDefs(QString)", tableName);
+
+        QAxObject* fields = tableDef->querySubObject("Fields");
+        int fieldCount = fields->property("Count").toInt();
+        QString prev;
+        for(int i=0;i<fieldCount;i++) {
+            QAxObject* field = tableDef->querySubObject("Fields(int)", i);
+            QString name = field->property("Name").toString();
+            int type = field->property("Type").toInt();
+            int size = field->property("Size").toInt();
+
+            //qDebug() << tableName << name << type;
+
+            if (!types.contains(type) || 0) {
+                qDebug() << tableName << name << type << size;
             }
 
-        } else {
-            // todo read types for ODBC PSQL
-
-            QSqlRecord r = db.record(table);
-            QString prev;
-            for(int i=0;i<r.count();i++) {
-                QString name = r.fieldName(i);
-                QString type;
-                model->insertColumnsIfNotContains(name, type, prev);
-                prev = name;
+            QString typeName = types.value(type, "UNKNOWN");
+            if (type == dbText) {
+                if (size != 255) {
+                    typeName = QString("TEXT(%1)").arg(size);
+                }
             }
 
+            model->insertColumnsIfNotContains(name, typeName, prev);
+
+            prev = name;
         }
 
+    }
+
+
+}
+
+
+void Schema2Data::pullTablesOther() {
+
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
+    QStringList tables = db.tables();
+
+    for(const QString& table: qAsConst(tables)) {
+
+        tablePulled(table);
+
+        Schema2TableModel* model = mTableModels.get(table);
+
+        QSqlRecord r = db.record(table);
+        QString prev;
+        for(int i=0;i<r.count();i++) {
+            QString name = r.fieldName(i);
+            QString type;
+            model->insertColumnsIfNotContains(name, type, prev);
+            prev = name;
+        }
+
+    }
+
+
+}
+
+void Schema2Data::pullTables() {
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
+    if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_QMARIADB) {
+        pullTablesMysql();
+    } else if (db.driverName() == DRIVER_ODBC) {
+        pullTablesOdbc();
+    } else {
+        pullTablesOther();
     }
 
 }
@@ -188,17 +324,11 @@ void Schema2Data::setTableItemsPos() {
 
 }
 
-#include <QRegularExpression>
 
-static QString unquoted(const QString& path) {
-    if (path.startsWith("\"") && path.endsWith("\"")) {
-        return path.mid(1, path.size()-2);
-    }
-    return path;
-}
 
-#include <QAxObject>
 
+
+#if 0
 template <class T>
 static T* hash_find(const QHash<QString, T*>& hash, const QString& key) {
     if (hash.contains(key)) {
@@ -212,20 +342,8 @@ static T* hash_find(const QHash<QString, T*>& hash, const QString& key) {
     }
     return 0;
 }
+#endif
 
-QString accessFilePath(QSqlDatabase db) {
-    QString databaseName = db.databaseName();
-    QStringList props = databaseName.split(";");
-    QRegularExpression rx("DBQ\\s*=\\s*(.*)");
-    QString filePath;
-    for(const QString& prop: props) {
-        QRegularExpressionMatch m = rx.match(prop);
-        if (m.hasMatch()) {
-            filePath = unquoted(m.captured(1).trimmed());
-        }
-    }
-    return filePath;
-}
 
 
 void Schema2Data::pullIndexesOdbc() {
@@ -262,9 +380,7 @@ void Schema2Data::pullIndexesOdbc() {
 
     QStringList tables = db.tables();
 
-    for(int i=0;i<tables.size();i++) {
-
-        QString tableName = tables[i];
+    for(const QString& tableName: tables) {
 
         QAxObject* tableDef = database->querySubObject("TableDefs(QString)", tableName);
 
@@ -304,6 +420,33 @@ void Schema2Data::pullIndexesOdbc() {
 
 }
 
+void Schema2Data::relationPulled(const QString& constraintName, const QString& childTable, const QStringList& childColumns,
+                    const QString& parentTable, const QStringList& parentColumns) {
+    Schema2TableItem* childItem = mTableItems.get(childTable);
+    Schema2TableItem* parentItem = mTableItems.get(parentTable);
+
+    Schema2TableModel* childModel = mTableModels.get(childTable);
+    Schema2TableModel* parentModel = mTableModels.get(parentTable);
+
+    if (!childItem || !parentItem || !childModel || !parentModel) {
+        qDebug() << childTable << childModel << childItem
+                 << parentTable << parentModel << parentItem << __FILE__ << __LINE__;
+        return;
+    }
+
+    Schema2Relation* newRelation = childModel->insertRelation(constraintName, childColumns, parentTable, parentColumns, true, StatusExisting);
+    if (newRelation) {
+        Schema2RelationItem2* relationItem =
+                new Schema2RelationItem2(childItem, parentItem);
+
+        mRelationItems.append(relationItem);
+        parentItem->addRelation(relationItem);
+        childItem->addRelation(relationItem);
+
+        mScene->addItem(relationItem);
+    }
+}
+
 
 void Schema2Data::pullRelationsOdbc() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
@@ -330,12 +473,6 @@ void Schema2Data::pullRelationsOdbc() {
         QAxObject* fields = relation->querySubObject("Fields");
         int fieldCount = fields->property("Count").toInt();
 
-        /*if (fieldCount != 1) {
-            qDebug() << "pullRelationsOdbc fieldCount != 1" << childTable << parentTable;
-        }
-
-        fieldCount = 1;*/
-
         QStringList childColumns;
         QStringList parentColumns;
         for(int j=0;j<fieldCount;j++) {
@@ -347,29 +484,7 @@ void Schema2Data::pullRelationsOdbc() {
             childColumns.append(childColumn);
         }
 
-        Schema2TableItem* childItem = mTableItems.get(childTable);
-        Schema2TableItem* parentItem = mTableItems.get(parentTable);
-
-        Schema2TableModel* childModel = mTableModels.get(childTable);
-        Schema2TableModel* parentModel = mTableModels.get(parentTable);
-
-        if (!childItem || !parentItem || !childModel || !parentModel) {
-            qDebug() << childTable << childModel << childItem
-                     << parentTable << parentModel << parentItem << __FILE__ << __LINE__;
-            continue;
-        }
-
-        Schema2Relation* newRelation = childModel->insertRelation(constraintName, childColumns, parentTable, parentColumns, true, StatusExisting);
-        if (newRelation) {
-            Schema2RelationItem2* relationItem =
-                    new Schema2RelationItem2(childItem, parentItem);
-
-            mRelationItems.append(relationItem);
-            parentItem->addRelation(relationItem);
-            childItem->addRelation(relationItem);
-
-            mScene->addItem(relationItem);
-        }
+        relationPulled(constraintName, childTable, childColumns, parentTable, parentColumns);
 
 #if 0
 
@@ -446,21 +561,16 @@ void Schema2Data::pullIndexes() {
 void Schema2Data::pull()
 {
     pullTables();
-    pullRelations();
     pullIndexes();
+    pullRelations();
+
     setTableItemsPos();
 
     mSelectModel->setList(mTableModels.keys());
 
 }
 
-#include <QStandardItemModel>
-#include "history.h"
-#include <QSqlError>
-#include <QTableView>
-#include "showandraise.h"
 
-#include "schema2changeset.h"
 
 void Schema2Data::push(QWidget* widget)
 {

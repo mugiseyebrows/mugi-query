@@ -188,7 +188,7 @@ void Automation::onStart() {
 
     mAction = mQueued.dequeue();
 
-    qDebug() << "action" << mAction.type();
+    //qDebug() << "action" << mAction.type();
 
     if (mAction.type() == Action::ActionConnectToDatabaseFromHistory) {
         mainWindow()->databaseConnect(true);
