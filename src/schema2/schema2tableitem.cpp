@@ -1,7 +1,7 @@
 #include "schema2tableitem.h"
 
 #include "schema2tablemodel.h"
-#include "schema2relationitem.h"
+#include "schema2relationitem2.h"
 #include <QPainter>
 #include <QDebug>
 
@@ -13,7 +13,7 @@ Schema2TableItem::Schema2TableItem(Schema2TableModel *model, QGraphicsItem *pare
     setFlag(QGraphicsItem::ItemSendsGeometryChanges);
 }
 
-void Schema2TableItem::addRelation(Schema2RelationItem *relation)
+void Schema2TableItem::addRelation(Schema2RelationItem2 *relation)
 {
     mRelations.append(relation);
 }
@@ -110,7 +110,7 @@ void Schema2TableItem::setGrayed(bool value)
     }
     mGrayed = value;
     update();
-    for(Schema2RelationItem* item: mRelations) {
+    for(Schema2RelationItem2* item: mRelations) {
         item->update();
     }
 }
@@ -123,7 +123,7 @@ bool Schema2TableItem::isIndexColumn(const QString &column) const
 QVariant Schema2TableItem::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     if (change == ItemPositionHasChanged) {
-        for(Schema2RelationItem* relation: mRelations) {
+        for(Schema2RelationItem2* relation: mRelations) {
             relation->update();
         }
     }

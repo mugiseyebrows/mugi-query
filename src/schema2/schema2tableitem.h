@@ -4,14 +4,14 @@
 #include <QGraphicsItem>
 
 class Schema2TableModel;
-class Schema2RelationItem;
+class Schema2RelationItem2;
 
 class Schema2TableItem : public QGraphicsItem
 {
 public:
     Schema2TableItem(Schema2TableModel* model, QGraphicsItem *parent = nullptr);
 
-    void addRelation(Schema2RelationItem* relation);
+    void addRelation(Schema2RelationItem2 *relation);
 
     QString tableName() const;
 
@@ -30,7 +30,7 @@ public:
 
 protected:
     Schema2TableModel* mModel;
-    QList<Schema2RelationItem*> mRelations;
+    QList<Schema2RelationItem2*> mRelations;
     bool mGrayed;
 
     // QGraphicsItem interface

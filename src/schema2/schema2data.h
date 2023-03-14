@@ -19,6 +19,7 @@ class ClickListener;
 class Schema2AlterView;
 class CheckableStringListModel;
 class QSortFilterProxyModel;
+class Schema2RelationItem2;
 
 #include "schema2join.h"
 #include "hash.h"
@@ -65,6 +66,11 @@ public:
     void selectOrDeselect(const QString& table);
 
     void showRelationsListDialog(QWidget *widget);
+
+    Schema2TableItem* tableItem(const QString& name) const {
+        return mTableItems.get(name);
+    }
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 
@@ -86,9 +92,9 @@ protected:
 
     StringHash<QPointF> mTablePos;
 
-    StringListHash<Schema2RelationModel*> mRelationModels;
+    //StringListHash<Schema2RelationModel*> mRelationModels;
 
-    StringListHash<Schema2RelationItem*> mRelationItems;
+    QList<Schema2RelationItem2*> mRelationItems;
 
     QList<Schema2TableItem*> mSetPosQueue;
 

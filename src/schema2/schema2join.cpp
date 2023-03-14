@@ -2,6 +2,8 @@
 #include <QDebug>
 
 #include "schema2relationmodel.h"
+#include "schema2relation.h"
+#include "schema2tablemodel.h"
 
 static bool containsAll(const QList<int>& item, const QList<int> join) {
     for(int key: join) {
@@ -34,6 +36,20 @@ static QStringList childColumnParentColumn(const StringListHash<Schema2RelationM
     return {};
 }
 
+static QList<QStringList> findChildColumnsParentColumns(
+        const QString &childTable, const QString &parentTable,
+        const StringHash<Schema2TableModel *>& tableModels) {
+    Schema2Relation* relation = tableModels.get(childTable)->getRelationTo(parentTable);
+    if (relation) {
+        return {relation->childColumns(), relation->parentColumns()};
+    }
+    relation = tableModels.get(parentTable)->getRelationTo(childTable);
+    if (relation) {
+        return {relation->parentColumns(), relation->childColumns()};
+    }
+    return {};
+}
+
 static QStringList findChildColumnParentColumn(const QString &childTable, const QString &parentTable,
                            const StringListHash<Schema2RelationModel *>& relationModels) {
 
@@ -61,9 +77,10 @@ static QStringList findChildColumnParentColumn(const QString &childTable, const 
     return {};
 }
 
+#include "schema2tablemodel.h"
+
 QList<Schema2Join> findJoinImpl(const QStringList &join_,
-                 const StringHash<Schema2TableModel *>& tableModels,
-                 const StringListHash<Schema2RelationModel *>& relationModels)
+                 const StringHash<Schema2TableModel *>& tableModels)
 {
     QStringList tables_ = tableModels.keys();
 
@@ -71,8 +88,27 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
 
     QHash<int, QList<int>> relations;
 
-    QList<QStringList> relations_ = relationModels.keys();
+    //QList<QStringList> relations_ = relationModels.keys();
 
+    QList<Schema2TableModel*> tableModelValues = tableModels.values();
+
+    for(Schema2TableModel* tableModel: tableModelValues) {
+        QList<Schema2Relation *> tableRelations = tableModel->getRelations().values();
+        for(Schema2Relation * tableRelation: tableRelations) {
+            int childTable = tables.indexOf(tableModel->tableName().toLower());
+            int parentTable = tables.indexOf(tableRelation->parentTable().toLower());
+            if (!relations.contains(childTable)) {
+                relations[childTable] = {};
+            }
+            if (!relations.contains(parentTable)) {
+                relations[parentTable] = {};
+            }
+            relations[childTable].append(parentTable);
+            relations[parentTable].append(childTable);
+        }
+    }
+
+#if 0
     for(const QStringList& item: qAsConst(relations_)) {
         int childTable = tables.indexOf(item[0].toLower());
         int parentTable = tables.indexOf(item[1].toLower());
@@ -85,6 +121,7 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
         relations[childTable].append(parentTable);
         relations[parentTable].append(childTable);
     }
+#endif
 
     QList<int> join;
     for(const QString& name: qAsConst(join_)) {
@@ -144,9 +181,10 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
     for(int i=1;i<found.size();i++) {
         QString childTable = tables_[found[i]];
         QString parentTable = tables_[found[i-1]];
-        QStringList columns = findChildColumnParentColumn(childTable, parentTable, relationModels);
-        QString childColumn = columns[0];
-        QString parentColumn = columns[1];
+        //QStringList columns = findChildColumnParentColumn(childTable, parentTable, relationModels);
+        QList<QStringList> columns = findChildColumnsParentColumns(childTable, parentTable, tableModels);
+        QStringList childColumn = columns[0];
+        QStringList parentColumn = columns[1];
         Schema2Join item(childTable, childColumn, parentTable, parentColumn);
         res.append(item);
     }
@@ -177,12 +215,9 @@ QString toString(const QList<Schema2Join> &expr, bool mssql, JoinType joinType)
         res.append(head);
         for(int i=1;i<expr.size();i++) {
             Schema2Join join = expr[i];
-            QString item = QString("left join %1 on %2.%3 = %4.%5")
+            QString item = QString("left join %1 on %2")
                     .arg(join.childTable)
-                    .arg(join.childTable)
-                    .arg(join.childColumn)
-                    .arg(join.parentTable)
-                    .arg(join.parentColumn);
+                    .arg(join.onExpr());
             if (mssql && i<expr.size()-1) {
                 item.append(")");
             }
@@ -199,12 +234,7 @@ QString toString(const QList<Schema2Join> &expr, bool mssql, JoinType joinType)
         QStringList cond;
         for(int i=1;i<expr.size();i++) {
             Schema2Join join = expr[i];
-            QString item = QString("%2.%3 = %4.%5")
-                    .arg(join.childTable)
-                    .arg(join.childColumn)
-                    .arg(join.parentTable)
-                    .arg(join.parentColumn);
-            cond.append(item);
+            cond.append(join.onExpr());
         }
         QString res = QString("select * from %1\nwhere %2")
                 .arg(tables.join(", "))

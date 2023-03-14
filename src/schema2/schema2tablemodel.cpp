@@ -1,6 +1,7 @@
 #include "schema2tablemodel.h"
 
 #include "schema2index.h"
+#include "schema2relation.h"
 
 // todo table renames
 
@@ -91,6 +92,45 @@ bool Schema2TableModel::isIndexColumn(const QString &column) const
         }
     }
     return false;
+}
+
+bool Schema2TableModel::containsRelation(const QString &name) const
+{
+    return mRelations.contains(name);
+}
+
+Schema2Relation* Schema2TableModel::insertRelation(const QString &name, const QStringList &childColumns,
+                                                   const QString &parentTable, const QStringList &parentColumns,
+                                                   bool constrained, Status status)
+{
+    if (mRelations.contains(name)) {
+        return 0;
+    }
+    Schema2Relation* relation = new Schema2Relation(name, childColumns, parentTable,
+                                                    parentColumns, constrained, status);
+    mRelations.set(name, relation);
+    return mRelations.get(name);
+}
+
+Schema2Relation *Schema2TableModel::getRelation(const QString &name) const
+{
+    return mRelations.get(name);
+}
+
+StringHash<Schema2Relation *> Schema2TableModel::getRelations() const
+{
+    return mRelations;
+}
+
+Schema2Relation *Schema2TableModel::getRelationTo(const QString &tableName) const
+{
+    QList<Schema2Relation*> relations = mRelations.values();
+    for(Schema2Relation* relation: relations) {
+        if (relation->parentTable().toLower() == tableName.toLower()) {
+            return relation;
+        }
+    }
+    return 0;
 }
 
 int Schema2TableModel::rowCount(const QModelIndex &parent) const

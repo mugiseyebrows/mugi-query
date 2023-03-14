@@ -110,7 +110,7 @@ static QPointF intersection(const QLineF& line1, const QRectF& rect, bool* ok) {
 
 #include <math.h>
 
-void drawArrow(QPainter *painter, const QLineF& line, double size, double angle) {
+static void drawArrow(QPainter *painter, const QLineF& line, double size, double angle) {
 
     QPointF p = line.p2() - line.p1();
     double angle0 = atan2(p.y(), p.x());

@@ -23,23 +23,35 @@ public:
     Schema2Join(const QString& childTable) : childTable(childTable) {
 
     }
-    Schema2Join(const QString& childTable, const QString& childColumn,
-         const QString& parentTable, const QString& parentColumn)
-        : childTable(childTable), childColumn(childColumn),
-          parentTable(parentTable), parentColumn(parentColumn) {
+    Schema2Join(const QString& childTable, const QStringList& childColumn,
+         const QString& parentTable, const QStringList& parentColumn)
+        : childTable(childTable), childColumns(childColumn),
+          parentTable(parentTable), parentColumns(parentColumn) {
 
     }
 
+    QString onExpr() const {
+        QStringList res;
+        for(int i=0;i<childColumns.size();i++) {
+            QString item = QString("%1.%2 = %3.%4")
+                    .arg(childTable)
+                    .arg(childColumns[i])
+                    .arg(parentTable)
+                    .arg(parentColumns[i]);
+            res.append(item);
+        }
+        return res.join(" and ");
+    }
+
     QString childTable;
-    QString childColumn;
+    QStringList childColumns;
     QString parentTable;
-    QString parentColumn;
+    QStringList parentColumns;
 };
 
 QString toString(const QList<Schema2Join>& expr, bool mssql, JoinType exprType);
 
 QList<Schema2Join> findJoinImpl(const QStringList& join,
-                                const StringHash<Schema2TableModel *>& tableModels,
-                                const StringListHash<Schema2RelationModel *> &relationModels);
+                                const StringHash<Schema2TableModel *>& tableModels);
 
 #endif // SCHEMA2JOIN_H

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>761</width>
-    <height>502</height>
+    <height>624</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,9 +27,34 @@
        <item>
         <widget class="QTableView" name="columns">
          <attribute name="horizontalHeaderStretchLastSection">
-          <bool>true</bool>
+          <bool>false</bool>
          </attribute>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Create</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="createRelation">
+           <property name="text">
+            <string>Relation</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="createIndex">
+           <property name="text">
+            <string>Index</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>

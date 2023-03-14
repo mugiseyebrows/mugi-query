@@ -9,6 +9,7 @@
 #include "schema2view.h"
 #include "schema2tableitem.h"
 #include "schema2relationitem.h"
+#include "schema2relationitem2.h"
 #include "schema2relationmodel.h"
 #include <QDebug>
 #include "schema2arrange.h"
@@ -99,7 +100,10 @@ void Schema2Data::pullTables() {
 
 }
 
+
 void Schema2Data::pullRelationsMysql() {
+#if 0
+
 
     //return;
 
@@ -157,6 +161,7 @@ void Schema2Data::pullRelationsMysql() {
 #endif
         }
     }
+#endif
 }
 
 void Schema2Data::setTableItemsPos() {
@@ -325,19 +330,48 @@ void Schema2Data::pullRelationsOdbc() {
         QAxObject* fields = relation->querySubObject("Fields");
         int fieldCount = fields->property("Count").toInt();
 
-        if (fieldCount != 1) {
+        /*if (fieldCount != 1) {
             qDebug() << "pullRelationsOdbc fieldCount != 1" << childTable << parentTable;
         }
 
-        fieldCount = 1;
+        fieldCount = 1;*/
 
-        QString childColumn;
-        QString parentColumn;
+        QStringList childColumns;
+        QStringList parentColumns;
         for(int j=0;j<fieldCount;j++) {
             QAxObject* field = relation->querySubObject("Fields(int)", j);
-            parentColumn = field->property("Name").toString();
-            childColumn = field->property("ForeignName").toString();
+            QString parentColumn = field->property("Name").toString();
+            QString childColumn = field->property("ForeignName").toString();
+
+            parentColumns.append(parentColumn);
+            childColumns.append(childColumn);
         }
+
+        Schema2TableItem* childItem = mTableItems.get(childTable);
+        Schema2TableItem* parentItem = mTableItems.get(parentTable);
+
+        Schema2TableModel* childModel = mTableModels.get(childTable);
+        Schema2TableModel* parentModel = mTableModels.get(parentTable);
+
+        if (!childItem || !parentItem || !childModel || !parentModel) {
+            qDebug() << childTable << childModel << childItem
+                     << parentTable << parentModel << parentItem << __FILE__ << __LINE__;
+            continue;
+        }
+
+        Schema2Relation* newRelation = childModel->insertRelation(constraintName, childColumns, parentTable, parentColumns, true, StatusExisting);
+        if (newRelation) {
+            Schema2RelationItem2* relationItem =
+                    new Schema2RelationItem2(childItem, parentItem);
+
+            mRelationItems.append(relationItem);
+            parentItem->addRelation(relationItem);
+            childItem->addRelation(relationItem);
+
+            mScene->addItem(relationItem);
+        }
+
+#if 0
 
         QStringList key = {childTable, parentTable};
 
@@ -373,6 +407,8 @@ void Schema2Data::pullRelationsOdbc() {
 
 
         }
+
+#endif
 
 
     }
@@ -434,6 +470,8 @@ void Schema2Data::push(QWidget* widget)
 
     //History* history = History::instance();
 
+#if 0
+
     for(Schema2RelationModel* relation: mRemoveRelationsQueue) {
         changeSet->append(relation->removeQuery(), [=](){
             mRemoveRelationsQueue.removeOne(relation);
@@ -448,6 +486,7 @@ void Schema2Data::push(QWidget* widget)
             });
         }
     }
+#endif
 
     if (changeSet->isEmpty()) {
         delete changeSet;
@@ -522,12 +561,14 @@ bool Schema2Data::hasPendingChanges() const
             return true;
         }
     }
+#if 0
     QList<Schema2RelationModel*> relations = mRelationModels.values();
     for(Schema2RelationModel* relation: qAsConst(relations)) {
         if (relation->hasPendingChanges()) {
             return true;
         }
     }
+#endif
     return false;
 }
 
@@ -555,7 +596,7 @@ void Schema2Data::selectOrDeselect(const QString& tableName) {
 
 void Schema2Data::showRelationDialog(const QString &childTable, const QString& parentTable, QWidget *widget)
 {
-
+#if 0
     if (!mTableModels.contains(childTable)
             || !mTableModels.contains(parentTable)
             || !mTableItems.contains(childTable)
@@ -614,22 +655,16 @@ void Schema2Data::showRelationDialog(const QString &childTable, const QString& p
 
     }
 
-
+#endif
 }
 
 void Schema2Data::showAlterView(const QString &tableName)
 {
+
     if (!mAlterViews.contains(tableName)) {
         Schema2AlterView* view = new Schema2AlterView();
         Schema2TableModel* table = mTableModels.get(tableName);
-        QList<Schema2RelationModel*> allRelations = mRelationModels.values();
-        QList<Schema2RelationModel*> relations;
-        for(Schema2RelationModel* relation: allRelations) {
-            if (relation->childTable().toLower() == tableName.toLower()) {
-                relations.append(relation);
-            }
-        }
-        view->init(table, relations);
+        view->init(table);
         view->setWindowTitle(tableName);
         mAlterViews.set(tableName, view);
     }
@@ -661,12 +696,15 @@ void Schema2Data::arrange()
 {
     //squareArrange(mTableItems.keys(), mRelationModels, mTableItems);
 
+#if 0
+
     arrangeTables(GridTriangle, mTableItems.keys(), mRelationModels, mTableItems);
+#endif
 }
 
 QList<Schema2Join> Schema2Data::findJoin(const QStringList &join)
 {
-    return findJoinImpl(join, mTableModels, mRelationModels);
+    return findJoinImpl(join, mTableModels);
 }
 
 QSortFilterProxyModel *Schema2Data::selectProxyModel() {
@@ -676,6 +714,7 @@ QSortFilterProxyModel *Schema2Data::selectProxyModel() {
 
 
 void Schema2Data::showRelationsListDialog(QWidget* widget) {
+#if 0
     Schema2RelationsListDialog dialog;
     dialog.init(mTableModels, mRelationModels);
     if (dialog.exec() != QDialog::Accepted) {
@@ -684,6 +723,7 @@ void Schema2Data::showRelationsListDialog(QWidget* widget) {
     QString childTable = dialog.childTable();
     QString parentTable = dialog.parentTable();
     showRelationDialog(childTable, parentTable, widget);
+#endif
 }
 
 
@@ -701,6 +741,9 @@ Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)
       mSelectProxyModel(new QSortFilterProxyModel(this)), QObject{parent}
 {
     mSelectProxyModel->setSourceModel(mSelectModel);
+    mSelectProxyModel->sort(0);
+    //mSelectProxyModel->setDynamicSortFilter(true);
+
     connect(mSelectModel,SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(onSelectModelChanged(QModelIndex,QModelIndex)));
     load();
     mSelectModel->setAllChecked();

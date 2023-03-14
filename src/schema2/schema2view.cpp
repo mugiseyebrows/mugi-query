@@ -2,6 +2,7 @@
 #include "ui_schema2view.h"
 
 #include "schema2data.h"
+#include "schema2tableitem.h"
 #include <QDebug>
 #include <QSortFilterProxyModel>
 
@@ -34,6 +35,28 @@ void Schema2View::setData(Schema2Data *data)
     ui->view->setScene(mData->scene());
 
     ui->filterView->setModel(mData->selectProxyModel());
+
+    connect(ui->filterView->selectionModel(),
+            SIGNAL(currentChanged(QModelIndex,QModelIndex)),
+            this,
+            SLOT(onFiterViewCurrentChanged(QModelIndex,QModelIndex)));
+
+}
+
+void Schema2View::onFiterViewCurrentChanged(QModelIndex index,QModelIndex) {
+
+    if (!index.isValid()) {
+        return;
+    }
+
+    QString name = index.data().toString();
+    //qDebug() << "onFiterViewCurrentChanged" << name;
+    Schema2TableItem* item = mData->tableItem(name);
+    if (!item) {
+        qDebug() << "!item" << name << __FILE__ << __LINE__;
+        return;
+    }
+    ui->view->centerOn(item->sceneBoundingRect().center());
 }
 
 void Schema2View::onTableClicked(QString tableName)
@@ -149,10 +172,11 @@ void Schema2View::on_scale_currentIndexChanged(int index)
 
 void Schema2View::on_relations_clicked()
 {
-
     mData->showRelationsListDialog(this);
+}
 
-
-
+void Schema2View::on_filterLine_textChanged(const QString &text)
+{
+    mData->selectProxyModel()->setFilterRegularExpression(QRegularExpression(text, QRegularExpression::CaseInsensitiveOption));
 }
 

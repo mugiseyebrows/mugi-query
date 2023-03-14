@@ -9,3 +9,5 @@ SOURCES += \
     $$PWD/tablebuttonimpl.cpp \
     $$PWD/tablebuttons.cpp \
     $$PWD/tablebuttongroup.cpp
+
+INCLUDEPATH += $$PWD

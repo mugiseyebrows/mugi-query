@@ -3,6 +3,8 @@
 
 #include <QAbstractItemModel>
 #include "hash.h"
+#include "schema2relation.h"
+#include "schema2status.h"
 class Schema2Index;
 
 class Schema2TableModel : public QAbstractTableModel
@@ -47,6 +49,18 @@ public:
 
     bool isIndexColumn(const QString &column) const;
 
+    bool containsRelation(const QString& name) const;
+
+    Schema2Relation* insertRelation(const QString& name, const QStringList& childColumns,
+                        const QString& parentTable, const QStringList& parentColumns,
+                        bool constrained, Status status);
+
+    Schema2Relation* getRelation(const QString& name) const;
+
+    StringHash<Schema2Relation*> getRelations() const;
+
+    Schema2Relation* getRelationTo(const QString& tableName) const;
+
 signals:
     void tableClicked(QString);
 
@@ -55,6 +69,8 @@ protected:
     QString mTableName;
 
     StringHash<Schema2Index*> mIndexes;
+
+    StringHash<Schema2Relation*> mRelations;
 
     bool mExisting;
 

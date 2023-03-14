@@ -10,7 +10,6 @@ public:
 
     Schema2Index(const QString& name, const QStringList& columns, bool existing);
 
-
     QString createQuery(const QString& tableName) const;
 
     QString dropQuery(const QString& tableName) const;

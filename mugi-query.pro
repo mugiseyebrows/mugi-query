@@ -82,12 +82,17 @@ HEADERS += \
     src/schema2/schema2index.h \
     src/schema2/schema2join.h \
     src/schema2/schema2pushview.h \
+    src/schema2/schema2relation.h \
     src/schema2/schema2relationdialog.h \
+    src/schema2/schema2relationdialog2.h \
     src/schema2/schema2relationitem.h \
+    src/schema2/schema2relationitem2.h \
     src/schema2/schema2relationmodel.h \
     src/schema2/schema2relationsfiltermodel.h \
     src/schema2/schema2relationslistdialog.h \
     src/schema2/schema2relationslistmodel.h \
+    src/schema2/schema2relationslistmodel2.h \
+    src/schema2/schema2status.h \
     src/schema2/schema2store.h \
     src/schema2/schema2tableitem.h \
     src/schema2/schema2tablemodel.h \
@@ -212,12 +217,17 @@ SOURCES += \
     src/schema2/schema2index.cpp \
     src/schema2/schema2join.cpp \
     src/schema2/schema2pushview.cpp \
+    src/schema2/schema2relation.cpp \
     src/schema2/schema2relationdialog.cpp \
+    src/schema2/schema2relationdialog2.cpp \
     src/schema2/schema2relationitem.cpp \
+    src/schema2/schema2relationitem2.cpp \
     src/schema2/schema2relationmodel.cpp \
     src/schema2/schema2relationsfiltermodel.cpp \
     src/schema2/schema2relationslistdialog.cpp \
     src/schema2/schema2relationslistmodel.cpp \
+    src/schema2/schema2relationslistmodel2.cpp \
+    src/schema2/schema2status.cpp \
     src/schema2/schema2store.cpp \
     src/schema2/schema2tableitem.cpp \
     src/schema2/schema2tablemodel.cpp \
@@ -304,6 +314,7 @@ FORMS += \
     src/schema2/schema2alterview.ui \
     src/schema2/schema2pushview.ui \
     src/schema2/schema2relationdialog.ui \
+    src/schema2/schema2relationdialog2.ui \
     src/schema2/schema2relationslistdialog.ui \
     src/schema2/schema2view.ui \
     src/widget/databasehistorydialog.ui \

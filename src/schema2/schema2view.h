@@ -2,6 +2,7 @@
 #define SCHEMA2VIEW_H
 
 #include <QWidget>
+#include <QModelIndex>
 
 class QGraphicsScene;
 class QPushButton;
@@ -47,6 +48,8 @@ protected:
 
     int mScaleIndex;
 
+protected slots:
+    void onFiterViewCurrentChanged(QModelIndex index, QModelIndex);
 private slots:
 
     void on_move_clicked(bool checked);
@@ -74,6 +77,8 @@ private slots:
     void on_select_clicked(bool checked);
 
     void on_relations_clicked();
+
+    void on_filterLine_textChanged(const QString &arg1);
 
 private:
     Ui::Schema2View *ui;
