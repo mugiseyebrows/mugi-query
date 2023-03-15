@@ -10,8 +10,6 @@ Schema2ChangeSet::Schema2ChangeSet(QObject *parent)
 
 }
 
-
-
 bool Schema2ChangeSet::execute(const QString& connectionName)
 {
     History* history = History::instance();
@@ -19,16 +17,20 @@ bool Schema2ChangeSet::execute(const QString& connectionName)
     bool ok = true;
     for(int row=0;row<mItems.size();row++) {
         QSqlQuery q(db);
-        QString query = mItems[row].query;
-        QString error;
-        if (!q.exec(query)) {
-            error = q.lastError().text();
-        } else {
-            history->addQuery(connectionName, query);
+        QStringList errors;
+        for(const QString& query: qAsConst(mItems[row].queries)) {
+            QString error;
+            if (!q.exec(query)) {
+                error = q.lastError().text();
+                errors.append(error);
+            } else {
+                history->addQuery(connectionName, query);
+            }
+        }
+        if (errors.isEmpty()) {
             mItems[row].handler();
         }
-
-        mItems[row].error = error;
+        mItems[row].errors = errors;
     }
     return ok;
 }
@@ -52,8 +54,8 @@ QVariant Schema2ChangeSet::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         switch(index.column()) {
-        case 0: return mItems[index.row()].query;
-        case 1: return mItems[index.row()].error;
+        case 0: return mItems[index.row()].queries.join("\n");
+        case 1: return mItems[index.row()].errors.join("\n");
         }
     }
     return QVariant();

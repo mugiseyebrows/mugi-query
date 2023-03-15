@@ -12,5 +12,7 @@ Schema2Relation::Schema2Relation(const QString &name, const QStringList &childCo
       mParentTable(parentTable), mParentColumns(parentColumns),
       mConstrained(constrained), mStatus(status)
 {
-
+    if (!mConstrained) {
+        mStatus = StatusExisting;
+    }
 }

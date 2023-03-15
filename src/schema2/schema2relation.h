@@ -28,22 +28,28 @@ public:
         return mParentColumns;
     }
 
-    QString createQuery(const QString& childTable) const {
+    QStringList createQueries(const QString& childTable) const {
         // ms access does not support ON UPDATE X ON DELETE X
-        return QString("ALTER TABLE %1 ADD CONSTRAINT %2 FOREIGN KEY (%3) REFERENCES %4(%5)")
+        QString expr = QString("ALTER TABLE %1 ADD CONSTRAINT %2 FOREIGN KEY (%3) REFERENCES %4(%5)")
                 .arg(childTable)
                 .arg(mName)
                 .arg(mChildColumns.join(", "))
                 .arg(mParentTable)
                 .arg(mParentColumns.join(", "));
+        return {expr};
     }
 
-    QString removeQuery(const QString& childTable) const {
-        return QString("ALTER TABLE %1 DROP CONSTRAINT %2").arg(childTable).arg(mName);
+    QStringList removeQueries(const QString& childTable) const {
+        QString expr = QString("ALTER TABLE %1 DROP CONSTRAINT %2").arg(childTable).arg(mName);
+        return {expr};
     }
 
     Status status() const {
         return mStatus;
+    }
+
+    void created() {
+        mStatus = StatusExisting;
     }
 
 protected:

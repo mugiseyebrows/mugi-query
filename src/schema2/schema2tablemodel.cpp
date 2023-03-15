@@ -5,8 +5,8 @@
 
 // todo table renames
 
-Schema2TableModel::Schema2TableModel(const QString &name, bool existing, QObject *parent)
-    : mTableName(name), QAbstractTableModel{parent}
+Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject *parent)
+    : mTableName(name), mStatus(status), QAbstractTableModel{parent}
 {
 
 }
@@ -27,6 +27,16 @@ void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QS
     beginInsertRows(QModelIndex(), insertRow, insertRow);
     mColumns.insert(insertRow, {name, name, type, type});
     endInsertRows();
+}
+
+bool Schema2TableModel::insertRows(int row, int count, const QModelIndex &parent)
+{
+    beginInsertRows(QModelIndex(), row, row + count - 1);
+    for(int i=0;i<count;i++) {
+        mColumns.insert(row, {QString(), QString(), QString(), QString()});
+    }
+    endInsertRows();
+    return true;
 }
 
 QString Schema2TableModel::tableName() const

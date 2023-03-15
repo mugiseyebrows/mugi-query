@@ -23,43 +23,13 @@ class Schema2RelationItem2;
 
 #include "schema2join.h"
 #include "hash.h"
+#include "schema2status.h"
 
 class Schema2Data : public QObject
 {
     Q_OBJECT
 public:
-    enum OdbcType {
-        dbBoolean = 1,
-        dbByte = 2,
-        dbInteger = 3,
-        dbLong = 4,
-        dbCurrency = 5,
-        dbSingle = 6,
-        dbDouble = 7,
-        dbDate = 8,
-        dbBinary = 9,
-        dbText = 10,
-        dbLongBinary = 11,
-        dbMemo = 12,
-        dbGUID = 15,
-        dbBigInt = 16,
-        dbVarBinary = 17,
-        dbChar = 18,
-        dbNumeric = 19,
-        dbDecimal = 20,
-        dbFloat = 21,
-        dbTime = 22,
-        dbTimeStamp = 23,
-        dbAttachment = 101,
-        dbComplexByte = 102,
-        dbComplexInteger = 103,
-        dbComplexLong = 104,
-        dbComplexSingle = 105,
-        dbComplexDouble = 106,
-        dbComplexGUID = 107,
-        dbComplexDecimal = 108,
-        dbComplexText = 109
-    };
+    static QHash<int, QString> mOdbcTypes;
 
     static Schema2Data* instance(const QString& connectionName, QObject *parent = nullptr);
 
@@ -99,10 +69,13 @@ public:
 
     void showRelationsListDialog(QWidget *widget);
 
+    void createTable(const QString& name);
+
     Schema2TableItem* tableItem(const QString& name) const {
         return mTableItems.get(name);
     }
 
+    QStringList dataTypes() const;
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 
@@ -157,7 +130,7 @@ protected:
 
     void relationPulled(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns);
 
-    void tablePulled(const QString &tableName);
+    void tablePulled(const QString &tableName, Status status);
 signals:
     void tableClicked(QString);
 protected slots:

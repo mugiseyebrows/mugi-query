@@ -20,11 +20,11 @@ public:
 
     //void setModel(Schema2TableModel* model);
 
-    void init(Schema2TableModel *model);
+    void init(Schema2TableModel *model, const QStringList &types);
 protected:
     Schema2TableModel* mModel;
 
-    void initColumns(Schema2TableModel *model);
+    void initColumns(Schema2TableModel *model, const QStringList &types);
     void initRelations(Schema2TableModel *model);
     void initIndexes(Schema2TableModel *model);
 private slots:

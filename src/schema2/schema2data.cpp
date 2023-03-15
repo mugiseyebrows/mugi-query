@@ -35,6 +35,56 @@
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
+enum OdbcType {
+    dbBoolean = 1,
+    dbByte = 2,
+    dbInteger = 3,
+    dbLong = 4,
+    dbCurrency = 5,
+    dbSingle = 6,
+    dbDouble = 7,
+    dbDate = 8,
+    dbBinary = 9,
+    dbText = 10,
+    dbLongBinary = 11,
+    dbMemo = 12,
+    dbGUID = 15,
+    dbBigInt = 16,
+    dbVarBinary = 17,
+    dbChar = 18,
+    dbNumeric = 19,
+    dbDecimal = 20,
+    dbFloat = 21,
+    dbTime = 22,
+    dbTimeStamp = 23,
+    dbAttachment = 101,
+    dbComplexByte = 102,
+    dbComplexInteger = 103,
+    dbComplexLong = 104,
+    dbComplexSingle = 105,
+    dbComplexDouble = 106,
+    dbComplexGUID = 107,
+    dbComplexDecimal = 108,
+    dbComplexText = 109
+};
+
+/*static*/
+QHash<int, QString> Schema2Data::mOdbcTypes = {
+    {dbByte, "BYTE"},
+    {dbBinary, "BINARY"},
+    {dbBoolean, "BIT"},
+    {dbCurrency, "CURRENCY"}, // MONEY
+    {dbDate, "DATETIME"},
+    {dbSingle, "SINGLE"}, // REAL
+    {dbDouble, "DOUBLE"},  // FLOAT
+    {dbInteger, "SMALLINT"},
+    {dbLong, "INTEGER"},
+    {dbText, "TEXT"},
+    {dbLongBinary, "LONGBINARY"},
+    {dbMemo, "MEMO"},
+    {dbGUID, "GUID"},
+};
+
 Schema2Data *Schema2Data::instance(const QString &connectionName, QObject *parent)
 {
     if (!mData.contains(connectionName)) {
@@ -74,9 +124,9 @@ void Schema2Data::unoverlapTables() {
 #endif
 
 
-void Schema2Data::tablePulled(const QString& table) {
+void Schema2Data::tablePulled(const QString& table, Status status) {
     if (!mTableModels.contains(table)) {
-        Schema2TableModel* model = new Schema2TableModel(table, true);
+        Schema2TableModel* model = new Schema2TableModel(table, status);
         mTableModels.set(table, model);
         connect(model, SIGNAL(tableClicked(QString)), this, SIGNAL(tableClicked(QString)));
     }
@@ -102,7 +152,7 @@ void Schema2Data::pullTablesMysql() {
 
     for(const QString& table: qAsConst(tables)) {
 
-        tablePulled(table);
+        tablePulled(table, StatusExisting);
 
         Schema2TableModel* model = mTableModels.get(table);
 
@@ -140,25 +190,11 @@ void Schema2Data::pullTablesOdbc() {
     QAxObject engine("DAO.DBEngine.120");
     QAxObject* database = engine.querySubObject("OpenDatabase(QString, bool)", filePath, false);
 
-    static QHash<int, QString> types = {
-        {dbByte, "BYTE"},
-        {dbBinary, "BINARY"},
-        {dbBoolean, "BIT"},
-        {dbCurrency, "MONEY"},
-        {dbDate, "DATETIME"},
-        {dbSingle, "SINGLE"}, // REAL
-        {dbDouble, "DOUBLE"},  // FLOAT
-        {dbInteger, "SMALLINT"},
-        {dbLong, "INTEGER"},
-        {dbText, "TEXT"},
-        {dbLongBinary, "LONGBINARY"},
-        {dbMemo, "MEMO"},
-        {dbGUID, "GUID"},
-    };
+
 
     for(const QString& tableName: tables) {
 
-        tablePulled(tableName);
+        tablePulled(tableName, StatusExisting);
 
         Schema2TableModel* model = mTableModels.get(tableName);
 
@@ -175,11 +211,11 @@ void Schema2Data::pullTablesOdbc() {
 
             //qDebug() << tableName << name << type;
 
-            if (!types.contains(type) || 0) {
+            if (!mOdbcTypes.contains(type) || 0) {
                 qDebug() << tableName << name << type << size;
             }
 
-            QString typeName = types.value(type, "UNKNOWN");
+            QString typeName = mOdbcTypes.value(type, "UNKNOWN");
             if (type == dbText) {
                 if (size != 255) {
                     typeName = QString("TEXT(%1)").arg(size);
@@ -205,7 +241,7 @@ void Schema2Data::pullTablesOther() {
 
     for(const QString& table: qAsConst(tables)) {
 
-        tablePulled(table);
+        tablePulled(table, StatusExisting);
 
         Schema2TableModel* model = mTableModels.get(table);
 
@@ -578,7 +614,42 @@ void Schema2Data::push(QWidget* widget)
 
     Schema2ChangeSet* changeSet = new Schema2ChangeSet();
 
-    //History* history = History::instance();
+    QList<Schema2TableModel*> tables = mTableModels.values();
+    for(Schema2TableModel* table: tables) {
+        switch(table->status()) {
+        case StatusNew:
+            changeSet->append(table->createQueries(), [=](){
+                table->altered();
+            });
+            break;
+        case StatusModified:
+            changeSet->append(table->alterQueries(), [=](){
+                table->altered();
+            });
+            break;
+        case StatusExisting:
+            break;
+        }
+    }
+
+    for(Schema2TableModel* table: tables) {
+        QList<Schema2Relation*> relations = table->getRelations().values();
+        for(Schema2Relation* relation: relations) {
+            switch(relation->status()) {
+            case StatusExisting:
+                break;
+            case StatusModified:
+                // todo implement recreate relation
+                break;
+            case StatusNew:
+                changeSet->append(relation->createQueries(table->tableName()), [=](){
+                    relation->created();
+                });
+                break;
+            }
+        }
+    }
+
 
 #if 0
 
@@ -768,13 +839,26 @@ void Schema2Data::showRelationDialog(const QString &childTable, const QString& p
 #endif
 }
 
+QStringList Schema2Data::dataTypes() const {
+
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
+    if (db.driverName() == DRIVER_ODBC) {
+        return mOdbcTypes.values();
+    }
+
+    // todo implement datatypes for
+
+    return {};
+}
+
 void Schema2Data::showAlterView(const QString &tableName)
 {
 
     if (!mAlterViews.contains(tableName)) {
         Schema2AlterView* view = new Schema2AlterView();
         Schema2TableModel* table = mTableModels.get(tableName);
-        view->init(table);
+        view->init(table, dataTypes());
         view->setWindowTitle(tableName);
         mAlterViews.set(tableName, view);
     }
@@ -834,6 +918,11 @@ void Schema2Data::showRelationsListDialog(QWidget* widget) {
     QString parentTable = dialog.parentTable();
     showRelationDialog(childTable, parentTable, widget);
 #endif
+}
+
+void Schema2Data::createTable(const QString &name)
+{
+    tablePulled(name, StatusNew);
 }
 
 

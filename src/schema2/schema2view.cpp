@@ -5,6 +5,7 @@
 #include "schema2tableitem.h"
 #include <QDebug>
 #include <QSortFilterProxyModel>
+#include <QInputDialog>
 
 QList<double> Schema2View::mScales = {0.1, 0.25, 0.5, 1.0};
 QStringList Schema2View::mScalesText = {"10%", "25%", "50%", "100%"};
@@ -125,9 +126,16 @@ void Schema2View::on_insert_clicked(bool checked)
     mMode = checked ? ModeInsert : ModeNone;
 }
 
+
+
 void Schema2View::on_create_clicked()
 {
-
+    QString tableName = QInputDialog::getText(this, "Table Name", "Name");
+    if (tableName.isEmpty()) {
+        return;
+    }
+    mData->createTable(tableName);
+    mData->showAlterView(tableName);
 }
 
 void Schema2View::on_arrange_clicked()
@@ -166,9 +174,6 @@ void Schema2View::on_scale_currentIndexChanged(int index)
     double scale = mScales[index];
     ui->view->setTransform(QTransform().scale(scale, scale));
 }
-
-
-
 
 void Schema2View::on_relations_clicked()
 {
