@@ -57,6 +57,8 @@ public:
                         const QString& parentTable, const QStringList& parentColumns,
                         bool constrained, Status status);
 
+    void removeRelation(const QString& name);
+
     Schema2Relation* getRelation(const QString& name) const;
 
     StringHash<Schema2Relation*> getRelations() const;

@@ -17,15 +17,20 @@ public:
     explicit Schema2RelationDialog2(QWidget *parent = nullptr);
     ~Schema2RelationDialog2();
 
-    void init(Schema2TableModel* childTable,
-              Schema2TableModel* parentTable,
-              Schema2Relation* relation);
+    QString constraintName() const;
+
+    QStringList childColumns() const;
+
+    QStringList parentColumns() const;
+
+    bool constrained() const;
+
+    void init(Schema2TableModel *childTable, Schema2TableModel *parentTable, const QString &constraintName, const QStringList &childColumns, const QStringList &parentColumns);
 
 private:
     Ui::Schema2RelationDialog2 *ui;
     Schema2TableModel* mChildTable;
     Schema2TableModel* mParentTable;
-    Schema2Relation* mRelation;
 };
 
 #endif // SCHEMA2RELATIONDIALOG2_H

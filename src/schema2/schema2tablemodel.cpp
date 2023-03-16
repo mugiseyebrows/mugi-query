@@ -122,6 +122,11 @@ Schema2Relation* Schema2TableModel::insertRelation(const QString &name, const QS
     return mRelations.get(name);
 }
 
+void Schema2TableModel::removeRelation(const QString &name)
+{
+    mRelations.remove(name);
+}
+
 Schema2Relation *Schema2TableModel::getRelation(const QString &name) const
 {
     return mRelations.get(name);

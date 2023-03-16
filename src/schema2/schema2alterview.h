@@ -2,6 +2,7 @@
 #define SCHEMA2ALTERVIEW_H
 
 #include <QWidget>
+#include "hash.h"
 
 namespace Ui {
 class Schema2AlterView;
@@ -20,17 +21,22 @@ public:
 
     //void setModel(Schema2TableModel* model);
 
-    void init(Schema2TableModel *model, const QStringList &types);
+    void init(const StringHash<Schema2TableModel *> &tableModels, Schema2TableModel *model, const QStringList &types);
 protected:
     Schema2TableModel* mModel;
+    StringHash<Schema2TableModel *> mTableModels;
+    QStringList mTypes;
 
-    void initColumns(Schema2TableModel *model, const QStringList &types);
-    void initRelations(Schema2TableModel *model);
-    void initIndexes(Schema2TableModel *model);
+    void initColumns();
+    void initRelations();
+    void initIndexes();
 private slots:
     void on_createRelation_clicked();
 
     void on_createIndex_clicked();
+signals:
+    void createRelation(QString childTable, QStringList childColumns, QString parentTable);
+    void editRelation();
 
 private:
     Ui::Schema2AlterView *ui;

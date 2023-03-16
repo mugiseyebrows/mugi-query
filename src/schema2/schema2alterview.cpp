@@ -8,6 +8,8 @@
 #include "schema2relationslistmodel2.h"
 #include "tablebuttons.h"
 #include "itemdelegatewithcompleter.h"
+#include <QMessageBox>
+#include "setcompleter.h"
 
 // todo push schema for one table
 
@@ -23,7 +25,10 @@ Schema2AlterView::~Schema2AlterView()
     delete ui;
 }
 
-void Schema2AlterView::initColumns(Schema2TableModel *model, const QStringList& types) {
+void Schema2AlterView::initColumns() {
+
+    auto* model = mModel;
+
     ui->columns->setModel(model);
     ui->columns->hideColumn(Schema2TableModel::col_name);
     ui->columns->hideColumn(Schema2TableModel::col_type);
@@ -51,13 +56,19 @@ void Schema2AlterView::initColumns(Schema2TableModel *model, const QStringList& 
         }
     });
 
-    auto* delegate = new ItemDelegateWithCompleter(types, ui->columns);
+    auto* delegate = new ItemDelegateWithCompleter(mTypes, ui->columns);
     ui->columns->setItemDelegateForColumn(Schema2TableModel::col_newtype, delegate);
 
 
+    ui->childTable->setText(model->tableName());
+
+    setCompleter(ui->parentTable, mTableModels.keys());
 }
 
-void Schema2AlterView::initRelations(Schema2TableModel *model) {
+void Schema2AlterView::initRelations() {
+
+    auto* model = mModel;
+
     QList<Schema2Relation*> relations = model->getRelations().values();
     Schema2RelationsListModel2* relationsModel = new Schema2RelationsListModel2(relations);
     ui->relations->setModel(relationsModel);
@@ -73,7 +84,10 @@ void Schema2AlterView::initRelations(Schema2TableModel *model) {
 
 }
 
-void Schema2AlterView::initIndexes(Schema2TableModel *model) {
+void Schema2AlterView::initIndexes() {
+
+    auto* model = mModel;
+
     QList<Schema2Index*> indexes = model->getIndexes();
     QStandardItemModel* indexesModel = new QStandardItemModel(indexes.size(), 1);
     for(int i=0;i<indexes.size();i++) {
@@ -91,10 +105,14 @@ void Schema2AlterView::initIndexes(Schema2TableModel *model) {
 
 }
 
-void Schema2AlterView::init(Schema2TableModel *model, const QStringList& types) {
-    initColumns(model, types);
-    initRelations(model);
-    initIndexes(model);
+void Schema2AlterView::init(const StringHash<Schema2TableModel*>& tableModels,
+                            Schema2TableModel *model, const QStringList& types) {
+    mTableModels = tableModels;
+    mModel = model;
+    mTypes = types;
+    initColumns();
+    initRelations();
+    initIndexes();
 }
 
 /*
@@ -106,9 +124,32 @@ void Schema2AlterView::setModel(Schema2TableModel *model)
 }
 */
 
+
+static QList<int> selectedRows(QTableView* view) {
+    QSet<int> res;
+    auto indexes = view->selectionModel()->selectedIndexes();
+    for(auto index: indexes) {
+        res.insert(index.row());
+    }
+    QList<int> res_ = res.toList();
+    qSort(res_.begin(), res_.end());
+    return res_;
+}
+
 void Schema2AlterView::on_createRelation_clicked()
 {
-
+    QString parentTable = ui->parentTable->text();
+    QString childTable = mModel->tableName();
+    QList<int> rows = selectedRows(ui->columns);
+    QStringList childColumns;
+    for(int row: rows) {
+        childColumns.append(mModel->data(mModel->index(row, 0)).toString());
+    }
+    if (childColumns.isEmpty()) {
+        QMessageBox::information(this, "", "To create relation please select one or more columns");
+        return;
+    }
+    emit createRelation(childTable, childColumns, parentTable);
 }
 
 

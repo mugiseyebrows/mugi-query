@@ -457,7 +457,8 @@ void Schema2Data::pullIndexesOdbc() {
 }
 
 void Schema2Data::relationPulled(const QString& constraintName, const QString& childTable, const QStringList& childColumns,
-                    const QString& parentTable, const QStringList& parentColumns) {
+                                 const QString& parentTable, const QStringList& parentColumns,
+                                 bool constrained, Status status) {
     Schema2TableItem* childItem = mTableItems.get(childTable);
     Schema2TableItem* parentItem = mTableItems.get(parentTable);
 
@@ -470,7 +471,7 @@ void Schema2Data::relationPulled(const QString& constraintName, const QString& c
         return;
     }
 
-    Schema2Relation* newRelation = childModel->insertRelation(constraintName, childColumns, parentTable, parentColumns, true, StatusExisting);
+    Schema2Relation* newRelation = childModel->insertRelation(constraintName, childColumns, parentTable, parentColumns, constrained, status);
     if (newRelation) {
         Schema2RelationItem2* relationItem =
                 new Schema2RelationItem2(childItem, parentItem);
@@ -520,7 +521,7 @@ void Schema2Data::pullRelationsOdbc() {
             childColumns.append(childColumn);
         }
 
-        relationPulled(constraintName, childTable, childColumns, parentTable, parentColumns);
+        relationPulled(constraintName, childTable, childColumns, parentTable, parentColumns, true, StatusExisting);
 
 #if 0
 
@@ -852,15 +853,80 @@ QStringList Schema2Data::dataTypes() const {
     return {};
 }
 
+QStringList Schema2Data::guessParentColumns(QString childTable, QStringList childColumns, QString parentTable) {
+
+    QStringList res;
+    auto* model = mTableModels.get(parentTable);
+    for(int row=0;row<childColumns.size();row++) {
+        res.append(model->newName(row));
+    }
+    return res;
+}
+
+#include "schema2relationdialog2.h"
+
+void Schema2Data::onCreateRelation(QString childTable, QStringList childColumns, QString parentTable) {
+
+    if (!mTableModels.get(parentTable)) {
+        return;
+    }
+
+    auto* childTableModel = mTableModels.get(childTable);
+    auto* parentTableModel = mTableModels.get(parentTable);
+    auto* relation = childTableModel->getRelationTo(parentTable);
+
+    QString constraintName;
+
+    QStringList parentColumns;
+
+    if (relation == 0) {
+        parentColumns = guessParentColumns(childTable, childColumns, parentTable);
+        constraintName = QString("FK_%1_%2").arg(parentTable).arg(childTable);
+    } else {
+        parentColumns = relation->parentColumns();
+        constraintName = relation->name();
+    }
+
+    Schema2RelationDialog2 dialog;
+    dialog.init(childTableModel, parentTableModel,
+                constraintName,
+                childColumns,
+                parentColumns);
+
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    if (relation) {
+
+    } else {
+
+        QString constraintName = dialog.constraintName();
+        QStringList childColumns = dialog.childColumns();
+        QStringList parentColumns = dialog.parentColumns();
+        bool constrained = dialog.constrained();
+
+        relationPulled(constraintName, childTable, childColumns,
+                       parentTable, parentColumns, constrained, StatusNew);
+
+    }
+
+
+}
+
 void Schema2Data::showAlterView(const QString &tableName)
 {
 
     if (!mAlterViews.contains(tableName)) {
         Schema2AlterView* view = new Schema2AlterView();
         Schema2TableModel* table = mTableModels.get(tableName);
-        view->init(table, dataTypes());
+        view->init(mTableModels, table, dataTypes());
         view->setWindowTitle(tableName);
         mAlterViews.set(tableName, view);
+        connect(view,
+                SIGNAL(createRelation(QString, QStringList, QString)),
+                this,
+                SLOT(onCreateRelation(QString, QStringList, QString)));
     }
     auto* view = mAlterViews.get(tableName);
     showAndRaise(view);

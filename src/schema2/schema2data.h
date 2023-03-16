@@ -128,13 +128,15 @@ protected:
     void setTableItemsPos();
 
 
-    void relationPulled(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns);
+    void relationPulled(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns, bool constrained, Status status);
 
     void tablePulled(const QString &tableName, Status status);
+    QStringList guessParentColumns(QString childTable, QStringList childColumns, QString parentTable);
 signals:
     void tableClicked(QString);
 protected slots:
     void onSelectModelChanged(QModelIndex, QModelIndex);
+    void onCreateRelation(QString childTable, QStringList childColumns, QString parentTable);
 };
 
 #endif // SCHEMA2DATA_H

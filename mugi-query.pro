@@ -97,6 +97,7 @@ HEADERS += \
     src/schema2/schema2tableitem.h \
     src/schema2/schema2tablemodel.h \
     src/schema2/schema2view.h \
+    src/schema2/setcompleter.h \
     src/sessionitem.h \
     src/setdefaultcolors.h \
     src/setheaderdata.h \
@@ -232,6 +233,7 @@ SOURCES += \
     src/schema2/schema2tableitem.cpp \
     src/schema2/schema2tablemodel.cpp \
     src/schema2/schema2view.cpp \
+    src/schema2/setcompleter.cpp \
     src/sessionitem.cpp \
     src/setdefaultcolors.cpp \
     src/setheaderdata.cpp \
