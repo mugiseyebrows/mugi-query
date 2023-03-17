@@ -1025,3 +1025,18 @@ void MainWindow::on_schemaEdit_triggered()
     showAndRaise(view);
 }
 
+#include "xjoinwidget.h"
+
+void MainWindow::on_toolsJoin_triggered()
+{
+    XJoinWidget* widget = new XJoinWidget();
+    widget->setAttribute(Qt::WA_DeleteOnClose);
+
+    QStringList connectionNames = model()->connectionNames();
+
+    widget->init(connectionNames);
+
+    widget->show();
+
+}
+

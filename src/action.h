@@ -27,6 +27,7 @@ public:
         ActionToolMysql,
         ActionToolMysqldump,
         ActionSchemaEdit,
+        ActionToolXJoin,
     };
     Action(Type type = ActionEmpty, const QVariantList& args = QVariantList());
     Type type() const;

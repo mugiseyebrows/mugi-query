@@ -192,6 +192,16 @@ QModelIndex SessionModel::indexOf(const QString &connectionName) const {
     return QModelIndex();
 }
 
+QStringList SessionModel::connectionNames() const
+{
+    QStringList res;
+    for(int row=0;row<rootItem->childCount();row++) {
+        QString name = rootItem->child(row)->name();
+        res.append(name);
+    }
+    return res;
+}
+
 QVariant SessionModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())

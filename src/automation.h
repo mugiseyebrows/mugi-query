@@ -54,6 +54,8 @@ public:
 
     void schemaEdit();
 
+    void toolXJoin(const QString& conn1, const QString& conn2);
+
 protected:
 
     QQueue<Action> mQueued;

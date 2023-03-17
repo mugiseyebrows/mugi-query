@@ -7,21 +7,7 @@
 #include "schema2tablemodel.h"
 #include "itemdelegatewithcompleter.h"
 #include "tablebuttons.h"
-
-static void setModelColumn(QAbstractItemModel* model, int column, const QStringList& values) {
-    for(int row=0;row<values.size();row++) {
-        model->setData(model->index(row, column), values[row]);
-    }
-}
-
-static QStringList modelColumn(QAbstractItemModel* model, int column) {
-    QStringList res;
-    for(int row=0;row<model->rowCount();row++) {
-        QString value = model->data(model->index(row, column)).toString();
-        res.append(value);
-    }
-    return res;
-}
+#include "modelcolumn.h"
 
 
 Schema2RelationDialog2::Schema2RelationDialog2(QWidget *parent) :

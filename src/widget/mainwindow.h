@@ -67,7 +67,8 @@ protected:
     void selectDatabase(const QString &connectionName);
     void updateSchemaModel();
     QStringList schemaTreeSelectedTables();
-public slots:
+
+protected slots:
 
     void on_databaseConnect_triggered();
     void on_databaseDisconnect_triggered();
@@ -119,6 +120,10 @@ public slots:
     void on_codePandas_triggered();
 
     void on_schemaEdit_triggered();
+
+    void on_toolsJoin_triggered();
+
+    friend class Automation;
 
 private:
     Ui::MainWindow *ui;

@@ -140,6 +140,7 @@
     </property>
     <addaction name="toolsMysql"/>
     <addaction name="toolsMysqldump"/>
+    <addaction name="toolsJoin"/>
    </widget>
    <widget class="QMenu" name="menuCode">
     <property name="title">
@@ -356,6 +357,11 @@
   <action name="schemaEdit">
    <property name="text">
     <string>&amp;Edit</string>
+   </property>
+  </action>
+  <action name="toolsJoin">
+   <property name="text">
+    <string>Join</string>
    </property>
   </action>
  </widget>

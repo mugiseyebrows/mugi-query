@@ -59,6 +59,13 @@ void History::addQuery(const QString& connectionName, const QString& query_) {
     QUERY_EXEC(q);
 }
 
+void History::addJoin(const QString& connectionName1, const QString& query1, const QStringList& columns1,
+                      const QString& connectionName2, const QString& query2, const QStringList& columns2) {
+
+    // todo implement xjoin history
+
+}
+
 // echo ', const QString& '{connectionName,driver,host,user,password,database,port}
 
 

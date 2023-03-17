@@ -56,6 +56,7 @@ HEADERS += \
     src/datastreamer.h \
     src/datautils.h \
     src/deleteeventfilter.h \
+    src/fieldnames.h \
     src/filterplotitem.h \
     src/formats.h \
     src/hash.h \
@@ -66,7 +67,9 @@ HEADERS += \
     src/jointoken.h \
     src/jointokenlist.h \
     src/jsonhelper.h \
+    src/model/xjoinmodel.h \
     src/modelappender.h \
+    src/modelcolumn.h \
     src/outputtype.h \
     src/qisnumerictype.h \
     src/queryparser.h \
@@ -105,10 +108,13 @@ HEADERS += \
     src/showandraise.h \
     src/splitterutil.h \
     src/sqlhelper.h \
+    src/sqlutil.h \
     src/tests.h \
     src/tokens.h \
     src/tools.h \
     src/version.h \
+    src/widget/xjoinwidget.h \
+    src/widget/xjoinitemwidget.h \
     src/widget/lineselect.h \
     src/schema2/schema2data.h \
     src/widget/toolmysqldialog.h \
@@ -192,6 +198,7 @@ SOURCES += \
     src/datastreamer.cpp \
     src/datautils.cpp \
     src/deleteeventfilter.cpp \
+    src/fieldnames.cpp \
     src/filterplotitem.cpp \
     src/formats.cpp \
     src/hash.cpp \
@@ -202,7 +209,9 @@ SOURCES += \
     src/jointokenlist.cpp \
     src/jsonhelper.cpp \
     src/main.cpp \
+    src/model/xjoinmodel.cpp \
     src/modelappender.cpp \
+    src/modelcolumn.cpp \
     src/outputtype.cpp \
     src/qisnumerictype.cpp \
     src/queryparser.cpp \
@@ -241,6 +250,7 @@ SOURCES += \
     src/showandraise.cpp \
     src/splitterutil.cpp \
     src/sqlhelper.cpp \
+    src/sqlutil.cpp \
     src/tests.cpp \
     src/tokens.cpp \
     src/model/checkablestringlistmodel.cpp \
@@ -253,6 +263,8 @@ SOURCES += \
     src/model/xyplotmodel.cpp \
     src/model/xyplotmodelitem.cpp \
     src/tools.cpp \
+    src/widget/xjoinwidget.cpp \
+    src/widget/xjoinitemwidget.cpp \
     src/widget/databasehistorydialog.cpp \
     src/widget/distributionplot.cpp \
     src/widget/intlineedit.cpp \
@@ -319,6 +331,8 @@ FORMS += \
     src/schema2/schema2relationdialog2.ui \
     src/schema2/schema2relationslistdialog.ui \
     src/schema2/schema2view.ui \
+    src/widget/xjoinwidget.ui \
+    src/widget/xjoinitemwidget.ui \
     src/widget/databasehistorydialog.ui \
     src/widget/distributionplot.ui \
     src/widget/joinhelperwidget.ui \

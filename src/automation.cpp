@@ -179,6 +179,11 @@ void Automation::schemaEdit()
     mQueued.append(Action(Action::ActionSchemaEdit));
 }
 
+void Automation::toolXJoin(const QString &conn1, const QString &conn2)
+{
+    mQueued.append(Action(Action::ActionToolXJoin, {conn1, conn2}));
+}
+
 void Automation::onStart() {
 
     if (mQueued.isEmpty()) {
@@ -328,6 +333,13 @@ void Automation::onStart() {
     } else if (mAction.type() == Action::ActionSchemaEdit) {
 
         mainWindow()->on_schemaEdit_triggered();
+        next();
+
+    } else if (mAction.type() == Action::ActionToolXJoin) {
+
+        QString conn1 = mAction.arg(0).toString();
+        QString conn2 = mAction.arg(1).toString();
+        mainWindow()->on_toolsJoin_triggered();
         next();
 
     }
