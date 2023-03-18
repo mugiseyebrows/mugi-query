@@ -2,13 +2,14 @@
 #define SCHEMA2INDEX_H
 
 #include <QStringList>
+#include "schema2status.h"
 
 class Schema2Index
 {
 public:
     Schema2Index();
 
-    Schema2Index(const QString& name, const QStringList& columns, bool existing);
+    Schema2Index(const QString& name, const QStringList& columns, bool primary, Status status);
 
     QString createQuery(const QString& tableName) const;
 
@@ -16,17 +17,17 @@ public:
 
     QString name() const;
 
-    bool existing() const;
-
-    void setExisting(bool value);
-
     bool isIndexColumn(const QString& column);
 
+    Status status() const;
+
+    void setStatus(Status status);
 protected:
     QString mName;
     QStringList mColumns;
     QStringList mColumnsLower;
-    bool mExisting;
+    bool mPrimary;
+    Status mStatus;
 };
 
 #endif // SCHEMA2INDEX_H

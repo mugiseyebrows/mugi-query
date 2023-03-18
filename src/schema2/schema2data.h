@@ -76,6 +76,9 @@ public:
     }
 
     QStringList dataTypes() const;
+
+    void indexPulled(const QString indexName, const QString &tableName, const QStringList &columns, bool primary, Status status);
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 

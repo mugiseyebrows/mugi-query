@@ -6,6 +6,7 @@
 #include "schema2relation.h"
 #include "schema2status.h"
 class Schema2Index;
+class Schema2IndexesModel;
 
 class Schema2TableModel : public QAbstractTableModel
 {
@@ -39,17 +40,17 @@ public:
 
     QStringList newNames() const;
 
+#if 0
     Schema2Index* getIndex(const QString& name) const;
 
-    QList<Schema2Index*> getIndexes() const {
-        return mIndexes.values();
-    }
+    QList<Schema2Index*> getIndexes() const;
+#endif
 
-    void insertIndex(const QString& name, const QStringList& columns, bool existing);
+    void insertIndex(const QString& name, const QStringList& columns, bool primary, Status status);
 
     void removeIndex(const QString& name);
 
-    bool isIndexColumn(const QString &column) const;
+    //bool isIndexColumn(const QString &column) const;
 
     bool containsRelation(const QString& name) const;
 
@@ -65,94 +66,22 @@ public:
 
     Schema2Relation* getRelationTo(const QString& tableName) const;
 
-    void altered() {
-        mStatus = StatusExisting;
-        for(int row=0;row<rowCount();row++) {
-            QString newName = this->newName(row);
-            QString newType = this->newType(row);
-            setData(index(row, col_name), newName);
-            setData(index(row, col_type), newType);
-        }
-    }
+    void altered();
 
-    Status status() const {
-        if (mStatus == StatusNew) {
-            return StatusNew;
-        }
-        if (mStatus == StatusExisting) {
-            for(int row=0;row<rowCount();row++) {
-                if (newName(row).isEmpty()) {
-                    continue;
-                }
-                if (name(row) != newName(row) || type(row) != newType(row)) {
-                    return StatusModified;
-                }
-            }
-            return StatusExisting;
-        }
-        return mStatus;
-    }
+    Status status() const;
 
-    QStringList createQueries() const {
-        QStringList fields;
-        for(int row=0;row<rowCount();row++) {
-            QString newName = this->newName(row);
-            QString newType = this->newType(row);
-            if (newName.isEmpty() || newType.isEmpty()) {
-                continue;
-            }
-            fields.append(QString("%1 %2").arg(newName).arg(newType));
-        }
-        QString expr = QString("CREATE TABLE %1 (%2)").arg(mTableName).arg(fields.join(", "));
-        return {expr};
-    }
+    QStringList createQueries() const;
 
-    QStringList alterQueries() const {
+    QStringList alterQueries() const;
 
-        QStringList res;
-
-        for(int row=0;row<rowCount();row++) {
-
-            QString name = this->name(row);
-            QString newName = this->newName(row);
-            QString type = this->type(row);
-            QString newType = this->newType(row);
-
-            if (newName.isEmpty()) {
-
-            } else {
-                if (name.isEmpty()) {
-                    QString expr = QString("ALTER TABLE %1 ADD COLUMN %2 %3")
-                        .arg(mTableName)
-                        .arg(newName)
-                        .arg(newType);
-                    res.append(expr);
-                } else if (name == newName) {
-
-                    if (type != newType) {
-                        QString expr = QString("ALTER TABLE %1 ALTER COLUMN %2 %3")
-                                .arg(mTableName)
-                                .arg(newName)
-                                .arg(newType);
-                        res.append(expr);
-                    }
-
-                } else if (name != newName) {
-                    // todo implement column renaming for supported drivers
-                }
-            }
-        }
-
-        return res;
-    }
-
-    QStringList dropQueries() const {
-        QString expr = QString("DROP TABLE %1").arg(mTableName);
-        return {expr};
-    }
+    QStringList dropQueries() const;
 
     void setStatus(Status status) {
         mStatus = status;
+    }
+
+    Schema2IndexesModel* indexes() const {
+        return mIndexes;
     }
 
 signals:
@@ -162,9 +91,11 @@ protected:
     QList<QStringList> mColumns;
     QString mTableName;
 
-    StringHash<Schema2Index*> mIndexes;
+    //StringHash<Schema2Index*> mIndexes;
 
     StringHash<Schema2Relation*> mRelations;
+
+    Schema2IndexesModel* mIndexes;
 
     Status mStatus;
 

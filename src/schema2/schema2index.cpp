@@ -13,20 +13,26 @@ static QStringList toLower(const QStringList& items) {
     return res;
 }
 
-Schema2Index::Schema2Index(const QString &name, const QStringList &columns, bool existing)
-    : mName(name), mColumns(columns), mColumnsLower(toLower(columns)), mExisting(existing)
+Schema2Index::Schema2Index(const QString &name, const QStringList &columns, bool primary, Status status)
+    : mName(name), mColumns(columns), mColumnsLower(toLower(columns)), mPrimary(primary), mStatus(status)
 {
 
 }
 
 QString Schema2Index::createQuery(const QString &tableName) const
 {
-    return QString("DROP INDEX %1 on %2").arg(mName).arg(tableName);
+    QString expr = QString("CREATE INDEX %1 on %2 (%3)%4")
+            .arg(mName)
+            .arg(tableName)
+            .arg(mColumns.join(", "))
+            .arg(mPrimary ? " WITH PRIMARY" : "");
+    return expr;
 }
 
 QString Schema2Index::dropQuery(const QString &tableName) const
 {
-    return QString("CREATE INDEX %1 on %2 (%3)").arg(mName).arg(tableName).arg(mColumns.join(", "));
+    QString expr = QString("DROP INDEX %1 on %2").arg(mName).arg(tableName);
+    return expr;
 }
 
 QString Schema2Index::name() const
@@ -34,14 +40,14 @@ QString Schema2Index::name() const
     return mName;
 }
 
-bool Schema2Index::existing() const
+Status Schema2Index::status() const
 {
-    return mExisting;
+    return mStatus;
 }
 
-void Schema2Index::setExisting(bool value)
+void Schema2Index::setStatus(Status status)
 {
-    mExisting = value;
+    mStatus = status;
 }
 
 bool Schema2Index::isIndexColumn(const QString &column)

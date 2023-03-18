@@ -2,11 +2,12 @@
 
 #include "schema2index.h"
 #include "schema2relation.h"
+#include "schema2indexesmodel.h"
 
 // todo table renames
 
 Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject *parent)
-    : mTableName(name), mStatus(status), QAbstractTableModel{parent}
+    : mTableName(name), mStatus(status), mIndexes(new Schema2IndexesModel(this)), QAbstractTableModel{parent}
 {
 
 }
@@ -78,21 +79,32 @@ QStringList Schema2TableModel::newNames() const
     return res;
 }
 
+#if 0
 Schema2Index *Schema2TableModel::getIndex(const QString &name) const
 {
     return mIndexes.get(name);
 }
 
-void Schema2TableModel::insertIndex(const QString &name, const QStringList &columns, bool existing)
+QList<Schema2Index *> Schema2TableModel::getIndexes() const {
+    return mIndexes.values();
+}
+#endif
+
+void Schema2TableModel::insertIndex(const QString &name, const QStringList &columns, bool primary, Status status)
 {
-    mIndexes.set(name, new Schema2Index(name, columns, existing));
+    //mIndexes.set(name, new Schema2Index(name, columns, primary, status));
+
+    mIndexes->insertIndex(name, columns, primary, status);
+
 }
 
 void Schema2TableModel::removeIndex(const QString &name)
 {
-    mIndexes.remove(name);
+    //mIndexes.remove(name);
+    mIndexes->removeIndex(name);
 }
 
+#if 0
 bool Schema2TableModel::isIndexColumn(const QString &column) const
 {
     QList<Schema2Index*> indexes = mIndexes.values();
@@ -103,6 +115,7 @@ bool Schema2TableModel::isIndexColumn(const QString &column) const
     }
     return false;
 }
+#endif
 
 bool Schema2TableModel::containsRelation(const QString &name) const
 {
@@ -146,6 +159,92 @@ Schema2Relation *Schema2TableModel::getRelationTo(const QString &tableName) cons
         }
     }
     return 0;
+}
+
+void Schema2TableModel::altered() {
+    mStatus = StatusExisting;
+    for(int row=0;row<rowCount();row++) {
+        QString newName = this->newName(row);
+        QString newType = this->newType(row);
+        setData(index(row, col_name), newName);
+        setData(index(row, col_type), newType);
+    }
+}
+
+Status Schema2TableModel::status() const {
+    if (mStatus == StatusNew) {
+        return StatusNew;
+    }
+    if (mStatus == StatusExisting) {
+        for(int row=0;row<rowCount();row++) {
+            if (newName(row).isEmpty()) {
+                continue;
+            }
+            if (name(row) != newName(row) || type(row) != newType(row)) {
+                return StatusModified;
+            }
+        }
+        return StatusExisting;
+    }
+    return mStatus;
+}
+
+QStringList Schema2TableModel::createQueries() const {
+    QStringList fields;
+    for(int row=0;row<rowCount();row++) {
+        QString newName = this->newName(row);
+        QString newType = this->newType(row);
+        if (newName.isEmpty() || newType.isEmpty()) {
+            continue;
+        }
+        fields.append(QString("%1 %2").arg(newName).arg(newType));
+    }
+    QString expr = QString("CREATE TABLE %1 (%2)").arg(mTableName).arg(fields.join(", "));
+    return {expr};
+}
+
+QStringList Schema2TableModel::alterQueries() const {
+
+    QStringList res;
+
+    for(int row=0;row<rowCount();row++) {
+
+        QString name = this->name(row);
+        QString newName = this->newName(row);
+        QString type = this->type(row);
+        QString newType = this->newType(row);
+
+        if (newName.isEmpty()) {
+
+        } else {
+            if (name.isEmpty()) {
+                QString expr = QString("ALTER TABLE %1 ADD COLUMN %2 %3")
+                        .arg(mTableName)
+                        .arg(newName)
+                        .arg(newType);
+                res.append(expr);
+            } else if (name == newName) {
+
+                if (type != newType) {
+                    QString expr = QString("ALTER TABLE %1 ALTER COLUMN %2 %3")
+                            .arg(mTableName)
+                            .arg(newName)
+                            .arg(newType);
+                    res.append(expr);
+                }
+
+            } else if (name != newName) {
+                // todo implement column renaming for supported drivers
+            }
+        }
+    }
+
+    return res;
+}
+
+QStringList Schema2TableModel::dropQueries() const {
+    QString expr = QString("DROP TABLE %1").arg(mTableName);
+    return {expr};
 }
 
 int Schema2TableModel::rowCount(const QModelIndex &parent) const

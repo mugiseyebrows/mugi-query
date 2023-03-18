@@ -83,6 +83,7 @@ HEADERS += \
     src/schema2/schema2arrange.h \
     src/schema2/schema2changeset.h \
     src/schema2/schema2index.h \
+    src/schema2/schema2indexesmodel.h \
     src/schema2/schema2join.h \
     src/schema2/schema2pushview.h \
     src/schema2/schema2relation.h \
@@ -101,6 +102,7 @@ HEADERS += \
     src/schema2/schema2tablemodel.h \
     src/schema2/schema2view.h \
     src/schema2/setcompleter.h \
+    src/schema2/tablestretcher.h \
     src/sessionitem.h \
     src/setdefaultcolors.h \
     src/setheaderdata.h \
@@ -225,6 +227,7 @@ SOURCES += \
     src/schema2/schema2arrange.cpp \
     src/schema2/schema2changeset.cpp \
     src/schema2/schema2index.cpp \
+    src/schema2/schema2indexesmodel.cpp \
     src/schema2/schema2join.cpp \
     src/schema2/schema2pushview.cpp \
     src/schema2/schema2relation.cpp \
@@ -243,6 +246,7 @@ SOURCES += \
     src/schema2/schema2tablemodel.cpp \
     src/schema2/schema2view.cpp \
     src/schema2/setcompleter.cpp \
+    src/schema2/tablestretcher.cpp \
     src/sessionitem.cpp \
     src/setdefaultcolors.cpp \
     src/setheaderdata.cpp \

@@ -14,13 +14,18 @@ public:
     }
     Schema2ChangeSetItem(const QStringList& queries, const Schema2ChangeSetHandler& handler)
         : queries(queries), handler(handler){
-
+        for(int i=0;i<queries.size();i++) {
+            errors.append(QString());
+        }
+    }
+    int size() const {
+        return queries.size();
     }
 
     QStringList queries;
     QStringList errors;
     Schema2ChangeSetHandler handler;
-
+    QHash<int,int> mRows;
 };
 
 class Schema2ChangeSet : public QAbstractTableModel
@@ -30,11 +35,11 @@ public:
     explicit Schema2ChangeSet(QObject *parent = nullptr);
 
     void append(const QStringList& queries,
-                const Schema2ChangeSetHandler& onSuccess) {
-        mItems.append(Schema2ChangeSetItem(queries, onSuccess));
-    }
+                const Schema2ChangeSetHandler& onSuccess);
 
     QList<Schema2ChangeSetItem> mItems;
+
+    QList<QList<int>> mIndexes;
 
     bool execute(const QString &connectionName);
 

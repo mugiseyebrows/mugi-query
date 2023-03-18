@@ -10,6 +10,7 @@ class Schema2AlterView;
 
 class Schema2TableModel;
 class Schema2RelationModel;
+class Schema2Data;
 
 class Schema2AlterView : public QWidget
 {
@@ -21,8 +22,13 @@ public:
 
     //void setModel(Schema2TableModel* model);
 
-    void init(const StringHash<Schema2TableModel *> &tableModels, Schema2TableModel *model, const QStringList &types);
+    void init(Schema2Data* data,
+            const StringHash<Schema2TableModel *> &tableModels,
+              Schema2TableModel *model,
+              const QStringList &types);
 protected:
+    Schema2Data* mData;
+
     Schema2TableModel* mModel;
     StringHash<Schema2TableModel *> mTableModels;
     QStringList mTypes;
@@ -30,10 +36,14 @@ protected:
     void initColumns();
     void initRelations();
     void initIndexes();
+    QStringList selectedFields() const;
+    void createIndex(bool primary);
 private slots:
     void on_createRelation_clicked();
 
     void on_createIndex_clicked();
+    void on_createPrimaryKey_clicked();
+
 signals:
     void createRelation(QString childTable, QStringList childColumns, QString parentTable);
     void editRelation();

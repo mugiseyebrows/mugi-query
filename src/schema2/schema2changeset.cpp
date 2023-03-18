@@ -10,6 +10,14 @@ Schema2ChangeSet::Schema2ChangeSet(QObject *parent)
 
 }
 
+void Schema2ChangeSet::append(const QStringList &queries, const Schema2ChangeSetHandler &onSuccess) {
+    auto item = Schema2ChangeSetItem(queries, onSuccess);
+    for(int i=0;i<item.size();i++) {
+        mIndexes.append({mItems.size(), i});
+    }
+    mItems.append(item);
+}
+
 bool Schema2ChangeSet::execute(const QString& connectionName)
 {
     History* history = History::instance();
@@ -22,10 +30,10 @@ bool Schema2ChangeSet::execute(const QString& connectionName)
             QString error;
             if (!q.exec(query)) {
                 error = q.lastError().text();
-                errors.append(error);
             } else {
                 history->addQuery(connectionName, query);
             }
+            errors.append(error);
         }
         if (errors.isEmpty()) {
             mItems[row].handler();
@@ -42,20 +50,27 @@ bool Schema2ChangeSet::isEmpty() const
 
 int Schema2ChangeSet::rowCount(const QModelIndex &parent) const
 {
-    return mItems.size();
+    if (parent.isValid()) {
+        return 0;
+    }
+    return mIndexes.size();
 }
 
 int Schema2ChangeSet::columnCount(const QModelIndex &parent) const
 {
+    if (parent.isValid()) {
+        return 0;
+    }
     return 2;
 }
 
 QVariant Schema2ChangeSet::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
+        QList<int> ix = mIndexes[index.row()];
         switch(index.column()) {
-        case 0: return mItems[index.row()].queries.join("\n");
-        case 1: return mItems[index.row()].errors.join("\n");
+        case 0: return mItems[ix[0]].queries[ix[1]];
+        case 1: return mItems[ix[0]].errors[ix[1]];
         }
     }
     return QVariant();
@@ -67,5 +82,5 @@ QVariant Schema2ChangeSet::headerData(int section, Qt::Orientation orientation, 
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
         return header.value(section);
     }
-    return QVariant();
+    return QAbstractTableModel::headerData(section, orientation, role);
 }

@@ -32,6 +32,7 @@
 #include <QRegularExpression>
 
 #include "schema2changeset.h"
+#include "schema2indexesmodel.h"
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -380,7 +381,14 @@ static T* hash_find(const QHash<QString, T*>& hash, const QString& key) {
 }
 #endif
 
-
+void Schema2Data::indexPulled(const QString indexName, const QString& tableName, const QStringList& columns,
+                              bool primary, Status status) {
+    if (mTableModels.contains(tableName)) {
+        mTableModels.get(tableName)->insertIndex(indexName, columns, primary, status);
+    } else {
+        qDebug() << "!mTableModels.contains(tableName)" << tableName;
+    }
+}
 
 void Schema2Data::pullIndexesOdbc() {
 
@@ -435,6 +443,7 @@ void Schema2Data::pullIndexesOdbc() {
             QAxObject* index = tableDef->querySubObject("Indexes(int)", j);
 
             QString indexName = index->property("Name").toString();
+            bool primary = index->property("Primary").toBool();
 
             QStringList columns;
 
@@ -445,11 +454,9 @@ void Schema2Data::pullIndexesOdbc() {
                 QString fieldName = field->property("Name").toString();
                 columns.append(fieldName);
             }
-            if (mTableModels.contains(tableName)) {
-                mTableModels.get(tableName)->insertIndex(indexName, columns, false);
-            } else {
-                qDebug() << "!mTableModels.contains(tableName)" << tableName;
-            }
+
+            indexPulled(indexName, tableName, columns, primary, StatusExisting);
+
         }
     }
 
@@ -607,7 +614,7 @@ void Schema2Data::pull()
 
 }
 
-
+#include "schema2pushview.h"
 
 void Schema2Data::push(QWidget* widget)
 {
@@ -615,6 +622,7 @@ void Schema2Data::push(QWidget* widget)
 
     Schema2ChangeSet* changeSet = new Schema2ChangeSet();
 
+    // tables
     QList<Schema2TableModel*> tables = mTableModels.values();
     for(Schema2TableModel* table: tables) {
         switch(table->status()) {
@@ -633,6 +641,18 @@ void Schema2Data::push(QWidget* widget)
         }
     }
 
+    // indexes
+    for(Schema2TableModel* table: tables) {
+        Schema2IndexesModel* indexes = table->indexes();
+        QStringList queries = indexes->queries(table->tableName());
+        if (!queries.isEmpty()) {
+            changeSet->append(queries, [=](){
+                indexes->altered();
+            });
+        }
+    }
+
+    // relations
     for(Schema2TableModel* table: tables) {
         QList<Schema2Relation*> relations = table->getRelations().values();
         for(Schema2Relation* relation: relations) {
@@ -650,6 +670,7 @@ void Schema2Data::push(QWidget* widget)
             }
         }
     }
+
 
 
 #if 0
@@ -696,8 +717,11 @@ void Schema2Data::push(QWidget* widget)
 
     changeSet->execute(mConnectionName);
 
-    QTableView* view = new QTableView();
+    /*QTableView* view = new QTableView();
     view->setWindowTitle("Push Result");
+    view->setModel(changeSet);*/
+
+    Schema2PushView* view = new Schema2PushView();
     view->setModel(changeSet);
 
     showAndRaise(view);
@@ -920,7 +944,7 @@ void Schema2Data::showAlterView(const QString &tableName)
     if (!mAlterViews.contains(tableName)) {
         Schema2AlterView* view = new Schema2AlterView();
         Schema2TableModel* table = mTableModels.get(tableName);
-        view->init(mTableModels, table, dataTypes());
+        view->init(this, mTableModels, table, dataTypes());
         view->setWindowTitle(tableName);
         mAlterViews.set(tableName, view);
         connect(view,

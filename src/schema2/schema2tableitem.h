@@ -26,7 +26,9 @@ public:
         return mGrayed;
     }
 
+#if 0
     bool isIndexColumn(const QString& column) const;
+#endif
 
 protected:
     Schema2TableModel* mModel;

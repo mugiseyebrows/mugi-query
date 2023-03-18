@@ -115,10 +115,12 @@ void Schema2TableItem::setGrayed(bool value)
     }
 }
 
+#if 0
 bool Schema2TableItem::isIndexColumn(const QString &column) const
 {
     return mModel->isIndexColumn(column);
 }
+#endif
 
 QVariant Schema2TableItem::itemChange(GraphicsItemChange change, const QVariant &value)
 {
