@@ -13,13 +13,13 @@ class Schema2Data;
 class Schema2View;
 class QGraphicsItem;
 class Schema2RelationModel;
-class Schema2RelationItem;
 class Schema2TableItem;
 class ClickListener;
 class Schema2AlterView;
 class CheckableStringListModel;
 class QSortFilterProxyModel;
 class Schema2RelationItem2;
+class Schema2Relation;
 
 #include "schema2join.h"
 #include "hash.h"
@@ -77,8 +77,9 @@ public:
 
     QStringList dataTypes() const;
 
-    void indexPulled(const QString indexName, const QString &tableName, const QStringList &columns, bool primary, Status status);
+    void indexPulled(const QString indexName, const QString &tableName, const QStringList &columns, bool primary, bool unique, Status status);
 
+    void editRelation(const QString &childTable, Schema2Relation *relation, QWidget *widget);
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 

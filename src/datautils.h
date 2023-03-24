@@ -18,7 +18,7 @@ QList<QPair<QVariant,QVariant> > filterNumeric(const QList<QPair<QVariant,QVaria
 QVariantList columnData(const QAbstractItemModel* model,int column);
 QStringList toLower(const QStringList& vs);
 QStringList headerData(const QAbstractItemModel* model, Qt::Orientation orientation);
-QStringList filterEmpty(const QStringList& items);
+
 QList<double> toDouble(const QVariantList& vs);
 QString windowTitle(const QString& prefix, const QSqlDatabase& db, const QString suffix);
 

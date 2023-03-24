@@ -1,31 +1,26 @@
 #include "schema2index.h"
+#include "tolower.h"
+#include "filterempty.h"
 
 Schema2Index::Schema2Index()
 {
 
 }
 
-static QStringList toLower(const QStringList& items) {
-    QStringList res;
-    for(const QString& item: items) {
-        res.append(item.toLower());
-    }
-    return res;
-}
-
-Schema2Index::Schema2Index(const QString &name, const QStringList &columns, bool primary, Status status)
-    : mName(name), mColumns(columns), mColumnsLower(toLower(columns)), mPrimary(primary), mStatus(status)
+Schema2Index::Schema2Index(const QString &name, const QStringList &columns, bool primary, bool unique, Status status)
+    : mName(name), mColumns(columns), mColumnsLower(toLower(columns)), mPrimary(primary), mUnique(unique), mStatus(status)
 {
 
 }
 
 QString Schema2Index::createQuery(const QString &tableName) const
 {
-    QString expr = QString("CREATE INDEX %1 on %2 (%3)%4")
-            .arg(mName)
-            .arg(tableName)
-            .arg(mColumns.join(", "))
-            .arg(mPrimary ? " WITH PRIMARY" : "");
+    QString expr = filterEmpty({"CREATE",
+                                mUnique ? "UNIQUE" : "",
+                                "INDEX", mName, "ON", tableName, "(" + mColumns.join(", ") + ")",
+                                mPrimary ? "WITH PRIMARY" : ""
+                               }).join(" ");
+
     return expr;
 }
 

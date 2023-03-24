@@ -39,11 +39,11 @@ static QStringList childColumnParentColumn(const StringListHash<Schema2RelationM
 static QList<QStringList> findChildColumnsParentColumns(
         const QString &childTable, const QString &parentTable,
         const StringHash<Schema2TableModel *>& tableModels) {
-    Schema2Relation* relation = tableModels.get(childTable)->getRelationTo(parentTable);
+    Schema2Relation* relation = tableModels.get(childTable)->relationTo(parentTable);
     if (relation) {
         return {relation->childColumns(), relation->parentColumns()};
     }
-    relation = tableModels.get(parentTable)->getRelationTo(childTable);
+    relation = tableModels.get(parentTable)->relationTo(childTable);
     if (relation) {
         return {relation->parentColumns(), relation->childColumns()};
     }
@@ -78,6 +78,7 @@ static QStringList findChildColumnParentColumn(const QString &childTable, const 
 }
 
 #include "schema2tablemodel.h"
+#include "schema2relationsmodel.h"
 
 QList<Schema2Join> findJoinImpl(const QStringList &join_,
                  const StringHash<Schema2TableModel *>& tableModels)
@@ -93,7 +94,7 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
     QList<Schema2TableModel*> tableModelValues = tableModels.values();
 
     for(Schema2TableModel* tableModel: tableModelValues) {
-        QList<Schema2Relation *> tableRelations = tableModel->getRelations().values();
+        QList<Schema2Relation *> tableRelations = tableModel->relations()->values();
         for(Schema2Relation * tableRelation: tableRelations) {
             int childTable = tables.indexOf(tableModel->tableName().toLower());
             int parentTable = tables.indexOf(tableRelation->parentTable().toLower());

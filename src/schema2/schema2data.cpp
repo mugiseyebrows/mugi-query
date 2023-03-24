@@ -8,7 +8,6 @@
 #include <QSqlDatabase>
 #include "schema2view.h"
 #include "schema2tableitem.h"
-#include "schema2relationitem.h"
 #include "schema2relationitem2.h"
 #include "schema2relationmodel.h"
 #include <QDebug>
@@ -17,7 +16,6 @@
 #include "showandraise.h"
 #include "datautils.h"
 #include "schema2store.h"
-#include "schema2relationdialog.h"
 #include "reporterror.h"
 #include "schema2arrange.h"
 #include <QSortFilterProxyModel>
@@ -33,6 +31,8 @@
 
 #include "schema2changeset.h"
 #include "schema2indexesmodel.h"
+#include "schema2relationsmodel.h"
+#include "schema2relationdialog2.h"
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -382,9 +382,9 @@ static T* hash_find(const QHash<QString, T*>& hash, const QString& key) {
 #endif
 
 void Schema2Data::indexPulled(const QString indexName, const QString& tableName, const QStringList& columns,
-                              bool primary, Status status) {
+                              bool primary, bool unique, Status status) {
     if (mTableModels.contains(tableName)) {
-        mTableModels.get(tableName)->insertIndex(indexName, columns, primary, status);
+        mTableModels.get(tableName)->insertIndex(indexName, columns, primary, unique, status);
     } else {
         qDebug() << "!mTableModels.contains(tableName)" << tableName;
     }
@@ -444,6 +444,7 @@ void Schema2Data::pullIndexesOdbc() {
 
             QString indexName = index->property("Name").toString();
             bool primary = index->property("Primary").toBool();
+            bool unique = index->property("Unique").toBool();
 
             QStringList columns;
 
@@ -455,7 +456,7 @@ void Schema2Data::pullIndexesOdbc() {
                 columns.append(fieldName);
             }
 
-            indexPulled(indexName, tableName, columns, primary, StatusExisting);
+            indexPulled(indexName, tableName, columns, primary, unique, StatusExisting);
 
         }
     }
@@ -628,12 +629,12 @@ void Schema2Data::push(QWidget* widget)
         switch(table->status()) {
         case StatusNew:
             changeSet->append(table->createQueries(), [=](){
-                table->altered();
+                table->pushed();
             });
             break;
         case StatusModified:
             changeSet->append(table->alterQueries(), [=](){
-                table->altered();
+                table->pushed();
             });
             break;
         case StatusExisting:
@@ -644,27 +645,26 @@ void Schema2Data::push(QWidget* widget)
     // indexes
     for(Schema2TableModel* table: tables) {
         Schema2IndexesModel* indexes = table->indexes();
-        QStringList queries = indexes->queries(table->tableName());
-        if (!queries.isEmpty()) {
-            changeSet->append(queries, [=](){
-                indexes->altered();
-            });
-        }
+        changeSet->append(indexes->queries(table->tableName()), [=](){
+            indexes->pushed();
+        });
     }
 
     // relations
     for(Schema2TableModel* table: tables) {
-        QList<Schema2Relation*> relations = table->getRelations().values();
+        QList<Schema2Relation*> relations = table->relations()->values();
         for(Schema2Relation* relation: relations) {
             switch(relation->status()) {
             case StatusExisting:
                 break;
             case StatusModified:
-                // todo implement recreate relation
+                changeSet->append(relation->modifyQueries(table->tableName()), [=](){
+                    relation->pushed();
+                });
                 break;
             case StatusNew:
                 changeSet->append(relation->createQueries(table->tableName()), [=](){
-                    relation->created();
+                    relation->pushed();
                 });
                 break;
             }
@@ -887,9 +887,46 @@ QStringList Schema2Data::guessParentColumns(QString childTable, QStringList chil
     return res;
 }
 
-#include "schema2relationdialog2.h"
+void Schema2Data::editRelation(
+        const QString& childTable,
+        Schema2Relation* relation,
+        QWidget* widget) {
 
-void Schema2Data::onCreateRelation(QString childTable, QStringList childColumns, QString parentTable) {
+
+    auto* childTableModel = mTableModels.get(childTable);
+    auto* parentTableModel = mTableModels.get(relation->parentTable());
+
+    if (!childTableModel) {
+        qDebug() << "!childTableModel" << __FILE__ << __LINE__;
+        return;
+    }
+    if (!parentTableModel) {
+        qDebug() << "!parentTableModel" << __FILE__ << __LINE__;
+        return;
+    }
+
+    Schema2RelationDialog2 dialog(widget);
+    dialog.init(childTableModel,
+                parentTableModel,
+                relation->name(),
+                relation->childColumns(),
+                relation->parentColumns());
+
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    relation->setName(dialog.constraintName());
+
+    relation->setChildColumns(dialog.childColumns());
+    relation->setParentColumns(dialog.parentColumns());
+
+
+}
+
+void Schema2Data::onCreateRelation(QString childTable,
+                                   QStringList childColumns,
+                                   QString parentTable) {
 
     if (!mTableModels.get(parentTable)) {
         return;
@@ -897,7 +934,7 @@ void Schema2Data::onCreateRelation(QString childTable, QStringList childColumns,
 
     auto* childTableModel = mTableModels.get(childTable);
     auto* parentTableModel = mTableModels.get(parentTable);
-    auto* relation = childTableModel->getRelationTo(parentTable);
+    auto* relation = childTableModel->relationTo(parentTable);
 
     QString constraintName;
 

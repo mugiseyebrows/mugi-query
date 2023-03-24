@@ -11,13 +11,15 @@ class Schema2IndexesModel : public QAbstractTableModel
 public:
     explicit Schema2IndexesModel(QObject *parent = nullptr);
 
-    void insertIndex(const QString& name, const QStringList& columns, bool primary, Status status);
+    void insertIndex(const QString& name, const QStringList& columns, bool primary, bool unique, Status status);
 
     void removeIndex(const QString& name);
 
+    void removeAt(int index);
+
     QStringList queries(const QString &tableName) const;
 
-    void altered();
+    void pushed();
 
 protected:
     QList<Schema2Index*> mIndexes;
@@ -32,6 +34,7 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    void debugStatus();
 };
 
 #endif // SCHEMA2INDEXESMODEL_H

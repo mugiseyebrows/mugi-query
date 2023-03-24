@@ -3,11 +3,12 @@
 #include "schema2index.h"
 #include "schema2relation.h"
 #include "schema2indexesmodel.h"
+#include "schema2relationsmodel.h"
 
 // todo table renames
 
 Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject *parent)
-    : mTableName(name), mStatus(status), mIndexes(new Schema2IndexesModel(this)), QAbstractTableModel{parent}
+    : mTableName(name), mStatus(status), mRelations(new Schema2RelationsModel(this)), mIndexes(new Schema2IndexesModel(this)), QAbstractTableModel{parent}
 {
 
 }
@@ -90,11 +91,11 @@ QList<Schema2Index *> Schema2TableModel::getIndexes() const {
 }
 #endif
 
-void Schema2TableModel::insertIndex(const QString &name, const QStringList &columns, bool primary, Status status)
+void Schema2TableModel::insertIndex(const QString &name, const QStringList &columns, bool primary, bool unique, Status status)
 {
     //mIndexes.set(name, new Schema2Index(name, columns, primary, status));
 
-    mIndexes->insertIndex(name, columns, primary, status);
+    mIndexes->insertIndex(name, columns, primary, unique, status);
 
 }
 
@@ -119,49 +120,37 @@ bool Schema2TableModel::isIndexColumn(const QString &column) const
 
 bool Schema2TableModel::containsRelation(const QString &name) const
 {
-    return mRelations.contains(name);
+    return mRelations->contains(name);
 }
 
 Schema2Relation* Schema2TableModel::insertRelation(const QString &name, const QStringList &childColumns,
                                                    const QString &parentTable, const QStringList &parentColumns,
                                                    bool constrained, Status status)
 {
-    if (mRelations.contains(name)) {
-        return 0;
-    }
-    Schema2Relation* relation = new Schema2Relation(name, childColumns, parentTable,
-                                                    parentColumns, constrained, status);
-    mRelations.set(name, relation);
-    return mRelations.get(name);
+    return mRelations->insert(name, childColumns, parentTable, parentColumns, constrained, status);
 }
 
 void Schema2TableModel::removeRelation(const QString &name)
 {
-    mRelations.remove(name);
+    mRelations->remove(name);
 }
 
-Schema2Relation *Schema2TableModel::getRelation(const QString &name) const
+Schema2Relation *Schema2TableModel::relation(const QString &name) const
 {
-    return mRelations.get(name);
+    return mRelations->get(name);
 }
 
-StringHash<Schema2Relation *> Schema2TableModel::getRelations() const
+Schema2RelationsModel *Schema2TableModel::relations() const
 {
     return mRelations;
 }
 
-Schema2Relation *Schema2TableModel::getRelationTo(const QString &tableName) const
+Schema2Relation *Schema2TableModel::relationTo(const QString &tableName) const
 {
-    QList<Schema2Relation*> relations = mRelations.values();
-    for(Schema2Relation* relation: relations) {
-        if (relation->parentTable().toLower() == tableName.toLower()) {
-            return relation;
-        }
-    }
-    return 0;
+    return mRelations->getRelationTo(tableName);
 }
 
-void Schema2TableModel::altered() {
+void Schema2TableModel::pushed() {
     mStatus = StatusExisting;
     for(int row=0;row<rowCount();row++) {
         QString newName = this->newName(row);
@@ -245,6 +234,14 @@ QStringList Schema2TableModel::alterQueries() const {
 QStringList Schema2TableModel::dropQueries() const {
     QString expr = QString("DROP TABLE %1").arg(mTableName);
     return {expr};
+}
+
+void Schema2TableModel::setStatus(Status status) {
+    mStatus = status;
+}
+
+Schema2IndexesModel *Schema2TableModel::indexes() const {
+    return mIndexes;
 }
 
 int Schema2TableModel::rowCount(const QModelIndex &parent) const

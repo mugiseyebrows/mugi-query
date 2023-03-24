@@ -4,7 +4,6 @@
 #include <QList>
 class Schema2TableItem;
 class Schema2RelationModel;
-class Schema2RelationItem;
 #include "hash.h"
 
 void arrangeInGrid(const QList<Schema2TableItem*>& items, int width, int heigth, int spacing);

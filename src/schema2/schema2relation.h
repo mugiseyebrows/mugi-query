@@ -28,30 +28,20 @@ public:
         return mParentColumns;
     }
 
-    QStringList createQueries(const QString& childTable) const {
-        // ms access does not support ON UPDATE X ON DELETE X
-        QString expr = QString("ALTER TABLE %1 ADD CONSTRAINT %2 FOREIGN KEY (%3) REFERENCES %4(%5)")
-                .arg(childTable)
-                .arg(mName)
-                .arg(mChildColumns.join(", "))
-                .arg(mParentTable)
-                .arg(mParentColumns.join(", "));
-        return {expr};
-    }
+    void setChildColumns(const QStringList& value);
 
-    QStringList removeQueries(const QString& childTable) const {
-        QString expr = QString("ALTER TABLE %1 DROP CONSTRAINT %2").arg(childTable).arg(mName);
-        return {expr};
-    }
+    void setParentColumns(const QStringList& value);
 
-    Status status() const {
-        return mStatus;
-    }
+    QStringList createQueries(const QString& childTable) const;
 
-    void created() {
-        mStatus = StatusExisting;
-    }
+    QStringList removeQueries(const QString& childTable) const;
 
+    Status status() const;
+
+    void pushed();
+
+    QStringList modifyQueries(const QString &childTable) const;
+    void setName(const QString &name);
 protected:
     QString mName;
     QStringList mChildColumns;
@@ -59,6 +49,9 @@ protected:
     QStringList mParentColumns;
     bool mConstrained;
     Status mStatus;
+
+    QString mOldName;
+
 };
 
 #endif // SCHEMA2RELATION_H

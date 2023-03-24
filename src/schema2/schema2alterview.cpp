@@ -5,12 +5,13 @@
 #include "schema2relationmodel.h"
 #include "schema2index.h"
 #include <QStandardItemModel>
-#include "schema2relationslistmodel2.h"
 #include "tablebuttons.h"
 #include "itemdelegatewithcompleter.h"
 #include <QMessageBox>
 #include "setcompleter.h"
 #include "schema2data.h"
+#include "schema2indexesmodel.h"
+#include "schema2relationsmodel.h"
 
 // todo push schema for one table
 
@@ -39,8 +40,8 @@ void Schema2AlterView::initColumns() {
     const int button_remove = 0;
     const int button_insert = 1;
 
-    buttons->button(button_remove).inside().text("-").size(40, 40);
-    buttons->button(button_insert).between().text("+").size(40, 40).offset(40, 0);
+    buttons->button(button_remove).inside().text("-").size(40, 40).offset(40, 0);
+    buttons->button(button_insert).between().text("+").size(40, 40);
 
     bool canInsert = false;
 
@@ -68,28 +69,29 @@ void Schema2AlterView::initColumns() {
 
 void Schema2AlterView::initRelations() {
 
-    auto* model = mModel;
+    ui->relations->setModel(mModel->relations());
 
-    QList<Schema2Relation*> relations = model->getRelations().values();
-    Schema2RelationsListModel2* relationsModel = new Schema2RelationsListModel2(relations);
-    ui->relations->setModel(relationsModel);
-
-    const int button_remove = 0;
+    const int button_edit = 0;
+    const int button_remove = 1;
 
     TableButtons* buttons = new TableButtons();
-    buttons->button(button_remove).inside().text("-").size(40, 40);
-    //buttons->button(1).between().text("+").size(40, 40).offset(40, 0);
+    buttons->button(button_edit).inside().text("mod").size(40, 40);
+    buttons->button(button_remove).inside().text("-").size(40, 40).offset(40, 0);
 
     buttons->setView(ui->relations);
-    connect(buttons, &TableButtons::clicked, [](int id, int index){
-        if (id == button_remove) {
+    connect(buttons, &TableButtons::clicked, [=](int id, int index){
+        if (id == button_edit) {
+            if (index > -1) {
+                mData->editRelation(mModel->tableName(), mModel->relations()->at(index), this);
+            }
+        } else if (id == button_remove) {
 
         }
     });
 
 }
 
-#include "schema2indexesmodel.h"
+
 
 void Schema2AlterView::initIndexes() {
 
@@ -112,9 +114,11 @@ void Schema2AlterView::initIndexes() {
     buttons->button(button_remove).inside().text("-").size(40, 40);
     //buttons->button(1).between().text("+").size(40, 40).offset(40, 0);
     buttons->setView(ui->indexes);
-    connect(buttons, &TableButtons::clicked, [](int id, int index){
+    connect(buttons, &TableButtons::clicked, [=](int id, int index){
         if (id == button_remove) {
-
+            if (index > -1) {
+                mModel->indexes()->removeAt(index);
+            }
         }
     });
 
@@ -173,7 +177,7 @@ void Schema2AlterView::on_createRelation_clicked()
     emit createRelation(childTable, childColumns, parentTable);
 }
 
-void Schema2AlterView::createIndex(bool primary) {
+void Schema2AlterView::createIndex(bool primary, bool unique) {
     QStringList columns = selectedFields();
     if (columns.isEmpty()) {
         QMessageBox::information(this, "", "To create index please select one or more columns");
@@ -185,16 +189,24 @@ void Schema2AlterView::createIndex(bool primary) {
     } else {
         indexName = QString("IX_%1").arg(columns.join("_"));
     }
-    mData->indexPulled(indexName, mModel->tableName(), columns, primary, StatusNew);
+    mData->indexPulled(indexName, mModel->tableName(), columns, primary, unique, StatusNew);
 }
 
 void Schema2AlterView::on_createIndex_clicked()
 {
-    createIndex(false);
+    createIndex(false, false);
+}
+
+
+void Schema2AlterView::on_createUniqueIndex_clicked()
+{
+    createIndex(false, true);
 }
 
 void Schema2AlterView::on_createPrimaryKey_clicked()
 {
-    createIndex(true);
+    createIndex(true, false);
 }
+
+
 

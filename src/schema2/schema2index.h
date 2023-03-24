@@ -9,7 +9,7 @@ class Schema2Index
 public:
     Schema2Index();
 
-    Schema2Index(const QString& name, const QStringList& columns, bool primary, Status status);
+    Schema2Index(const QString& name, const QStringList& columns, bool primary, bool unique, Status status);
 
     QString createQuery(const QString& tableName) const;
 
@@ -27,6 +27,7 @@ protected:
     QStringList mColumns;
     QStringList mColumnsLower;
     bool mPrimary;
+    bool mUnique;
     Status mStatus;
 };
 

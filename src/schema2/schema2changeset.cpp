@@ -11,6 +11,11 @@ Schema2ChangeSet::Schema2ChangeSet(QObject *parent)
 }
 
 void Schema2ChangeSet::append(const QStringList &queries, const Schema2ChangeSetHandler &onSuccess) {
+
+    if (queries.isEmpty()) {
+        return;
+    }
+
     auto item = Schema2ChangeSetItem(queries, onSuccess);
     for(int i=0;i<item.size();i++) {
         mIndexes.append({mItems.size(), i});
@@ -26,16 +31,18 @@ bool Schema2ChangeSet::execute(const QString& connectionName)
     for(int row=0;row<mItems.size();row++) {
         QSqlQuery q(db);
         QStringList errors;
+        bool hasErrors = false;
         for(const QString& query: qAsConst(mItems[row].queries)) {
             QString error;
             if (!q.exec(query)) {
                 error = q.lastError().text();
+                hasErrors = true;
             } else {
                 history->addQuery(connectionName, query);
             }
             errors.append(error);
         }
-        if (errors.isEmpty()) {
+        if (!hasErrors) {
             mItems[row].handler();
         }
         mItems[row].errors = errors;

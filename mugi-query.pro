@@ -57,6 +57,7 @@ HEADERS += \
     src/datautils.h \
     src/deleteeventfilter.h \
     src/fieldnames.h \
+    src/filterempty.h \
     src/filterplotitem.h \
     src/formats.h \
     src/hash.h \
@@ -87,15 +88,13 @@ HEADERS += \
     src/schema2/schema2join.h \
     src/schema2/schema2pushview.h \
     src/schema2/schema2relation.h \
-    src/schema2/schema2relationdialog.h \
     src/schema2/schema2relationdialog2.h \
-    src/schema2/schema2relationitem.h \
     src/schema2/schema2relationitem2.h \
     src/schema2/schema2relationmodel.h \
     src/schema2/schema2relationsfiltermodel.h \
     src/schema2/schema2relationslistdialog.h \
     src/schema2/schema2relationslistmodel.h \
-    src/schema2/schema2relationslistmodel2.h \
+    src/schema2/schema2relationsmodel.h \
     src/schema2/schema2status.h \
     src/schema2/schema2store.h \
     src/schema2/schema2tableitem.h \
@@ -113,6 +112,7 @@ HEADERS += \
     src/sqlutil.h \
     src/tests.h \
     src/tokens.h \
+    src/tolower.h \
     src/tools.h \
     src/version.h \
     src/widget/xjoinwidget.h \
@@ -201,6 +201,7 @@ SOURCES += \
     src/datautils.cpp \
     src/deleteeventfilter.cpp \
     src/fieldnames.cpp \
+    src/filterempty.cpp \
     src/filterplotitem.cpp \
     src/formats.cpp \
     src/hash.cpp \
@@ -231,15 +232,13 @@ SOURCES += \
     src/schema2/schema2join.cpp \
     src/schema2/schema2pushview.cpp \
     src/schema2/schema2relation.cpp \
-    src/schema2/schema2relationdialog.cpp \
     src/schema2/schema2relationdialog2.cpp \
-    src/schema2/schema2relationitem.cpp \
     src/schema2/schema2relationitem2.cpp \
     src/schema2/schema2relationmodel.cpp \
     src/schema2/schema2relationsfiltermodel.cpp \
     src/schema2/schema2relationslistdialog.cpp \
     src/schema2/schema2relationslistmodel.cpp \
-    src/schema2/schema2relationslistmodel2.cpp \
+    src/schema2/schema2relationsmodel.cpp \
     src/schema2/schema2status.cpp \
     src/schema2/schema2store.cpp \
     src/schema2/schema2tableitem.cpp \
@@ -266,6 +265,7 @@ SOURCES += \
     src/model/stringlistmodelwithheader.cpp \
     src/model/xyplotmodel.cpp \
     src/model/xyplotmodelitem.cpp \
+    src/tolower.cpp \
     src/tools.cpp \
     src/widget/xjoinwidget.cpp \
     src/widget/xjoinitemwidget.cpp \
@@ -331,7 +331,6 @@ SOURCES += \
 FORMS += \
     src/schema2/schema2alterview.ui \
     src/schema2/schema2pushview.ui \
-    src/schema2/schema2relationdialog.ui \
     src/schema2/schema2relationdialog2.ui \
     src/schema2/schema2relationslistdialog.ui \
     src/schema2/schema2view.ui \

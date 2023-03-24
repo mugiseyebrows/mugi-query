@@ -3,6 +3,7 @@
 
 #include <QAbstractItemModel>
 #include <QSqlDatabase>
+#include "filterempty.h"
 
 QPolygonF DataUtils::toPolygon(const QList<QPair<QVariant,QVariant> >& data) {
     QPolygonF result;
@@ -83,16 +84,6 @@ QStringList DataUtils::headerData(const QAbstractItemModel* model, Qt::Orientati
     return result;
 }
 
-
-QStringList DataUtils::filterEmpty(const QStringList& items) {
-    QStringList res;
-    foreach(const QString& item, items) {
-        if (!item.isEmpty()) {
-            res << item;
-        }
-    }
-    return res;
-}
 
 QList<double> DataUtils::toDouble(const QVariantList& vs) {
     QList<double> res;

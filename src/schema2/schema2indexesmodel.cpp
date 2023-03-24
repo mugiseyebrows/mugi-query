@@ -1,6 +1,8 @@
 #include "schema2indexesmodel.h"
 #include "schema2index.h"
 
+#include <QDebug>
+
 Schema2IndexesModel::Schema2IndexesModel(QObject *parent)
     : QAbstractTableModel{parent}
 {
@@ -16,19 +18,17 @@ int Schema2IndexesModel::find(const QString& name) {
     return -1;
 }
 
-void Schema2IndexesModel::insertIndex(const QString &name, const QStringList &columns, bool primary, Status status)
+void Schema2IndexesModel::insertIndex(const QString &name, const QStringList &columns, bool primary, bool unique, Status status)
 {
 
     int row = find(name);
     if (row > -1) {
-
-
         return;
     }
 
     row = rowCount();
     beginInsertRows(QModelIndex(), row, row);
-    mIndexes.insert(row, new Schema2Index(name, columns, primary, status));
+    mIndexes.insert(row, new Schema2Index(name, columns, primary, unique, status));
     endInsertRows();
 }
 
@@ -38,7 +38,13 @@ void Schema2IndexesModel::removeIndex(const QString &name)
     if (row < 0) {
         return;
     }
+    removeAt(row);
+}
+
+void Schema2IndexesModel::removeAt(int row)
+{
     beginRemoveRows(QModelIndex(), row, row);
+    mRemoveQueue.append(mIndexes[row]);
     mIndexes.removeAt(row);
     endRemoveRows();
 }
@@ -59,13 +65,20 @@ QStringList Schema2IndexesModel::queries(const QString& tableName) const
     return res;
 }
 
-void Schema2IndexesModel::altered()
+void Schema2IndexesModel::pushed()
 {
     for(int i=0;i<mIndexes.size();i++) {
         auto* index = mIndexes[i];
         index->setStatus(StatusExisting);
     }
     mRemoveQueue.clear();
+}
+
+void Schema2IndexesModel::debugStatus() {
+    for(int i=0;i<mIndexes.size();i++) {
+        auto* index = mIndexes[i];
+        qDebug() << index->name() << index->status();
+    }
 }
 
 int Schema2IndexesModel::rowCount(const QModelIndex &parent) const

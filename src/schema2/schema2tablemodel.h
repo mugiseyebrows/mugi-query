@@ -7,6 +7,7 @@
 #include "schema2status.h"
 class Schema2Index;
 class Schema2IndexesModel;
+class Schema2RelationsModel;
 
 class Schema2TableModel : public QAbstractTableModel
 {
@@ -46,7 +47,7 @@ public:
     QList<Schema2Index*> getIndexes() const;
 #endif
 
-    void insertIndex(const QString& name, const QStringList& columns, bool primary, Status status);
+    void insertIndex(const QString& name, const QStringList& columns, bool primary, bool unique, Status status);
 
     void removeIndex(const QString& name);
 
@@ -60,13 +61,13 @@ public:
 
     void removeRelation(const QString& name);
 
-    Schema2Relation* getRelation(const QString& name) const;
+    Schema2Relation* relation(const QString& name) const;
 
-    StringHash<Schema2Relation*> getRelations() const;
+    Schema2RelationsModel* relations() const;
 
-    Schema2Relation* getRelationTo(const QString& tableName) const;
+    Schema2Relation* relationTo(const QString& tableName) const;
 
-    void altered();
+    void pushed();
 
     Status status() const;
 
@@ -76,13 +77,9 @@ public:
 
     QStringList dropQueries() const;
 
-    void setStatus(Status status) {
-        mStatus = status;
-    }
+    void setStatus(Status status);
 
-    Schema2IndexesModel* indexes() const {
-        return mIndexes;
-    }
+    Schema2IndexesModel* indexes() const;
 
 signals:
     void tableClicked(QString);
@@ -93,7 +90,9 @@ protected:
 
     //StringHash<Schema2Index*> mIndexes;
 
-    StringHash<Schema2Relation*> mRelations;
+    //StringHash<Schema2Relation*> mRelations;
+
+    Schema2RelationsModel* mRelations;
 
     Schema2IndexesModel* mIndexes;
 
