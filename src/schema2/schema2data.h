@@ -20,6 +20,7 @@ class CheckableStringListModel;
 class QSortFilterProxyModel;
 class Schema2RelationItem2;
 class Schema2Relation;
+class Schema2TablesModel;
 
 #include "schema2join.h"
 #include "hash.h"
@@ -71,9 +72,7 @@ public:
 
     void createTable(const QString& name);
 
-    Schema2TableItem* tableItem(const QString& name) const {
-        return mTableItems.get(name);
-    }
+    Schema2TableItem* tableItem(const QString& name) const;
 
     QStringList dataTypes() const;
 
@@ -91,21 +90,19 @@ protected:
 
     Schema2View* mView;
 
-    StringHash<Schema2TableItem*> mTableItems;
-
-    StringHash<Schema2TableModel*> mTableModels;
+    Schema2TablesModel* mTables;
 
     //QHash<QString, Schema2TableView*> mViews;
 
     StringHash<Schema2AlterView*> mAlterViews;
 
-    StringHash<QPointF> mTablePos;
+
 
     //StringListHash<Schema2RelationModel*> mRelationModels;
 
     QList<Schema2RelationItem2*> mRelationItems;
 
-    QList<Schema2TableItem*> mSetPosQueue;
+
 
     QList<Schema2RelationModel*> mRemoveRelationsQueue;
 

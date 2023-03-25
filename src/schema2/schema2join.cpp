@@ -4,6 +4,8 @@
 #include "schema2relationmodel.h"
 #include "schema2relation.h"
 #include "schema2tablemodel.h"
+#include "schema2relationsmodel.h"
+#include "schema2tablesmodel.h"
 
 static bool containsAll(const QList<int>& item, const QList<int> join) {
     for(int key: join) {
@@ -22,6 +24,7 @@ static QStringList toLower(const QStringList& items) {
     return res;
 }
 
+#if 0
 static QStringList childColumnParentColumn(const StringListHash<Schema2RelationModel *>& relationModels,
                                const QStringList& key, bool reverse = false) {
     if (relationModels.contains(key)) {
@@ -35,21 +38,23 @@ static QStringList childColumnParentColumn(const StringListHash<Schema2RelationM
     }
     return {};
 }
+#endif
 
 static QList<QStringList> findChildColumnsParentColumns(
         const QString &childTable, const QString &parentTable,
-        const StringHash<Schema2TableModel *>& tableModels) {
-    Schema2Relation* relation = tableModels.get(childTable)->relationTo(parentTable);
+        Schema2TablesModel* tableModels) {
+    Schema2Relation* relation = tableModels->table(childTable)->relationTo(parentTable);
     if (relation) {
         return {relation->childColumns(), relation->parentColumns()};
     }
-    relation = tableModels.get(parentTable)->relationTo(childTable);
+    relation = tableModels->table(parentTable)->relationTo(childTable);
     if (relation) {
         return {relation->parentColumns(), relation->childColumns()};
     }
     return {};
 }
 
+#if 0
 static QStringList findChildColumnParentColumn(const QString &childTable, const QString &parentTable,
                            const StringListHash<Schema2RelationModel *>& relationModels) {
 
@@ -76,14 +81,13 @@ static QStringList findChildColumnParentColumn(const QString &childTable, const 
     }
     return {};
 }
+#endif
 
-#include "schema2tablemodel.h"
-#include "schema2relationsmodel.h"
 
 QList<Schema2Join> findJoinImpl(const QStringList &join_,
-                 const StringHash<Schema2TableModel *>& tableModels)
+                 Schema2TablesModel* tableModels)
 {
-    QStringList tables_ = tableModels.keys();
+    QStringList tables_ = tableModels->tableNames();
 
     QStringList tables = toLower(tables_);
 
@@ -91,7 +95,7 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
 
     //QList<QStringList> relations_ = relationModels.keys();
 
-    QList<Schema2TableModel*> tableModelValues = tableModels.values();
+    QList<Schema2TableModel*> tableModelValues = tableModels->tables();
 
     for(Schema2TableModel* tableModel: tableModelValues) {
         QList<Schema2Relation *> tableRelations = tableModel->relations()->values();

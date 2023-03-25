@@ -7,6 +7,7 @@
 
 class Schema2TableModel;
 class Schema2RelationModel;
+class Schema2TablesModel;
 
 enum JoinType {
     LeftJoin,
@@ -52,6 +53,6 @@ public:
 QString toString(const QList<Schema2Join>& expr, bool mssql, JoinType exprType);
 
 QList<Schema2Join> findJoinImpl(const QStringList& join,
-                                const StringHash<Schema2TableModel *>& tableModels);
+                                Schema2TablesModel *tableModels);
 
 #endif // SCHEMA2JOIN_H

@@ -33,6 +33,8 @@
 #include "schema2indexesmodel.h"
 #include "schema2relationsmodel.h"
 #include "schema2relationdialog2.h"
+#include "schema2tablesmodel.h"
+#include "schema2pushview.h"
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -126,6 +128,7 @@ void Schema2Data::unoverlapTables() {
 
 
 void Schema2Data::tablePulled(const QString& table, Status status) {
+#if 0
     if (!mTableModels.contains(table)) {
         Schema2TableModel* model = new Schema2TableModel(table, status);
         mTableModels.set(table, model);
@@ -142,6 +145,8 @@ void Schema2Data::tablePulled(const QString& table, Status status) {
         mTableItems.set(table, item);
         mScene->addItem(item);
     }
+#endif
+    mTables->tablePulled(table, status);
 }
 
 
@@ -155,7 +160,7 @@ void Schema2Data::pullTablesMysql() {
 
         tablePulled(table, StatusExisting);
 
-        Schema2TableModel* model = mTableModels.get(table);
+        Schema2TableModel* model = mTables->table(table);
 
         // todo character_maximum_length, numeric_precision
         QSqlQuery q(db);
@@ -197,7 +202,7 @@ void Schema2Data::pullTablesOdbc() {
 
         tablePulled(tableName, StatusExisting);
 
-        Schema2TableModel* model = mTableModels.get(tableName);
+        Schema2TableModel* model = mTables->table(tableName);
 
         QAxObject* tableDef = database->querySubObject("TableDefs(QString)", tableName);
 
@@ -244,7 +249,7 @@ void Schema2Data::pullTablesOther() {
 
         tablePulled(table, StatusExisting);
 
-        Schema2TableModel* model = mTableModels.get(table);
+        Schema2TableModel* model = mTables->table(table);
 
         QSqlRecord r = db.record(table);
         QString prev;
@@ -339,25 +344,7 @@ void Schema2Data::pullRelationsMysql() {
 
 void Schema2Data::setTableItemsPos() {
 
-    int w = 200;
-    int s = 25;
-    int spacing = 40;
-    int h = 900;
-
-    int x = 0;
-    int y = 0;
-
-    for(Schema2TableItem* item: mSetPosQueue) {
-        int height = item->boundingRect().height();
-        if ((y + height + spacing) > h) {
-            x += w + spacing;
-            y = 0;
-            item->setPos(x, y);
-        } else {
-            item->setPos(x, y);
-        }
-        y += height + spacing;
-    }
+    mTables->setTableItemsPos();
 
 }
 
@@ -383,8 +370,8 @@ static T* hash_find(const QHash<QString, T*>& hash, const QString& key) {
 
 void Schema2Data::indexPulled(const QString indexName, const QString& tableName, const QStringList& columns,
                               bool primary, bool unique, Status status) {
-    if (mTableModels.contains(tableName)) {
-        mTableModels.get(tableName)->insertIndex(indexName, columns, primary, unique, status);
+    if (mTables->contains(tableName)) {
+        mTables->table(tableName)->insertIndex(indexName, columns, primary, unique, status);
     } else {
         qDebug() << "!mTableModels.contains(tableName)" << tableName;
     }
@@ -467,11 +454,11 @@ void Schema2Data::pullIndexesOdbc() {
 void Schema2Data::relationPulled(const QString& constraintName, const QString& childTable, const QStringList& childColumns,
                                  const QString& parentTable, const QStringList& parentColumns,
                                  bool constrained, Status status) {
-    Schema2TableItem* childItem = mTableItems.get(childTable);
-    Schema2TableItem* parentItem = mTableItems.get(parentTable);
+    Schema2TableItem* childItem = mTables->tableItem(childTable);
+    Schema2TableItem* parentItem = mTables->tableItem(parentTable);
 
-    Schema2TableModel* childModel = mTableModels.get(childTable);
-    Schema2TableModel* parentModel = mTableModels.get(parentTable);
+    Schema2TableModel* childModel = mTables->table(childTable);
+    Schema2TableModel* parentModel = mTables->table(parentTable);
 
     if (!childItem || !parentItem || !childModel || !parentModel) {
         qDebug() << childTable << childModel << childItem
@@ -611,11 +598,11 @@ void Schema2Data::pull()
 
     setTableItemsPos();
 
-    mSelectModel->setList(mTableModels.keys());
+    //mSelectModel->setList(mTables.keys());
 
 }
 
-#include "schema2pushview.h"
+
 
 void Schema2Data::push(QWidget* widget)
 {
@@ -624,7 +611,7 @@ void Schema2Data::push(QWidget* widget)
     Schema2ChangeSet* changeSet = new Schema2ChangeSet();
 
     // tables
-    QList<Schema2TableModel*> tables = mTableModels.values();
+    QList<Schema2TableModel*> tables = mTables->tables();
     for(Schema2TableModel* table: tables) {
         switch(table->status()) {
         case StatusNew:
@@ -761,7 +748,7 @@ bool Schema2Data::hasPendingChanges() const
     if (!mRemoveRelationsQueue.isEmpty()) {
         return true;
     }
-    QList<Schema2TableModel*> models = mTableModels.values();
+    QList<Schema2TableModel*> models = mTables->tables();
     for(Schema2TableModel* model: models) {
         if (model->hasPendingChanges()) {
             return true;
@@ -880,7 +867,7 @@ QStringList Schema2Data::dataTypes() const {
 QStringList Schema2Data::guessParentColumns(QString childTable, QStringList childColumns, QString parentTable) {
 
     QStringList res;
-    auto* model = mTableModels.get(parentTable);
+    auto* model = mTables->table(parentTable);
     for(int row=0;row<childColumns.size();row++) {
         res.append(model->newName(row));
     }
@@ -893,8 +880,8 @@ void Schema2Data::editRelation(
         QWidget* widget) {
 
 
-    auto* childTableModel = mTableModels.get(childTable);
-    auto* parentTableModel = mTableModels.get(relation->parentTable());
+    auto* childTableModel = mTables->table(childTable);
+    auto* parentTableModel = mTables->table(relation->parentTable());
 
     if (!childTableModel) {
         qDebug() << "!childTableModel" << __FILE__ << __LINE__;
@@ -928,12 +915,12 @@ void Schema2Data::onCreateRelation(QString childTable,
                                    QStringList childColumns,
                                    QString parentTable) {
 
-    if (!mTableModels.get(parentTable)) {
+    if (!mTables->table(parentTable)) {
         return;
     }
 
-    auto* childTableModel = mTableModels.get(childTable);
-    auto* parentTableModel = mTableModels.get(parentTable);
+    auto* childTableModel = mTables->table(childTable);
+    auto* parentTableModel = mTables->table(parentTable);
     auto* relation = childTableModel->relationTo(parentTable);
 
     QString constraintName;
@@ -980,8 +967,8 @@ void Schema2Data::showAlterView(const QString &tableName)
 
     if (!mAlterViews.contains(tableName)) {
         Schema2AlterView* view = new Schema2AlterView();
-        Schema2TableModel* table = mTableModels.get(tableName);
-        view->init(this, mTableModels, table, dataTypes());
+        Schema2TableModel* table = mTables->table(tableName);
+        view->init(this, mTables, table, dataTypes());
         view->setWindowTitle(tableName);
         mAlterViews.set(tableName, view);
         connect(view,
@@ -1000,17 +987,12 @@ void Schema2Data::showInsertView(const QString &tableName)
 
 void Schema2Data::loadPos()
 {
-    mTablePos = Schema2Store::instance(this)->loadPos(mConnectionName);
+    mTables->loadPos();
 }
 
 void Schema2Data::savePos()
 {
-    QHash<QString, QPointF> pos;
-    QList<Schema2TableItem*> items = mTableItems.values();
-    for(Schema2TableItem* item: qAsConst(items)) {
-        pos[item->tableName()] = item->pos();
-    }
-    Schema2Store::instance(this)->savePos(mConnectionName, pos);
+    mTables->savePos();
 }
 
 void Schema2Data::arrange()
@@ -1025,7 +1007,7 @@ void Schema2Data::arrange()
 
 QList<Schema2Join> Schema2Data::findJoin(const QStringList &join)
 {
-    return findJoinImpl(join, mTableModels);
+    return findJoinImpl(join, mTables);
 }
 
 QSortFilterProxyModel *Schema2Data::selectProxyModel() {
@@ -1052,23 +1034,30 @@ void Schema2Data::createTable(const QString &name)
     tablePulled(name, StatusNew);
 }
 
+Schema2TableItem *Schema2Data::tableItem(const QString &name) const {
+    return mTables->tableItem(name);
+}
+
 
 void Schema2Data::onSelectModelChanged(QModelIndex, QModelIndex) {
     QList<QPair<QString,bool>> data = mSelectModel->dataAsTupleList();
     for(int i=0;i<data.size();i++) {
         QPair<QString,bool> item = data[i];
-        mTableItems.get(item.first)->setGrayed(!item.second);
+        mTables->setGrayed(item.first, !item.second);
     }
 }
 
 Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)
     : mConnectionName(connectionName), mScene(new QGraphicsScene),
       mView(nullptr), mSelectModel(new CheckableStringListModel({}, this)),
-      mSelectProxyModel(new QSortFilterProxyModel(this)), QObject{parent}
+      mSelectProxyModel(new QSortFilterProxyModel(this)), mTables(new Schema2TablesModel(connectionName, mScene, this)),
+      QObject{parent}
 {
     mSelectProxyModel->setSourceModel(mSelectModel);
     mSelectProxyModel->sort(0);
     //mSelectProxyModel->setDynamicSortFilter(true);
+
+    connect(mTables,SIGNAL(tableClicked(QString)),this,SIGNAL(tableClicked(QString)));
 
     connect(mSelectModel,SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(onSelectModelChanged(QModelIndex,QModelIndex)));
     load();

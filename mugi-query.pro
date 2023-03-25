@@ -99,6 +99,7 @@ HEADERS += \
     src/schema2/schema2store.h \
     src/schema2/schema2tableitem.h \
     src/schema2/schema2tablemodel.h \
+    src/schema2/schema2tablesmodel.h \
     src/schema2/schema2view.h \
     src/schema2/setcompleter.h \
     src/schema2/tablestretcher.h \
@@ -243,6 +244,7 @@ SOURCES += \
     src/schema2/schema2store.cpp \
     src/schema2/schema2tableitem.cpp \
     src/schema2/schema2tablemodel.cpp \
+    src/schema2/schema2tablesmodel.cpp \
     src/schema2/schema2view.cpp \
     src/schema2/setcompleter.cpp \
     src/schema2/tablestretcher.cpp \

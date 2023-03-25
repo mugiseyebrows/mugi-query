@@ -11,6 +11,7 @@ class Schema2AlterView;
 class Schema2TableModel;
 class Schema2RelationModel;
 class Schema2Data;
+class Schema2TablesModel;
 
 class Schema2AlterView : public QWidget
 {
@@ -23,14 +24,14 @@ public:
     //void setModel(Schema2TableModel* model);
 
     void init(Schema2Data* data,
-              const StringHash<Schema2TableModel *> &tableModels,
+              Schema2TablesModel *tableModels,
               Schema2TableModel *model,
               const QStringList &types);
 protected:
     Schema2Data* mData;
 
     Schema2TableModel* mModel;
-    StringHash<Schema2TableModel *> mTableModels;
+    Schema2TablesModel* mTables;
     QStringList mTypes;
 
     void initColumns();

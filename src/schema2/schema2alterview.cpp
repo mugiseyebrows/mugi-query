@@ -12,6 +12,7 @@
 #include "schema2data.h"
 #include "schema2indexesmodel.h"
 #include "schema2relationsmodel.h"
+#include "schema2tablesmodel.h"
 
 // todo push schema for one table
 
@@ -64,7 +65,7 @@ void Schema2AlterView::initColumns() {
 
     ui->childTable->setText(model->tableName());
 
-    setCompleter(ui->parentTable, mTableModels.keys());
+    setCompleter(ui->parentTable, mTables->tableNames());
 }
 
 void Schema2AlterView::initRelations() {
@@ -124,10 +125,10 @@ void Schema2AlterView::initIndexes() {
 
 }
 
-void Schema2AlterView::init(Schema2Data *data, const StringHash<Schema2TableModel*>& tableModels,
+void Schema2AlterView::init(Schema2Data *data, Schema2TablesModel* tableModels,
                             Schema2TableModel *model, const QStringList& types) {
     mData = data;
-    mTableModels = tableModels;
+    mTables = tableModels;
     mModel = model;
     mTypes = types;
     initColumns();
