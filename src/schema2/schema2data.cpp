@@ -35,6 +35,7 @@
 #include "schema2relationdialog2.h"
 #include "schema2tablesmodel.h"
 #include "schema2pushview.h"
+#include "tolower.h"
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -221,10 +222,10 @@ void Schema2Data::pullTablesOdbc() {
                 qDebug() << tableName << name << type << size;
             }
 
-            QString typeName = mOdbcTypes.value(type, "UNKNOWN");
+            QString typeName = mOdbcTypes.value(type, "UNKNOWN").toLower();
             if (type == dbText) {
                 if (size != 255) {
-                    typeName = QString("TEXT(%1)").arg(size);
+                    typeName = QString("TEXT(%1)").arg(size).toLower();
                 }
             }
 
@@ -783,11 +784,11 @@ QGraphicsScene *Schema2Data::scene()
 
 void Schema2Data::selectOrDeselect(const QString& tableName) {
 
-    mSelectModel->toggleChecked(tableName);
+    //mSelectModel->toggleChecked(tableName);
 
 }
 
-void Schema2Data::showRelationDialog(const QString &childTable, const QString& parentTable, QWidget *widget)
+void Schema2Data::createRelationDialog(const QString &childTable, const QString& parentTable, QWidget *widget)
 {
 #if 0
     if (!mTableModels.contains(childTable)
@@ -851,12 +852,20 @@ void Schema2Data::showRelationDialog(const QString &childTable, const QString& p
 #endif
 }
 
+void Schema2Data::dropRelationDialog(const QString &childTable, const QString& parentTable, QWidget *widget) {
+
+}
+
+void Schema2Data::dropTableDialog(const QString &table, QWidget *widget) {
+
+}
+
 QStringList Schema2Data::dataTypes() const {
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
     if (db.driverName() == DRIVER_ODBC) {
-        return mOdbcTypes.values();
+        return toLower(mOdbcTypes.values());
     }
 
     // todo implement datatypes for
@@ -1040,26 +1049,28 @@ Schema2TableItem *Schema2Data::tableItem(const QString &name) const {
 
 
 void Schema2Data::onSelectModelChanged(QModelIndex, QModelIndex) {
-    QList<QPair<QString,bool>> data = mSelectModel->dataAsTupleList();
+    /*QList<QPair<QString,bool>> data = mSelectModel->dataAsTupleList();
     for(int i=0;i<data.size();i++) {
         QPair<QString,bool> item = data[i];
         mTables->setGrayed(item.first, !item.second);
-    }
+    }*/
 }
 
 Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)
     : mConnectionName(connectionName), mScene(new QGraphicsScene),
-      mView(nullptr), mSelectModel(new CheckableStringListModel({}, this)),
+      mView(nullptr), /*mSelectModel(new CheckableStringListModel({}, this)),*/
       mSelectProxyModel(new QSortFilterProxyModel(this)), mTables(new Schema2TablesModel(connectionName, mScene, this)),
       QObject{parent}
 {
-    mSelectProxyModel->setSourceModel(mSelectModel);
+
+
+    mSelectProxyModel->setSourceModel(mTables);
     mSelectProxyModel->sort(0);
     //mSelectProxyModel->setDynamicSortFilter(true);
 
     connect(mTables,SIGNAL(tableClicked(QString)),this,SIGNAL(tableClicked(QString)));
 
-    connect(mSelectModel,SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(onSelectModelChanged(QModelIndex,QModelIndex)));
+    //connect(mSelectModel,SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(onSelectModelChanged(QModelIndex,QModelIndex)));
     load();
-    mSelectModel->setAllChecked();
+    //mSelectModel->setAllChecked();
 }

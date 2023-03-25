@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1199</width>
+    <width>1299</width>
     <height>451</height>
    </rect>
   </property>
@@ -47,9 +47,29 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="unrelate">
+       <property name="text">
+        <string>Unrelate</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="alter">
        <property name="text">
         <string>Alter</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="drop">
+       <property name="text">
+        <string>Drop</string>
        </property>
        <property name="checkable">
         <bool>true</bool>

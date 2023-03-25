@@ -50,7 +50,7 @@ public:
 
     QGraphicsScene* scene();
 
-    void showRelationDialog(const QString &childTable, const QString &parentTable, QWidget* widget);
+    void createRelationDialog(const QString &childTable, const QString &parentTable, QWidget* widget);
 
     void showAlterView(const QString& tableName);
 
@@ -79,6 +79,8 @@ public:
     void indexPulled(const QString indexName, const QString &tableName, const QStringList &columns, bool primary, bool unique, Status status);
 
     void editRelation(const QString &childTable, Schema2Relation *relation, QWidget *widget);
+    void dropRelationDialog(const QString &childTable, const QString &parentTable, QWidget *widget);
+    void dropTableDialog(const QString &table, QWidget *widget);
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 
@@ -106,7 +108,7 @@ protected:
 
     QList<Schema2RelationModel*> mRemoveRelationsQueue;
 
-    CheckableStringListModel* mSelectModel;
+    //CheckableStringListModel* mSelectModel;
 
     QSortFilterProxyModel* mSelectProxyModel;
 

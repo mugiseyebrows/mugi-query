@@ -16,6 +16,8 @@
 
 // todo push schema for one table
 
+// todo forbid dropping index if used in relation (odbc)
+
 Schema2AlterView::Schema2AlterView(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Schema2AlterView)
@@ -161,7 +163,7 @@ QStringList Schema2AlterView::selectedFields() const {
     QList<int> rows = selectedRows(ui->columns);
     QStringList res;
     for(int row: rows) {
-        res.append(mModel->data(mModel->index(row, 0)).toString());
+        res.append(mModel->newName(row));
     }
     return res;
 }
@@ -186,9 +188,9 @@ void Schema2AlterView::createIndex(bool primary, bool unique) {
     }
     QString indexName;
     if (primary) {
-        indexName = QString("PK_%1").arg(mModel->tableName());
+        indexName = QString("PK_%1").arg(mModel->tableName()).toLower();
     } else {
-        indexName = QString("IX_%1").arg(columns.join("_"));
+        indexName = QString("IX_%1").arg(columns.join("_")).toLower();
     }
     mData->indexPulled(indexName, mModel->tableName(), columns, primary, unique, StatusNew);
 }

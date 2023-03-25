@@ -21,9 +21,11 @@ public:
         ModeNone,
         ModeMove,
         ModeRelate,
+        ModeUnrelate,
         ModeAlter,
         ModeInsert,
-        ModeSelect
+        ModeSelect,
+        ModeDrop
     };
 
     explicit Schema2View(QWidget *parent = nullptr);
@@ -44,7 +46,7 @@ protected:
 
     Schema2Data* mData;
 
-    QStringList mRelationTables;
+    QStringList mTableStack;
 
     int mScaleIndex;
 
@@ -79,6 +81,10 @@ private slots:
     void on_relations_clicked();
 
     void on_filterLine_textChanged(const QString &arg1);
+
+    void on_unrelate_clicked(bool checked);
+
+    void on_drop_clicked(bool checked);
 
 private:
     Ui::Schema2View *ui;

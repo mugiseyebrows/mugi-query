@@ -70,15 +70,29 @@ void Schema2View::onTableClicked(QString tableName)
     case ModeMove: break;
     case ModeSelect: mData->selectOrDeselect(tableName); break;
     case ModeRelate:
-        mRelationTables.append(tableName);
-        if (mRelationTables.size() == 2) {
-            QString childTable = mRelationTables[0];
-            QString parentTable = mRelationTables[1];
+        mTableStack.append(tableName);
+        if (mTableStack.size() == 2) {
+            QString childTable = mTableStack[0];
+            QString parentTable = mTableStack[1];
             if (childTable != parentTable) {
-                mData->showRelationDialog(childTable, parentTable, this);
+                mData->createRelationDialog(childTable, parentTable, this);
             }
-            mRelationTables.clear();
+            mTableStack.clear();
         }
+        break;
+    case ModeUnrelate:
+        mTableStack.append(tableName);
+        if (mTableStack.size() == 2) {
+            QString childTable = mTableStack[0];
+            QString parentTable = mTableStack[1];
+            if (childTable != parentTable) {
+                mData->dropRelationDialog(childTable, parentTable, this);
+            }
+            mTableStack.clear();
+        }
+        break;
+    case ModeDrop:
+        mData->dropTableDialog(tableName, this);
         break;
     case ModeAlter: mData->showAlterView(tableName); break;
     case ModeInsert: mData->showInsertView(tableName); break;
@@ -86,7 +100,7 @@ void Schema2View::onTableClicked(QString tableName)
 }
 
 void Schema2View::uncheckAllExcept(QPushButton* checked) {
-    QList<QPushButton*> buttons = {ui->move, ui->select, ui->relate, ui->alter, ui->insert};
+    QList<QPushButton*> buttons = {ui->move, ui->select, ui->relate, ui->alter, ui->insert, ui->unrelate, ui->drop};
     for(QPushButton* button: buttons) {
         if (button == checked) {
             continue;
@@ -111,7 +125,20 @@ void Schema2View::on_relate_clicked(bool checked)
 {
     uncheckAllExcept(ui->relate);
     mMode = checked ? ModeRelate : ModeNone;
-    mRelationTables.clear();
+    mTableStack.clear();
+}
+
+void Schema2View::on_unrelate_clicked(bool checked)
+{
+    uncheckAllExcept(ui->unrelate);
+    mMode = checked ? ModeUnrelate : ModeNone;
+    mTableStack.clear();
+}
+
+void Schema2View::on_drop_clicked(bool checked)
+{
+    uncheckAllExcept(ui->drop);
+    mMode = checked ? ModeDrop : ModeNone;
 }
 
 void Schema2View::on_alter_clicked(bool checked)
@@ -125,8 +152,6 @@ void Schema2View::on_insert_clicked(bool checked)
     uncheckAllExcept(ui->insert);
     mMode = checked ? ModeInsert : ModeNone;
 }
-
-
 
 void Schema2View::on_create_clicked()
 {
@@ -184,4 +209,6 @@ void Schema2View::on_filterLine_textChanged(const QString &text)
 {
     mData->selectProxyModel()->setFilterRegularExpression(QRegularExpression(text, QRegularExpression::CaseInsensitiveOption));
 }
+
+
 
