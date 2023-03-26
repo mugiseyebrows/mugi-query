@@ -59,7 +59,9 @@ public:
                         const QString& parentTable, const QStringList& parentColumns,
                         bool constrained, Status status);
 
-    void removeRelation(const QString& name);
+    Schema2Relation* removeRelation(const QString& name);
+
+    Schema2Relation* removeRelation(Schema2Relation* relation);
 
     Schema2Relation* relation(const QString& name) const;
 
@@ -80,6 +82,8 @@ public:
     void setStatus(Status status);
 
     Schema2IndexesModel* indexes() const;
+
+    bool contains(Schema2Relation* relation);
 
 signals:
     void tableClicked(QString);

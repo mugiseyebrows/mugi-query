@@ -6,7 +6,9 @@
 #include "schema2store.h"
 #include "schema2tablemodel.h"
 #include "schema2tableitem.h"
-
+#include "schema2relationsmodel.h"
+#include "schema2relation.h"
+#include "schema2relationitem2.h"
 
 Schema2TablesModel::Schema2TablesModel(const QString& connectionName, QGraphicsScene *scene, QObject *parent)
     : mConnectionName(connectionName), mScene(scene), QAbstractTableModel{parent}
@@ -58,6 +60,23 @@ void Schema2TablesModel::tablePulled(const QString& table, Status status) {
     mTableItems.append(item);
     endInsertRows();
     mScene->addItem(item);
+}
+
+Schema2TableModel* Schema2TablesModel::tableRemoved(const QString &tableName)
+{
+    int index = indexOf(tableName);
+    if (index < 0) {
+        return 0;
+    }
+    beginRemoveRows(QModelIndex(), index, index);
+    auto* item = mTableItems[index];
+    auto* model = mTableModels[index];
+    mScene->removeItem(item);
+    mTableModels.removeAt(index);
+    mTableItems.removeAt(index);
+    delete item;
+    endRemoveRows();
+    return model;
 }
 
 Schema2TableItem *Schema2TablesModel::tableItem(const QString &name) {
@@ -127,6 +146,58 @@ QStringList Schema2TablesModel::tableNames() const
     return res;
 }
 
+QList<Schema2Relation *> Schema2TablesModel::relationsFrom(const QString &tableName)
+{
+    Schema2TableModel* table = this->table(tableName);
+    return table->relations()->values();
+}
+
+QList<Schema2Relation *> Schema2TablesModel::relationsTo(const QString &tableName)
+{
+    QList<Schema2Relation *> res;
+    for(Schema2TableModel* table: qAsConst(mTableModels)) {
+        auto* relation = table->relationTo(tableName);
+        if (relation) {
+            res.append(relation);
+        }
+    }
+    return res;
+}
+
+Schema2TableModel *Schema2TablesModel::findChildTable(Schema2Relation *relation)
+{
+    for(Schema2TableModel* table: qAsConst(mTableModels)) {
+        if (table->contains(relation)) {
+            return table;
+        }
+    }
+    return 0;
+}
+
+Schema2TableItem *Schema2TablesModel::findItem(Schema2TableModel *model)
+{
+    for(auto* item: mTableItems) {
+        if (item->model() == model) {
+            return item;
+        }
+    }
+    return 0;
+}
+
+
+
+Schema2RelationItem2* Schema2TablesModel::findItem(Schema2Relation* relation,
+                                                   Schema2TableItem* childTable,
+                                                   Schema2TableItem* parentTable) {
+
+    for(Schema2RelationItem2* item: mRelationItems) {
+        if (item->childTable() == childTable && item->parentTable() == parentTable) {
+            return item;
+        }
+    }
+    return 0;
+}
+
 int Schema2TablesModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) {
@@ -175,6 +246,54 @@ bool Schema2TablesModel::setData(const QModelIndex &index, const QVariant &value
     return false;
 }
 
+void Schema2TablesModel::relationPulled(const QString& constraintName, const QString& childTable, const QStringList& childColumns,
+               const QString& parentTable, const QStringList& parentColumns,
+               bool constrained, Status status) {
+
+    Schema2TableItem* childItem = tableItem(childTable);
+    Schema2TableItem* parentItem = tableItem(parentTable);
+
+    Schema2TableModel* childModel = table(childTable);
+    Schema2TableModel* parentModel = table(parentTable);
+
+    if (!childItem || !parentItem || !childModel || !parentModel) {
+        qDebug() << childTable << childModel << childItem
+                 << parentTable << parentModel << parentItem << __FILE__ << __LINE__;
+        return;
+    }
+
+    Schema2Relation* newRelation = childModel->insertRelation(constraintName, childColumns, parentTable, parentColumns, constrained, status);
+    if (newRelation) {
+        Schema2RelationItem2* relationItem =
+                new Schema2RelationItem2(childItem, parentItem);
+
+        mRelationItems.append(relationItem);
+        parentItem->addRelation(relationItem);
+        childItem->addRelation(relationItem);
+
+        mScene->addItem(relationItem);
+    }
+}
+
+void Schema2TablesModel::relationRemoved(Schema2Relation* relation) {
+
+    Schema2TableModel* childTable = findChildTable(relation);
+    Schema2TableModel* parentTable = table(relation->parentTable());
+
+    childTable->removeRelation(relation);
+
+    Schema2TableItem * childTableItem = findItem(childTable);
+    Schema2TableItem * parentTableItem = findItem(parentTable);
+
+    Schema2RelationItem2* relationItem = findItem(relation, childTableItem, parentTableItem);
+
+    childTableItem->removeRelation(relationItem);
+    parentTableItem->removeRelation(relationItem);
+
+    mScene->removeItem(relationItem);
+
+    delete relationItem;
+}
 
 Qt::ItemFlags Schema2TablesModel::flags(const QModelIndex &index) const
 {

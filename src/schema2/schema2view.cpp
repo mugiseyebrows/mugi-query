@@ -74,9 +74,9 @@ void Schema2View::onTableClicked(QString tableName)
         if (mTableStack.size() == 2) {
             QString childTable = mTableStack[0];
             QString parentTable = mTableStack[1];
-            if (childTable != parentTable) {
+            //if (childTable != parentTable) {
                 mData->createRelationDialog(childTable, parentTable, this);
-            }
+            //}
             mTableStack.clear();
         }
         break;
@@ -85,9 +85,9 @@ void Schema2View::onTableClicked(QString tableName)
         if (mTableStack.size() == 2) {
             QString childTable = mTableStack[0];
             QString parentTable = mTableStack[1];
-            if (childTable != parentTable) {
+            //if (childTable != parentTable) {
                 mData->dropRelationDialog(childTable, parentTable, this);
-            }
+            //}
             mTableStack.clear();
         }
         break;

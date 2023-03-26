@@ -50,14 +50,30 @@ bool Schema2RelationsModel::contains(const QString &name) const
     return indexOf(name) > -1;
 }
 
-void Schema2RelationsModel::remove(const QString &name)
+Schema2Relation * Schema2RelationsModel::removeAt(int index) {
+
+    beginRemoveRows(QModelIndex(), index, index);
+    Schema2Relation* relation = mRelations[index];
+    mRelations.removeAt(index);
+    endRemoveRows();
+    return relation;
+}
+
+Schema2Relation *Schema2RelationsModel::remove(const QString &name)
 {
     int index = indexOf(name);
-    if (index > -1) {
-        beginRemoveRows(QModelIndex(), index, index);
-        mRelations.removeAt(index);
-        endRemoveRows();
+    if (index < 0) {
+        return 0;
     }
+    return removeAt(index);
+}
+
+Schema2Relation *Schema2RelationsModel::remove(Schema2Relation * relation) {
+    int index = mRelations.indexOf(relation);
+    if (index < 0) {
+        return 0;
+    }
+    return removeAt(index);
 }
 
 Schema2Relation *Schema2RelationsModel::getRelationTo(const QString &tableName) const

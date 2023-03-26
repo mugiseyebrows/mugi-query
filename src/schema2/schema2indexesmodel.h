@@ -21,6 +21,8 @@ public:
 
     void pushed();
 
+    QStringList primaryKey() const;
+
 protected:
     QList<Schema2Index*> mIndexes;
 

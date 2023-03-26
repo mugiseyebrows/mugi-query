@@ -50,8 +50,6 @@ public:
 
     QGraphicsScene* scene();
 
-    void createRelationDialog(const QString &childTable, const QString &parentTable, QWidget* widget);
-
     void showAlterView(const QString& tableName);
 
     void showInsertView(const QString &tableName);
@@ -78,7 +76,9 @@ public:
 
     void indexPulled(const QString indexName, const QString &tableName, const QStringList &columns, bool primary, bool unique, Status status);
 
-    void editRelation(const QString &childTable, Schema2Relation *relation, QWidget *widget);
+    void createRelationDialog(Schema2TableModel* childTable, QStringList childColumns, QString parentTable);
+    void createRelationDialog(const QString &childTable, const QString &parentTable, QWidget* widget);
+    void editRelationDialog(Schema2TableModel *childTable, Schema2Relation *relation, QWidget *widget);
     void dropRelationDialog(const QString &childTable, const QString &parentTable, QWidget *widget);
     void dropTableDialog(const QString &table, QWidget *widget);
 protected:
@@ -98,15 +98,12 @@ protected:
 
     StringHash<Schema2AlterView*> mAlterViews;
 
-
-
     //StringListHash<Schema2RelationModel*> mRelationModels;
 
-    QList<Schema2RelationItem2*> mRelationItems;
 
+    QList<QPair<QString, Schema2Relation*>> mDropRelationsQueue;
 
-
-    QList<Schema2RelationModel*> mRemoveRelationsQueue;
+    QList<Schema2TableModel*> mDropTableQueue;
 
     //CheckableStringListModel* mSelectModel;
 
@@ -131,15 +128,15 @@ protected:
     void setTableItemsPos();
 
 
-    void relationPulled(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns, bool constrained, Status status);
+    //void relationPulled(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns, bool constrained, Status status);
 
     void tablePulled(const QString &tableName, Status status);
-    QStringList guessParentColumns(QString childTable, QStringList childColumns, QString parentTable);
+    //QStringList guessParentColumns(QString childTable, QStringList childColumns, QString parentTable);
 signals:
     void tableClicked(QString);
 protected slots:
     void onSelectModelChanged(QModelIndex, QModelIndex);
-    void onCreateRelation(QString childTable, QStringList childColumns, QString parentTable);
+
 };
 
 #endif // SCHEMA2DATA_H

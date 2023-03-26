@@ -22,6 +22,15 @@ public:
     Status status() const;
 
     void setStatus(Status status);
+
+    bool primary() const {
+        return mPrimary;
+    }
+
+    QStringList columns() const {
+        return mColumns;
+    }
+
 protected:
     QString mName;
     QStringList mColumns;

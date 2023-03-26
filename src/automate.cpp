@@ -14,7 +14,7 @@ void automate(QWidget *widget)
     automation->start();
 #endif
 
-#if 0
+#if 1
     Automation* automation = Automation::instance(widget);
     QString database = 0 ? "testaccess" : "test2";
     automation->connectToDatabaseFromHistory(database);

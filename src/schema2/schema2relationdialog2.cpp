@@ -24,7 +24,7 @@ Schema2RelationDialog2::~Schema2RelationDialog2()
 
 void Schema2RelationDialog2::init(Schema2TableModel *childTable,
                                   Schema2TableModel *parentTable,
-                                  const QString& constraintName,
+                                  const QString& relationName,
                                   const QStringList& childColumns,
                                   const QStringList& parentColumns)
 {
@@ -35,7 +35,7 @@ void Schema2RelationDialog2::init(Schema2TableModel *childTable,
 
     ui->parentTable->setText(parentTable->tableName());
 
-    ui->constraintName->setText(constraintName);
+    ui->constraintName->setText(relationName);
 
     QStandardItemModel* model = new QStandardItemModel(parentColumns.size(), 2);
 
@@ -73,7 +73,7 @@ void Schema2RelationDialog2::init(Schema2TableModel *childTable,
 
 }
 
-QString Schema2RelationDialog2::constraintName() const
+QString Schema2RelationDialog2::relationName() const
 {
     return ui->constraintName->text();
 }

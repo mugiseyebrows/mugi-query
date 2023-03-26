@@ -18,6 +18,10 @@ void Schema2TableItem::addRelation(Schema2RelationItem2 *relation)
     mRelations.append(relation);
 }
 
+void Schema2TableItem::removeRelation(Schema2RelationItem2 *relation) {
+    mRelations.removeOne(relation);
+}
+
 QString Schema2TableItem::tableName() const
 {
     return mModel->tableName();

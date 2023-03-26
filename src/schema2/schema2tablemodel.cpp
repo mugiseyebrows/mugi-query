@@ -130,9 +130,14 @@ Schema2Relation* Schema2TableModel::insertRelation(const QString &name, const QS
     return mRelations->insert(name, childColumns, parentTable, parentColumns, constrained, status);
 }
 
-void Schema2TableModel::removeRelation(const QString &name)
+Schema2Relation* Schema2TableModel::removeRelation(const QString &name)
 {
-    mRelations->remove(name);
+    return mRelations->remove(name);
+}
+
+Schema2Relation *Schema2TableModel::removeRelation(Schema2Relation *relation)
+{
+    return mRelations->remove(relation);
 }
 
 Schema2Relation *Schema2TableModel::relation(const QString &name) const
@@ -242,6 +247,11 @@ void Schema2TableModel::setStatus(Status status) {
 
 Schema2IndexesModel *Schema2TableModel::indexes() const {
     return mIndexes;
+}
+
+bool Schema2TableModel::contains(Schema2Relation *relation)
+{
+    return mRelations->values().contains(relation);
 }
 
 int Schema2TableModel::rowCount(const QModelIndex &parent) const

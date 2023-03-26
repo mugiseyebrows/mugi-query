@@ -26,10 +26,15 @@ public:
         return mGrayed;
     }
 
+    Schema2TableModel* model() const {
+        return mModel;
+    }
+
 #if 0
     bool isIndexColumn(const QString& column) const;
 #endif
 
+    void removeRelation(Schema2RelationItem2 *relation);
 protected:
     Schema2TableModel* mModel;
     QList<Schema2RelationItem2*> mRelations;

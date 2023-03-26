@@ -19,7 +19,9 @@ public:
 
     bool contains(const QString &name) const;
 
-    void remove(const QString &name);
+    Schema2Relation* remove(const QString &name);
+
+    Schema2Relation *remove(Schema2Relation *relation);
 
     Schema2Relation *getRelationTo(const QString &tableName) const;
 
@@ -39,6 +41,8 @@ public:
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
+
+    Schema2Relation *removeAt(int index);
 };
 
 #endif // SCHEMA2RELATIONSMODEL_H

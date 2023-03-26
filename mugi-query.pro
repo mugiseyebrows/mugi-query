@@ -103,6 +103,7 @@ HEADERS += \
     src/schema2/schema2view.h \
     src/schema2/setcompleter.h \
     src/schema2/tablestretcher.h \
+    src/schema2/schema2relationguesser.h \
     src/sessionitem.h \
     src/setdefaultcolors.h \
     src/setheaderdata.h \
@@ -248,6 +249,7 @@ SOURCES += \
     src/schema2/schema2view.cpp \
     src/schema2/setcompleter.cpp \
     src/schema2/tablestretcher.cpp \
+    src/schema2/schema2relationguesser.cpp \
     src/sessionitem.cpp \
     src/setdefaultcolors.cpp \
     src/setheaderdata.cpp \

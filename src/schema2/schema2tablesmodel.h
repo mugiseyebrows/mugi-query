@@ -5,6 +5,9 @@
 class Schema2TableItem;
 class Schema2TableModel;
 class QGraphicsScene;
+class Schema2RelationItem2;
+class Schema2Relation;
+
 #include <QPointF>
 #include "hash.h"
 #include "schema2status.h"
@@ -22,6 +25,8 @@ public:
 
     void tablePulled(const QString &table, Status status);
 
+    Schema2TableModel *tableRemoved(const QString &tableName);
+
     Schema2TableItem* tableItem(const QString& name);
 
     void setGrayed(const QString& name, bool value);
@@ -36,9 +41,21 @@ public:
 
     QStringList tableNames() const;
 
+    QList<Schema2Relation*> relationsFrom(const QString& tableName);
+
+    QList<Schema2Relation*> relationsTo(const QString& tableName);
+
+    Schema2TableModel* findChildTable(Schema2Relation* relation);
+
+    Schema2TableItem* findItem(Schema2TableModel* model);
+
+    Schema2RelationItem2 *findItem(Schema2Relation *relation, Schema2TableItem *childTable, Schema2TableItem *parentTable);
+
 protected:
 
     QList<Schema2TableItem*> mTableItems;
+
+    QList<Schema2RelationItem2*> mRelationItems;
 
     QList<Schema2TableModel*> mTableModels;
 
@@ -55,7 +72,6 @@ signals:
 
     void tableClicked(QString);
 
-
     // QAbstractItemModel interface
 public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
@@ -69,6 +85,10 @@ public:
     // QAbstractItemModel interface
 public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
+    void relationPulled(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns, bool constrained, Status status);
+    void relationRemoved(Schema2Relation *relation);
+
+
 };
 
 #endif // SCHEMA2TABLESMODEL_H

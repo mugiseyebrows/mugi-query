@@ -17,7 +17,7 @@ public:
     explicit Schema2RelationDialog2(QWidget *parent = nullptr);
     ~Schema2RelationDialog2();
 
-    QString constraintName() const;
+    QString relationName() const;
 
     QStringList childColumns() const;
 
@@ -25,7 +25,7 @@ public:
 
     bool constrained() const;
 
-    void init(Schema2TableModel *childTable, Schema2TableModel *parentTable, const QString &constraintName, const QStringList &childColumns, const QStringList &parentColumns);
+    void init(Schema2TableModel *childTable, Schema2TableModel *parentTable, const QString &relationName, const QStringList &childColumns, const QStringList &parentColumns);
 
 private:
     Ui::Schema2RelationDialog2 *ui;

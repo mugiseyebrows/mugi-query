@@ -85,7 +85,7 @@ void Schema2AlterView::initRelations() {
     connect(buttons, &TableButtons::clicked, [=](int id, int index){
         if (id == button_edit) {
             if (index > -1) {
-                mData->editRelation(mModel->tableName(), mModel->relations()->at(index), this);
+                mData->editRelationDialog(mModel, mModel->relations()->at(index), this);
             }
         } else if (id == button_remove) {
 
@@ -177,7 +177,8 @@ void Schema2AlterView::on_createRelation_clicked()
         QMessageBox::information(this, "", "To create relation please select one or more columns");
         return;
     }
-    emit createRelation(childTable, childColumns, parentTable);
+    //emit createRelation(childTable, childColumns, parentTable);
+    mData->createRelationDialog(mModel, childColumns, parentTable);
 }
 
 void Schema2AlterView::createIndex(bool primary, bool unique) {

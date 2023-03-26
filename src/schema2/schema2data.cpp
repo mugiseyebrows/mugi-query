@@ -36,6 +36,7 @@
 #include "schema2tablesmodel.h"
 #include "schema2pushview.h"
 #include "tolower.h"
+#include "schema2relationguesser.h"
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -128,7 +129,7 @@ void Schema2Data::unoverlapTables() {
 #endif
 
 
-void Schema2Data::tablePulled(const QString& table, Status status) {
+void Schema2Data::tablePulled(const QString& tableName, Status status) {
 #if 0
     if (!mTableModels.contains(table)) {
         Schema2TableModel* model = new Schema2TableModel(table, status);
@@ -147,7 +148,16 @@ void Schema2Data::tablePulled(const QString& table, Status status) {
         mScene->addItem(item);
     }
 #endif
-    mTables->tablePulled(table, status);
+
+    QStringList dropQueue;
+    for(Schema2TableModel* table: qAsConst(mDropTableQueue)) {
+        dropQueue.append(table->tableName().toLower());
+    }
+    if (dropQueue.contains(tableName.toLower())) {
+        return;
+    }
+
+    mTables->tablePulled(tableName, status);
 }
 
 
@@ -451,35 +461,17 @@ void Schema2Data::pullIndexesOdbc() {
 
 
 }
-
-void Schema2Data::relationPulled(const QString& constraintName, const QString& childTable, const QStringList& childColumns,
+#if 0
+void Schema2Data::relationPulled(const QString& constraintName, const QString& childTable,
+                                 const QStringList& childColumns,
                                  const QString& parentTable, const QStringList& parentColumns,
                                  bool constrained, Status status) {
-    Schema2TableItem* childItem = mTables->tableItem(childTable);
-    Schema2TableItem* parentItem = mTables->tableItem(parentTable);
 
-    Schema2TableModel* childModel = mTables->table(childTable);
-    Schema2TableModel* parentModel = mTables->table(parentTable);
 
-    if (!childItem || !parentItem || !childModel || !parentModel) {
-        qDebug() << childTable << childModel << childItem
-                 << parentTable << parentModel << parentItem << __FILE__ << __LINE__;
-        return;
-    }
 
-    Schema2Relation* newRelation = childModel->insertRelation(constraintName, childColumns, parentTable, parentColumns, constrained, status);
-    if (newRelation) {
-        Schema2RelationItem2* relationItem =
-                new Schema2RelationItem2(childItem, parentItem);
-
-        mRelationItems.append(relationItem);
-        parentItem->addRelation(relationItem);
-        childItem->addRelation(relationItem);
-
-        mScene->addItem(relationItem);
-    }
+    mTables->relationPulled(constraintName, childTable, childColumns, parentTable, parentColumns, constrained, status);
 }
-
+#endif
 
 void Schema2Data::pullRelationsOdbc() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
@@ -517,7 +509,7 @@ void Schema2Data::pullRelationsOdbc() {
             childColumns.append(childColumn);
         }
 
-        relationPulled(constraintName, childTable, childColumns, parentTable, parentColumns, true, StatusExisting);
+        mTables->relationPulled(constraintName, childTable, childColumns, parentTable, parentColumns, true, StatusExisting);
 
 #if 0
 
@@ -611,7 +603,7 @@ void Schema2Data::push(QWidget* widget)
 
     Schema2ChangeSet* changeSet = new Schema2ChangeSet();
 
-    // tables
+    // create and alter tables
     QList<Schema2TableModel*> tables = mTables->tables();
     for(Schema2TableModel* table: tables) {
         switch(table->status()) {
@@ -630,7 +622,7 @@ void Schema2Data::push(QWidget* widget)
         }
     }
 
-    // indexes
+    // create and alter indexes
     for(Schema2TableModel* table: tables) {
         Schema2IndexesModel* indexes = table->indexes();
         changeSet->append(indexes->queries(table->tableName()), [=](){
@@ -638,7 +630,7 @@ void Schema2Data::push(QWidget* widget)
         });
     }
 
-    // relations
+    // create and alter relations
     for(Schema2TableModel* table: tables) {
         QList<Schema2Relation*> relations = table->relations()->values();
         for(Schema2Relation* relation: relations) {
@@ -659,6 +651,21 @@ void Schema2Data::push(QWidget* widget)
         }
     }
 
+    // drop relations
+    for(auto item: mDropRelationsQueue) {
+        QString name = item.first;
+        auto* relation = item.second;
+        changeSet->append(relation->dropQueries(name),[=](){
+            mDropRelationsQueue.removeOne(item);
+        });
+    }
+
+    // drop tables
+    for(auto* item: mDropTableQueue) {
+        changeSet->append(item->dropQueries(),[=](){
+            mDropTableQueue.removeOne(item);
+        });
+    }
 
 
 #if 0
@@ -744,9 +751,10 @@ void Schema2Data::load()
 
 }
 
+// not used
 bool Schema2Data::hasPendingChanges() const
 {
-    if (!mRemoveRelationsQueue.isEmpty()) {
+    if (!mDropRelationsQueue.isEmpty()) {
         return true;
     }
     QList<Schema2TableModel*> models = mTables->tables();
@@ -788,8 +796,64 @@ void Schema2Data::selectOrDeselect(const QString& tableName) {
 
 }
 
+
+
 void Schema2Data::createRelationDialog(const QString &childTable, const QString& parentTable, QWidget *widget)
 {
+
+    auto* childTableModel = mTables->table(childTable);
+    auto* parentTableModel = mTables->table(parentTable);
+
+    auto* relation = childTableModel->relationTo(parentTable);
+
+    if (!childTableModel) {
+        qDebug() << "!childTableModel" << __FILE__ << __LINE__;
+        return;
+    }
+    if (!parentTableModel) {
+        qDebug() << "!parentTableModel" << __FILE__ << __LINE__;
+        return;
+    }
+
+    // todo implement multiple relations between same pair of tables
+    if (relation) {
+        editRelationDialog(childTableModel, relation, widget);
+        return;
+    }
+
+    if (!childTableModel) {
+        qDebug() << "!childTableModel" << __FILE__ << __LINE__;
+        return;
+    }
+    if (!parentTableModel) {
+        qDebug() << "!parentTableModel" << __FILE__ << __LINE__;
+        return;
+    }
+
+    Schema2RelationGuesser guesser(childTableModel, parentTableModel);
+
+    QString relationName = guesser.relationName();
+
+    QStringList parentColumns = guesser.parentColumns();
+
+    QStringList childColumns = guesser.childColumns(parentColumns);
+
+    Schema2RelationDialog2 dialog(widget);
+    dialog.init(childTableModel,
+                parentTableModel,
+                relationName,
+                childColumns,
+                parentColumns);
+
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    mTables->relationPulled(dialog.relationName(),
+                   childTable, dialog.childColumns(),
+                   parentTable, dialog.parentColumns(), dialog.constrained(), StatusNew);
+
+
 #if 0
     if (!mTableModels.contains(childTable)
             || !mTableModels.contains(parentTable)
@@ -856,8 +920,22 @@ void Schema2Data::dropRelationDialog(const QString &childTable, const QString& p
 
 }
 
-void Schema2Data::dropTableDialog(const QString &table, QWidget *widget) {
+void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
 
+    auto* table = mTables->table(tableName);
+    if (!table) {
+        qDebug() << __FILE__ << __LINE__;
+        return;
+    }
+    auto relations = (mTables->relationsTo(tableName) + mTables->relationsFrom(tableName)).toSet();
+    for(auto* relation: relations) {
+        auto* childTable = mTables->findChildTable(relation);
+        mDropRelationsQueue.append({childTable->tableName(), relation});
+        mTables->relationRemoved(relation);
+    }
+
+    mTables->tableRemoved(tableName);
+    mDropTableQueue.append(table);
 }
 
 QStringList Schema2Data::dataTypes() const {
@@ -868,11 +946,12 @@ QStringList Schema2Data::dataTypes() const {
         return toLower(mOdbcTypes.values());
     }
 
-    // todo implement datatypes for
+    // todo implement datatypes for DRIVER_MYSQL DRIVER_PSQL
 
     return {};
 }
 
+#if 0
 QStringList Schema2Data::guessParentColumns(QString childTable, QStringList childColumns, QString parentTable) {
 
     QStringList res;
@@ -882,14 +961,13 @@ QStringList Schema2Data::guessParentColumns(QString childTable, QStringList chil
     }
     return res;
 }
+#endif
 
-void Schema2Data::editRelation(
-        const QString& childTable,
+void Schema2Data::editRelationDialog(
+        Schema2TableModel* childTableModel,
         Schema2Relation* relation,
         QWidget* widget) {
 
-
-    auto* childTableModel = mTables->table(childTable);
     auto* parentTableModel = mTables->table(relation->parentTable());
 
     if (!childTableModel) {
@@ -912,41 +990,50 @@ void Schema2Data::editRelation(
         return;
     }
 
-    relation->setName(dialog.constraintName());
+    relation->setName(dialog.relationName());
 
     relation->setChildColumns(dialog.childColumns());
     relation->setParentColumns(dialog.parentColumns());
 
-
 }
 
-void Schema2Data::onCreateRelation(QString childTable,
+void Schema2Data::createRelationDialog(Schema2TableModel* childTable,
                                    QStringList childColumns,
                                    QString parentTable) {
 
-    if (!mTables->table(parentTable)) {
+
+    // todo implement multiple relations between same pair of tables
+
+    auto* parentTableModel = mTables->table(parentTable);
+
+    if (!childTable) {
+        qDebug() << "!childTableModel" << __FILE__ << __LINE__;
+        return;
+    }
+    if (!parentTableModel) {
+        qDebug() << "!parentTableModel" << __FILE__ << __LINE__;
         return;
     }
 
-    auto* childTableModel = mTables->table(childTable);
-    auto* parentTableModel = mTables->table(parentTable);
-    auto* relation = childTableModel->relationTo(parentTable);
+    auto* relation = childTable->relationTo(parentTable);
 
-    QString constraintName;
+    QString relationName;
 
     QStringList parentColumns;
 
+    Schema2RelationGuesser guesser(childTable, parentTableModel);
+
     if (relation == 0) {
-        parentColumns = guessParentColumns(childTable, childColumns, parentTable);
-        constraintName = QString("FK_%1_%2").arg(parentTable).arg(childTable);
+        parentColumns = guesser.parentColumns();
+        relationName = guesser.relationName();
     } else {
         parentColumns = relation->parentColumns();
-        constraintName = relation->name();
+        relationName = relation->name();
     }
 
     Schema2RelationDialog2 dialog;
-    dialog.init(childTableModel, parentTableModel,
-                constraintName,
+    dialog.init(childTable, parentTableModel,
+                relationName,
                 childColumns,
                 parentColumns);
 
@@ -958,13 +1045,13 @@ void Schema2Data::onCreateRelation(QString childTable,
 
     } else {
 
-        QString constraintName = dialog.constraintName();
+        QString constraintName = dialog.relationName();
         QStringList childColumns = dialog.childColumns();
         QStringList parentColumns = dialog.parentColumns();
         bool constrained = dialog.constrained();
 
-        relationPulled(constraintName, childTable, childColumns,
-                       parentTable, parentColumns, constrained, StatusNew);
+        mTables->relationPulled(constraintName, childTable->tableName(), childColumns,
+                                parentTable, parentColumns, constrained, StatusNew);
 
     }
 
@@ -980,10 +1067,12 @@ void Schema2Data::showAlterView(const QString &tableName)
         view->init(this, mTables, table, dataTypes());
         view->setWindowTitle(tableName);
         mAlterViews.set(tableName, view);
-        connect(view,
+        /*connect(view,
                 SIGNAL(createRelation(QString, QStringList, QString)),
                 this,
-                SLOT(onCreateRelation(QString, QStringList, QString)));
+                SLOT(onCreateRelation(QString, QStringList, QString)));*/
+
+
     }
     auto* view = mAlterViews.get(tableName);
     showAndRaise(view);

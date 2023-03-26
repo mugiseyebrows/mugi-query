@@ -34,7 +34,7 @@ public:
 
     QStringList createQueries(const QString& childTable) const;
 
-    QStringList removeQueries(const QString& childTable) const;
+    QStringList dropQueries(const QString& childTable) const;
 
     Status status() const;
 

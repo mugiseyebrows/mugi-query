@@ -74,6 +74,17 @@ void Schema2IndexesModel::pushed()
     mRemoveQueue.clear();
 }
 
+QStringList Schema2IndexesModel::primaryKey() const
+{
+    for(int i=0;i<mIndexes.size();i++) {
+        auto* index = mIndexes[i];
+        if (index->primary()) {
+            return index->columns();
+        }
+    }
+    return QStringList();
+}
+
 void Schema2IndexesModel::debugStatus() {
     for(int i=0;i<mIndexes.size();i++) {
         auto* index = mIndexes[i];

@@ -61,7 +61,7 @@ QStringList Schema2Relation::createQueries(const QString &childTable) const {
     return {expr};
 }
 
-QStringList Schema2Relation::removeQueries(const QString &childTable) const {
+QStringList Schema2Relation::dropQueries(const QString &childTable) const {
     QString expr = QString("ALTER TABLE %1 DROP CONSTRAINT %2").arg(childTable).arg(mOldName);
     return {expr};
 }
@@ -76,5 +76,5 @@ void Schema2Relation::pushed() {
 }
 
 QStringList Schema2Relation::modifyQueries(const QString &childTable) const {
-    return removeQueries(childTable) + createQueries(childTable);
+    return dropQueries(childTable) + createQueries(childTable);
 }
