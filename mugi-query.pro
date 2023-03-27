@@ -51,6 +51,7 @@ HEADERS += \
     src/automation.h \
     src/clicklistener.h \
     src/colorpalette.h \
+    src/confirmationdialog.h \
     src/copyeventfilter.h \
     src/dataformat.h \
     src/datastreamer.h \
@@ -197,6 +198,7 @@ SOURCES += \
     src/automation.cpp \
     src/clicklistener.cpp \
     src/colorpalette.cpp \
+    src/confirmationdialog.cpp \
     src/copyeventfilter.cpp \
     src/dataformat.cpp \
     src/datastreamer.cpp \
@@ -333,6 +335,7 @@ SOURCES += \
     src/model/datacomparemodel.cpp
 
 FORMS += \
+    src/confirmationdialog.ui \
     src/schema2/schema2alterview.ui \
     src/schema2/schema2pushview.ui \
     src/schema2/schema2relationdialog2.ui \

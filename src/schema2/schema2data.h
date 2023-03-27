@@ -32,6 +32,8 @@ class Schema2Data : public QObject
 public:
     static QHash<int, QString> mOdbcTypes;
 
+    static bool mDontAskOnDrop;
+
     static Schema2Data* instance(const QString& connectionName, QObject *parent = nullptr);
 
     static QHash<QString, Schema2Data*> mData;

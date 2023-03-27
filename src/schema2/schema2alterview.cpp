@@ -136,6 +136,7 @@ void Schema2AlterView::init(Schema2Data *data, Schema2TablesModel* tableModels,
     initColumns();
     initRelations();
     initIndexes();
+    setWindowTitle(mModel->tableName());
 }
 
 /*
@@ -171,7 +172,7 @@ QStringList Schema2AlterView::selectedFields() const {
 void Schema2AlterView::on_createRelation_clicked()
 {
     QString parentTable = ui->parentTable->text();
-    QString childTable = mModel->tableName();
+    //QString childTable = mModel->tableName();
     QStringList childColumns = selectedFields();
     if (childColumns.isEmpty()) {
         QMessageBox::information(this, "", "To create relation please select one or more columns");

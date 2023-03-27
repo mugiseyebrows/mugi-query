@@ -163,6 +163,7 @@ void Schema2TableModel::pushed() {
         setData(index(row, col_name), newName);
         setData(index(row, col_type), newType);
     }
+    mDropColumnsQueue.clear();
 }
 
 Status Schema2TableModel::status() const {
@@ -170,6 +171,9 @@ Status Schema2TableModel::status() const {
         return StatusNew;
     }
     if (mStatus == StatusExisting) {
+        if (!mDropColumnsQueue.isEmpty()) {
+            return StatusModified;
+        }
         for(int row=0;row<rowCount();row++) {
             if (newName(row).isEmpty()) {
                 continue;
@@ -200,6 +204,14 @@ QStringList Schema2TableModel::createQueries() const {
 QStringList Schema2TableModel::alterQueries() const {
 
     QStringList res;
+
+    for(const QString& colName: mDropColumnsQueue) {
+        // todo check for removed and readded
+        QString expr = QString("ALTER TABLE %1 DROP COLUMN %2")
+                .arg(mTableName)
+                .arg(colName);
+        res.append(expr);
+    }
 
     for(int row=0;row<rowCount();row++) {
 
@@ -311,4 +323,17 @@ QVariant Schema2TableModel::headerData(int section, Qt::Orientation orientation,
         }
     }
     return QAbstractTableModel::headerData(section, orientation, role);
+}
+
+bool Schema2TableModel::removeRows(int row, int count, const QModelIndex &parent)
+{
+    beginRemoveRows(QModelIndex(), row, row+count-1);
+    for(int i=0;i<count;i++) {
+        QString colName = mColumns[row][col_name];
+        if (!colName.isEmpty()) {
+            mDropColumnsQueue.append(colName);
+        }
+        mColumns.removeAt(row);
+    }
+    endRemoveRows();
 }

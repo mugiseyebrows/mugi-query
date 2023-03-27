@@ -37,6 +37,9 @@
 #include "schema2pushview.h"
 #include "tolower.h"
 #include "schema2relationguesser.h"
+#include "confirmationdialog.h"
+
+/*static*/ bool Schema2Data::mDontAskOnDrop = false;
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -920,7 +923,15 @@ void Schema2Data::dropRelationDialog(const QString &childTable, const QString& p
 
 }
 
+
+
 void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
+
+    QString message = QString("Are you sure to drop table %1?").arg(tableName);
+
+    if (!ConfirmationDialog::question(widget, message, &mDontAskOnDrop)) {
+        return;
+    }
 
     auto* table = mTables->table(tableName);
     if (!table) {
@@ -928,14 +939,27 @@ void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
         return;
     }
     auto relations = (mTables->relationsTo(tableName) + mTables->relationsFrom(tableName)).toSet();
+
+    qDebug() << relations.size() << "relations with table" << tableName;
+
     for(auto* relation: relations) {
         auto* childTable = mTables->findChildTable(relation);
         mDropRelationsQueue.append({childTable->tableName(), relation});
         mTables->relationRemoved(relation);
     }
 
+    qDebug() << "mDropRelationsQueue.size()" << mDropRelationsQueue.size();
+
     mTables->tableRemoved(tableName);
     mDropTableQueue.append(table);
+
+    Schema2AlterView* view = mAlterViews.get(tableName);
+    if (view) {
+        mAlterViews.remove(tableName);
+        view->hide();
+        view->deleteLater();
+    }
+
 }
 
 QStringList Schema2Data::dataTypes() const {
@@ -1043,6 +1067,10 @@ void Schema2Data::createRelationDialog(Schema2TableModel* childTable,
 
     if (relation) {
 
+        relation->setName(dialog.relationName());
+        relation->setChildColumns(dialog.childColumns());
+        relation->setParentColumns(dialog.parentColumns());
+
     } else {
 
         QString constraintName = dialog.relationName();
@@ -1065,14 +1093,7 @@ void Schema2Data::showAlterView(const QString &tableName)
         Schema2AlterView* view = new Schema2AlterView();
         Schema2TableModel* table = mTables->table(tableName);
         view->init(this, mTables, table, dataTypes());
-        view->setWindowTitle(tableName);
         mAlterViews.set(tableName, view);
-        /*connect(view,
-                SIGNAL(createRelation(QString, QStringList, QString)),
-                this,
-                SLOT(onCreateRelation(QString, QStringList, QString)));*/
-
-
     }
     auto* view = mAlterViews.get(tableName);
     showAndRaise(view);
