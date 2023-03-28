@@ -13,6 +13,8 @@
 #include "schema2indexesmodel.h"
 #include "schema2relationsmodel.h"
 #include "schema2tablesmodel.h"
+#include "tablestretcher.h"
+#include "drivernames.h"
 
 // todo push schema for one table
 
@@ -125,6 +127,9 @@ void Schema2AlterView::initIndexes() {
         }
     });
 
+    TableStretcher* stretcher = new TableStretcher(this);
+    stretcher->setView(ui->indexes);
+    stretcher->setRatio({1,1,1,1});
 }
 
 void Schema2AlterView::init(Schema2Data *data, Schema2TablesModel* tableModels,
@@ -194,7 +199,15 @@ void Schema2AlterView::createIndex(bool primary, bool unique) {
     } else {
         indexName = QString("IX_%1").arg(columns.join("_")).toLower();
     }
-    mData->indexPulled(indexName, mModel->tableName(), columns, primary, unique, StatusNew);
+
+    QString driverName = mData->driverName();
+    if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
+        if (primary) {
+            indexName = "PRIMARY";
+        }
+    }
+
+    mTables->table(mModel->tableName())->insertIndex(indexName, columns, primary, unique, StatusNew);
 }
 
 void Schema2AlterView::on_createIndex_clicked()

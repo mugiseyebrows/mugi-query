@@ -14,9 +14,7 @@ public:
 
     void setView(QTableView* view);
 
-    void setRatio(const QList<double> ratio) {
-        mRatio = ratio;
-    }
+    void setRatio(const QList<double> ratio);
 
 protected:
     QTableView* mView;

@@ -76,13 +76,20 @@ public:
 
     QStringList dataTypes() const;
 
-    void indexPulled(const QString indexName, const QString &tableName, const QStringList &columns, bool primary, bool unique, Status status);
+    //void indexPulled(const QString indexName, const QString &tableName, const QStringList &columns, bool primary, bool unique, Status status);
 
     void createRelationDialog(Schema2TableModel* childTable, QStringList childColumns, QString parentTable);
     void createRelationDialog(const QString &childTable, const QString &parentTable, QWidget* widget);
     void editRelationDialog(Schema2TableModel *childTable, Schema2Relation *relation, QWidget *widget);
     void dropRelationDialog(const QString &childTable, const QString &parentTable, QWidget *widget);
     void dropTableDialog(const QString &table, QWidget *widget);
+
+    QString connectionName() const {
+        return mConnectionName;
+    }
+
+    QString driverName() const;
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 

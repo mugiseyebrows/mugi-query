@@ -152,6 +152,8 @@ void Schema2Data::tablePulled(const QString& tableName, Status status) {
     }
 #endif
 
+#if 0
+    // todo move me to pullTables
     QStringList dropQueue;
     for(Schema2TableModel* table: qAsConst(mDropTableQueue)) {
         dropQueue.append(table->tableName().toLower());
@@ -159,6 +161,7 @@ void Schema2Data::tablePulled(const QString& tableName, Status status) {
     if (dropQueue.contains(tableName.toLower())) {
         return;
     }
+#endif
 
     mTables->tablePulled(tableName, status);
 }
@@ -282,7 +285,7 @@ void Schema2Data::pullTablesOther() {
 void Schema2Data::pullTables() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
-    if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_QMARIADB) {
+    if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_MARIADB) {
         pullTablesMysql();
     } else if (db.driverName() == DRIVER_ODBC) {
         pullTablesOdbc();
@@ -292,20 +295,46 @@ void Schema2Data::pullTables() {
 
 }
 
+class RelationItem {
+public:
+    QString constraintName;
+    QString childTable;
+    QStringList childColumns;
+    QString parentTable;
+    QStringList parentColumns;
+};
+
+QDebug&	operator<<(QDebug debug, const RelationItem& relation) {
+    debug.nospace() << "RelationItem";
+    debug.space() << relation.constraintName << relation.childTable << relation.childColumns
+                  << relation.parentTable << relation.parentColumns;
+    return debug.maybeSpace();
+}
+
+static int indexOf(const QList<RelationItem>& relations, const QString& childTable, const QString& constraintName) {
+    for(int i=0;i<relations.size();i++) {
+        if (relations[i].childTable == childTable && relations[i].constraintName == constraintName) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 void Schema2Data::pullRelationsMysql() {
-#if 0
-
-
-    //return;
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
     QStringList tables = db.tables();
 
     QSqlQuery q(db);
-    q.prepare("SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE");
+    q.prepare("SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME "
+              "FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
+              "WHERE CONSTRAINT_SCHEMA=?");
+    q.addBindValue(db.databaseName());
     q.exec();
+
+    QList<RelationItem> relations;
+
     while(q.next()) {
         QString childTable = q.value(0).toString();
         QString childColumn = q.value(1).toString();
@@ -316,44 +345,40 @@ void Schema2Data::pullRelationsMysql() {
         if (parentTable.isEmpty()) {
             continue;
         }
-        if (tables.contains(childTable) && tables.contains(parentTable)) {
 
-            QStringList key = {childTable, parentTable};
-
-            if (!mRelationModels.contains(key)) {
-                Schema2RelationModel* relationModel = new Schema2RelationModel(childTable, childColumn,
-                                                                               parentTable, parentColumn, constraintName,
-                                                                               true, true);
-                mRelationModels.set(key, relationModel);
-            }
-
-            if (!mRelationItems.contains(key)) {
-
-                Schema2TableItem* childTableItem = mTableItems.get(childTable);
-                Schema2TableItem* parentTableItem = mTableItems.get(parentTable);
-
-                Schema2RelationItem* item = new Schema2RelationItem(mRelationModels.get(key), childTableItem, parentTableItem);
-                mRelationItems.set(key, item);
-
-                parentTableItem->addRelation(item);
-                childTableItem->addRelation(item);
-
-                mScene->addItem(item);
-            }
-
-
-        } else {
-
-#if 0
-            // not an error: mariadb stores all databases data in one INFORMATION_SCHEMA
-            qDebug() << "childTable" << childTable << "parentTable" << parentTable
-                     << "tables.contains(childTable)" << tables.contains(childTable)
-                     << "tables.contains(parentTable)" << tables.contains(parentTable)
-                     << __FILE__ << __LINE__;
-#endif
+        if (!tables.contains(childTable)) {
+            qDebug() << childTable << __FILE__ << __LINE__;
+            continue;
         }
+        if (!tables.contains(parentTable)) {
+            qDebug() << childTable << __FILE__ << __LINE__;
+            continue;
+        }
+
+        int index = indexOf(relations, childTable, constraintName);
+        if (index < 0) {
+            RelationItem relation;
+            relation.constraintName = constraintName;
+            relation.childTable = childTable;
+            relation.childColumns = QStringList {childColumn};
+            relation.parentColumns = QStringList {parentColumn};
+            relation.parentTable = parentTable;
+            relations.append(relation);
+        } else {
+            relations[index].childColumns.append(childColumn);
+            relations[index].parentColumns.append(parentColumn);
+        }
+
     }
-#endif
+
+    for(const RelationItem& relation: qAsConst(relations)) {
+        mTables->relationPulled(relation.constraintName, relation.childTable,
+                                relation.childColumns, relation.parentTable,
+                                relation.parentColumns, true, StatusExisting);
+        //qDebug() << relation;
+    }
+
+
 }
 
 void Schema2Data::setTableItemsPos() {
@@ -382,6 +407,7 @@ static T* hash_find(const QHash<QString, T*>& hash, const QString& key) {
 }
 #endif
 
+#if 0
 void Schema2Data::indexPulled(const QString indexName, const QString& tableName, const QStringList& columns,
                               bool primary, bool unique, Status status) {
     if (mTables->contains(tableName)) {
@@ -390,6 +416,7 @@ void Schema2Data::indexPulled(const QString indexName, const QString& tableName,
         qDebug() << "!mTableModels.contains(tableName)" << tableName;
     }
 }
+#endif
 
 void Schema2Data::pullIndexesOdbc() {
 
@@ -457,7 +484,7 @@ void Schema2Data::pullIndexesOdbc() {
                 columns.append(fieldName);
             }
 
-            indexPulled(indexName, tableName, columns, primary, unique, StatusExisting);
+            mTables->table(tableName)->insertIndex(indexName, columns, primary, unique, StatusExisting);
 
         }
     }
@@ -561,7 +588,7 @@ void Schema2Data::pullRelationsOdbc() {
 
 void Schema2Data::pullRelations() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
-    if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_QMARIADB) {
+    if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_MARIADB) {
         pullRelationsMysql();
     } else if (db.driverName() == DRIVER_ODBC) {
         pullRelationsOdbc();
@@ -571,13 +598,78 @@ void Schema2Data::pullRelations() {
 
 }
 
+class MysqlIndex {
+public:
+    QString indexName;
+    QString tableName;
+    QStringList columns;
+    bool unique;
+    bool primary;
+};
+
+QDebug operator << (QDebug& debug, const MysqlIndex& index) {
+    debug.nospace() << "MysqlIndex";
+    debug.space() << index.indexName << index.tableName << index.columns << index.unique;
+    return debug.maybeSpace();
+}
+
+int indexOf(const QList<MysqlIndex>& indexes, const QString& tableName, const QString indexName) {
+    for(int i=0;i<indexes.size();i++) {
+        if (indexes[i].tableName == tableName && indexes[i].indexName == indexName) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void Schema2Data::pullIndexesMysql() {
+
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    QSqlQuery q(db);
+    q.prepare("SELECT TABLE_NAME, NON_UNIQUE, INDEX_NAME, COLUMN_NAME "
+              "FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA=? "
+              "ORDER BY INDEX_NAME, SEQ_IN_INDEX");
+    q.addBindValue(db.databaseName());
+
+    if (!q.exec()) {
+        qDebug() << q.lastError().text() << __FILE__ << __LINE__;
+        return;
+    }
+
+    QList<MysqlIndex> indexes;
+
+    while (q.next()) {
+
+        QString tableName = q.value(0).toString();
+        bool unique = q.value(1).toInt() == 0;
+        QString indexName = q.value(2).toString();
+        QString column = q.value(3).toString();
+        bool primary = indexName == "PRIMARY";
+
+        int index = indexOf(indexes, tableName, indexName);
+        if (index > -1) {
+            indexes[index].columns.append(column);
+        } else {
+            MysqlIndex index;
+            index.tableName = tableName;
+            index.indexName = indexName;
+            index.columns = QStringList {column};
+            index.unique = unique;
+            index.primary = primary;
+            indexes.append(index);
+        }
+
+    }
+
+    for(const MysqlIndex& index: indexes) {
+        mTables->table(index.tableName)->insertIndex(index.indexName, index.columns, index.primary, index.unique, StatusExisting);
+    }
 
 }
 
 void Schema2Data::pullIndexes() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
-    if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_QMARIADB) {
+    if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_MARIADB) {
         pullIndexesMysql();
     } else if (db.driverName() == DRIVER_ODBC) {
         pullIndexesOdbc();
@@ -604,6 +696,8 @@ void Schema2Data::push(QWidget* widget)
 {
     savePos();
 
+    QString driverName = QSqlDatabase::database(mConnectionName).driverName();
+
     Schema2ChangeSet* changeSet = new Schema2ChangeSet();
 
     // create and alter tables
@@ -628,7 +722,7 @@ void Schema2Data::push(QWidget* widget)
     // create and alter indexes
     for(Schema2TableModel* table: tables) {
         Schema2IndexesModel* indexes = table->indexes();
-        changeSet->append(indexes->queries(table->tableName()), [=](){
+        changeSet->append(indexes->queries(table->tableName(), driverName), [=](){
             indexes->pushed();
         });
     }
@@ -962,15 +1056,37 @@ void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
 
 }
 
+QString Schema2Data::driverName() const {
+    return QSqlDatabase::database(mConnectionName).driverName();
+}
+
+static QStringList mysqlTypes() {
+    // https://dev.mysql.com/doc/refman/8.0/en/data-types.html
+
+    // numeric
+    QStringList exact = {"INTEGER", "SMALLINT", "DECIMAL"};
+    QStringList approx = {"FLOAT", "DOUBLE"};
+    QStringList bit = {"BIT"};
+    // other
+    QStringList date = {"DATE", "TIME", "DATETIME", "TIMESTAMP"};
+    QStringList string = {"CHAR", "VARCHAR", "BINARY", "VARBINARY", "BLOB", "TEXT", "ENUM", "SET"};
+    QStringList spatial = {}; // todo spatial mysql types
+    QStringList json = {"JSON"};
+
+    return exact + approx + bit + date + string + spatial + json;
+}
+
 QStringList Schema2Data::dataTypes() const {
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
     if (db.driverName() == DRIVER_ODBC) {
         return toLower(mOdbcTypes.values());
+    } else if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_MARIADB) {
+        return toLower(mysqlTypes());
     }
 
-    // todo implement datatypes for DRIVER_MYSQL DRIVER_PSQL
+    // todo implement datatypes for DRIVER_PSQL
 
     return {};
 }
@@ -1088,10 +1204,15 @@ void Schema2Data::createRelationDialog(Schema2TableModel* childTable,
 
 void Schema2Data::showAlterView(const QString &tableName)
 {
-
     if (!mAlterViews.contains(tableName)) {
         Schema2AlterView* view = new Schema2AlterView();
         Schema2TableModel* table = mTables->table(tableName);
+
+        if (!table) {
+            qDebug() << "!table" << __FILE__ << __LINE__;
+            return;
+        }
+
         view->init(this, mTables, table, dataTypes());
         mAlterViews.set(tableName, view);
     }

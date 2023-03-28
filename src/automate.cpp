@@ -14,9 +14,10 @@ void automate(QWidget *widget)
     automation->start();
 #endif
 
-#if 1
+#if 0
     Automation* automation = Automation::instance(widget);
-    QString database = 0 ? "testaccess" : "test2";
+    //QString database = 0 ? "testaccess" : "test2";
+    QString database = "mysql1";
     automation->connectToDatabaseFromHistory(database);
     automation->schemaEdit();
     //automation->showJoinHelper();

@@ -9,6 +9,14 @@ class Schema2IndexesModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
+    enum cols {
+        col_name,
+        col_columns,
+        col_primary,
+        col_unique,
+        cols_count
+    };
+
     explicit Schema2IndexesModel(QObject *parent = nullptr);
 
     void insertIndex(const QString& name, const QStringList& columns, bool primary, bool unique, Status status);
@@ -17,7 +25,7 @@ public:
 
     void removeAt(int index);
 
-    QStringList queries(const QString &tableName) const;
+    QStringList queries(const QString &tableName, const QString &driverName) const;
 
     void pushed();
 
@@ -37,6 +45,10 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     void debugStatus();
+
+    // QAbstractItemModel interface
+public:
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 };
 
 #endif // SCHEMA2INDEXESMODEL_H

@@ -66,8 +66,9 @@ void Schema2RelationDialog2::init(Schema2TableModel *childTable,
             if (index < 0) {
                 return;
             }
+            model->removeRow(index);
         } else if (id == button_insert) {
-
+            model->insertRow(index);
         }
     });
 

@@ -11,9 +11,9 @@ public:
 
     Schema2Index(const QString& name, const QStringList& columns, bool primary, bool unique, Status status);
 
-    QString createQuery(const QString& tableName) const;
+    QString createQuery(const QString& tableName, const QString &driverName) const;
 
-    QString dropQuery(const QString& tableName) const;
+    QString dropQuery(const QString& tableName, const QString &driverName) const;
 
     QString name() const;
 
@@ -23,13 +23,11 @@ public:
 
     void setStatus(Status status);
 
-    bool primary() const {
-        return mPrimary;
-    }
+    bool primary() const;
 
-    QStringList columns() const {
-        return mColumns;
-    }
+    QStringList columns() const;
+
+    bool unique() const;
 
 protected:
     QString mName;

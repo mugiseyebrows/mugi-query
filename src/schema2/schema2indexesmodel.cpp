@@ -49,18 +49,18 @@ void Schema2IndexesModel::removeAt(int row)
     endRemoveRows();
 }
 
-QStringList Schema2IndexesModel::queries(const QString& tableName) const
+QStringList Schema2IndexesModel::queries(const QString& tableName, const QString& driverName) const
 {
     QStringList res;
     for(int i=0;i<mIndexes.size();i++) {
         auto* index = mIndexes[i];
         if (index->status() != StatusExisting) {
-            res.append(index->createQuery(tableName));
+            res.append(index->createQuery(tableName, driverName));
         }
     }
     for(int i=0;i<mRemoveQueue.size();i++) {
         auto* index = mRemoveQueue[i];
-        res.append(index->dropQuery(tableName));
+        res.append(index->dropQuery(tableName, driverName));
     }
     return res;
 }
@@ -105,7 +105,7 @@ int Schema2IndexesModel::columnCount(const QModelIndex &parent) const
     if (parent.isValid()) {
         return 0;
     }
-    return 1;
+    return cols_count;
 }
 
 QVariant Schema2IndexesModel::data(const QModelIndex &index, int role) const
@@ -114,9 +114,35 @@ QVariant Schema2IndexesModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
-        if (index.column() == 0) {
-            return mIndexes[index.row()]->name();
+
+        switch(index.column()) {
+        case col_name: return mIndexes[index.row()]->name();
+        case col_columns: return mIndexes[index.row()]->columns().join(", ");
         }
     }
+    if (role == Qt::CheckStateRole) {
+        switch(index.column()) {
+        case col_primary: return mIndexes[index.row()]->primary() ? Qt::Checked : Qt::Unchecked;
+        case col_unique: return mIndexes[index.row()]->unique() ? Qt::Checked : Qt::Unchecked;
+        }
+    }
+
     return QVariant();
+}
+
+QVariant Schema2IndexesModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    static QHash<int, QString> header = {
+        {col_name, "Name"},
+        {col_columns, "Columns"},
+        {col_primary, "Primary"},
+        {col_unique, "Unique"},
+    };
+
+    if (role == Qt::DisplayRole || role == Qt::EditRole) {
+        if (orientation == Qt::Horizontal) {
+            return header.value(section);
+        }
+    }
+    return QAbstractTableModel::headerData(section, orientation, role);
 }

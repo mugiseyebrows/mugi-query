@@ -17,6 +17,10 @@ void TableStretcher::setView(QTableView *view) {
     mHeaderView->installEventFilter(this);
 }
 
+void TableStretcher::setRatio(const QList<double> ratio) {
+    mRatio = ratio;
+}
+
 
 bool TableStretcher::eventFilter(QObject *watched, QEvent *event)
 {
