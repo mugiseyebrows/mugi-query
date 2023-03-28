@@ -11,6 +11,15 @@ class Schema2RelationsModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
+    enum cols {
+        col_name,
+        col_child_columns,
+        col_parent_table,
+        col_parent_columns,
+        col_constrained,
+        cols_count
+    };
+
     explicit Schema2RelationsModel(QObject *parent = nullptr);
 
     Schema2Relation *insert(const QString &name, const QStringList &childColumns, const QString &parentTable,
@@ -43,6 +52,10 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
 
     Schema2Relation *removeAt(int index);
+
+    // QAbstractItemModel interface
+public:
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 };
 
 #endif // SCHEMA2RELATIONSMODEL_H

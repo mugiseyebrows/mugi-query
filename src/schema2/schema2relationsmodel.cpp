@@ -109,7 +109,7 @@ int Schema2RelationsModel::columnCount(const QModelIndex &parent) const
     if (parent.isValid()) {
         return 0;
     }
-    return 1;
+    return cols_count;
 }
 
 QVariant Schema2RelationsModel::data(const QModelIndex &index, int role) const
@@ -118,9 +118,36 @@ QVariant Schema2RelationsModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
-        if (index.column() == 0) {
-            return mRelations[index.row()]->name();
+        switch(index.column()) {
+        case col_name: return mRelations[index.row()]->name();
+        case col_parent_table: return mRelations[index.row()]->parentTable();
+        case col_child_columns: return mRelations[index.row()]->childColumns().join(", ");
+        case col_parent_columns: return mRelations[index.row()]->parentColumns().join(", ");
+        }
+    }
+    if (role == Qt::CheckStateRole) {
+        switch(index.column()) {
+        case col_constrained: return mRelations[index.row()]->constrained() ? Qt::Checked : Qt::Unchecked;
         }
     }
     return QVariant();
+}
+
+
+QVariant Schema2RelationsModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    static QHash<int, QString> header = {
+        {col_name,"Name"},
+        {col_child_columns,"Child columns"},
+        {col_parent_table,"Parent table"},
+        {col_parent_columns,"Parent columns"},
+        {col_constrained,"Constrained"}
+    };
+
+    if (role == Qt::EditRole || role == Qt::DisplayRole) {
+        if (orientation == Qt::Horizontal) {
+            return header.value(section);
+        }
+    }
+    return QAbstractTableModel::headerData(section, orientation, role);
 }

@@ -44,6 +44,10 @@ void Schema2View::setData(Schema2Data *data)
 
 }
 
+Schema2Data *Schema2View::data() const {
+    return mData;
+}
+
 void Schema2View::onFiterViewCurrentChanged(QModelIndex index,QModelIndex) {
 
     if (!index.isValid()) {
@@ -153,14 +157,19 @@ void Schema2View::on_insert_clicked(bool checked)
     mMode = checked ? ModeInsert : ModeNone;
 }
 
+Schema2TableModel* Schema2View::createTable(const QString& tableName) {
+    Schema2TableModel* table = mData->createTable(tableName);
+    mData->showAlterView(tableName);
+    return table;
+}
+
 void Schema2View::on_create_clicked()
 {
     QString tableName = QInputDialog::getText(this, "Table Name", "Name");
     if (tableName.isEmpty()) {
         return;
     }
-    mData->createTable(tableName);
-    mData->showAlterView(tableName);
+    createTable(tableName);
 }
 
 void Schema2View::on_arrange_clicked()

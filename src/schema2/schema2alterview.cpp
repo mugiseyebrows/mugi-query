@@ -94,6 +94,10 @@ void Schema2AlterView::initRelations() {
         }
     });
 
+    TableStretcher* stretcher = new TableStretcher(this);
+    stretcher->setView(ui->relations);
+    stretcher->setRatio({1,1,1,1,1});
+
 }
 
 

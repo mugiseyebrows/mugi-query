@@ -30,7 +30,7 @@ QString Schema2Index::createQuery(const QString &tableName, const QString& drive
     } else if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
 
         QString expr = filterEmpty({"ALTER TABLE", tableName, "ADD",
-                                    mUnique ? "UNIQUE" : "",
+                                    (mUnique && !mPrimary) ? "UNIQUE" : "",
                                     mPrimary ? "PRIMARY": "",
                                     mPrimary ? "KEY" : "INDEX",
                                     mPrimary ? "" : mName,

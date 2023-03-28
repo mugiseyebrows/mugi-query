@@ -80,6 +80,16 @@ QStringList Schema2TableModel::newNames() const
     return res;
 }
 
+void Schema2TableModel::setNewName(int row, const QString &value)
+{
+    mColumns[row][col_newname] = value;
+}
+
+void Schema2TableModel::setNewType(int row, const QString &value)
+{
+    mColumns[row][col_newtype] = value;
+}
+
 #if 0
 Schema2Index *Schema2TableModel::getIndex(const QString &name) const
 {

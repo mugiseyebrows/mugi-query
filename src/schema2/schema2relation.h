@@ -42,6 +42,12 @@ public:
 
     QStringList modifyQueries(const QString &childTable) const;
     void setName(const QString &name);
+
+    bool constrained() const {
+        return mConstrained;
+    }
+
+
 protected:
     QString mName;
     QStringList mChildColumns;

@@ -70,7 +70,7 @@ public:
 
     void showRelationsListDialog(QWidget *widget);
 
-    void createTable(const QString& name);
+    Schema2TableModel* createTable(const QString& name);
 
     Schema2TableItem* tableItem(const QString& name) const;
 
@@ -89,6 +89,10 @@ public:
     }
 
     QString driverName() const;
+
+    Schema2AlterView* alterView(const QString& table);
+
+    Schema2TablesModel* tables() const;
 
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
@@ -109,8 +113,7 @@ protected:
 
     //StringListHash<Schema2RelationModel*> mRelationModels;
 
-
-    QList<QPair<QString, Schema2Relation*>> mDropRelationsQueue;
+    //QList<QPair<QString, Schema2Relation*>> mDropRelationsQueue;
 
     QList<Schema2TableModel*> mDropTableQueue;
 

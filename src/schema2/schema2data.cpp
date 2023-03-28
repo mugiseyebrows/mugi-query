@@ -131,7 +131,7 @@ void Schema2Data::unoverlapTables() {
 }
 #endif
 
-
+#if 0
 void Schema2Data::tablePulled(const QString& tableName, Status status) {
 #if 0
     if (!mTableModels.contains(table)) {
@@ -163,9 +163,9 @@ void Schema2Data::tablePulled(const QString& tableName, Status status) {
     }
 #endif
 
-    mTables->tablePulled(tableName, status);
+    return mTables->tablePulled(tableName, status);
 }
-
+#endif
 
 void Schema2Data::pullTablesMysql() {
 
@@ -175,7 +175,7 @@ void Schema2Data::pullTablesMysql() {
 
     for(const QString& table: qAsConst(tables)) {
 
-        tablePulled(table, StatusExisting);
+        mTables->tablePulled(table, StatusExisting);
 
         Schema2TableModel* model = mTables->table(table);
 
@@ -217,7 +217,7 @@ void Schema2Data::pullTablesOdbc() {
 
     for(const QString& tableName: tables) {
 
-        tablePulled(tableName, StatusExisting);
+        mTables->tablePulled(tableName, StatusExisting);
 
         Schema2TableModel* model = mTables->table(tableName);
 
@@ -264,7 +264,7 @@ void Schema2Data::pullTablesOther() {
 
     for(const QString& table: qAsConst(tables)) {
 
-        tablePulled(table, StatusExisting);
+        mTables->tablePulled(table, StatusExisting);
 
         Schema2TableModel* model = mTables->table(table);
 
@@ -748,12 +748,15 @@ void Schema2Data::push(QWidget* widget)
         }
     }
 
+    auto queue = mTables->dropRelationQueue();
+
     // drop relations
-    for(auto item: mDropRelationsQueue) {
+    for(auto item: queue) {
         QString name = item.first;
         auto* relation = item.second;
         changeSet->append(relation->dropQueries(name),[=](){
-            mDropRelationsQueue.removeOne(item);
+            //mDropRelationsQueue.removeOne(item);
+            mTables->relationDropped(name, relation);
         });
     }
 
@@ -851,9 +854,9 @@ void Schema2Data::load()
 // not used
 bool Schema2Data::hasPendingChanges() const
 {
-    if (!mDropRelationsQueue.isEmpty()) {
+    /*if (!mDropRelationsQueue.isEmpty()) {
         return true;
-    }
+    }*/
     QList<Schema2TableModel*> models = mTables->tables();
     for(Schema2TableModel* model: models) {
         if (model->hasPendingChanges()) {
@@ -1037,12 +1040,10 @@ void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
     qDebug() << relations.size() << "relations with table" << tableName;
 
     for(auto* relation: relations) {
-        auto* childTable = mTables->findChildTable(relation);
-        mDropRelationsQueue.append({childTable->tableName(), relation});
         mTables->relationRemoved(relation);
     }
 
-    qDebug() << "mDropRelationsQueue.size()" << mDropRelationsQueue.size();
+    qDebug() << "dropRelationQueue.size()" << mTables->dropRelationQueue();
 
     mTables->tableRemoved(tableName);
     mDropTableQueue.append(table);
@@ -1058,6 +1059,14 @@ void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
 
 QString Schema2Data::driverName() const {
     return QSqlDatabase::database(mConnectionName).driverName();
+}
+
+Schema2AlterView *Schema2Data::alterView(const QString &table) {
+    return mAlterViews.get(table);
+}
+
+Schema2TablesModel *Schema2Data::tables() const {
+    return mTables;
 }
 
 static QStringList mysqlTypes() {
@@ -1269,9 +1278,9 @@ void Schema2Data::showRelationsListDialog(QWidget* widget) {
 #endif
 }
 
-void Schema2Data::createTable(const QString &name)
+Schema2TableModel* Schema2Data::createTable(const QString &name)
 {
-    tablePulled(name, StatusNew);
+    return mTables->tablePulled(name, StatusNew);
 }
 
 Schema2TableItem *Schema2Data::tableItem(const QString &name) const {

@@ -7,6 +7,7 @@
 class QGraphicsScene;
 class QPushButton;
 class Schema2Data;
+class Schema2TableModel;
 
 namespace Ui {
 class Schema2View;
@@ -33,9 +34,12 @@ public:
 
     void setData(Schema2Data* data);
 
+    Schema2Data* data() const;
+
     static QList<double> mScales;
     static QStringList mScalesText;
 
+    Schema2TableModel* createTable(const QString &tableName);
 public slots:
     void onTableClicked(QString tableName);
 
@@ -85,6 +89,8 @@ private slots:
     void on_unrelate_clicked(bool checked);
 
     void on_drop_clicked(bool checked);
+
+    friend class Automation;
 
 private:
     Ui::Schema2View *ui;

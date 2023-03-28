@@ -23,4 +23,21 @@ void automate(QWidget *widget)
     //automation->showJoinHelper();
     automation->start();
 #endif
+
+#if 0
+    Automation* automation = Automation::instance(widget);
+    //QString database = 0 ? "testaccess" : "test2";
+    QString database = "mysql1";
+    automation->connectToDatabaseFromHistory(database);
+    automation->schemaEdit();
+    automation->createTable("foo", {{"foo_id", "integer"}, {"b", "integer"}});
+    automation->createPrimaryKey("pk_foo", "foo", {"foo_id"});
+    automation->createTable("bar", {{"bar_id", "integer"}, {"foo_id", "integer"}});
+    automation->createPrimaryKey("pk_bar", "bar", {"bar_id"});
+    automation->createRelation("fk_foo_bar", "bar", {"foo_id"}, "foo", {"foo_id"}, true);
+    automation->pushSchema();
+    automation->start();
+#endif
+
+
 }

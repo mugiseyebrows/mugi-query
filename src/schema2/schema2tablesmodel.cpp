@@ -38,10 +38,10 @@ bool Schema2TablesModel::contains(const QString &table) {
     return indexOf(table) > -1;
 }
 
-void Schema2TablesModel::tablePulled(const QString& table, Status status) {
+Schema2TableModel* Schema2TablesModel::tablePulled(const QString& table, Status status) {
 
     if (contains(table)) {
-        return;
+        return 0;
     }
     int row = rowCount();
 
@@ -60,6 +60,7 @@ void Schema2TablesModel::tablePulled(const QString& table, Status status) {
     mTableItems.append(item);
     endInsertRows();
     mScene->addItem(item);
+    return model;
 }
 
 Schema2TableModel* Schema2TablesModel::tableRemoved(const QString &tableName)
@@ -277,7 +278,10 @@ void Schema2TablesModel::relationPulled(const QString& constraintName, const QSt
 
 void Schema2TablesModel::relationRemoved(Schema2Relation* relation) {
 
-    Schema2TableModel* childTable = findChildTable(relation);
+    auto* childTable = findChildTable(relation);
+    mDropRelationsQueue.append({childTable->tableName(), relation});
+
+    //Schema2TableModel* childTable = findChildTable(relation);
     Schema2TableModel* parentTable = table(relation->parentTable());
 
     childTable->removeRelation(relation);

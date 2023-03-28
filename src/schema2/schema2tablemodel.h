@@ -41,6 +41,10 @@ public:
 
     QStringList newNames() const;
 
+    void setNewName(int row, const QString& value);
+
+    void setNewType(int row, const QString& value);
+
 #if 0
     Schema2Index* getIndex(const QString& name) const;
 

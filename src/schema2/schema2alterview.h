@@ -27,6 +27,9 @@ public:
               Schema2TablesModel *tableModels,
               Schema2TableModel *model,
               const QStringList &types);
+
+
+
 protected:
     Schema2Data* mData;
 

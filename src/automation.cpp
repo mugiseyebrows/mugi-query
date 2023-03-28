@@ -22,6 +22,9 @@
 #include "clipboard.h"
 #include <QDateTime>
 #include <QFile>
+#include "schema2data.h"
+#include "schema2tablesmodel.h"
+#include "schema2tablemodel.h"
 
 namespace {
 
@@ -56,6 +59,19 @@ MainWindow *Automation::mainWindow()
     MainWindow* window = qobject_cast<MainWindow*>(parent());
 
     return window;
+}
+
+#include "schema2view.h"
+
+Schema2View* Automation::schemaView() {
+    auto widgets = qApp->topLevelWidgets();
+    for(auto* widget: widgets) {
+        Schema2View* view = qobject_cast<Schema2View*>(widget);
+        if (view) {
+            return view;
+        }
+    }
+    return 0;
 }
 
 Automation::Automation(QObject *parent) : QObject(parent), mAddDatabaseDialog(0), mDatabaseHistoryDialog(0)
@@ -182,6 +198,45 @@ void Automation::schemaEdit()
 void Automation::toolXJoin(const QString &conn1, const QString &conn2)
 {
     mQueued.append(Action(Action::ActionToolXJoin, {conn1, conn2}));
+}
+
+static QVariant toVariant(const QList<QStringList>& values) {
+    QVariantList res;
+    for(const QStringList& item: values) {
+        res.append(QVariant(item));
+    }
+    return QVariant(res);
+}
+
+QList<QStringList> toListOfStringLists(const QVariant& value) {
+    QVariantList values = value.toList();
+    QList<QStringList> res;
+    for(const QVariant& value: values) {
+        res.append(value.toStringList());
+    }
+    return res;
+}
+
+void Automation::createTable(const QString &name, const QList<QStringList> &columns)
+{
+    mQueued.append(Action(Action::ActionCreateTable, {name, toVariant(columns)}));
+}
+
+void Automation::createRelation(const QString &name, const QString &childTable,
+                                const QStringList &childColumns, const QString &parentTable,
+                                const QStringList &parentColumns, bool constrained)
+{
+    mQueued.append(Action(Action::ActionCreateRelation, {name, childTable, childColumns, parentTable, parentColumns, constrained}));
+}
+
+void Automation::createPrimaryKey(const QString &name, const QString &table, const QStringList &columns)
+{
+    mQueued.append(Action(Action::ActionCreatePrimaryKey, {name, table, columns}));
+}
+
+void Automation::pushSchema()
+{
+    mQueued.append(Action(Action::ActionPushSchema));
 }
 
 void Automation::onStart() {
@@ -342,8 +397,72 @@ void Automation::onStart() {
         mainWindow()->on_toolsJoin_triggered();
         next();
 
-    }
+    } else if (mAction.type() == Action::ActionCreateTable) {
 
+        QString name = mAction.arg(0).toString();
+        QList<QStringList> columns = toListOfStringLists(mAction.arg(1));
+
+        auto* view = schemaView();
+        auto* table = view->createTable(name);
+
+        if (!table) {
+            next();
+            return;
+        }
+
+        //auto* data = view->data();
+        /*auto* alterView = data->alterView(name);
+
+        auto* table = data->tables()->table(name);*/
+
+        table->insertRows(0, columns.size());
+
+        for(int row=0;row<columns.size();row++) {
+            table->setNewName(row, columns[row][0]);
+            table->setNewType(row, columns[row][1]);
+        }
+        next();
+
+    } else if (mAction.type() == Action::ActionCreateRelation) {
+
+
+        QVariantList args = mAction.args();
+        QString name = args[0].toString();
+        QString childTable = args[1].toString();
+        QStringList childColumns = args[2].toStringList();
+        QString parentTable = args[3].toString();
+        QStringList parentColumns = args[4].toStringList();
+        bool constrained = args[5].toBool();
+
+        auto* view = schemaView();
+        auto* data = view->data();
+        auto* tables = data->tables();
+
+        tables->relationPulled(name,
+                               childTable, childColumns,
+                               parentTable, parentColumns,
+                               constrained, StatusNew);
+        next();
+
+    } else if (mAction.type() == Action::ActionCreatePrimaryKey) {
+
+        QVariantList args = mAction.args();
+        QString name = args[0].toString();
+        QString table = args[1].toString();
+        QStringList columns = args[2].toStringList();
+        auto* view = schemaView();
+        auto* data = view->data();
+        auto* tables = data->tables();
+        tables->table(table)->insertIndex(name, columns, true, true, StatusNew);
+        next();
+
+    } else if (mAction.type() == Action::ActionPushSchema) {
+
+        auto* view = schemaView();
+        view->on_push_clicked();
+        next();
+
+    }
 
 }
 

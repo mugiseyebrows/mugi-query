@@ -23,7 +23,7 @@ public:
 
     bool contains(const QString& table);
 
-    void tablePulled(const QString &table, Status status);
+    Schema2TableModel *tablePulled(const QString &table, Status status);
 
     Schema2TableModel *tableRemoved(const QString &tableName);
 
@@ -51,7 +51,19 @@ public:
 
     Schema2RelationItem2 *findItem(Schema2Relation *relation, Schema2TableItem *childTable, Schema2TableItem *parentTable);
 
+    void dropRelation();
+
+    QList<QPair<QString, Schema2Relation*>> dropRelationQueue() {
+        return mDropRelationsQueue;
+    }
+
+    void relationDropped(QString name, Schema2Relation* relation) {
+        mDropRelationsQueue.removeOne({name, relation});
+    }
+
 protected:
+
+    QList<QPair<QString, Schema2Relation*>> mDropRelationsQueue;
 
     QList<Schema2TableItem*> mTableItems;
 

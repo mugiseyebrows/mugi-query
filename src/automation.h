@@ -7,7 +7,7 @@
 class MainWindow;
 class DatabaseConnectDialog;
 class DatabaseHistoryDialog;
-
+class Schema2View;
 #include "action.h"
 
 class Automation : public QObject
@@ -56,6 +56,16 @@ public:
 
     void toolXJoin(const QString& conn1, const QString& conn2);
 
+    void createTable(const QString& name, const QList<QStringList>& columns);
+
+    void createRelation(const QString& name, const QString& childTable, const QStringList& childColumns,
+                        const QString& parentTable, const QStringList& parentColumns, bool constrained);
+
+    void createPrimaryKey(const QString& name, const QString& table, const QStringList& columns);
+
+    void pushSchema();
+
+    Schema2View *schemaView();
 protected:
 
     QQueue<Action> mQueued;
