@@ -21,6 +21,7 @@
 #include "splitterutil.h"
 #include <QTimer>
 #include "qwt_compat.h"
+#include "tolower.h"
 using namespace DataUtils;
 
 XYPlot::XYPlot(QWidget *parent) :

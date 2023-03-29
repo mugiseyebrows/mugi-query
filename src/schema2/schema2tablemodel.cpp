@@ -276,6 +276,16 @@ bool Schema2TableModel::contains(Schema2Relation *relation)
     return mRelations->values().contains(relation);
 }
 
+QStringList Schema2TableModel::relatedTables() const
+{
+    QStringList res;
+    auto relations = mRelations->values();
+    for(auto* relation: relations) {
+        res.append(relation->parentTable());
+    }
+    return res;
+}
+
 int Schema2TableModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) {

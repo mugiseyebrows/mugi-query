@@ -22,6 +22,7 @@
 #include "copyeventfilter.h"
 #include "clipboardutil.h"
 #include "qwt_compat.h"
+#include "tolower.h"
 
 using namespace DataUtils;
 

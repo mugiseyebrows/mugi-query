@@ -125,6 +125,8 @@ protected slots:
 
     friend class Automation;
 
+    void on_codeCopyOrder_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

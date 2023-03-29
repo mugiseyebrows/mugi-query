@@ -66,6 +66,7 @@ QVariantList DataUtils::columnData(const QAbstractItemModel* model,int column) {
     return result;
 }
 
+#if 0
 QStringList DataUtils::toLower(const QStringList& vs) {
     QStringList result;
     foreach(const QString& v, vs) {
@@ -73,6 +74,7 @@ QStringList DataUtils::toLower(const QStringList& vs) {
     }
     return result;
 }
+#endif
 
 
 QStringList DataUtils::headerData(const QAbstractItemModel* model, Qt::Orientation orientation) {

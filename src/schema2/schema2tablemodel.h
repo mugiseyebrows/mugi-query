@@ -89,6 +89,8 @@ public:
 
     bool contains(Schema2Relation* relation);
 
+    QStringList relatedTables() const;
+
 signals:
     void tableClicked(QString);
 

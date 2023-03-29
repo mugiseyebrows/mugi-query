@@ -3,6 +3,7 @@
 #include "datautils.h"
 
 #include <QAbstractItemModel>
+#include "tolower.h"
 
 using namespace DataUtils;
 

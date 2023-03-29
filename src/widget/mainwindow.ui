@@ -148,6 +148,7 @@
     </property>
     <addaction name="codePython"/>
     <addaction name="codePandas"/>
+    <addaction name="codeCopyOrder"/>
    </widget>
    <widget class="QMenu" name="menuSchema">
     <property name="title">
@@ -362,6 +363,11 @@
   <action name="toolsJoin">
    <property name="text">
     <string>Join</string>
+   </property>
+  </action>
+  <action name="codeCopyOrder">
+   <property name="text">
+    <string>Copy order</string>
    </property>
   </action>
  </widget>

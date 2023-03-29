@@ -16,7 +16,7 @@ QVariantList filterNumeric(const QVariantList& data);
 QList<QPair<QVariant,QVariant> > filterNumeric(const QList<QPair<QVariant,QVariant> >& data);
 
 QVariantList columnData(const QAbstractItemModel* model,int column);
-QStringList toLower(const QStringList& vs);
+//QStringList toLower(const QStringList& vs);
 QStringList headerData(const QAbstractItemModel* model, Qt::Orientation orientation);
 
 QList<double> toDouble(const QVariantList& vs);

@@ -50,6 +50,9 @@
 #include <QFileDialog>
 #include "automate.h"
 #include "showandraise.h"
+#include "schema2tablesmodel.h"
+#include "schema2tablemodel.h"
+#include "tolower.h"
 
 using namespace DataUtils;
 
@@ -1038,5 +1041,72 @@ void MainWindow::on_toolsJoin_triggered()
 
     widget->show();
 
+}
+
+
+
+static bool containsAll(const QStringList& ordered, const QStringList& related, const QString& name) {
+    for(const QString& item: related) {
+        if (item.toLower() == name.toLower()) {
+            continue;
+        }
+        if (!toLower(ordered).contains(item.toLower())) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void MainWindow::on_codeCopyOrder_triggered()
+{
+    QString connectionName = this->connectionName();
+
+    //QStringList names = QSqlDatabase::database(connectionName).tables();
+
+    // todo case correctness
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    auto* tables = data->tables();
+    QStringList names = tables->tableNames();
+    QHash<QString, QStringList> relations;
+    for(const QString& name: names) {
+        relations[name] = tables->table(name)->relatedTables();
+    }
+    QStringList ordered;
+
+    int i = 0;
+    while(i < names.size()) {
+        auto name = names[i];
+        if (relations[name].isEmpty()) {
+            ordered.append(name);
+            names.removeAt(i);
+            i--;
+        }
+        i++;
+    }
+    while(!names.isEmpty()) {
+        int count1 = names.size();
+        i = 0;
+        while(i < names.size()) {
+            auto name = names[i];
+            auto related = relations[name];
+            if (containsAll(ordered, related, name)) {
+                ordered.append(name);
+                names.removeAt(i);
+                i--;
+            }
+            i++;
+        }
+        int count2 = names.size();
+        if (count1 == count2) {
+            qDebug() << "count1 == count2" << __FILE__ << __LINE__;
+
+
+
+            return;
+        }
+    }
+
+    qApp->clipboard()->setText(ordered.join("\n") + "\n");
+    QMessageBox::information(this, "", "Copied to clipboard");
 }
 
