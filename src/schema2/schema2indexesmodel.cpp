@@ -9,7 +9,7 @@ Schema2IndexesModel::Schema2IndexesModel(QObject *parent)
 
 }
 
-int Schema2IndexesModel::find(const QString& name) {
+int Schema2IndexesModel::find(const QString& name) const {
     for(int i=0;i<mIndexes.size();i++) {
         if (mIndexes[i]->name().toLower() == name.toLower()) {
             return i;
@@ -49,18 +49,26 @@ void Schema2IndexesModel::removeAt(int row)
     endRemoveRows();
 }
 
-QStringList Schema2IndexesModel::queries(const QString& tableName, const QString& driverName) const
+Schema2Index *Schema2IndexesModel::index(const QString &name) const {
+    int index = find(name);
+    if (index > -1) {
+        return mIndexes[index];
+    }
+    return 0;
+}
+
+QStringList Schema2IndexesModel::queries(const QString& tableName, const QString& driverName, QSqlDriver* driver) const
 {
     QStringList res;
     for(int i=0;i<mIndexes.size();i++) {
         auto* index = mIndexes[i];
         if (index->status() != StatusExisting) {
-            res.append(index->createQuery(tableName, driverName));
+            res.append(index->createQuery(tableName, driverName, driver));
         }
     }
     for(int i=0;i<mRemoveQueue.size();i++) {
         auto* index = mRemoveQueue[i];
-        res.append(index->dropQuery(tableName, driverName));
+        res.append(index->dropQuery(tableName, driverName, driver));
     }
     return res;
 }

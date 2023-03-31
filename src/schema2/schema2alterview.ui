@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>839</width>
+    <width>967</width>
     <height>518</height>
    </rect>
   </property>
@@ -130,6 +130,13 @@
           <attribute name="horizontalHeaderStretchLastSection">
            <bool>true</bool>
           </attribute>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="listRelatedTables">
+          <property name="text">
+           <string>List related tables</string>
+          </property>
          </widget>
         </item>
        </layout>

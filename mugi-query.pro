@@ -80,6 +80,8 @@ HEADERS += \
     src/relations.h \
     src/rowvaluegetter.h \
     src/rowvaluesetter.h \
+    src/schema2/datacomparewidget2.h \
+    src/schema2/datacomparewidgetitem.h \
     src/schema2/reporterror.h \
     src/schema2/schema2alterview.h \
     src/schema2/schema2arrange.h \
@@ -98,11 +100,14 @@ HEADERS += \
     src/schema2/schema2relationsmodel.h \
     src/schema2/schema2status.h \
     src/schema2/schema2store.h \
+    src/schema2/schema2tablecolumn.h \
     src/schema2/schema2tableitem.h \
     src/schema2/schema2tablemodel.h \
     src/schema2/schema2tablesmodel.h \
     src/schema2/schema2view.h \
+    src/schema2/schema2relatedtableswidget.h \
     src/schema2/setcompleter.h \
+    src/schema2/sqlescaper.h \
     src/schema2/tablestretcher.h \
     src/schema2/schema2relationguesser.h \
     src/sessionitem.h \
@@ -227,6 +232,8 @@ SOURCES += \
     src/relations.cpp \
     src/rowvaluegetter.cpp \
     src/rowvaluesetter.cpp \
+    src/schema2/datacomparewidget2.cpp \
+    src/schema2/datacomparewidgetitem.cpp \
     src/schema2/reporterror.cpp \
     src/schema2/schema2alterview.cpp \
     src/schema2/schema2arrange.cpp \
@@ -245,11 +252,14 @@ SOURCES += \
     src/schema2/schema2relationsmodel.cpp \
     src/schema2/schema2status.cpp \
     src/schema2/schema2store.cpp \
+    src/schema2/schema2tablecolumn.cpp \
     src/schema2/schema2tableitem.cpp \
     src/schema2/schema2tablemodel.cpp \
     src/schema2/schema2tablesmodel.cpp \
     src/schema2/schema2view.cpp \
+    src/schema2/schema2relatedtableswidget.cpp \
     src/schema2/setcompleter.cpp \
+    src/schema2/sqlescaper.cpp \
     src/schema2/tablestretcher.cpp \
     src/schema2/schema2relationguesser.cpp \
     src/sessionitem.cpp \
@@ -336,11 +346,14 @@ SOURCES += \
 
 FORMS += \
     src/confirmationdialog.ui \
+    src/schema2/datacomparewidget2.ui \
+    src/schema2/datacomparewidgetitem.ui \
     src/schema2/schema2alterview.ui \
     src/schema2/schema2pushview.ui \
     src/schema2/schema2relationdialog2.ui \
     src/schema2/schema2relationslistdialog.ui \
     src/schema2/schema2view.ui \
+    src/schema2/schema2relatedtableswidget.ui \
     src/widget/xjoinwidget.ui \
     src/widget/xjoinitemwidget.ui \
     src/widget/databasehistorydialog.ui \

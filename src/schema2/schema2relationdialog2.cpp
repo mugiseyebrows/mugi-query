@@ -43,9 +43,9 @@ void Schema2RelationDialog2::init(Schema2TableModel *childTable,
     setModelColumn(model, 1, parentColumns);
 
     ItemDelegateWithCompleter* childDelegate =
-            new ItemDelegateWithCompleter(childTable->newNames(), ui->columns);
+            new ItemDelegateWithCompleter(childTable->columnNames(), ui->columns);
     ItemDelegateWithCompleter* parentDelegate =
-            new ItemDelegateWithCompleter(parentTable->newNames(), ui->columns);
+            new ItemDelegateWithCompleter(parentTable->columnNames(), ui->columns);
 
     ui->columns->setItemDelegateForColumn(0, childDelegate);
     ui->columns->setItemDelegateForColumn(1, parentDelegate);

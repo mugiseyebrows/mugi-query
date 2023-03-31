@@ -418,8 +418,8 @@ void Automation::onStart() {
         table->insertRows(0, columns.size());
 
         for(int row=0;row<columns.size();row++) {
-            table->setNewName(row, columns[row][0]);
-            table->setNewType(row, columns[row][1]);
+            table->setName(row, columns[row][0]);
+            table->setType(row, columns[row][1]);
         }
         next();
 

@@ -4,6 +4,8 @@
 #include <QStringList>
 #include "schema2status.h"
 
+class QSqlDriver;
+
 class Schema2Relation
 {
 public:
@@ -32,15 +34,15 @@ public:
 
     void setParentColumns(const QStringList& value);
 
-    QStringList createQueries(const QString& childTable) const;
+    QStringList createQueries(const QString& childTable, const QString &driverName, QSqlDriver *driver) const;
 
-    QStringList dropQueries(const QString& childTable) const;
+    QStringList dropQueries(const QString& childTable, const QString &driverName, QSqlDriver *driver) const;
 
     Status status() const;
 
     void pushed();
 
-    QStringList modifyQueries(const QString &childTable) const;
+    QStringList modifyQueries(const QString& childTable, const QString &driverName, QSqlDriver *driver) const;
     void setName(const QString &name);
 
     bool constrained() const {

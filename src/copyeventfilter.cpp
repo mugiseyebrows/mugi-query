@@ -9,7 +9,7 @@
 #include "datastreamer.h"
 #include "settings.h"
 #include "rowvaluegetter.h"
-
+#include "clipboardutil.h"
 
 CopyEventFilter::CopyEventFilter(QObject *parent) :
     QObject(parent), mView(0)
@@ -20,6 +20,15 @@ CopyEventFilter::CopyEventFilter(QObject *parent) :
 void CopyEventFilter::setView(QTableView* view) {
     mView = view;
     view->installEventFilter(this);
+}
+
+void CopyEventFilter::copyTsv(QTableView *view)
+{
+    CopyEventFilter* filter = new CopyEventFilter(view);
+    filter->setView(view);
+    connect(filter,CopyEventFilter::copy,[=](){
+        ClipboardUtil::copyTsv(view);
+    });
 }
 
 bool CopyEventFilter::eventFilter(QObject * object, QEvent * event) {

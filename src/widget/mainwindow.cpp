@@ -647,10 +647,11 @@ void MainWindow::on_dataSave_triggered()
     tab->saveData();
 }
 
-
+#include "datacomparewidget2.h"
 
 void MainWindow::on_dataCompare_triggered()
 {
+#if 0
     SessionTab* tab = currentTab();
     if (!tab) {
         return;
@@ -667,6 +668,7 @@ void MainWindow::on_dataCompare_triggered()
         widget->show();
         mCompareModels.clear();
     }
+#endif
 }
 
 #include "tools.h"

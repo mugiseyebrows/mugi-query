@@ -22,6 +22,8 @@ public:
      * @param view
      */
     void setView(QTableView* view);
+
+    static void copyTsv(QTableView* view);
     
 protected:
 

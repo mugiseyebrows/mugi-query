@@ -4,6 +4,9 @@
 #include <QDebug>
 #include <QPointF>
 #include <math.h>
+#include "schema2tablesmodel.h"
+#include "schema2tablemodel.h"
+#include "schema2relationsmodel.h"
 
 class Node {
 public:
@@ -140,24 +143,41 @@ static int findBestPos(const Node& node, const QList<Node>& positioned, const QL
     return bestIndex;
 }
 
-static QList<Node> buildNodes(const QStringList tables,
-                       const StringListHash<Schema2RelationModel *> &relationModels) {
+
+
+static QList<Node> buildNodes(Schema2TablesModel* tablesModel) {
 
     QList<Node> nodes;
 
-    QList<QStringList> keys = relationModels.keys();
+    //QList<QStringList> keys = relationModels.keys();
+
+    auto tables = tablesModel->tableNames();
+
+    QList<QStringList> relationsList;
+
+    for(const QString& table: tables) {
+        auto relations = tablesModel->table(table)->relations()->values();
+        for(auto* relation: relations) {
+            auto table1 = table.toLower();
+            auto parentTable = relation->parentTable().toLower();
+            if (table1 != parentTable) {
+                relationsList.append({table1, parentTable});
+            }
+        }
+    }
 
     for(const QString& table: tables) {
         Node node(table);
-        for(const QStringList& key: qAsConst(keys)) {
-            if (key[0] == table) {
-                node.connections.append(key[1]);
-            } else if (key[1] == table) {
-                node.connections.append(key[0]);
+        for(const QStringList item: relationsList) {
+            if (table.toLower() == item[0]) {
+                node.connections.append(item[1]);
+            } else if (table.toLower() == item[1]) {
+                node.connections.append(item[0]);
             }
         }
         nodes.append(node);
     }
+
     qSort(nodes.begin(), nodes.end(), lessThan);
 
     return nodes;
@@ -170,16 +190,18 @@ static void setPos(QList<Node>& nodes, int nodeIndex, QList<Node>& positioned, i
     positioned.append(node);
 }
 
-void arrangeTables(GridType type, const QStringList tables,
-             const StringListHash<Schema2RelationModel *> &relationModels,
-             const StringHash<Schema2TableItem *> &tableItems) {
+
+
+void arrangeTables(GridType type, Schema2TablesModel* tablesModel) {
+
+    auto tables = tablesModel->tableNames();
 
     if (tables.isEmpty()) {
         return;
     }
 
     QList<QPointF> grid = createGrid(type, tables.size());
-    QList<Node> nodes = buildNodes(tables, relationModels);
+    QList<Node> nodes = buildNodes(tablesModel);
     QList<Node> positioned = {};
 
     int gridIndex = findCenter(grid);
@@ -193,7 +215,7 @@ void arrangeTables(GridType type, const QStringList tables,
     }
 
     for(const Node& node: qAsConst(positioned)) {
-        tableItems.get(node.name)->setCenterPos(node.pos);
+        tablesModel->tableItem(node.name)->setCenterPos(node.pos);
     }
 
 }

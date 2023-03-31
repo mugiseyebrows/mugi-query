@@ -16,6 +16,13 @@ void ModelAppender::setActive(bool active)
     mActive = active;
 }
 
+ModelAppender *ModelAppender::attach(QAbstractItemModel *model)
+{
+    auto* appender = new ModelAppender(model);
+    appender->setModel(model);
+    return appender;
+}
+
 void ModelAppender::onDataChanged(QModelIndex ,QModelIndex br,QVector<int> ) {
 
     if (!mActive) {

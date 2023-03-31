@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DataCompareWidget2</class>
+ <widget class="QWidget" name="DataCompareWidget2">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>451</width>
+    <height>442</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="DataCompareWidgetItem" name="source1" native="true"/>
+     </item>
+     <item>
+      <widget class="DataCompareWidgetItem" name="source2" native="true"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QPushButton" name="compare">
+     <property name="text">
+      <string>Compare</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTableView" name="tableView"/>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DataCompareWidgetItem</class>
+   <extends>QWidget</extends>
+   <header>datacomparewidgetitem.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

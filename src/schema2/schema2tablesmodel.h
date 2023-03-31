@@ -7,6 +7,7 @@ class Schema2TableModel;
 class QGraphicsScene;
 class Schema2RelationItem2;
 class Schema2Relation;
+class QSqlDriver;
 
 #include <QPointF>
 #include "hash.h"
@@ -61,6 +62,7 @@ public:
         mDropRelationsQueue.removeOne({name, relation});
     }
 
+
 protected:
 
     QList<QPair<QString, Schema2Relation*>> mDropRelationsQueue;
@@ -101,6 +103,9 @@ public:
     void relationRemoved(Schema2Relation *relation);
 
 
+    QStringList createTablesQueries(const QString &driverName, QSqlDriver *driver) const;
+    QStringList createIndexesQueries(const QString &driverName, QSqlDriver *driver) const;
+    QStringList createRelationsQueries(const QString &driverName, QSqlDriver *driver) const;
 };
 
 #endif // SCHEMA2TABLESMODEL_H

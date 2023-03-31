@@ -15,8 +15,10 @@
 #include "schema2tablesmodel.h"
 #include "tablestretcher.h"
 #include "drivernames.h"
+#include "clipboardutil.h"
+#include "copyeventfilter.h"
 
-// todo push schema for one table
+// todo push / pull schema for one table
 
 // todo forbid dropping index if used in relation (odbc)
 
@@ -32,13 +34,16 @@ Schema2AlterView::~Schema2AlterView()
     delete ui;
 }
 
+
+
 void Schema2AlterView::initColumns() {
 
     auto* model = mModel;
 
     ui->columns->setModel(model);
-    ui->columns->hideColumn(Schema2TableModel::col_name);
-    ui->columns->hideColumn(Schema2TableModel::col_type);
+    ui->columns->hideColumn(Schema2TableModel::col_name_prev);
+    ui->columns->hideColumn(Schema2TableModel::col_type_prev);
+    ui->columns->hideColumn(Schema2TableModel::col_notnull_prev);
 
     TableButtons* buttons = new TableButtons();
 
@@ -64,13 +69,18 @@ void Schema2AlterView::initColumns() {
     });
 
     auto* delegate = new ItemDelegateWithCompleter(mTypes, ui->columns);
-    ui->columns->setItemDelegateForColumn(Schema2TableModel::col_newtype, delegate);
+    ui->columns->setItemDelegateForColumn(Schema2TableModel::col_type, delegate);
 
 
     ui->childTable->setText(model->tableName());
 
     setCompleter(ui->parentTable, mTables->tableNames());
+
+    CopyEventFilter::copyTsv(ui->columns);
+
 }
+
+
 
 void Schema2AlterView::initRelations() {
 
@@ -98,6 +108,7 @@ void Schema2AlterView::initRelations() {
     stretcher->setView(ui->relations);
     stretcher->setRatio({1,1,1,1,1});
 
+    CopyEventFilter::copyTsv(ui->relations);
 }
 
 
@@ -134,6 +145,8 @@ void Schema2AlterView::initIndexes() {
     TableStretcher* stretcher = new TableStretcher(this);
     stretcher->setView(ui->indexes);
     stretcher->setRatio({1,1,1,1});
+
+    CopyEventFilter::copyTsv(ui->indexes);
 }
 
 void Schema2AlterView::init(Schema2Data *data, Schema2TablesModel* tableModels,
@@ -173,7 +186,7 @@ QStringList Schema2AlterView::selectedFields() const {
     QList<int> rows = selectedRows(ui->columns);
     QStringList res;
     for(int row: rows) {
-        res.append(mModel->newName(row));
+        res.append(mModel->name(row));
     }
     return res;
 }
@@ -230,5 +243,57 @@ void Schema2AlterView::on_createPrimaryKey_clicked()
     createIndex(true, false);
 }
 
+#include <QStringListModel>
+#include "showandraise.h"
+#include "schema2relatedtableswidget.h"
 
+void Schema2AlterView::on_listRelatedTables_clicked()
+{
+
+    Schema2RelatedTablesWidget* widget = new Schema2RelatedTablesWidget(mTables, mModel->tableName());
+    showAndRaise(widget);
+
+
+#if 0
+    QStringList res;
+
+    QStringList queue;
+    queue.append(mModel->tableName());
+
+    QStringList done;
+
+    while (!queue.isEmpty()) {
+        QString item = queue.takeFirst();
+        if (done.contains(item)) {
+            continue;
+        }
+        auto relations = mData->tables()->table(item)->relations()->values();
+        for(auto* relation: relations) {
+            QString parentTable = relation->parentTable();
+            if (!res.contains(parentTable)) {
+                res.append(parentTable);
+            }
+            if (!done.contains(parentTable)) {
+                queue.append(parentTable);
+            }
+        }
+        if (!res.contains(item)) {
+            res.append(item);
+        }
+        done.append(item);
+    }
+
+    QTableView* view = new QTableView();
+    QStringListModel* model = new QStringListModel(res);
+    view->setModel(model);
+    showAndRaise(view);
+
+    view->horizontalHeader()->setStretchLastSection(true);
+    view->horizontalHeader()->setVisible(false);
+
+    CopyEventFilter::copyTsv(view);
+
+#endif
+
+}
 

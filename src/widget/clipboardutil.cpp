@@ -15,7 +15,7 @@ void ClipboardUtil::copyTsv(QTableView *view)
     }
     QItemSelection selection = view->selectionModel()->selection();
     QString error;
-    QWidget* parent =qobject_cast<QWidget*>(view->parent());
+    QWidget* parent = qobject_cast<QWidget*>(view->parent());
     Clipboard::copySelected(model, selection, DataFormat::Csv, "\t", false, view->locale(), error);
     Error::show(parent,error);
 }

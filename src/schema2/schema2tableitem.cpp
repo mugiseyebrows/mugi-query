@@ -81,7 +81,7 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     painter->drawText(rect, mModel->tableName(), opt);
     for(int row=0;row<mModel->rowCount();row++) {
         QRectF rect(0,(row + 1)*s,w,s);
-        QString name = mModel->newName(row);
+        QString name = mModel->name(row);
         QTextOption opt(Qt::AlignCenter);
         painter->drawText(rect, name, opt);
         /*if (mModel->isIndexColumn(name)) {

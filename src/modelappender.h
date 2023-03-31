@@ -14,6 +14,8 @@ public:
 
     void setActive(bool active);
 
+    static ModelAppender* attach(QAbstractItemModel* model);
+
 protected:
     bool mActive;
 

@@ -35,6 +35,12 @@ void Clipboard::streamRange(QTextStream& stream, const QItemSelectionRange &rng,
 
     Formats formats(action);
     QAbstractItemModel* model = const_cast<QAbstractItemModel*>(rng.model());
+
+    /*qDebug() << "rng.topLeft().row()" << rng.topLeft().row()
+             << "rng.bottomRight().row()" << rng.bottomRight().row()
+             << "rng.topLeft().column()" << rng.topLeft().column()
+             << "rng.bottomRight().column()" << rng.bottomRight().column();*/
+
     for(int row = rng.topLeft().row(); row <= rng.bottomRight().row(); row++) {
         RowValueGetter g(model,row);
         int column = rng.topLeft().column();

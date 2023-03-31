@@ -39,6 +39,10 @@
 #include "schema2relationguesser.h"
 #include "confirmationdialog.h"
 
+#include <QApplication>
+#include <QClipboard>
+#include <QMessageBox>
+
 /*static*/ bool Schema2Data::mDontAskOnDrop = false;
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
@@ -189,7 +193,9 @@ void Schema2Data::pullTablesMysql() {
         while(q.next()) {
             QString name = q.value(0).toString();
             QString type = q.value(1).toString();
-            model->insertColumnsIfNotContains(name, type, prev);
+            bool notNull = false;
+            // todo mysql not null
+            model->insertColumnsIfNotContains(name, type, notNull, prev);
             prev = name;
         }
 
@@ -231,6 +237,7 @@ void Schema2Data::pullTablesOdbc() {
             QString name = field->property("Name").toString();
             int type = field->property("Type").toInt();
             int size = field->property("Size").toInt();
+            bool notNull = field->property("Required").toBool();
 
             //qDebug() << tableName << name << type;
 
@@ -245,7 +252,7 @@ void Schema2Data::pullTablesOdbc() {
                 }
             }
 
-            model->insertColumnsIfNotContains(name, typeName, prev);
+            model->insertColumnsIfNotContains(name, typeName, notNull, prev);
 
             prev = name;
         }
@@ -273,7 +280,8 @@ void Schema2Data::pullTablesOther() {
         for(int i=0;i<r.count();i++) {
             QString name = r.fieldName(i);
             QString type;
-            model->insertColumnsIfNotContains(name, type, prev);
+            bool notNull = false;
+            model->insertColumnsIfNotContains(name, type, notNull, prev);
             prev = name;
         }
 
@@ -697,6 +705,7 @@ void Schema2Data::push(QWidget* widget)
     savePos();
 
     QString driverName = QSqlDatabase::database(mConnectionName).driverName();
+    auto* driver = this->driver();
 
     Schema2ChangeSet* changeSet = new Schema2ChangeSet();
 
@@ -705,12 +714,12 @@ void Schema2Data::push(QWidget* widget)
     for(Schema2TableModel* table: tables) {
         switch(table->status()) {
         case StatusNew:
-            changeSet->append(table->createQueries(), [=](){
+            changeSet->append(table->createQueries(driverName, driver), [=](){
                 table->pushed();
             });
             break;
         case StatusModified:
-            changeSet->append(table->alterQueries(), [=](){
+            changeSet->append(table->alterQueries(driverName, driver), [=](){
                 table->pushed();
             });
             break;
@@ -722,7 +731,7 @@ void Schema2Data::push(QWidget* widget)
     // create and alter indexes
     for(Schema2TableModel* table: tables) {
         Schema2IndexesModel* indexes = table->indexes();
-        changeSet->append(indexes->queries(table->tableName(), driverName), [=](){
+        changeSet->append(indexes->queries(table->tableName(), driverName, driver), [=](){
             indexes->pushed();
         });
     }
@@ -735,12 +744,12 @@ void Schema2Data::push(QWidget* widget)
             case StatusExisting:
                 break;
             case StatusModified:
-                changeSet->append(relation->modifyQueries(table->tableName()), [=](){
+                changeSet->append(relation->modifyQueries(table->tableName(), driverName, driver), [=](){
                     relation->pushed();
                 });
                 break;
             case StatusNew:
-                changeSet->append(relation->createQueries(table->tableName()), [=](){
+                changeSet->append(relation->createQueries(table->tableName(), driverName, driver), [=](){
                     relation->pushed();
                 });
                 break;
@@ -754,7 +763,7 @@ void Schema2Data::push(QWidget* widget)
     for(auto item: queue) {
         QString name = item.first;
         auto* relation = item.second;
-        changeSet->append(relation->dropQueries(name),[=](){
+        changeSet->append(relation->dropQueries(name, driverName, driver),[=](){
             //mDropRelationsQueue.removeOne(item);
             mTables->relationDropped(name, relation);
         });
@@ -762,7 +771,7 @@ void Schema2Data::push(QWidget* widget)
 
     // drop tables
     for(auto* item: mDropTableQueue) {
-        changeSet->append(item->dropQueries(),[=](){
+        changeSet->append(item->dropQueries(driverName, driver),[=](){
             mDropTableQueue.removeOne(item);
         });
     }
@@ -1069,6 +1078,25 @@ Schema2TablesModel *Schema2Data::tables() const {
     return mTables;
 }
 
+
+QSqlDriver* Schema2Data::driver() const {
+    return QSqlDatabase::database(mConnectionName).driver();
+}
+
+void Schema2Data::scriptDialog(QWidget *widget)
+{
+    auto driverName = this->driverName();
+    auto* driver = this->driver();
+
+    QStringList queries =
+            mTables->createTablesQueries(driverName, driver)
+            + mTables->createIndexesQueries(driverName, driver)
+            + mTables->createRelationsQueries(driverName, driver);
+
+    qApp->clipboard()->setText(queries.join(";\n") + "\n");
+    QMessageBox::information(widget, "", "Copied to clipboard");
+}
+
 static QStringList mysqlTypes() {
     // https://dev.mysql.com/doc/refman/8.0/en/data-types.html
 
@@ -1247,11 +1275,7 @@ void Schema2Data::savePos()
 void Schema2Data::arrange()
 {
     //squareArrange(mTableItems.keys(), mRelationModels, mTableItems);
-
-#if 0
-
-    arrangeTables(GridTriangle, mTableItems.keys(), mRelationModels, mTableItems);
-#endif
+    arrangeTables(GridTriangle, mTables);
 }
 
 QList<Schema2Join> Schema2Data::findJoin(const QStringList &join)

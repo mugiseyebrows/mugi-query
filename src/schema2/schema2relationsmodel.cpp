@@ -36,7 +36,7 @@ int Schema2RelationsModel::indexOf(const QString& name) const {
     return -1;
 }
 
-Schema2Relation *Schema2RelationsModel::get(const QString &name) const
+Schema2Relation *Schema2RelationsModel::relation(const QString &name) const
 {
     int index = indexOf(name);
     if (index > -1) {

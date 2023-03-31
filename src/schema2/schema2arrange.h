@@ -2,11 +2,10 @@
 #define SCHEMA2ARRANGE_H
 
 #include <QList>
-class Schema2TableItem;
-class Schema2RelationModel;
+class Schema2TablesModel;
 #include "hash.h"
 
-void arrangeInGrid(const QList<Schema2TableItem*>& items, int width, int heigth, int spacing);
+//void arrangeInGrid(const QList<Schema2TableItem*>& items, int width, int heigth, int spacing);
 
 #if 0
 void squareArrange(const QStringList tables, const QHash<QStringList, Schema2RelationModel*>& relationModels,
@@ -18,9 +17,7 @@ enum GridType {
     GridTriangle
 };
 
-void arrangeTables(GridType type, const QStringList tables,
-             const StringListHash<Schema2RelationModel *> &relationModels,
-             const StringHash<Schema2TableItem*>& tableItems);
+void arrangeTables(GridType type, Schema2TablesModel *tablesModel);
 
 
 #endif // SCHEMA2ARRANGE_H

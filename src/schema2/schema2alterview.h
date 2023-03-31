@@ -50,6 +50,8 @@ private slots:
 
     void on_createUniqueIndex_clicked();
 
+    void on_listRelatedTables_clicked();
+
 signals:
     void createRelation(QString childTable, QStringList childColumns, QString parentTable);
     void editRelation();

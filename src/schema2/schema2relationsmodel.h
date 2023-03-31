@@ -24,7 +24,7 @@ public:
 
     Schema2Relation *insert(const QString &name, const QStringList &childColumns, const QString &parentTable,
                                     const QStringList &parentColumns, bool constrained, Status status);
-    Schema2Relation *get(const QString &name) const;
+    Schema2Relation *relation(const QString &name) const;
 
     bool contains(const QString &name) const;
 

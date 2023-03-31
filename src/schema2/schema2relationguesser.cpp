@@ -24,7 +24,7 @@ QStringList Schema2RelationGuesser::parentColumns()
         return primaryKey;
     }
     QString tableName = mParentTable->tableName().toLower();
-    QStringList columnNames = toLower(mParentTable->newNames());
+    QStringList columnNames = toLower(mParentTable->columnNames());
     if (columnNames.isEmpty()) {
         return {};
     }
@@ -50,7 +50,7 @@ bool containsAll(const QStringList& haystack, const QStringList& needle) {
 
 QStringList Schema2RelationGuesser::childColumns(const QStringList &parentColumns)
 {
-    QStringList columns = toLower(mChildTable->newNames());
+    QStringList columns = toLower(mChildTable->columnNames());
 
     if (containsAll(columns, parentColumns)) {
         return parentColumns;

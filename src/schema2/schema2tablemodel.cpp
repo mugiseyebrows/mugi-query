@@ -4,6 +4,10 @@
 #include "schema2relation.h"
 #include "schema2indexesmodel.h"
 #include "schema2relationsmodel.h"
+#include <QSqlDriver>
+#include "sqlescaper.h"
+#include "filterempty.h"
+#include "drivernames.h"
 
 // todo table renames
 
@@ -13,21 +17,24 @@ Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject
 
 }
 
-void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QString &type, const QString& prev)
+void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QString &type, bool notNull,
+                                                   const QString& prev)
 {
     int insertRow = rowCount();
 
     for(int row=0;row<mColumns.size();row++) {
-        if (this->name(row) == name) {
+        if (this->namePrev(row) == name) {
             return;
         }
-        if (this->name(row) == prev) {
+        if (this->namePrev(row) == prev) {
             insertRow = row + 1;
         }
     }
 
     beginInsertRows(QModelIndex(), insertRow, insertRow);
-    mColumns.insert(insertRow, {name, name, type, type});
+    //mColumns.insert(insertRow, {name, name, type, type});
+    mColumns.insert(insertRow, Schema2TableColumn(name, type, notNull));
+    mColumnsPrev.insert(insertRow, Schema2TableColumn(name, type, notNull));
     endInsertRows();
 }
 
@@ -35,7 +42,8 @@ bool Schema2TableModel::insertRows(int row, int count, const QModelIndex &parent
 {
     beginInsertRows(QModelIndex(), row, row + count - 1);
     for(int i=0;i<count;i++) {
-        mColumns.insert(row, {QString(), QString(), QString(), QString()});
+        mColumns.insert(row, Schema2TableColumn());
+        mColumnsPrev.insert(row, Schema2TableColumn());
     }
     endInsertRows();
     return true;
@@ -46,24 +54,34 @@ QString Schema2TableModel::tableName() const
     return mTableName;
 }
 
-QString Schema2TableModel::name(int row) const
+QString Schema2TableModel::namePrev(int row) const
 {
-    return mColumns[row][col_name];
+    return mColumnsPrev[row].name;
 }
 
-QString Schema2TableModel::newName(int row) const
+QString Schema2TableModel::name(int row) const
 {
-    return mColumns[row][col_newname];
+    return mColumns[row].name;
+}
+
+QString Schema2TableModel::typePrev(int row) const
+{
+    return mColumnsPrev[row].type;
 }
 
 QString Schema2TableModel::type(int row) const
 {
-    return mColumns[row][col_type];
+    return mColumns[row].type;
 }
 
-QString Schema2TableModel::newType(int row) const
+bool Schema2TableModel::notNull(int row) const
 {
-    return mColumns[row][col_newtype];
+    return mColumns[row].notNull;
+}
+
+bool Schema2TableModel::notNullPrev(int row) const
+{
+    return mColumnsPrev[row].notNull;
 }
 
 bool Schema2TableModel::hasPendingChanges() const
@@ -71,23 +89,23 @@ bool Schema2TableModel::hasPendingChanges() const
     return false;
 }
 
-QStringList Schema2TableModel::newNames() const
+QStringList Schema2TableModel::columnNames() const
 {
     QStringList res;
     for(int row=0;row<mColumns.size();row++) {
-        res.append(mColumns[row][col_newname]);
+        res.append(mColumns[row].name);
     }
     return res;
 }
 
-void Schema2TableModel::setNewName(int row, const QString &value)
+void Schema2TableModel::setName(int row, const QString &value)
 {
-    mColumns[row][col_newname] = value;
+    mColumns[row].name = value;
 }
 
-void Schema2TableModel::setNewType(int row, const QString &value)
+void Schema2TableModel::setType(int row, const QString &value)
 {
-    mColumns[row][col_newtype] = value;
+    mColumns[row].type = value;
 }
 
 #if 0
@@ -152,7 +170,7 @@ Schema2Relation *Schema2TableModel::removeRelation(Schema2Relation *relation)
 
 Schema2Relation *Schema2TableModel::relation(const QString &name) const
 {
-    return mRelations->get(name);
+    return mRelations->relation(name);
 }
 
 Schema2RelationsModel *Schema2TableModel::relations() const
@@ -168,10 +186,13 @@ Schema2Relation *Schema2TableModel::relationTo(const QString &tableName) const
 void Schema2TableModel::pushed() {
     mStatus = StatusExisting;
     for(int row=0;row<rowCount();row++) {
-        QString newName = this->newName(row);
-        QString newType = this->newType(row);
+# if 0
+        QString newName = this->name(row);
+        QString newType = this->type(row);
         setData(index(row, col_name), newName);
         setData(index(row, col_type), newType);
+#endif
+        mColumnsPrev[row] = mColumns[row];
     }
     mDropColumnsQueue.clear();
 }
@@ -185,10 +206,10 @@ Status Schema2TableModel::status() const {
             return StatusModified;
         }
         for(int row=0;row<rowCount();row++) {
-            if (newName(row).isEmpty()) {
+            if (name(row).isEmpty()) {
                 continue;
             }
-            if (name(row) != newName(row) || type(row) != newType(row)) {
+            if (namePrev(row) != name(row) || typePrev(row) != type(row)) {
                 return StatusModified;
             }
         }
@@ -197,59 +218,92 @@ Status Schema2TableModel::status() const {
     return mStatus;
 }
 
-QStringList Schema2TableModel::createQueries() const {
+QStringList Schema2TableModel::createQueries(const QString &driverName, QSqlDriver *driver) const {
+    SqlEscaper es(driver);
     QStringList fields;
     for(int row=0;row<rowCount();row++) {
-        QString newName = this->newName(row);
-        QString newType = this->newType(row);
-        if (newName.isEmpty() || newType.isEmpty()) {
+        QString name = this->name(row);
+        QString type = this->type(row);
+        bool notNull = this->notNull(row);
+        if (name.isEmpty() || type.isEmpty()) {
             continue;
         }
-        fields.append(QString("%1 %2").arg(newName).arg(newType));
+        QString field = filterEmpty({es.field(name), type, notNull ? "NOT NULL" : ""}).join(" ");
+        fields.append(field);
     }
-    QString expr = QString("CREATE TABLE %1 (%2)").arg(mTableName).arg(fields.join(", "));
+    QString expr = QString("CREATE TABLE %1 (%2)")
+            .arg(es.table(mTableName))
+            .arg(fields.join(", "));
     return {expr};
 }
 
-QStringList Schema2TableModel::alterQueries() const {
+QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDriver *driver) const {
 
     QStringList res;
+    SqlEscaper es(driver);
 
     for(const QString& colName: mDropColumnsQueue) {
         // todo check for removed and readded
         QString expr = QString("ALTER TABLE %1 DROP COLUMN %2")
-                .arg(mTableName)
-                .arg(colName);
+                .arg(es.table(mTableName))
+                .arg(es.field(colName));
         res.append(expr);
     }
 
     for(int row=0;row<rowCount();row++) {
 
+        QString namePrev = this->namePrev(row);
         QString name = this->name(row);
-        QString newName = this->newName(row);
+        QString typePrev = this->typePrev(row);
         QString type = this->type(row);
-        QString newType = this->newType(row);
+        bool notNull = this->notNull(row);
 
-        if (newName.isEmpty()) {
+        bool nameChanged = name != namePrev;
+        bool typeChanged = type != typePrev;
+        bool notNullChanged = notNull != notNull;
+
+        if (name.isEmpty()) {
 
         } else {
-            if (name.isEmpty()) {
-                QString expr = QString("ALTER TABLE %1 ADD COLUMN %2 %3")
-                        .arg(mTableName)
-                        .arg(newName)
-                        .arg(newType);
-                res.append(expr);
-            } else if (name == newName) {
+            if (namePrev.isEmpty()) {
 
-                if (type != newType) {
-                    QString expr = QString("ALTER TABLE %1 ALTER COLUMN %2 %3")
-                            .arg(mTableName)
-                            .arg(newName)
-                            .arg(newType);
+                QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
+                                            "ADD COLUMN",
+                                            es.field(name), type, notNull ? "NOT NULL" : ""}).join(" ");
+
+                res.append(expr);
+
+            } else if (nameChanged || typeChanged || notNullChanged) {
+
+                if (driverName == DRIVER_ODBC) {
+
+                    if (name == namePrev) {
+
+                        QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
+                                                    "ALTER COLUMN",
+                                                    es.field(name), type, notNull ? "NOT NULL" : ""}).join(" ");
+
+                        res.append(expr);
+
+                    } else {
+
+                        // todo forbid renaming existing fields for DRIVER_ODBC
+
+                    }
+
+                } else if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
+
+                    QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
+                                                "CHANGE COLUMN", es.field(namePrev), es.field(name), type, notNull ? "NOT NULL" : ""}).join(" ");
+
                     res.append(expr);
+                } else {
+
+                    // todo implement column modifying for DRIVER_PSQL
+
                 }
 
-            } else if (name != newName) {
+            } else if (namePrev != name) {
                 // todo implement column renaming for supported drivers
             }
         }
@@ -258,8 +312,9 @@ QStringList Schema2TableModel::alterQueries() const {
     return res;
 }
 
-QStringList Schema2TableModel::dropQueries() const {
-    QString expr = QString("DROP TABLE %1").arg(mTableName);
+QStringList Schema2TableModel::dropQueries(const QString &driverName, QSqlDriver *driver) const {
+    SqlEscaper es(driver);
+    QString expr = QString("DROP TABLE %1").arg(es.table(mTableName));
     return {expr};
 }
 
@@ -286,6 +341,26 @@ QStringList Schema2TableModel::relatedTables() const
     return res;
 }
 
+QStringList Schema2TableModel::relationNames() const
+{
+    QStringList res;
+    auto relations = mRelations->values();
+    for(auto* relation: relations) {
+        res.append(relation->name());
+    }
+    return res;
+}
+
+QStringList Schema2TableModel::indexNames() const
+{
+    QStringList res;
+    auto indexes = mIndexes->values();
+    for(auto* index: indexes) {
+        res.append(index->name());
+    }
+    return res;
+}
+
 int Schema2TableModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) {
@@ -304,17 +379,39 @@ int Schema2TableModel::columnCount(const QModelIndex &parent) const
 
 QVariant Schema2TableModel::data(const QModelIndex &index, int role) const
 {
-    if (role == Qt::DisplayRole || role == Qt::EditRole) {
-        return mColumns[index.row()][index.column()];
+    if (!index.isValid()) {
+        return QVariant();
     }
+
+    if (role == Qt::DisplayRole || role == Qt::EditRole) {
+        int row = index.row();
+        switch(index.column()) {
+        case col_name: return mColumns[row].name;
+        case col_type: return mColumns[row].type;
+
+        case col_name_prev: return mColumnsPrev[row].name;
+        case col_type_prev: return mColumnsPrev[row].type;
+        }
+    }
+    if (role == Qt::CheckStateRole) {
+        int row = index.row();
+        switch(index.column()) {
+        case col_notnull: return mColumns[row].notNull ? Qt::Checked : Qt::Unchecked;
+        case col_notnull_prev: return mColumnsPrev[row].notNull ? Qt::Checked : Qt::Unchecked;
+        }
+    }
+
     return QVariant();
 }
 
 Qt::ItemFlags Schema2TableModel::flags(const QModelIndex &index) const
 {
     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
-    if (index.column() == col_newname || index.column() == col_newtype) {
+    if (index.column() == col_name || index.column() == col_type) {
         flags |= Qt::ItemIsEditable;
+    }
+    if (index.column() == col_notnull) {
+        flags |= Qt::ItemIsUserCheckable;
     }
     return flags;
 }
@@ -322,9 +419,26 @@ Qt::ItemFlags Schema2TableModel::flags(const QModelIndex &index) const
 bool Schema2TableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (role == Qt::EditRole) {
-        mColumns[index.row()][index.column()] = value.toString();
+
+        int row = index.row();
+        switch(index.column()) {
+        case col_name: mColumns[row].name = value.toString(); break;
+        case col_type: mColumns[row].type = value.toString(); break;
+        case col_name_prev: mColumnsPrev[row].name = value.toString(); break;
+        case col_type_prev: mColumnsPrev[row].type = value.toString(); break;
+        }
+
+        emit dataChanged(index, index);
+    } else if (role == Qt::CheckStateRole) {
+
+        int row = index.row();
+        switch(index.column()) {
+        case col_notnull: mColumns[row].notNull = value.toInt() == Qt::Checked; break;
+        case col_notnull_prev: mColumnsPrev[row].notNull = value.toInt() == Qt::Checked; break;
+        }
         emit dataChanged(index, index);
     }
+
     return false;
 }
 
@@ -332,9 +446,12 @@ QVariant Schema2TableModel::headerData(int section, Qt::Orientation orientation,
 {
     static QHash<int, QString> header = {
         {col_name, "Name"},
-        {col_newname, "Name"},
+        {col_notnull, "Non null"},
         {col_type, "Type"},
-        {col_newtype, "Type"},
+
+        {col_name_prev, "Name"},
+        {col_notnull_prev, "Non null"},
+        {col_type_prev, "Type"},
     };
 
     if (role == Qt::DisplayRole) {
@@ -349,11 +466,12 @@ bool Schema2TableModel::removeRows(int row, int count, const QModelIndex &parent
 {
     beginRemoveRows(QModelIndex(), row, row+count-1);
     for(int i=0;i<count;i++) {
-        QString colName = mColumns[row][col_name];
+        QString colName = mColumnsPrev[row].name;
         if (!colName.isEmpty()) {
             mDropColumnsQueue.append(colName);
         }
         mColumns.removeAt(row);
+        mColumnsPrev.removeAt(row);
     }
     endRemoveRows();
 }

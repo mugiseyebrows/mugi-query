@@ -21,6 +21,7 @@ class QSortFilterProxyModel;
 class Schema2RelationItem2;
 class Schema2Relation;
 class Schema2TablesModel;
+class QSqlDriver;
 
 #include "schema2join.h"
 #include "hash.h"
@@ -94,6 +95,9 @@ public:
 
     Schema2TablesModel* tables() const;
 
+    void scriptDialog(QWidget* widget);
+
+    QSqlDriver *driver() const;
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 

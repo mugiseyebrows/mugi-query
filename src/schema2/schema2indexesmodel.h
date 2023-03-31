@@ -4,6 +4,7 @@
 #include <QAbstractTableModel>
 #include "schema2status.h"
 class Schema2Index;
+class QSqlDriver;
 
 class Schema2IndexesModel : public QAbstractTableModel
 {
@@ -25,18 +26,24 @@ public:
 
     void removeAt(int index);
 
-    QStringList queries(const QString &tableName, const QString &driverName) const;
+    Schema2Index* index(const QString& name) const;
+
+    QStringList queries(const QString &tableName, const QString &driverName, QSqlDriver *driver) const;
 
     void pushed();
 
     QStringList primaryKey() const;
+
+    QList<Schema2Index*> values() const {
+        return mIndexes;
+    }
 
 protected:
     QList<Schema2Index*> mIndexes;
 
     QList<Schema2Index*> mRemoveQueue;
 
-    int find(const QString &name);
+    int find(const QString &name) const;
 signals:
 
     // QAbstractItemModel interface

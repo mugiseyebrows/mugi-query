@@ -2,6 +2,7 @@
 #include "tolower.h"
 #include "filterempty.h"
 #include "drivernames.h"
+#include "sqlescaper.h"
 
 Schema2Index::Schema2Index()
 {
@@ -14,14 +15,19 @@ Schema2Index::Schema2Index(const QString &name, const QStringList &columns, bool
 
 }
 
-QString Schema2Index::createQuery(const QString &tableName, const QString& driverName) const
+QString Schema2Index::createQuery(const QString &tableName, const QString& driverName, QSqlDriver *driver) const
 {
+
+    SqlEscaper es(driver);
+
 
     if (driverName == DRIVER_ODBC) {
 
         QString expr = filterEmpty({"CREATE",
-                                    mUnique ? "UNIQUE" : "",
-                                    "INDEX", mName, "ON", tableName, "(" + mColumns.join(", ") + ")",
+                                    (mUnique && !mPrimary) ? "UNIQUE" : "",
+                                    "INDEX", es.field(mName),
+                                    "ON", es.table(tableName),
+                                    "(" + es.columns(mColumns).join(", ") + ")",
                                     mPrimary ? "WITH PRIMARY" : ""
                                    }).join(" ");
 
@@ -33,8 +39,8 @@ QString Schema2Index::createQuery(const QString &tableName, const QString& drive
                                     (mUnique && !mPrimary) ? "UNIQUE" : "",
                                     mPrimary ? "PRIMARY": "",
                                     mPrimary ? "KEY" : "INDEX",
-                                    mPrimary ? "" : mName,
-                                    "(" + mColumns.join(", ") + ")"}).join(" ");
+                                    mPrimary ? "" : es.field(mName),
+                                    "(" + es.columns(mColumns).join(", ") + ")"}).join(" ");
         return expr;
 
     } else {
@@ -44,7 +50,7 @@ QString Schema2Index::createQuery(const QString &tableName, const QString& drive
     return QString();
 }
 
-QString Schema2Index::dropQuery(const QString &tableName, const QString& driverName) const
+QString Schema2Index::dropQuery(const QString &tableName, const QString& driverName, QSqlDriver *driver) const
 {
     if (driverName == DRIVER_ODBC) {
         QString expr = QString("DROP INDEX %1 on %2").arg(mName).arg(tableName);

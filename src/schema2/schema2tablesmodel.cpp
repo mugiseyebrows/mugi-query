@@ -199,6 +199,45 @@ Schema2RelationItem2* Schema2TablesModel::findItem(Schema2Relation* relation,
     return 0;
 }
 
+QStringList Schema2TablesModel::createTablesQueries(const QString& driverName, QSqlDriver *driver) const
+{
+    QStringList res;
+    for(auto* model: mTableModels) {
+        res.append(model->createQueries(driverName, driver));
+    }
+    return res;
+}
+
+#include "schema2indexesmodel.h"
+#include "schema2index.h"
+
+QStringList Schema2TablesModel::createIndexesQueries(const QString& driverName, QSqlDriver *driver) const {
+    QStringList res;
+    for(auto* model: mTableModels) {
+        auto relationNames = model->relationNames();
+        auto indexNames = model->indexNames();
+        for(const QString& name: indexNames) {
+            if (relationNames.contains(name)) {
+                continue;
+            }
+            auto* index = model->indexes()->index(name);
+            res.append(index->createQuery(model->tableName(), driverName, driver));
+        }
+    }
+    return res;
+}
+
+QStringList Schema2TablesModel::createRelationsQueries(const QString& driverName, QSqlDriver *driver) const {
+    QStringList res;
+    for(auto* model: mTableModels) {
+        auto relations = model->relations()->values();
+        for(auto* relation: relations) {
+            res.append(relation->createQueries(model->tableName(), driverName, driver));
+        }
+    }
+    return res;
+}
+
 int Schema2TablesModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) {

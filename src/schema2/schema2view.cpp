@@ -219,5 +219,8 @@ void Schema2View::on_filterLine_textChanged(const QString &text)
     mData->selectProxyModel()->setFilterRegularExpression(QRegularExpression(text, QRegularExpression::CaseInsensitiveOption));
 }
 
-
+void Schema2View::on_script_clicked()
+{
+    mData->scriptDialog(this);
+}
 

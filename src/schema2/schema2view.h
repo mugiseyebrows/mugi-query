@@ -92,6 +92,8 @@ private slots:
 
     friend class Automation;
 
+    void on_script_clicked();
+
 private:
     Ui::Schema2View *ui;
 };
