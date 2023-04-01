@@ -127,6 +127,13 @@ protected slots:
 
     void on_codeCopyOrder_triggered();
 
+private slots:
+    void on_dataCompareTable_triggered();
+
+    void on_dataCompareDatabase_triggered();
+
+    void on_dataStatistics_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

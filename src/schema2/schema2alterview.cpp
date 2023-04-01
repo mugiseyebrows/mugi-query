@@ -17,6 +17,10 @@
 #include "drivernames.h"
 #include "clipboardutil.h"
 #include "copyeventfilter.h"
+#include "schema2parentrelationsmodel.h"
+#include <QStringListModel>
+#include "showandraise.h"
+#include "schema2relatedtableswidget.h"
 
 // todo push / pull schema for one table
 
@@ -80,7 +84,13 @@ void Schema2AlterView::initColumns() {
 
 }
 
-
+static QList<double> ones(int size) {
+    QList<double> res;
+    for(int i=0;i<size;i++) {
+        res.append(1);
+    }
+    return res;
+}
 
 void Schema2AlterView::initRelations() {
 
@@ -96,22 +106,55 @@ void Schema2AlterView::initRelations() {
     buttons->setView(ui->relations);
     connect(buttons, &TableButtons::clicked, [=](int id, int index){
         if (id == button_edit) {
-            if (index > -1) {
-                mData->editRelationDialog(mModel, mModel->relations()->at(index), this);
+            if (index < 0) {
+                return;
             }
+            mData->editRelationDialog(mModel->relations()->at(index), this);
         } else if (id == button_remove) {
-
+            if (index < 0) {
+                return;
+            }
+            auto* relation = mModel->relations()->at(index);
+            mData->dropRelationDialog(relation, this);
         }
     });
 
-    TableStretcher* stretcher = new TableStretcher(this);
-    stretcher->setView(ui->relations);
-    stretcher->setRatio({1,1,1,1,1});
+    TableStretcher::stretch(ui->relations, ones(6), 80);
 
     CopyEventFilter::copyTsv(ui->relations);
 }
 
+void Schema2AlterView::initParentRelations()
+{
+    ui->parentRelations->setModel(mModel->parentRelations());
 
+    const int button_edit = 0;
+    const int button_remove = 1;
+
+    TableButtons* buttons = new TableButtons();
+    buttons->button(button_edit).inside().text("mod").size(40, 40);
+    buttons->button(button_remove).inside().text("-").size(40, 40).offset(40, 0);
+
+    buttons->setView(ui->parentRelations);
+    connect(buttons, &TableButtons::clicked, [=](int id, int index){
+        if (id == button_edit) {
+            if (index < 0) {
+                return;
+            }
+            mData->editRelationDialog(mModel->parentRelations()->at(index), this);
+        } else if (id == button_remove) {
+            if (index < 0) {
+                return;
+            }
+            auto* relation = mModel->parentRelations()->at(index);
+            mData->dropRelationDialog(relation, this);
+        }
+    });
+
+    TableStretcher::stretch(ui->parentRelations, ones(6), 80);
+
+    CopyEventFilter::copyTsv(ui->parentRelations);
+}
 
 void Schema2AlterView::initIndexes() {
 
@@ -136,15 +179,15 @@ void Schema2AlterView::initIndexes() {
     buttons->setView(ui->indexes);
     connect(buttons, &TableButtons::clicked, [=](int id, int index){
         if (id == button_remove) {
-            if (index > -1) {
-                mModel->indexes()->removeAt(index);
+            if (index < 0) {
+                return;
             }
+            mModel->indexes()->removeAt(index);
         }
     });
 
-    TableStretcher* stretcher = new TableStretcher(this);
-    stretcher->setView(ui->indexes);
-    stretcher->setRatio({1,1,1,1});
+
+    TableStretcher::stretch(ui->indexes, ones(4), 40);
 
     CopyEventFilter::copyTsv(ui->indexes);
 }
@@ -157,6 +200,7 @@ void Schema2AlterView::init(Schema2Data *data, Schema2TablesModel* tableModels,
     mTypes = types;
     initColumns();
     initRelations();
+    initParentRelations();
     initIndexes();
     setWindowTitle(mModel->tableName());
 }
@@ -243,9 +287,7 @@ void Schema2AlterView::on_createPrimaryKey_clicked()
     createIndex(true, false);
 }
 
-#include <QStringListModel>
-#include "showandraise.h"
-#include "schema2relatedtableswidget.h"
+
 
 void Schema2AlterView::on_listRelatedTables_clicked()
 {

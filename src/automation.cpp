@@ -239,6 +239,16 @@ void Automation::pushSchema()
     mQueued.append(Action(Action::ActionPushSchema));
 }
 
+void Automation::compareTable(const QString &database1, const QString &table1, const QString &database2, const QString &table2)
+{
+    mQueued.append(Action(Action::ActionCompareTable, {database1, table1, database2, table2}));
+}
+
+void Automation::showAlterView(const QString &table)
+{
+    mQueued.append(Action(Action::ActionShowAlterView, {table}));
+}
+
 void Automation::onStart() {
 
     if (mQueued.isEmpty()) {
@@ -460,6 +470,22 @@ void Automation::onStart() {
 
         auto* view = schemaView();
         view->on_push_clicked();
+        next();
+
+    } else if (mAction.type() == Action::ActionCompareTable) {
+
+    } else if (mAction.type() == Action::ActionShowAlterView) {
+
+        QString tableName = mAction.arg(0).toString();
+
+        auto* view = schemaView();
+        if (!view) {
+            qDebug() << "no schema view" << __FILE__ << __LINE__;
+            next();
+            return;
+        }
+        auto* data = view->data();
+        data->showAlterView(tableName);
         next();
 
     }

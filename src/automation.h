@@ -65,6 +65,11 @@ public:
 
     void pushSchema();
 
+    void compareTable(const QString& database1, const QString& table1,
+                      const QString& database2, const QString& table2);
+
+    void showAlterView(const QString& table);
+
     Schema2View *schemaView();
 protected:
 

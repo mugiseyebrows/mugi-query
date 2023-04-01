@@ -18,9 +18,10 @@ void automate(QWidget *widget)
     Automation* automation = Automation::instance(widget);
     //QString database = 0 ? "testaccess" : "test2";
     //QString database = "mysql1";
-    QString database = "testaccess";
+    QString database = "mysql1";
     automation->connectToDatabaseFromHistory(database);
     automation->schemaEdit();
+
     //automation->showJoinHelper();
     automation->start();
 #endif
@@ -37,8 +38,11 @@ void automate(QWidget *widget)
     automation->createPrimaryKey("pk_bar", "bar", {"bar_id"});
     automation->createRelation("fk_foo_bar", "bar", {"foo_id"}, "foo", {"foo_id"}, true);
     automation->pushSchema();
+
     automation->start();
 #endif
+
+
 
 
 }

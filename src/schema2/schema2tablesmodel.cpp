@@ -9,6 +9,9 @@
 #include "schema2relationsmodel.h"
 #include "schema2relation.h"
 #include "schema2relationitem2.h"
+#include "schema2parentrelationsmodel.h"
+#include "schema2indexesmodel.h"
+#include "schema2index.h"
 
 Schema2TablesModel::Schema2TablesModel(const QString& connectionName, QGraphicsScene *scene, QObject *parent)
     : mConnectionName(connectionName), mScene(scene), QAbstractTableModel{parent}
@@ -153,8 +156,11 @@ QList<Schema2Relation *> Schema2TablesModel::relationsFrom(const QString &tableN
     return table->relations()->values();
 }
 
+
+
 QList<Schema2Relation *> Schema2TablesModel::relationsTo(const QString &tableName)
 {
+#if 0
     QList<Schema2Relation *> res;
     for(Schema2TableModel* table: qAsConst(mTableModels)) {
         auto* relation = table->relationTo(tableName);
@@ -163,6 +169,9 @@ QList<Schema2Relation *> Schema2TablesModel::relationsTo(const QString &tableNam
         }
     }
     return res;
+#endif
+    Schema2TableModel* table = this->table(tableName);
+    return table->parentRelations()->values();
 }
 
 Schema2TableModel *Schema2TablesModel::findChildTable(Schema2Relation *relation)
@@ -208,8 +217,7 @@ QStringList Schema2TablesModel::createTablesQueries(const QString& driverName, Q
     return res;
 }
 
-#include "schema2indexesmodel.h"
-#include "schema2index.h"
+
 
 QStringList Schema2TablesModel::createIndexesQueries(const QString& driverName, QSqlDriver *driver) const {
     QStringList res;
@@ -220,7 +228,7 @@ QStringList Schema2TablesModel::createIndexesQueries(const QString& driverName, 
             if (relationNames.contains(name)) {
                 continue;
             }
-            auto* index = model->indexes()->index(name);
+            auto* index = model->indexes()->get(name);
             res.append(index->createQuery(model->tableName(), driverName, driver));
         }
     }
@@ -313,6 +321,8 @@ void Schema2TablesModel::relationPulled(const QString& constraintName, const QSt
 
         mScene->addItem(relationItem);
     }
+
+    parentModel->updateParentRelations(this);
 }
 
 void Schema2TablesModel::relationRemoved(Schema2Relation* relation) {

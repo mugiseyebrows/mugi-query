@@ -6,7 +6,7 @@
 #include <QDebug>
 
 TableStretcher::TableStretcher(QObject *parent)
-    : QObject{parent}
+    : mPadding(0), QObject{parent}
 {
 
 }
@@ -17,10 +17,23 @@ void TableStretcher::setView(QTableView *view) {
     mHeaderView->installEventFilter(this);
 }
 
-void TableStretcher::setRatio(const QList<double> ratio) {
+void TableStretcher::setRatio(const QList<double>& ratio) {
     mRatio = ratio;
 }
 
+void TableStretcher::setPadding(int value)
+{
+    mPadding = value;
+}
+
+TableStretcher* TableStretcher::stretch(QTableView *view, const QList<double>& ratio, int padding)
+{
+    TableStretcher* stretcher = new TableStretcher(view);
+    stretcher->setView(view);
+    stretcher->setRatio(ratio);
+    stretcher->setPadding(padding);
+    return stretcher;
+}
 
 bool TableStretcher::eventFilter(QObject *watched, QEvent *event)
 {
@@ -34,8 +47,9 @@ bool TableStretcher::eventFilter(QObject *watched, QEvent *event)
                 return false;
             }
             double sum = std::accumulate(mRatio.begin(), mRatio.end(), 0.0);
-            for(int column=0;column<model->columnCount()-1;column++) {
-                mView->setColumnWidth(column, mRatio.value(column) / sum * totalSize);
+
+            for(int column=0;column<model->columnCount();column++) {
+                mView->setColumnWidth(column, mRatio.value(column) / sum * (totalSize - mPadding));
             }
         }
     }

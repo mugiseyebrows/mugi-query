@@ -10,6 +10,8 @@ class Schema2Index;
 class Schema2IndexesModel;
 class Schema2RelationsModel;
 class QSqlDriver;
+class Schema2ParentRelationsModel;
+class Schema2TablesModel;
 
 class Schema2TableModel : public QAbstractTableModel
 {
@@ -104,6 +106,10 @@ public:
 
     QStringList indexNames() const;
 
+    Schema2ParentRelationsModel *parentRelations() const;
+
+
+
 signals:
     void tableClicked(QString);
 
@@ -123,6 +129,8 @@ protected:
     QList<QString> mDropColumnsQueue;
 
     Schema2RelationsModel* mRelations;
+
+    Schema2ParentRelationsModel* mParentRelations;
 
     Schema2IndexesModel* mIndexes;
 
@@ -144,6 +152,7 @@ public:
     // QAbstractItemModel interface
 public:
     bool removeRows(int row, int count, const QModelIndex &parent);
+    void updateParentRelations(Schema2TablesModel *tables);
 };
 
 #endif // SCHEMA2TABLEMODEL_H

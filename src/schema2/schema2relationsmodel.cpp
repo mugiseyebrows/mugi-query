@@ -1,9 +1,10 @@
 #include "schema2relationsmodel.h"
 
 #include "schema2relation.h"
+#include "schema2tablemodel.h"
 
-Schema2RelationsModel::Schema2RelationsModel(QObject *parent)
-    : QAbstractTableModel{parent}
+Schema2RelationsModel::Schema2RelationsModel(Schema2TableModel *table, QObject *parent)
+    : mTable(table), QAbstractTableModel{parent}
 {
 
 }
@@ -15,7 +16,7 @@ Schema2Relation* Schema2RelationsModel::insert(const QString &name, const QStrin
     if (contains(name)) {
         return 0;
     }
-    Schema2Relation* relation = new Schema2Relation(name, childColumns, parentTable,
+    Schema2Relation* relation = new Schema2Relation(mTable, name, childColumns, parentTable,
                                                     parentColumns, constrained, status);
 
     int index = mRelations.size();
@@ -112,32 +113,39 @@ int Schema2RelationsModel::columnCount(const QModelIndex &parent) const
     return cols_count;
 }
 
+
+
 QVariant Schema2RelationsModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid()) {
         return QVariant();
     }
+    /*
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
+        int row = index.row();
         switch(index.column()) {
-        case col_name: return mRelations[index.row()]->name();
-        case col_parent_table: return mRelations[index.row()]->parentTable();
-        case col_child_columns: return mRelations[index.row()]->childColumns().join(", ");
-        case col_parent_columns: return mRelations[index.row()]->parentColumns().join(", ");
+        case col_name: return mRelations[row]->name();
+        case col_child_table: return mTable->tableName();
+        case col_parent_table: return mRelations[row]->parentTable();
+        case col_child_columns: return mRelations[row]->childColumns().join(", ");
+        case col_parent_columns: return mRelations[row]->parentColumns().join(", ");
         }
     }
     if (role == Qt::CheckStateRole) {
         switch(index.column()) {
         case col_constrained: return mRelations[index.row()]->constrained() ? Qt::Checked : Qt::Unchecked;
         }
-    }
-    return QVariant();
+    }*/
+    return mRelations[index.row()]->data(index.column(), role);
 }
 
 
 QVariant Schema2RelationsModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+#if 0
     static QHash<int, QString> header = {
         {col_name,"Name"},
+        {col_child_table, "Child table"},
         {col_child_columns,"Child columns"},
         {col_parent_table,"Parent table"},
         {col_parent_columns,"Parent columns"},
@@ -148,6 +156,11 @@ QVariant Schema2RelationsModel::headerData(int section, Qt::Orientation orientat
         if (orientation == Qt::Horizontal) {
             return header.value(section);
         }
+    }
+#endif
+    QVariant value = Schema2Relation::headerData(section, orientation, role);
+    if (!value.isNull()) {
+        return value;
     }
     return QAbstractTableModel::headerData(section, orientation, role);
 }

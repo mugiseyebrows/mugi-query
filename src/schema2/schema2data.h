@@ -33,7 +33,9 @@ class Schema2Data : public QObject
 public:
     static QHash<int, QString> mOdbcTypes;
 
-    static bool mDontAskOnDrop;
+    static bool mDontAskOnDropTable;
+
+    static bool mDontAskOnDropRelation;
 
     static Schema2Data* instance(const QString& connectionName, QObject *parent = nullptr);
 
@@ -69,7 +71,7 @@ public:
 
     void selectOrDeselect(const QString& table);
 
-    void showRelationsListDialog(QWidget *widget);
+    //void showRelationsListDialog(QWidget *widget);
 
     Schema2TableModel* createTable(const QString& name);
 
@@ -81,9 +83,11 @@ public:
 
     void createRelationDialog(Schema2TableModel* childTable, QStringList childColumns, QString parentTable);
     void createRelationDialog(const QString &childTable, const QString &parentTable, QWidget* widget);
-    void editRelationDialog(Schema2TableModel *childTable, Schema2Relation *relation, QWidget *widget);
-    void dropRelationDialog(const QString &childTable, const QString &parentTable, QWidget *widget);
+    void editRelationDialog(Schema2Relation *relation, QWidget *widget);
+    void dropRelationDialog(Schema2Relation *relation, QWidget *widget);
+    void dropRelationDialog(const QString& childTable, const QString& parentTable, QWidget *widget);
     void dropTableDialog(const QString &table, QWidget *widget);
+    void dropIndexDialog(QWidget *widget);
 
     QString connectionName() const {
         return mConnectionName;
@@ -98,6 +102,9 @@ public:
     void scriptDialog(QWidget* widget);
 
     QSqlDriver *driver() const;
+
+    void showDataStatistics(QWidget* widget);
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 

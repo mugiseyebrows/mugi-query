@@ -82,7 +82,6 @@ private slots:
 
     void on_select_clicked(bool checked);
 
-    void on_relations_clicked();
 
     void on_filterLine_textChanged(const QString &arg1);
 

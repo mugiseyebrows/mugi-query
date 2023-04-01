@@ -2,22 +2,47 @@
 
 #include "tolower.h"
 #include "sqlescaper.h"
+#include "schema2tablemodel.h"
 
 Schema2Relation::Schema2Relation()
 {
 
 }
 
-Schema2Relation::Schema2Relation(const QString &name, const QStringList &childColumns,
+Schema2Relation::Schema2Relation(Schema2TableModel *childTable, const QString &name, const QStringList &childColumns,
                                  const QString &parentTable, const QStringList &parentColumns,
                                  bool constrained, Status status)
-    : mName(name), mChildColumns(childColumns),
+    : mChildTableModel(childTable), mName(name), mChildColumns(childColumns),
       mParentTable(parentTable), mParentColumns(parentColumns),
       mConstrained(constrained), mStatus(status), mOldName(name)
 {
     if (!mConstrained) {
         mStatus = StatusExisting;
     }
+}
+
+QString Schema2Relation::childTable() const {
+    return mChildTableModel->tableName();
+}
+
+Schema2TableModel *Schema2Relation::childTableModel() const {
+    return mChildTableModel;
+}
+
+QString Schema2Relation::name() const {
+    return mName;
+}
+
+QStringList Schema2Relation::childColumns() const {
+    return mChildColumns;
+}
+
+QString Schema2Relation::parentTable() const {
+    return mParentTable;
+}
+
+QStringList Schema2Relation::parentColumns() const {
+    return mParentColumns;
 }
 
 void Schema2Relation::setName(const QString& name) {
@@ -28,6 +53,45 @@ void Schema2Relation::setName(const QString& name) {
     if (mStatus != StatusNew) {
         mStatus = StatusModified;
     }
+}
+
+bool Schema2Relation::constrained() const {
+    return mConstrained;
+}
+
+QVariant Schema2Relation::headerData(int section, int orientation, int role) {
+    static QHash<int, QString> header = {
+        {col_name,"Name"},
+        {col_child_table, "Child table"},
+        {col_child_columns,"Child columns"},
+        {col_parent_table,"Parent table"},
+        {col_parent_columns,"Parent columns"},
+        {col_constrained,"Constrained"}
+    };
+    if (role == Qt::EditRole || role == Qt::DisplayRole) {
+        if (orientation == Qt::Horizontal) {
+            return header.value(section);
+        }
+    }
+    return QVariant();
+}
+
+QVariant Schema2Relation::data(int column, int role) const {
+    if (role == Qt::DisplayRole || role == Qt::EditRole) {
+        switch(column) {
+        case col_name: return mName;
+        case col_child_table: return mChildTableModel->tableName();
+        case col_parent_table: return mParentTable;
+        case col_child_columns: return mChildColumns.join(", ");
+        case col_parent_columns: return mParentColumns.join(", ");
+        }
+    }
+    if (role == Qt::CheckStateRole) {
+        switch(column) {
+        case col_constrained: return constrained() ? Qt::Checked : Qt::Unchecked;
+        }
+    }
+    return QVariant();
 }
 
 void Schema2Relation::setChildColumns(const QStringList &value) {

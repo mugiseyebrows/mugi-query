@@ -42,8 +42,13 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
+#include "sqlescaper.h"
+#include <QHeaderView>
+#include <QSortFilterProxyModel>
 
-/*static*/ bool Schema2Data::mDontAskOnDrop = false;
+/*static*/ bool Schema2Data::mDontAskOnDropTable = false;
+
+/*static*/ bool Schema2Data::mDontAskOnDropRelation = false;
 
 /*static*/ QHash<QString, Schema2Data*> Schema2Data::mData = {};
 
@@ -926,7 +931,7 @@ void Schema2Data::createRelationDialog(const QString &childTable, const QString&
 
     // todo implement multiple relations between same pair of tables
     if (relation) {
-        editRelationDialog(childTableModel, relation, widget);
+        editRelationDialog(relation, widget);
         return;
     }
 
@@ -1025,17 +1030,36 @@ void Schema2Data::createRelationDialog(const QString &childTable, const QString&
 #endif
 }
 
-void Schema2Data::dropRelationDialog(const QString &childTable, const QString& parentTable, QWidget *widget) {
-
+void Schema2Data::dropRelationDialog(Schema2Relation *relation, QWidget *widget) {
+    QString message = QString("Are you sure to drop relation %1?").arg(relation->name());
+    if (!ConfirmationDialog::question(widget, message, &mDontAskOnDropRelation)) {
+        return;
+    }
+    tables()->relationRemoved(relation);
 }
 
-
+void Schema2Data::dropRelationDialog(const QString &childTable, const QString &parentTable, QWidget *widget)
+{
+    auto* table1 = mTables->table(childTable);
+    auto* table2 = mTables->table(parentTable);
+    if (!table1 || !table2) {
+        return;
+    }
+    auto* relation = table1->relationTo(table2->tableName());
+    if (relation) {
+        return dropRelationDialog(relation, widget);
+    }
+    relation = table2->relationTo(table1->tableName());
+    if (relation) {
+        return dropRelationDialog(relation, widget);
+    }
+}
 
 void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
 
     QString message = QString("Are you sure to drop table %1?").arg(tableName);
 
-    if (!ConfirmationDialog::question(widget, message, &mDontAskOnDrop)) {
+    if (!ConfirmationDialog::question(widget, message, &mDontAskOnDropTable)) {
         return;
     }
 
@@ -1081,6 +1105,45 @@ Schema2TablesModel *Schema2Data::tables() const {
 
 QSqlDriver* Schema2Data::driver() const {
     return QSqlDatabase::database(mConnectionName).driver();
+}
+
+
+
+void Schema2Data::showDataStatistics(QWidget *widget)
+{
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    auto tables = db.tables();
+
+    SqlEscaper es(db.driver());
+
+    QStandardItemModel* model = new QStandardItemModel(tables.size(), 2);
+    model->setHorizontalHeaderLabels({"Name", "Rows"});
+
+    for(int row=0;row<tables.size();row++) {
+        QString table = tables[row];
+        QSqlQuery q(db);
+        model->setData(model->index(row, 0), table);
+        if (q.exec(QString("select count(*) from %1").arg(es.table(table)))) {
+            if (q.next()) {
+                model->setData(model->index(row, 1), q.value(0));
+            } else {
+                qDebug() << "q.next() == false" << q.lastError().text() << __FILE__ << __LINE__;
+            }
+        } else {
+            qDebug() << "q.exec() == false" << q.lastError().text() << __FILE__ << __LINE__;
+        }
+    }
+
+    QSortFilterProxyModel* proxyModel = new QSortFilterProxyModel();
+    proxyModel->setSourceModel(model);
+
+    QTableView* view = new QTableView();
+    view->horizontalHeader()->setStretchLastSection(true);
+    view->setSortingEnabled(true);
+
+    view->setModel(proxyModel);
+    showAndRaise(view);
+
 }
 
 void Schema2Data::scriptDialog(QWidget *widget)
@@ -1141,9 +1204,10 @@ QStringList Schema2Data::guessParentColumns(QString childTable, QStringList chil
 #endif
 
 void Schema2Data::editRelationDialog(
-        Schema2TableModel* childTableModel,
         Schema2Relation* relation,
         QWidget* widget) {
+
+    auto* childTableModel = relation->childTableModel();
 
     auto* parentTableModel = mTables->table(relation->parentTable());
 
@@ -1288,9 +1352,9 @@ QSortFilterProxyModel *Schema2Data::selectProxyModel() {
 }
 
 
-
-void Schema2Data::showRelationsListDialog(QWidget* widget) {
 #if 0
+void Schema2Data::showRelationsListDialog(QWidget* widget) {
+
     Schema2RelationsListDialog dialog;
     dialog.init(mTableModels, mRelationModels);
     if (dialog.exec() != QDialog::Accepted) {
@@ -1299,8 +1363,9 @@ void Schema2Data::showRelationsListDialog(QWidget* widget) {
     QString childTable = dialog.childTable();
     QString parentTable = dialog.parentTable();
     showRelationDialog(childTable, parentTable, widget);
-#endif
+
 }
+#endif
 
 Schema2TableModel* Schema2Data::createTable(const QString &name)
 {

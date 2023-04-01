@@ -5,6 +5,7 @@
 
 #include "hash.h"
 class Schema2Relation;
+class Schema2TableModel;
 #include "schema2status.h"
 
 class Schema2RelationsModel : public QAbstractTableModel
@@ -13,6 +14,7 @@ class Schema2RelationsModel : public QAbstractTableModel
 public:
     enum cols {
         col_name,
+        col_child_table,
         col_child_columns,
         col_parent_table,
         col_parent_columns,
@@ -20,7 +22,7 @@ public:
         cols_count
     };
 
-    explicit Schema2RelationsModel(QObject *parent = nullptr);
+    explicit Schema2RelationsModel(Schema2TableModel* table, QObject *parent = nullptr);
 
     Schema2Relation *insert(const QString &name, const QStringList &childColumns, const QString &parentTable,
                                     const QStringList &parentColumns, bool constrained, Status status);
@@ -39,6 +41,9 @@ public:
     Schema2Relation * at(int index) const;
 
 protected:
+
+    Schema2TableModel* mTable;
+
     QList<Schema2Relation*> mRelations;
 
     int indexOf(const QString &name) const ;

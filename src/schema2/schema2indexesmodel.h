@@ -26,7 +26,7 @@ public:
 
     void removeAt(int index);
 
-    Schema2Index* index(const QString& name) const;
+    Schema2Index* get(const QString& name) const;
 
     QStringList queries(const QString &tableName, const QString &driverName, QSqlDriver *driver) const;
 

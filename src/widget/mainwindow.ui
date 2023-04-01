@@ -119,6 +119,9 @@
     <addaction name="dataSave"/>
     <addaction name="dataImport"/>
     <addaction name="dataCompare"/>
+    <addaction name="dataCompareTable"/>
+    <addaction name="dataCompareDatabase"/>
+    <addaction name="dataStatistics"/>
    </widget>
    <widget class="QMenu" name="menuSelection">
     <property name="title">
@@ -368,6 +371,21 @@
   <action name="codeCopyOrder">
    <property name="text">
     <string>Copy order</string>
+   </property>
+  </action>
+  <action name="dataCompareTable">
+   <property name="text">
+    <string>Compare table</string>
+   </property>
+  </action>
+  <action name="dataCompareDatabase">
+   <property name="text">
+    <string>Compare database</string>
+   </property>
+  </action>
+  <action name="dataStatistics">
+   <property name="text">
+    <string>Statistics</string>
    </property>
   </action>
  </widget>

@@ -9,7 +9,7 @@ class Schema2AlterView;
 }
 
 class Schema2TableModel;
-class Schema2RelationModel;
+
 class Schema2Data;
 class Schema2TablesModel;
 
@@ -39,6 +39,7 @@ protected:
 
     void initColumns();
     void initRelations();
+    void initParentRelations();
     void initIndexes();
     QStringList selectedFields() const;
     void createIndex(bool primary, bool unique);

@@ -209,11 +209,6 @@ void Schema2View::on_scale_currentIndexChanged(int index)
     ui->view->setTransform(QTransform().scale(scale, scale));
 }
 
-void Schema2View::on_relations_clicked()
-{
-    mData->showRelationsListDialog(this);
-}
-
 void Schema2View::on_filterLine_textChanged(const QString &text)
 {
     mData->selectProxyModel()->setFilterRegularExpression(QRegularExpression(text, QRegularExpression::CaseInsensitiveOption));

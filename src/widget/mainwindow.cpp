@@ -1112,3 +1112,24 @@ void MainWindow::on_codeCopyOrder_triggered()
     QMessageBox::information(this, "", "Copied to clipboard");
 }
 
+#include "comparetablewidget.h"
+
+void MainWindow::on_dataCompareTable_triggered()
+{
+    CompareTableWidget* widget = new CompareTableWidget();
+    showAndRaise(widget);
+}
+
+
+void MainWindow::on_dataCompareDatabase_triggered()
+{
+
+}
+
+void MainWindow::on_dataStatistics_triggered()
+{
+    QString connectionName = this->connectionName();
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    data->showDataStatistics(this);
+}
+

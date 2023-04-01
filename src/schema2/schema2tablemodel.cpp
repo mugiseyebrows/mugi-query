@@ -8,11 +8,14 @@
 #include "sqlescaper.h"
 #include "filterempty.h"
 #include "drivernames.h"
+#include "schema2parentrelationsmodel.h"
 
 // todo table renames
 
 Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject *parent)
-    : mTableName(name), mStatus(status), mRelations(new Schema2RelationsModel(this)), mIndexes(new Schema2IndexesModel(this)), QAbstractTableModel{parent}
+    : mTableName(name), mStatus(status), mRelations(new Schema2RelationsModel(this, this)),
+      mParentRelations(new Schema2ParentRelationsModel(this)),
+      mIndexes(new Schema2IndexesModel(this)), QAbstractTableModel{parent}
 {
 
 }
@@ -157,6 +160,11 @@ Schema2Relation* Schema2TableModel::insertRelation(const QString &name, const QS
 {
     return mRelations->insert(name, childColumns, parentTable, parentColumns, constrained, status);
 }
+
+void Schema2TableModel::updateParentRelations(Schema2TablesModel* tables) {
+    mParentRelations->update(tables);
+}
+
 
 Schema2Relation* Schema2TableModel::removeRelation(const QString &name)
 {
@@ -359,6 +367,10 @@ QStringList Schema2TableModel::indexNames() const
         res.append(index->name());
     }
     return res;
+}
+
+Schema2ParentRelationsModel *Schema2TableModel::parentRelations() const {
+    return mParentRelations;
 }
 
 int Schema2TableModel::rowCount(const QModelIndex &parent) const

@@ -49,7 +49,7 @@ void Schema2IndexesModel::removeAt(int row)
     endRemoveRows();
 }
 
-Schema2Index *Schema2IndexesModel::index(const QString &name) const {
+Schema2Index *Schema2IndexesModel::get(const QString &name) const {
     int index = find(name);
     if (index > -1) {
         return mIndexes[index];

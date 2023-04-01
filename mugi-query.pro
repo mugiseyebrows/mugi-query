@@ -89,6 +89,7 @@ HEADERS += \
     src/schema2/schema2index.h \
     src/schema2/schema2indexesmodel.h \
     src/schema2/schema2join.h \
+    src/schema2/schema2parentrelationsmodel.h \
     src/schema2/schema2pushview.h \
     src/schema2/schema2relation.h \
     src/schema2/schema2relationdialog2.h \
@@ -123,6 +124,8 @@ HEADERS += \
     src/tolower.h \
     src/tools.h \
     src/version.h \
+    src/widget/comparetableitemwidget.h \
+    src/widget/comparetablewidget.h \
     src/widget/xjoinwidget.h \
     src/widget/xjoinitemwidget.h \
     src/widget/lineselect.h \
@@ -241,6 +244,7 @@ SOURCES += \
     src/schema2/schema2index.cpp \
     src/schema2/schema2indexesmodel.cpp \
     src/schema2/schema2join.cpp \
+    src/schema2/schema2parentrelationsmodel.cpp \
     src/schema2/schema2pushview.cpp \
     src/schema2/schema2relation.cpp \
     src/schema2/schema2relationdialog2.cpp \
@@ -283,6 +287,8 @@ SOURCES += \
     src/model/xyplotmodelitem.cpp \
     src/tolower.cpp \
     src/tools.cpp \
+    src/widget/comparetableitemwidget.cpp \
+    src/widget/comparetablewidget.cpp \
     src/widget/xjoinwidget.cpp \
     src/widget/xjoinitemwidget.cpp \
     src/widget/databasehistorydialog.cpp \
@@ -354,6 +360,8 @@ FORMS += \
     src/schema2/schema2relationslistdialog.ui \
     src/schema2/schema2view.ui \
     src/schema2/schema2relatedtableswidget.ui \
+    src/widget/comparetableitemwidget.ui \
+    src/widget/comparetablewidget.ui \
     src/widget/xjoinwidget.ui \
     src/widget/xjoinitemwidget.ui \
     src/widget/databasehistorydialog.ui \

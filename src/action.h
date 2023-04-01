@@ -32,6 +32,8 @@ public:
         ActionCreateRelation,
         ActionCreatePrimaryKey,
         ActionPushSchema,
+        ActionCompareTable,
+        ActionShowAlterView,
     };
     Action(Type type = ActionEmpty, const QVariantList& args = QVariantList());
     Type type() const;
