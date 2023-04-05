@@ -152,6 +152,8 @@
     <addaction name="codePython"/>
     <addaction name="codePandas"/>
     <addaction name="codeCopyOrder"/>
+    <addaction name="codeRelations"/>
+    <addaction name="codePrimaryKeys"/>
    </widget>
    <widget class="QMenu" name="menuSchema">
     <property name="title">
@@ -386,6 +388,16 @@
   <action name="dataStatistics">
    <property name="text">
     <string>Statistics</string>
+   </property>
+  </action>
+  <action name="codeRelations">
+   <property name="text">
+    <string>Relations</string>
+   </property>
+  </action>
+  <action name="codePrimaryKeys">
+   <property name="text">
+    <string>Primary keys</string>
    </property>
   </action>
  </widget>

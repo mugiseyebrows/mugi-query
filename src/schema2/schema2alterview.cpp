@@ -21,6 +21,7 @@
 #include <QStringListModel>
 #include "showandraise.h"
 #include "schema2relatedtableswidget.h"
+#include "ones.h"
 
 // todo push / pull schema for one table
 
@@ -82,14 +83,6 @@ void Schema2AlterView::initColumns() {
 
     CopyEventFilter::copyTsv(ui->columns);
 
-}
-
-static QList<double> ones(int size) {
-    QList<double> res;
-    for(int i=0;i<size;i++) {
-        res.append(1);
-    }
-    return res;
 }
 
 void Schema2AlterView::initRelations() {

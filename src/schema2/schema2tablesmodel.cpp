@@ -134,6 +134,7 @@ void Schema2TablesModel::setTableItemsPos()
         }
         y += height + spacing;
     }
+    mSetPosQueue.clear();
 }
 
 QList<Schema2TableModel *> Schema2TablesModel::tables() const

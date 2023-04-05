@@ -45,6 +45,10 @@
 #include "sqlescaper.h"
 #include <QHeaderView>
 #include <QSortFilterProxyModel>
+#include "copyeventfilter.h"
+#include "tablestretcher.h"
+#include "ones.h"
+#include <QSqlQueryModel>
 
 /*static*/ bool Schema2Data::mDontAskOnDropTable = false;
 
@@ -326,7 +330,7 @@ QDebug&	operator<<(QDebug debug, const RelationItem& relation) {
 
 static int indexOf(const QList<RelationItem>& relations, const QString& childTable, const QString& constraintName) {
     for(int i=0;i<relations.size();i++) {
-        if (relations[i].childTable == childTable && relations[i].constraintName == constraintName) {
+        if (relations[i].childTable.toLower() == childTable.toLower() && relations[i].constraintName == constraintName) {
             return i;
         }
     }
@@ -338,6 +342,8 @@ void Schema2Data::pullRelationsMysql() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
     QStringList tables = db.tables();
+
+    QStringList tablesLower = toLower(tables);
 
     QSqlQuery q(db);
     q.prepare("SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME "
@@ -359,11 +365,11 @@ void Schema2Data::pullRelationsMysql() {
             continue;
         }
 
-        if (!tables.contains(childTable)) {
+        if (!tables.contains(childTable) && !tablesLower.contains(childTable.toLower())) {
             qDebug() << childTable << __FILE__ << __LINE__;
             continue;
         }
-        if (!tables.contains(parentTable)) {
+        if (!tables.contains(parentTable) && !tablesLower.contains(parentTable.toLower())) {
             qDebug() << childTable << __FILE__ << __LINE__;
             continue;
         }
@@ -391,12 +397,6 @@ void Schema2Data::pullRelationsMysql() {
         //qDebug() << relation;
     }
 
-
-}
-
-void Schema2Data::setTableItemsPos() {
-
-    mTables->setTableItemsPos();
 
 }
 
@@ -696,18 +696,14 @@ void Schema2Data::pull()
     pullTables();
     pullIndexes();
     pullRelations();
-
-    setTableItemsPos();
-
-    //mSelectModel->setList(mTables.keys());
-
+    mTables->setTableItemsPos();
 }
 
 
 
 void Schema2Data::push(QWidget* widget)
 {
-    savePos();
+    mTables->savePos();
 
     QString driverName = QSqlDatabase::database(mConnectionName).driverName();
     auto* driver = this->driver();
@@ -860,7 +856,7 @@ void Schema2Data::save()
 
 void Schema2Data::load()
 {
-    loadPos();
+    mTables->loadPos();
     pull();
 
 }
@@ -1116,34 +1112,115 @@ void Schema2Data::showDataStatistics(QWidget *widget)
 
     SqlEscaper es(db.driver());
 
-    QStandardItemModel* model = new QStandardItemModel(tables.size(), 2);
-    model->setHorizontalHeaderLabels({"Name", "Rows"});
+    auto driverName = this->driverName();
 
-    for(int row=0;row<tables.size();row++) {
-        QString table = tables[row];
+    QAbstractItemModel* statisticsModel = 0;
+
+    if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
+
         QSqlQuery q(db);
-        model->setData(model->index(row, 0), table);
-        if (q.exec(QString("select count(*) from %1").arg(es.table(table)))) {
-            if (q.next()) {
-                model->setData(model->index(row, 1), q.value(0));
-            } else {
-                qDebug() << "q.next() == false" << q.lastError().text() << __FILE__ << __LINE__;
-            }
-        } else {
-            qDebug() << "q.exec() == false" << q.lastError().text() << __FILE__ << __LINE__;
+        q.prepare("select table_name, table_rows, (data_length + index_length) from information_schema.tables where table_schema=?");
+        q.addBindValue(db.databaseName());
+        if (!q.exec()) {
+            qDebug() << q.lastError().text() << __FILE__ << __LINE__;
+            return;
         }
+        QSqlQueryModel* model = new QSqlQueryModel();
+        model->setQuery(q);
+
+        model->setHeaderData(0, Qt::Horizontal, "Name");
+        model->setHeaderData(1, Qt::Horizontal, "Rows");
+        model->setHeaderData(2, Qt::Horizontal, "Size");
+
+        statisticsModel = model;
+
+    } else {
+
+        QStandardItemModel* model = new QStandardItemModel(tables.size(), 2);
+        model->setHorizontalHeaderLabels({"Name", "Rows"});
+        for(int row=0;row<tables.size();row++) {
+            QString table = tables[row];
+            QSqlQuery q(db);
+            model->setData(model->index(row, 0), table);
+            if (q.exec(QString("select count(*) from %1").arg(es.table(table)))) {
+                if (q.next()) {
+                    model->setData(model->index(row, 1), q.value(0));
+                } else {
+                    qDebug() << "q.next() == false" << q.lastError().text() << __FILE__ << __LINE__;
+                }
+            } else {
+                qDebug() << "q.exec() == false" << q.lastError().text() << __FILE__ << __LINE__;
+            }
+        }
+        statisticsModel = model;
     }
 
     QSortFilterProxyModel* proxyModel = new QSortFilterProxyModel();
-    proxyModel->setSourceModel(model);
+    proxyModel->setSourceModel(statisticsModel);
 
     QTableView* view = new QTableView();
     view->horizontalHeader()->setStretchLastSection(true);
     view->setSortingEnabled(true);
 
+    TableStretcher::stretch(view, ones(statisticsModel->columnCount()));
+
     view->setModel(proxyModel);
     showAndRaise(view);
 
+    CopyEventFilter::copyTsv(view);
+
+}
+
+static QString toPythonStr(const QString& value) {
+    return "\"" + value + "\"";
+}
+
+static QString toPythonList(const QStringList& values) {
+    QStringList res;
+    for(const QString& value: values) {
+        res.append(toPythonStr(value));
+    }
+    return "[" + res.join(", ") + "]";
+}
+
+static QString toPythonDict(const QHash<QString, QStringList>& items) {
+    auto keys = items.keys();
+    QStringList res;
+    for(const QString& key: keys) {
+        QString item = QString("%1:%2").arg(toPythonStr(key)).arg(toPythonList(items[key]));
+        res.append(item);
+    }
+    return "{\n" + res.join(",\n") + "\n}";
+}
+
+void Schema2Data::copyRelationsToClipboard(QWidget *widget) {
+    QStringList items;
+    auto tables = mTables->tables();
+    for(auto* table: tables) {
+        auto relations = table->relations()->values();
+        for(auto* relation: relations) {
+            QString item = QString("(%1, %2, %3, %4)")
+                    .arg(toPythonStr(relation->childTable()))
+                    .arg(toPythonStr(relation->parentTable()))
+                    .arg(toPythonList(relation->childColumns()))
+                    .arg(toPythonList(relation->parentColumns()));
+            items.append(item);
+        }
+    }
+    QString text = "[" + items.join(",\n") + "\n]\n";
+    qApp->clipboard()->setText(text);
+    QMessageBox::information(widget, "", "Copied to clipboard");
+}
+
+void Schema2Data::copyPrimaryKeysToClipboard(QWidget *widget) {
+    QHash<QString, QStringList> items;
+    auto tables = mTables->tables();
+    for(auto* table: tables) {
+        items[table->tableName()] = table->indexes()->primaryKey();
+    }
+    QString text = toPythonDict(items);
+    qApp->clipboard()->setText(text);
+    QMessageBox::information(widget, "", "Copied to clipboard");
 }
 
 void Schema2Data::scriptDialog(QWidget *widget)
@@ -1324,16 +1401,6 @@ void Schema2Data::showAlterView(const QString &tableName)
 void Schema2Data::showInsertView(const QString &tableName)
 {
 
-}
-
-void Schema2Data::loadPos()
-{
-    mTables->loadPos();
-}
-
-void Schema2Data::savePos()
-{
-    mTables->savePos();
 }
 
 void Schema2Data::arrange()

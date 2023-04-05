@@ -134,6 +134,10 @@ private slots:
 
     void on_dataStatistics_triggered();
 
+    void on_codeRelations_triggered();
+
+    void on_codePrimaryKeys_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

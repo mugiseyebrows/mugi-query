@@ -72,6 +72,7 @@ HEADERS += \
     src/model/xjoinmodel.h \
     src/modelappender.h \
     src/modelcolumn.h \
+    src/ones.h \
     src/outputtype.h \
     src/qisnumerictype.h \
     src/queryparser.h \
@@ -227,6 +228,7 @@ SOURCES += \
     src/model/xjoinmodel.cpp \
     src/modelappender.cpp \
     src/modelcolumn.cpp \
+    src/ones.cpp \
     src/outputtype.cpp \
     src/qisnumerictype.cpp \
     src/queryparser.cpp \

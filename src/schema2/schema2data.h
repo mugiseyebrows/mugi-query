@@ -59,10 +59,6 @@ public:
 
     void showInsertView(const QString &tableName);
 
-    void loadPos();
-
-    void savePos();
-
     void arrange();
 
     QList<Schema2Join> findJoin(const QStringList& join);
@@ -105,6 +101,8 @@ public:
 
     void showDataStatistics(QWidget* widget);
 
+    void copyRelationsToClipboard(QWidget *widget);
+    void copyPrimaryKeysToClipboard(QWidget *widget);
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 
@@ -148,8 +146,6 @@ protected:
     void pullRelationsOdbc();
 
     //void unoverlapTables();
-    void setTableItemsPos();
-
 
     //void relationPulled(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns, bool constrained, Status status);
 

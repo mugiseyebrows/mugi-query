@@ -1133,3 +1133,19 @@ void MainWindow::on_dataStatistics_triggered()
     data->showDataStatistics(this);
 }
 
+
+void MainWindow::on_codeRelations_triggered()
+{
+    QString connectionName = this->connectionName();
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    data->copyRelationsToClipboard(this);
+}
+
+
+void MainWindow::on_codePrimaryKeys_triggered()
+{
+    QString connectionName = this->connectionName();
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    data->copyPrimaryKeysToClipboard(this);
+}
+
