@@ -145,7 +145,7 @@ static int findBestPos(const Node& node, const QList<Node>& positioned, const QL
 
 
 
-static QList<Node> buildNodes(Schema2TablesModel* tablesModel) {
+static QList<Node> buildNodes(Schema2TablesModel* tablesModel, bool all) {
 
     QList<Node> nodes;
 
@@ -153,21 +153,38 @@ static QList<Node> buildNodes(Schema2TablesModel* tablesModel) {
 
     auto tables = tablesModel->tableNames();
 
+    QStringList skip;
+    if (!all) {
+        auto items = tablesModel->tableItems();
+        for(auto* item: items) {
+            if (item->grayed()) {
+                skip.append(item->tableName().toLower());
+            }
+        }
+    }
+
     QList<QStringList> relationsList;
 
     for(const QString& table: tables) {
         auto relations = tablesModel->table(table)->relations()->values();
         for(auto* relation: relations) {
-            auto table1 = table.toLower();
+            auto childTable = table.toLower();
             auto parentTable = relation->parentTable().toLower();
-            if (table1 != parentTable) {
-                relationsList.append({table1, parentTable});
+            if (skip.contains(childTable) || skip.contains(parentTable)) {
+                continue;
+            }
+            if (childTable != parentTable) {
+                relationsList.append({childTable, parentTable});
             }
         }
     }
 
     for(const QString& table: tables) {
         Node node(table);
+        if (skip.contains(table.toLower())) {
+            continue;
+        }
+
         for(const QStringList item: relationsList) {
             if (table.toLower() == item[0]) {
                 node.connections.append(item[1]);
@@ -192,7 +209,7 @@ static void setPos(QList<Node>& nodes, int nodeIndex, QList<Node>& positioned, i
 
 
 
-void arrangeTables(GridType type, Schema2TablesModel* tablesModel) {
+void arrangeTables(GridType type, Schema2TablesModel* tablesModel, bool all) {
 
     auto tables = tablesModel->tableNames();
 
@@ -201,7 +218,7 @@ void arrangeTables(GridType type, Schema2TablesModel* tablesModel) {
     }
 
     QList<QPointF> grid = createGrid(type, tables.size());
-    QList<Node> nodes = buildNodes(tablesModel);
+    QList<Node> nodes = buildNodes(tablesModel, all);
     QList<Node> positioned = {};
 
     int gridIndex = findCenter(grid);

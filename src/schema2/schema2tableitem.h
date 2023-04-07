@@ -5,10 +5,12 @@
 
 class Schema2TableModel;
 class Schema2RelationItem2;
+#include "uncheckedmode.h"
 
 class Schema2TableItem : public QGraphicsItem
 {
 public:
+
     Schema2TableItem(Schema2TableModel* model, QGraphicsItem *parent = nullptr);
 
     void addRelation(Schema2RelationItem2 *relation);
@@ -30,6 +32,12 @@ public:
         return mModel;
     }
 
+    UncheckedMode uncheckedMode() const {
+        return mMode;
+    }
+
+    void setUncheckedMode(UncheckedMode mode);
+
 #if 0
     bool isIndexColumn(const QString& column) const;
 #endif
@@ -39,6 +47,7 @@ protected:
     Schema2TableModel* mModel;
     QList<Schema2RelationItem2*> mRelations;
     bool mGrayed;
+    UncheckedMode mMode = UncheckedGrayed;
 
     // QGraphicsItem interface
 protected:

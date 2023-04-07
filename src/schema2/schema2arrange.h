@@ -17,7 +17,7 @@ enum GridType {
     GridTriangle
 };
 
-void arrangeTables(GridType type, Schema2TablesModel *tablesModel);
+void arrangeTables(GridType type, Schema2TablesModel *tablesModel, bool all);
 
 
 #endif // SCHEMA2ARRANGE_H

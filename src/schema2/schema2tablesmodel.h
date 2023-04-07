@@ -12,7 +12,7 @@ class QSqlDriver;
 #include <QPointF>
 #include "hash.h"
 #include "schema2status.h"
-
+#include "uncheckedmode.h"
 
 class Schema2TablesModel : public QAbstractTableModel
 {
@@ -28,9 +28,13 @@ public:
 
     Schema2TableModel *tableRemoved(const QString &tableName);
 
-    Schema2TableItem* tableItem(const QString& name);
+    QList<Schema2TableItem*> tableItems() const;
+
+    Schema2TableItem* tableItem(const QString& name) const;
 
     void setGrayed(const QString& name, bool value);
+
+    void setAllGrayed(bool value);
 
     void loadPos();
 
@@ -62,6 +66,8 @@ public:
         mDropRelationsQueue.removeOne({name, relation});
     }
 
+    void setUncheckedMode(UncheckedMode mode);
+
 
 protected:
 
@@ -81,7 +87,7 @@ protected:
 
     QString mConnectionName;
 
-    int indexOf(const QString &name);
+    int indexOf(const QString &name) const;
 signals:
 
     void tableClicked(QString);

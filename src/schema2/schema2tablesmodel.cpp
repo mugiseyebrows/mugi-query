@@ -19,7 +19,7 @@ Schema2TablesModel::Schema2TablesModel(const QString& connectionName, QGraphicsS
 
 }
 
-int Schema2TablesModel::indexOf(const QString& name) {
+int Schema2TablesModel::indexOf(const QString& name) const {
 
     for(int i=0;i<mTableModels.size();i++) {
         if (mTableModels[i]->tableName().toLower() == name.toLower()) {
@@ -83,7 +83,12 @@ Schema2TableModel* Schema2TablesModel::tableRemoved(const QString &tableName)
     return model;
 }
 
-Schema2TableItem *Schema2TablesModel::tableItem(const QString &name) {
+QList<Schema2TableItem *> Schema2TablesModel::tableItems() const
+{
+    return mTableItems;
+}
+
+Schema2TableItem *Schema2TablesModel::tableItem(const QString &name) const {
     int index = indexOf(name);
     if (index < 0) {
         return 0;
@@ -98,6 +103,14 @@ void Schema2TablesModel::setGrayed(const QString &name, bool value) {
         return;
     }
     table->setGrayed(value);
+}
+
+void Schema2TablesModel::setAllGrayed(bool value)
+{
+    for(auto* item: mTableItems) {
+        item->setGrayed(value);
+    }
+    emit dataChanged(index(0,0), index(rowCount() - 1, columnCount() - 1));
 }
 
 void Schema2TablesModel::loadPos() {
@@ -207,6 +220,13 @@ Schema2RelationItem2* Schema2TablesModel::findItem(Schema2Relation* relation,
         }
     }
     return 0;
+}
+
+void Schema2TablesModel::setUncheckedMode(UncheckedMode mode)
+{
+    for(auto* item: mTableItems) {
+        item->setUncheckedMode(mode);
+    }
 }
 
 QStringList Schema2TablesModel::createTablesQueries(const QString& driverName, QSqlDriver *driver) const

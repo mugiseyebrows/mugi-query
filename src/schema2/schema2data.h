@@ -59,7 +59,7 @@ public:
 
     void showInsertView(const QString &tableName);
 
-    void arrange();
+    void arrange(bool all);
 
     QList<Schema2Join> findJoin(const QStringList& join);
 
@@ -103,6 +103,9 @@ public:
 
     void copyRelationsToClipboard(QWidget *widget);
     void copyPrimaryKeysToClipboard(QWidget *widget);
+
+    void saveImage(const QString& path, QWidget *widget);
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 

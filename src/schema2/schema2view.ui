@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1499</width>
-    <height>451</height>
+    <width>899</width>
+    <height>482</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,6 +16,69 @@
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="create">
+       <property name="text">
+        <string>Create</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="arrange">
+       <property name="text">
+        <string>Arrange</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pull">
+       <property name="text">
+        <string>Pull</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="push">
+       <property name="text">
+        <string>Push</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="zoomOut">
+       <property name="text">
+        <string>-</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="scale"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="zoomIn">
+       <property name="text">
+        <string>+</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="script">
+       <property name="text">
+        <string>Script</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveImage">
+       <property name="text">
+        <string>Save image</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QPushButton" name="move">
        <property name="text">
@@ -83,58 +146,6 @@
        </property>
        <property name="checkable">
         <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="create">
-       <property name="text">
-        <string>Create</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="arrange">
-       <property name="text">
-        <string>Arrange</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pull">
-       <property name="text">
-        <string>Pull</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="push">
-       <property name="text">
-        <string>Push</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="zoomOut">
-       <property name="text">
-        <string>-</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="scale"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="zoomIn">
-       <property name="text">
-        <string>+</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="script">
-       <property name="text">
-        <string>Script</string>
        </property>
       </widget>
      </item>

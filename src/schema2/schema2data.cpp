@@ -1223,6 +1223,31 @@ void Schema2Data::copyPrimaryKeysToClipboard(QWidget *widget) {
     QMessageBox::information(widget, "", "Copied to clipboard");
 }
 
+#include <QSvgGenerator>
+
+void Schema2Data::saveImage(const QString &path, QWidget *widget)
+{
+
+    if (path.toLower().endsWith(".png")) {
+
+    } else if (path.toLower().endsWith(".svg")) {
+
+        QSvgGenerator generator;
+
+        auto rect = mView->sceneRect();
+
+        generator.setFileName(path);
+        generator.setSize(rect.size().toSize());
+        generator.setViewBox(rect);
+        QPainter painter;
+        painter.begin(&generator);
+        mScene->render(&painter, rect);
+        painter.end();
+
+    }
+
+}
+
 void Schema2Data::scriptDialog(QWidget *widget)
 {
     auto driverName = this->driverName();
@@ -1403,10 +1428,10 @@ void Schema2Data::showInsertView(const QString &tableName)
 
 }
 
-void Schema2Data::arrange()
+void Schema2Data::arrange(bool all)
 {
     //squareArrange(mTableItems.keys(), mRelationModels, mTableItems);
-    arrangeTables(GridTriangle, mTables);
+    arrangeTables(GridTriangle, mTables, all);
 }
 
 QList<Schema2Join> Schema2Data::findJoin(const QStringList &join)

@@ -40,6 +40,9 @@ public:
     static QStringList mScalesText;
 
     Schema2TableModel* createTable(const QString &tableName);
+
+    QRectF sceneRect() const;
+
 public slots:
     void onTableClicked(QString tableName);
 
@@ -92,6 +95,16 @@ private slots:
     friend class Automation;
 
     void on_script_clicked();
+
+    void on_checkAll_clicked();
+
+    void on_uncheckAll_clicked();
+
+    void on_grayed_clicked();
+
+    void on_invisible_clicked();
+
+    void on_saveImage_clicked();
 
 private:
     Ui::Schema2View *ui;

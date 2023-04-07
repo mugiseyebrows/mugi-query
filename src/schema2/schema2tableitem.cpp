@@ -40,7 +40,9 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     int w = 200;
     int s = 25;
 
-
+    if (mGrayed && mMode == UncheckedInvisible) {
+        return;
+    }
 
     painter->setFont(QFont("Liberation Sans", 11));
 
@@ -113,6 +115,17 @@ void Schema2TableItem::setGrayed(bool value)
         return;
     }
     mGrayed = value;
+    update();
+    for(Schema2RelationItem2* item: mRelations) {
+        item->update();
+    }
+}
+
+void Schema2TableItem::setUncheckedMode(UncheckedMode mode) {
+    if (mMode == mode) {
+        return;
+    }
+    mMode = mode;
     update();
     for(Schema2RelationItem2* item: mRelations) {
         item->update();

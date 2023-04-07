@@ -74,6 +74,16 @@ void Schema2RelationItem2::paint(QPainter *painter, const QStyleOptionGraphicsIt
                                  QWidget *widget)
 {
 
+    if (mParentTable == mChildTable) {
+        return;
+    }
+
+    bool grayed = mParentTable->grayed() || mChildTable->grayed();
+
+    if (grayed && mParentTable->uncheckedMode() == UncheckedInvisible) {
+        return;
+    }
+
     //QRectF rect = boundingRect();
     //painter->drawRect(rect);
 
@@ -87,7 +97,7 @@ void Schema2RelationItem2::paint(QPainter *painter, const QStyleOptionGraphicsIt
     bool ok1;
     bool ok2;
 
-    bool grayed = mParentTable->grayed() || mChildTable->grayed();
+
 
     painter->setPen(grayed ? QColor("#888888") : QColor("#000000"));
     painter->setBrush(grayed ? QColor("#888888") : QColor("#000000"));

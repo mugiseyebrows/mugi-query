@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql axcontainer
+QT       += core gui sql axcontainer svg
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -49,6 +49,7 @@ HEADERS += \
     src/action.h \
     src/automate.h \
     src/automation.h \
+    src/choicedialog.h \
     src/clicklistener.h \
     src/colorpalette.h \
     src/confirmationdialog.h \
@@ -112,6 +113,7 @@ HEADERS += \
     src/schema2/sqlescaper.h \
     src/schema2/tablestretcher.h \
     src/schema2/schema2relationguesser.h \
+    src/schema2/uncheckedmode.h \
     src/sessionitem.h \
     src/setdefaultcolors.h \
     src/setheaderdata.h \
@@ -205,6 +207,7 @@ SOURCES += \
     src/action.cpp \
     src/automate.cpp \
     src/automation.cpp \
+    src/choicedialog.cpp \
     src/clicklistener.cpp \
     src/colorpalette.cpp \
     src/confirmationdialog.cpp \
@@ -268,6 +271,7 @@ SOURCES += \
     src/schema2/sqlescaper.cpp \
     src/schema2/tablestretcher.cpp \
     src/schema2/schema2relationguesser.cpp \
+    src/schema2/uncheckedmode.cpp \
     src/sessionitem.cpp \
     src/setdefaultcolors.cpp \
     src/setheaderdata.cpp \
@@ -353,6 +357,7 @@ SOURCES += \
     src/model/datacomparemodel.cpp
 
 FORMS += \
+    src/choicedialog.ui \
     src/confirmationdialog.ui \
     src/schema2/datacomparewidget2.ui \
     src/schema2/datacomparewidgetitem.ui \
