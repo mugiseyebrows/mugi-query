@@ -4,8 +4,8 @@ def main
     set_path(
         C:\Qt\Tools\mingw810_64\bin,
         C:\Qt\5.15.2\mingw81_64\bin,
-        C:\mysql-8.0.31-winx64\lib,
-        C:\mysql-8.0.31-winx64\bin,
+        C:\mysql-8.0.33-winx64\lib,
+        C:\mysql-8.0.33-winx64\bin,
         C:\Qwt-6.2.0\lib,
         C:\Program Files\PostgreSQL\14\bin,
         C:\Miniconda3,
@@ -26,8 +26,8 @@ def main
     copy_file(qsqlmysql-qt5.15.2-mingw8.1.0-x86_64\qsqlmysqld.dll, C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers)
     pyfind C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers
     #pyfind C:\mysql -iname *.dll
-    download(https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-8.0.31-winx64.zip, mysql-8.0.31-winx64.zip)
-    unzip(mysql-8.0.31-winx64.zip, :o=C:\)
+    download(https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-8.0.33-winx64.zip, mysql-8.0.33-winx64.zip)
+    unzip(mysql-8.0.33-winx64.zip, :o=C:\)
     download(https://github.com/mugiseyebrows/qwt-builds/releases/download/qwt6.2.0-qt5.15.2/qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip, qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip)
     unzip(qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip, :o=C:\)
     qmake
