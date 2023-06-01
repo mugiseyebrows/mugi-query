@@ -68,7 +68,7 @@ static bool find_mysql(QWidget* widget, bool mysql) {
 void Tools::mysql(QSqlDatabase db, QWidget *widget)
 {
 
-    ToolMysqlDialog dialog(widget);
+    ToolMysqlDialog dialog(ToolMysqlDialog::OneFile, widget);
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
@@ -79,37 +79,50 @@ void Tools::mysql(QSqlDatabase db, QWidget *widget)
 
     QString mysql = Settings::instance()->mysqlPath();
 
-    QString input = dialog.input();
+    QStringList inputs = dialog.inputs();
 
-    QStringList args = mysql_args(db);
-
-    QProgressDialog progress;
-    progress.show();
-    qApp->processEvents();
-
-    QProcess process;
-    process.setProgram(mysql);
-    process.setArguments(args);
-
-    process.setStandardInputFile(input);
-
-    process.start();
-
-    if (!process.waitForStarted()) {
-        QMessageBox::critical(widget, "", QString("WaitForStarted error %1").arg(process.errorString()));
+    if (inputs.isEmpty()) {
         return;
     }
 
-    if (!process.waitForFinished(MYSQL_TIMEOUT)) {
-        QMessageBox::critical(widget, "Error", QString("WaitForFinished error %1").arg(process.errorString()));
+    QProgressDialog progress(widget);
+    progress.show();
+    progress.setMaximum(inputs.size());
+    qApp->processEvents();
+
+    QStringList args = mysql_args(db);
+
+    int complete = 0;
+    for(const QString& input: qAsConst(inputs)) {
+        QProcess process;
+        process.setProgram(mysql);
+        process.setArguments(args);
+
+        process.setStandardInputFile(input);
+
+        process.start();
+
+        complete += 1;
+
+        if (!process.waitForStarted()) {
+            QMessageBox::critical(widget, "", QString("WaitForStarted error %1").arg(process.errorString()));
+            continue;
+        }
+
+        if (!process.waitForFinished(MYSQL_TIMEOUT)) {
+            QMessageBox::critical(widget, "Error", QString("WaitForFinished error %1").arg(process.errorString()));
+        }
+
+        QByteArray stderrData = process.readAllStandardError();
+
+        if (!stderrData.isEmpty()) {
+            QMessageBox::critical(widget, "Error", QString::fromUtf8(stderrData));
+        }
+        progress.setValue(complete);
+        qApp->processEvents();
     }
 
-    QByteArray stderrData = process.readAllStandardError();
-
-    if (!stderrData.isEmpty()) {
-        QMessageBox::critical(widget, "Error", QString::fromUtf8(stderrData));
-    }
-
+    progress.close();
 }
 
 void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
@@ -139,10 +152,22 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
 
     QStringList args = mysql_args(db);
 
+    bool multipleFiles = dialog.multipleFiles();
+
     QDir dir;
     dir.mkpath(output);
 
-    if (dialog.multipleFiles()) {
+    if (multipleFiles) {
+
+        QString schema_base = QDir(output).filePath("schema");
+        QString data_base = QDir(output).filePath("data");
+
+        if (schema) {
+            dir.mkpath(schema_base);
+        }
+        if (data) {
+            dir.mkpath(data_base);
+        }
 
         QProgressDialog progress;
         progress.setMaximum(tables.size());
@@ -151,7 +176,7 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
 
         for(int i=0;i<tables.size();i++) {
             if (schema) {
-                QString path = QDir(output).filePath(QString("%1-schema.sql").arg(tables[i]));
+                QString path = QDir(schema_base).filePath(QString("%1.sql").arg(tables[i]));
                 QStringList args_ = args;
                 args_.append("--no-data");
                 args_.append(tables[i]);
@@ -175,7 +200,7 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
                 }
             }
             if (data) {
-                QString path = QDir(output).filePath(QString("%1-data.sql").arg(tables[i]));
+                QString path = QDir(data_base).filePath(QString("%1.sql").arg(tables[i]));
                 QStringList args_ = args;
                 args_.append("--no-create-info");
                 args_.append(tables[i]);
@@ -211,7 +236,16 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
         progress.show();
         qApp->processEvents();
 
-        QString path = QDir(output).filePath("dump.sql");
+        QString name = "dump.sql";
+        if (schema && data) {
+            name = "schema-and-data.sql";
+        } else if (!schema) {
+            name = "data.sql";
+        } else if (!data) {
+            name = "schema.sql";
+        }
+
+        QString path = QDir(output).filePath(name);
         QStringList args_ = args;
         if (!schema) {
             args_.append("--no-create-info");

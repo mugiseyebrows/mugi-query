@@ -1149,3 +1149,62 @@ void MainWindow::on_codePrimaryKeys_triggered()
     data->copyPrimaryKeysToClipboard(this);
 }
 
+#include "datatruncatedialog.h"
+#include <QTableView>
+#include <QProgressDialog>
+
+void MainWindow::on_dataTruncate_triggered()
+{
+    QSqlDatabase db = database();
+    if (!db.isValid() || db.driverName() != DRIVER_MYSQL) {
+        return;
+    }
+    DataTruncateDialog dialog(db, this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    QStringList tables = dialog.tables();
+    QStringList errors;
+
+    QProgressDialog progress(this);
+    progress.show();
+    progress.setMaximum(tables.size());
+    qApp->processEvents();
+
+    int complete = 0;
+
+    for(const QString& table: tables) {
+        QSqlQuery q(db);
+        if (!q.exec(QString("truncate `%1`").arg(table))) {
+            //errors.append(q.lastError().text());
+            if (!q.exec(QString("delete from `%1` where 1").arg(table))) {
+                errors.append(q.lastError().text());
+            }
+        }
+        complete += 1;
+        progress.setValue(complete);
+        qApp->processEvents();
+    }
+
+    if (!errors.isEmpty()) {
+        QTableView* view = new QTableView();
+
+        QTimer::singleShot(0,[=](){
+            QRect rect = view->geometry();
+            rect.setSize(QSize(600,500));
+            view->setGeometry(rect);
+        });
+
+        QStringListModel* model = new QStringListModel(errors, view);
+        view->setModel(model);
+        view->horizontalHeader()->setStretchLastSection(true);
+        view->verticalHeader()->setDefaultSectionSize(100);
+        view->horizontalHeader()->setVisible(false);
+        view->setWindowTitle("Errors");
+        view->show();
+    } else {
+        QMessageBox::information(this, "Success", QString("Succesfully truncated %1 tables").arg(tables.size()));
+    }
+
+}
+

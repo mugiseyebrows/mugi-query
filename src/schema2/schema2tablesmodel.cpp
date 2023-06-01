@@ -309,7 +309,16 @@ bool Schema2TablesModel::setData(const QModelIndex &index, const QVariant &value
     }
     if (role == Qt::CheckStateRole) {
         bool checked = value.toInt() == Qt::Checked;
-        mTableItems[index.row()]->setGrayed(!checked);
+
+        auto* item = mTableItems[index.row()];
+
+        item->setGrayed(!checked);
+
+        if (checked) {
+            mScene->removeItem(item);
+            mScene->addItem(item);
+        }
+
         emit dataChanged(index, index);
     }
     return false;

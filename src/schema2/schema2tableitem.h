@@ -22,6 +22,8 @@ public:
 
     void setCenterPos(const QPointF& point);
 
+    QPointF centerPos() const;
+
     void setGrayed(bool value);
 
     bool grayed() const {

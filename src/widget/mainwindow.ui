@@ -122,6 +122,7 @@
     <addaction name="dataCompareTable"/>
     <addaction name="dataCompareDatabase"/>
     <addaction name="dataStatistics"/>
+    <addaction name="dataTruncate"/>
    </widget>
    <widget class="QMenu" name="menuSelection">
     <property name="title">
@@ -398,6 +399,11 @@
   <action name="codePrimaryKeys">
    <property name="text">
     <string>Primary keys</string>
+   </property>
+  </action>
+  <action name="dataTruncate">
+   <property name="text">
+    <string>Truncate</string>
    </property>
   </action>
  </widget>

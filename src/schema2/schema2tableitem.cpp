@@ -109,6 +109,11 @@ void Schema2TableItem::setCenterPos(const QPointF &point)
     setPos(point - boundingRect().center());
 }
 
+QPointF Schema2TableItem::centerPos() const
+{
+    return this->pos() + boundingRect().center();
+}
+
 void Schema2TableItem::setGrayed(bool value)
 {
     if (mGrayed == value) {

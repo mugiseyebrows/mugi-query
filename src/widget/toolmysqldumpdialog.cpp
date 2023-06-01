@@ -6,25 +6,31 @@
 #include <QDir>
 #include <QDateTime>
 #include <QSortFilterProxyModel>
+#include "model/checkablemodel.h"
 
 ToolMysqldumpDialog::ToolMysqldumpDialog(QSqlDatabase db, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::ToolMysqldumpDialog),
+    ui(new Ui::ToolMysqldumpDialog)/*,
     mProxyModel(new QSortFilterProxyModel(this)),
-    mModel(new QStandardItemModel(this))
+    mModel(new CheckableModel(this))*/
 {
     ui->setupUi(this);
 
     QStringList tables = db.tables();
-    for(int row=0; row<tables.size(); row++) {
+    ui->tables->append(tables);
+
+ #if 0
+    /*for(int row=0; row<tables.size(); row++) {
         QStandardItem* item = new QStandardItem(tables[row]);
         item->setCheckable(true);
         mModel->appendRow(item);
-    }
+    }*/
+    mModel->append(tables);
 
     mProxyModel->setSourceModel(mModel);
 
     ui->tables->setModel(mProxyModel);
+#endif
 
     QString path = QDir(QStandardPaths::writableLocation(QStandardPaths::HomeLocation))
             .filePath(QString("%1_%2").arg(db.databaseName(), QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss")));
@@ -64,7 +70,7 @@ bool ToolMysqldumpDialog::multipleFiles() const
 
 QStringList ToolMysqldumpDialog::tables() const
 {
-    QAbstractItemModel* model = mModel;
+    /*QAbstractItemModel* model = mModel;
     QStringList tables;
     for(int row=0;row<model->rowCount();row++) {
         auto index = model->index(row, 0);
@@ -72,7 +78,8 @@ QStringList ToolMysqldumpDialog::tables() const
             tables.append(model->data(index).toString());
         }
     }
-    return tables;
+    return tables;*/
+    return ui->tables->checked();
 }
 
 void ToolMysqldumpDialog::on_multipleFiles_clicked(bool checked)
@@ -80,25 +87,28 @@ void ToolMysqldumpDialog::on_multipleFiles_clicked(bool checked)
     //ui->output->setMode(checked ? LineSelect::ModeDir : LineSelect::ModeFileSave);
 }
 
+#if 0
 static void setChecked(QAbstractItemModel* model, Qt::CheckState state) {
     for(int row=0;row<model->rowCount();row++) {
         auto index = model->index(row, 0);
         model->setData(index, state, Qt::CheckStateRole);
     }
 }
+#endif
 
+#if 0
 void ToolMysqldumpDialog::on_checkAll_clicked()
 {
-    setChecked(mModel, Qt::Checked);
+    mModel->setChecked(Qt::Checked);
 }
 
 void ToolMysqldumpDialog::on_uncheckAll_clicked()
 {
-    setChecked(mModel, Qt::Unchecked);
+    mModel->setChecked(Qt::Unchecked);
 }
 
 void ToolMysqldumpDialog::on_filter_textChanged(const QString &text)
 {
     mProxyModel->setFilterFixedString(text);
 }
-
+#endif

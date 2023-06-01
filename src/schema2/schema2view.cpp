@@ -262,11 +262,18 @@ void Schema2View::on_invisible_clicked()
 void Schema2View::on_saveImage_clicked()
 {
     ChoiceDialog dialog;
-    dialog.init({"png", "svg"}, 0);
+    dialog.init({"Svg", "Png", "Dot"}, 0);
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
-    auto filter = dialog.checkedIndex() == 0 ? "Png files (*.png)" : "Svg files (*.svg)";
+
+    QStringList filters = {
+        "Svg files (*.svg)",
+        "Png files (*.png)",
+        "Dot files (*.dot)",
+    };
+
+    auto filter = filters[dialog.checkedIndex()];
 
     QString path = QFileDialog::getSaveFileName(this, QString(), QString(), filter);
     if (path.isEmpty()) {
@@ -274,6 +281,5 @@ void Schema2View::on_saveImage_clicked()
     }
 
     mData->saveImage(path, this);
-
 }
 

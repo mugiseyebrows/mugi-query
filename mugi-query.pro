@@ -70,6 +70,7 @@ HEADERS += \
     src/jointoken.h \
     src/jointokenlist.h \
     src/jsonhelper.h \
+    src/model/checkablemodel.h \
     src/model/xjoinmodel.h \
     src/modelappender.h \
     src/modelcolumn.h \
@@ -127,8 +128,10 @@ HEADERS += \
     src/tolower.h \
     src/tools.h \
     src/version.h \
+    src/widget/checkableview.h \
     src/widget/comparetableitemwidget.h \
     src/widget/comparetablewidget.h \
+    src/widget/datatruncatedialog.h \
     src/widget/xjoinwidget.h \
     src/widget/xjoinitemwidget.h \
     src/widget/lineselect.h \
@@ -228,6 +231,7 @@ SOURCES += \
     src/jointokenlist.cpp \
     src/jsonhelper.cpp \
     src/main.cpp \
+    src/model/checkablemodel.cpp \
     src/model/xjoinmodel.cpp \
     src/modelappender.cpp \
     src/modelcolumn.cpp \
@@ -293,8 +297,10 @@ SOURCES += \
     src/model/xyplotmodelitem.cpp \
     src/tolower.cpp \
     src/tools.cpp \
+    src/widget/checkableview.cpp \
     src/widget/comparetableitemwidget.cpp \
     src/widget/comparetablewidget.cpp \
+    src/widget/datatruncatedialog.cpp \
     src/widget/xjoinwidget.cpp \
     src/widget/xjoinitemwidget.cpp \
     src/widget/databasehistorydialog.cpp \
@@ -367,8 +373,10 @@ FORMS += \
     src/schema2/schema2relationslistdialog.ui \
     src/schema2/schema2view.ui \
     src/schema2/schema2relatedtableswidget.ui \
+    src/widget/checkableview.ui \
     src/widget/comparetableitemwidget.ui \
     src/widget/comparetablewidget.ui \
+    src/widget/datatruncatedialog.ui \
     src/widget/xjoinwidget.ui \
     src/widget/xjoinitemwidget.ui \
     src/widget/databasehistorydialog.ui \

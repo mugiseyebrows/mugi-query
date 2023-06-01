@@ -138,6 +138,8 @@ private slots:
 
     void on_codePrimaryKeys_triggered();
 
+    void on_dataTruncate_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

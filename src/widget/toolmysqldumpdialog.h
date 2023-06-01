@@ -9,7 +9,7 @@ class ToolMysqldumpDialog;
 }
 
 class QSortFilterProxyModel;
-class QStandardItemModel;
+class CheckableModel;
 
 class ToolMysqldumpDialog : public QDialog
 {
@@ -32,16 +32,20 @@ public:
 private slots:
     void on_multipleFiles_clicked(bool checked);
 
+#if 0
     void on_checkAll_clicked();
 
     void on_uncheckAll_clicked();
 
     void on_filter_textChanged(const QString &arg1);
+#endif
 
 protected:
     Ui::ToolMysqldumpDialog *ui;
+#if 0
     QSortFilterProxyModel* mProxyModel;
-    QStandardItemModel* mModel;
+    CheckableModel* mModel;
+#endif
 };
 
 #endif // TOOLMYSQLDUMPDIALOG_H
