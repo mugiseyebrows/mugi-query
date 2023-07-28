@@ -70,6 +70,7 @@ void Settings::save()
     obj["DateTimeUseLocale"] = mDateTimeUseLocale;
     obj["MysqlPath"] = mMysqlPath;
     obj["MysqldumpPath"] = mMysqldumpPath;
+    obj["HomePath"] = mHomePath;
     saveJson(settingsPath(),obj);
 }
 
@@ -96,6 +97,7 @@ void Settings::load()
     mRealUseLocale = false;
     mRealOverrideForCopy = false;
     mRealOverrideForCsv = false;
+    mHomePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
 
     bool ok;
     QJsonDocument doc = loadJson(settingsPath(),&ok);
@@ -116,6 +118,7 @@ void Settings::load()
     loadValue(obj,"DateTimeUseLocale",&mDateTimeUseLocale);
     loadValue(obj,"MysqlPath",&mMysqlPath);
     loadValue(obj,"MysqldumpPath",&mMysqldumpPath);
+    loadValue(obj,"HomePath", &mHomePath);
 
 }
 
@@ -235,4 +238,14 @@ void Settings::findTools()
         }
         mMysqldumpPath = path;
     }
+}
+
+void Settings::setHomePath(const QString &path)
+{
+    mHomePath = path;
+}
+
+QString Settings::homePath() const
+{
+    return mHomePath;
 }

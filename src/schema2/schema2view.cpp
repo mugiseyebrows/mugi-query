@@ -179,6 +179,7 @@ void Schema2View::on_create_clicked()
 }
 
 #include "choicedialog.h"
+#include <QMessageBox>
 
 void Schema2View::on_arrange_clicked()
 {
@@ -258,9 +259,12 @@ void Schema2View::on_invisible_clicked()
 }
 
 #include <QFileDialog>
+#include "exportdialog.h"
 
 void Schema2View::on_saveAs_clicked()
 {
+#if 0
+
     ChoiceDialog dialog;
     dialog.init({"Svg", "Png", "Dot", "dbdiagram.io"}, 0);
     if (dialog.exec() != QDialog::Accepted) {
@@ -288,5 +292,25 @@ void Schema2View::on_saveAs_clicked()
     }
     Schema2Data::OutputFormat format = formats[dialog.checkedIndex()];
     mData->saveAs(path, format, this);
+
+#endif
+
+    ExportDialog dialog(this);
+    dialog.setName(mData->connectionName());
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    bool clipboard = dialog.clipboard();
+    QString path = dialog.path();
+    bool overwrite = dialog.overwrite();
+
+    if (!clipboard && !overwrite && QFile::exists(path)) {
+        int res = QMessageBox::question(this, "Overwrite", "File exists, overwrite?", QMessageBox::No, QMessageBox::Yes);
+        if (res != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    mData->saveAs(clipboard, path, dialog.format(), this);
 }
 

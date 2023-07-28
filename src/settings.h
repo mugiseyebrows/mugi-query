@@ -53,6 +53,9 @@ public:
 
     void findTools();
 
+    void setHomePath(const QString& path);
+    QString homePath() const;
+
 private:
 
     Settings();
@@ -70,6 +73,7 @@ private:
     bool mDateTimeUseLocale;
     QString mMysqlPath;
     QString mMysqldumpPath;
+    QString mHomePath;
 
     QString mDir;
 

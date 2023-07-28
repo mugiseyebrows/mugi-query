@@ -38,6 +38,7 @@
 #include "tolower.h"
 #include "schema2relationguesser.h"
 #include "confirmationdialog.h"
+#include "schema2export.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -49,6 +50,7 @@
 #include "tablestretcher.h"
 #include "ones.h"
 #include <QSqlQueryModel>
+#include <QFileInfo>
 
 /*static*/ bool Schema2Data::mDontAskOnDropTable = false;
 
@@ -1222,170 +1224,12 @@ void Schema2Data::copyPrimaryKeysToClipboard(QWidget *widget) {
     QMessageBox::information(widget, "", "Copied to clipboard");
 }
 
-#include <QSvgGenerator>
-#include <QFileInfo>
 
-static QString dotQuoted(const QString& name) {
-    if (name.contains(" ") || name.contains("-")) {
-        return "\"" + name + "\"";
-    }
-    return name;
-}
 
-static QString dotTableRow(const QString& cell, bool bold = false) {
-    return QString("<tr><td>%1</td></tr>").arg(bold ? "<b>" + cell + "</b>" : cell);
-}
-
-static QString dotTable(Schema2TableItem * table, double posk) {
-
-    QStringList columns;
-    auto names = table->model()->columnNames();
-    for(const QString& name: names) {
-        columns.append(dotTableRow(name));
-    }
-
-    QString label = QString("<<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" cellpadding=\"4\">\n"
-                    "%1\n"
-                    "<tr><td>\n"
-                    "<table border=\"0\" cellborder=\"0\" cellspacing=\"0\" >\n"
-                    "%2\n"
-                    "</table>\n"
-                    "</td></tr>\n"
-                    "</table>>")
-            .arg(dotTableRow(table->tableName(), true))
-            .arg(columns.join("\n"));
-
-    QPointF pos = table->centerPos() * posk;
-
-    return QString("%1 [label=%2\npos=\"%3,%4!\"]\n").arg(dotQuoted(table->tableName())).arg(label).arg(pos.x()).arg(-pos.y());
-}
-
-static QString dotRelation(Schema2Relation* relation) {
-    auto childTable = relation->childTable();
-    auto parentTable = relation->parentTable();
-    return QString("%1 -> %2\n")
-            .arg(dotQuoted(childTable))
-            .arg(dotQuoted(parentTable));
-}
-
-void Schema2Data::saveAs(const QString &path, OutputFormat format, QWidget *widget)
+void Schema2Data::saveAs(bool clipboard, const QString &path, Schema2Export::ExportFormat format, QWidget *widget)
 {
-
-    if (format == PngFormat) {
-
-
-
-    } else if (format == SvgFormat) {
-
-        QSvgGenerator generator;
-
-        auto rect = mView->sceneRect();
-
-        generator.setFileName(path);
-        generator.setSize(rect.size().toSize());
-        generator.setViewBox(rect);
-        QPainter painter;
-        painter.begin(&generator);
-        mScene->render(&painter, rect);
-        painter.end();
-
-    } else if (format == DotFormat) {
-
-        QStringList res;
-        double posk = 0.01;
-
-        auto tables = mTables->tableItems();
-        for(auto* table: tables) {
-            if (table->grayed()) {
-                continue;
-            }
-            res.append(dotTable(table, posk));
-        }
-
-        for(auto* table: tables) {
-            auto relations = table->model()->relations()->values();
-            for(auto* relation: relations) {
-                auto* childTable = mTables->tableItem(relation->parentTable());
-                auto* parentTable = mTables->tableItem(relation->childTable());
-                if (childTable->grayed()) {
-                    continue;
-                }
-                if (parentTable->grayed()) {
-                    continue;
-                }
-                res.append(dotRelation(relation));
-            }
-        }
-
-        QFile file(path);
-        if (!file.open(QIODevice::WriteOnly)) {
-            QMessageBox::critical(widget, "Error", QString("Cannot open %1 for writing").arg(path));
-            return;
-        }
-
-        QString text = QString("digraph G {\nnode [shape=plain]\n%1\n}").arg(res.join("\n"));
-        file.write(text.toUtf8());
-
-    } else if (format == DbioFormat) {
-
-        QStringList tablesText;
-        QStringList relationsText;
-
-        auto tables = mTables->tableItems();
-
-        for(auto* table: tables) {
-
-            if (table->grayed()) {
-                continue;
-            }
-
-            auto relations = table->model()->relations()->values();
-
-            for(Schema2Relation* relation: relations) {
-                auto* childTable = mTables->tableItem(relation->parentTable());
-                auto* parentTable = mTables->tableItem(relation->childTable());
-                if (childTable->grayed()) {
-                    continue;
-                }
-                if (parentTable->grayed()) {
-                    continue;
-                }
-                QString item = QString("ref {\n    %1.%2 > %3.%4\n}")
-                        .arg(relation->childTable())
-                        .arg(relation->childColumns().join(""))
-                        .arg(relation->parentTable())
-                        .arg(relation->parentColumns().join(""));
-                relationsText.append(item);
-            }
-
-            Schema2TableModel* tableModel = table->model();
-
-            QStringList fields;
-            for(int row=0;row<tableModel->rowCount();row++) {
-                QString type = tableModel->type(row);
-                type.replace(" unsigned", "");
-                QString field = QString("    %1 %2")
-                        .arg(tableModel->name(row))
-                        .arg(type);
-                fields.append(field);
-            }
-            QString item = QString("table %1\n{\n%2\n}")
-                    .arg(table->tableName())
-                    .arg(fields.join("\n"));
-            tablesText.append(item);
-        }
-
-        QFile file(path);
-        if (!file.open(QIODevice::WriteOnly)) {
-            QMessageBox::critical(widget, "Error", QString("Cannot open %1 for writing").arg(path));
-            return;
-        }
-
-        file.write((tablesText.join("\n") + "\n").toUtf8());
-        file.write((relationsText.join("\n") + "\n").toUtf8());
-
-    }
-
+    Schema2Export exp(mScene, mView, mTables);
+    exp.saveAs(clipboard, path, format, widget);
 }
 
 void Schema2Data::scriptDialog(QWidget *widget)

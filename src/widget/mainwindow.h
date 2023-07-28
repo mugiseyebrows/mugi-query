@@ -140,6 +140,8 @@ private slots:
 
     void on_dataTruncate_triggered();
 
+    void on_settingsDirectory_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

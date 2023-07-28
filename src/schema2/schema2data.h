@@ -26,17 +26,13 @@ class QSqlDriver;
 #include "schema2join.h"
 #include "hash.h"
 #include "schema2status.h"
+#include "schema2export.h"
 
 class Schema2Data : public QObject
 {
     Q_OBJECT
 public:
-    enum OutputFormat {
-        PngFormat,
-        SvgFormat,
-        DotFormat,
-        DbioFormat,
-    };
+
 
     static QHash<int, QString> mOdbcTypes;
 
@@ -111,7 +107,7 @@ public:
     void copyRelationsToClipboard(QWidget *widget);
     void copyPrimaryKeysToClipboard(QWidget *widget);
 
-    void saveAs(const QString& path, OutputFormat format, QWidget *widget);
+    void saveAs(bool clipboard, const QString& path, Schema2Export::ExportFormat format, QWidget *widget);
 
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);

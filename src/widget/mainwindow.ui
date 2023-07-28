@@ -137,6 +137,7 @@
      <string>Settings</string>
     </property>
     <addaction name="settingsFormat"/>
+    <addaction name="settingsDirectory"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -404,6 +405,11 @@
   <action name="dataTruncate">
    <property name="text">
     <string>Truncate</string>
+   </property>
+  </action>
+  <action name="settingsDirectory">
+   <property name="text">
+    <string>Directory</string>
    </property>
   </action>
  </widget>

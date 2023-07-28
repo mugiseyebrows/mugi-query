@@ -89,6 +89,7 @@ HEADERS += \
     src/schema2/schema2alterview.h \
     src/schema2/schema2arrange.h \
     src/schema2/schema2changeset.h \
+    src/schema2/schema2export.h \
     src/schema2/schema2index.h \
     src/schema2/schema2indexesmodel.h \
     src/schema2/schema2join.h \
@@ -132,6 +133,9 @@ HEADERS += \
     src/widget/comparetableitemwidget.h \
     src/widget/comparetablewidget.h \
     src/widget/datatruncatedialog.h \
+    src/widget/filepathwidget.h \
+    src/widget/radiobuttons.h \
+    src/widget/exportdialog.h \
     src/widget/xjoinwidget.h \
     src/widget/xjoinitemwidget.h \
     src/widget/lineselect.h \
@@ -250,6 +254,7 @@ SOURCES += \
     src/schema2/schema2alterview.cpp \
     src/schema2/schema2arrange.cpp \
     src/schema2/schema2changeset.cpp \
+    src/schema2/schema2export.cpp \
     src/schema2/schema2index.cpp \
     src/schema2/schema2indexesmodel.cpp \
     src/schema2/schema2join.cpp \
@@ -301,6 +306,9 @@ SOURCES += \
     src/widget/comparetableitemwidget.cpp \
     src/widget/comparetablewidget.cpp \
     src/widget/datatruncatedialog.cpp \
+    src/widget/filepathwidget.cpp \
+    src/widget/radiobuttons.cpp \
+    src/widget/exportdialog.cpp \
     src/widget/xjoinwidget.cpp \
     src/widget/xjoinitemwidget.cpp \
     src/widget/databasehistorydialog.cpp \
@@ -377,6 +385,9 @@ FORMS += \
     src/widget/comparetableitemwidget.ui \
     src/widget/comparetablewidget.ui \
     src/widget/datatruncatedialog.ui \
+    src/widget/filepathwidget.ui \
+    src/widget/radiobuttons.ui \
+    src/widget/exportdialog.ui \
     src/widget/xjoinwidget.ui \
     src/widget/xjoinitemwidget.ui \
     src/widget/databasehistorydialog.ui \

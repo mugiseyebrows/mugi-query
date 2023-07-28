@@ -1208,3 +1208,8 @@ void MainWindow::on_dataTruncate_triggered()
 
 }
 
+void MainWindow::on_settingsDirectory_triggered()
+{
+
+}
+
