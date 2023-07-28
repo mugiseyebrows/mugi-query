@@ -43,3 +43,9 @@ int RadioButtons::checkedIndex() const
     }
     return -1;
 }
+
+void RadioButtons::setChecked(int index)
+{
+    mButtons[index]->setChecked(true);
+    emit clicked(index);
+}

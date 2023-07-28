@@ -19,9 +19,7 @@ public:
 
     QString path() const;
 
-    void init(const QString& path, const QString& name, const QString& ext, bool overwrite);
-
-    bool overwrite() const;
+    void init(const QString& path, const QString& name, const QString& ext);
 
     bool outputToFile() const;
     void setPath(const QString &path);
@@ -29,6 +27,9 @@ public:
     void setName(const QString& name);
 
     void setExt(const QString &ext);
+
+    void setClipboard(bool value);
+
 protected:
     QString mExt;
 

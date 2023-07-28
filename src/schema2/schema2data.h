@@ -107,7 +107,7 @@ public:
     void copyRelationsToClipboard(QWidget *widget);
     void copyPrimaryKeysToClipboard(QWidget *widget);
 
-    void saveAs(bool clipboard, const QString& path, Schema2Export::ExportFormat format, QWidget *widget);
+    void saveAs(bool clipboard, const QString& path, const QRectF &rect, bool onlySelected, Schema2Export::ExportFormat format, QWidget *widget);
 
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);

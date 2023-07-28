@@ -19,6 +19,7 @@ public:
 
     void init(const QStringList& items, int checkedIndex =-1);
     int checkedIndex() const;
+    void setChecked(int index);
 signals:
     void clicked(int);
 protected:

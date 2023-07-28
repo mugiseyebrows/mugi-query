@@ -20,12 +20,24 @@ public:
 
     bool clipboard() const;
 
-    bool overwrite() const;
-
     QString path() const;
 
     Schema2Export::ExportFormat format() const;
 
+    bool itemsSelected() const;
+    bool itemsAll() const;
+    bool cropViewport() const;
+    bool cropAll() const;
+
+    void setFormat(int index);
+    void setItemsSelected(bool value);
+    void setItemsAll(bool value);
+    void setCropViewport(bool value);
+    void setCropAll(bool value);
+    void setClipboard(bool value);
+    void setPath(const QString& path);
+
+    void updateExt();
 public slots:
     void on_format_clicked(int);
 

@@ -42,7 +42,37 @@ void automate(QWidget *widget)
     automation->start();
 #endif
 
+#if 0
 
+    Automation* automation = Automation::instance(widget);
+    QString database = "mysql1";
+    automation->connectToDatabaseFromHistory(database);
+    automation->schemaEdit();
+    automation->selectTablesNone();
+    automation->selectTables({"foo"});
 
+    QList<int> formats = {0, 1, 2, 3};
+    QList<bool> cropAlls = {true, false};
+    QList<bool> itemsAlls = {true, false};
+
+    for(int format: formats) {
+        for(bool cropAll: cropAlls) {
+            for(bool itemsAll: itemsAlls) {
+                bool clipboard = false;
+
+                QString path = QString("D:\\w\\export-%1-crop-%2-items-%3")
+                        .arg(format)
+                        .arg(cropAll ? 1 : 0)
+                        .arg(itemsAll ? 1 : 0);
+                
+                automation->exportTo(format, cropAll, itemsAll, clipboard, path);
+            }
+        }
+    }
+    /*int format = 0;
+    bool cropAll = true;
+    bool itemsAll = true;*/
+    automation->start();
+#endif
 
 }

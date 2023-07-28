@@ -8,6 +8,7 @@ class MainWindow;
 class DatabaseConnectDialog;
 class DatabaseHistoryDialog;
 class Schema2View;
+class ExportDialog;
 #include "action.h"
 
 class Automation : public QObject
@@ -40,9 +41,12 @@ public:
 
     void beforeDialog(DatabaseHistoryDialog* dialog);
     void beforeDialog(DatabaseConnectDialog *dialog);
+    void beforeDialog(ExportDialog *dialog);
 
     void afterDialog(DatabaseConnectDialog *dialog);
     void afterDialog(DatabaseHistoryDialog *dialog);
+    void afterDialog(ExportDialog *dialog);
+
 
     void start();
 
@@ -71,6 +75,10 @@ public:
     void showAlterView(const QString& table);
 
     Schema2View *schemaView();
+    void selectTablesNone();
+    void selectTablesAll();
+    void selectTables(const QStringList &tables);
+    void exportTo(int format, bool cropAll, bool itemsAll, bool clipboard, const QString &path);
 protected:
 
     QQueue<Action> mQueued;
@@ -82,6 +90,8 @@ protected:
 
     DatabaseConnectDialog* mAddDatabaseDialog;
     DatabaseHistoryDialog* mDatabaseHistoryDialog;
+
+    QVariantList mExportDialogArgs;
 
 protected slots:
 

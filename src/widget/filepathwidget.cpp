@@ -43,6 +43,7 @@ void FilePathWidget::setPath(const QString& path) {
 void FilePathWidget::setName(const QString &name)
 {
     ui->file->setText(name);
+
 }
 
 void FilePathWidget::setExt(const QString& ext) {
@@ -60,7 +61,16 @@ void FilePathWidget::setExt(const QString& ext) {
     ui->file->setText(name);
 }
 
-void FilePathWidget::init(const QString &path, const QString &name, const QString &ext, bool overwrite)
+void FilePathWidget::setClipboard(bool value)
+{
+    if (value) {
+        ui->outputToClipboard->setChecked(true);
+    } else {
+        ui->outputToFile->setChecked(true);
+    }
+}
+
+void FilePathWidget::init(const QString &path, const QString &name, const QString &ext)
 {
     if (!path.isEmpty()) {
         setPath(path);
@@ -68,17 +78,7 @@ void FilePathWidget::init(const QString &path, const QString &name, const QStrin
     if (!name.isEmpty()) {
         ui->file->setText(name);
     }
-    mExt = ext;
-    if (overwrite) {
-        ui->overwrite->setChecked(true);
-    } else {
-        ui->ask->setChecked(true);
-    }
-}
-
-bool FilePathWidget::overwrite() const
-{
-    return ui->overwrite->isChecked();
+    setExt(ext);
 }
 
 void FilePathWidget::on_selectDirectory_clicked()

@@ -171,6 +171,11 @@ void Automation::afterDialog(DatabaseHistoryDialog *) {
     }
 }
 
+void Automation::afterDialog(ExportDialog *dialog)
+{
+
+}
+
 void Automation::start()
 {
     QTimer::singleShot(0,this,SLOT(onStart()));
@@ -193,6 +198,22 @@ void Automation::toolMysqldump(const QStringList& tables)
 void Automation::schemaEdit()
 {
     mQueued.append(Action(Action::ActionSchemaEdit));
+}
+
+void Automation::selectTablesNone() {
+    mQueued.append(Action(Action::ActionSelectTablesNone));
+}
+
+void Automation::selectTablesAll() {
+    mQueued.append(Action(Action::ActionSelectTablesAll));
+}
+
+void Automation::selectTables(const QStringList& tables) {
+    mQueued.append(Action(Action::ActionSelectTables, {tables}));
+}
+
+void Automation::exportTo(int format, bool cropAll, bool itemsAll, bool clipboard, const QString& path) {
+    mQueued.append(Action(Action::ActionExportTo, {format, cropAll, itemsAll, clipboard, path}));
 }
 
 void Automation::toolXJoin(const QString &conn1, const QString &conn2)
@@ -488,6 +509,56 @@ void Automation::onStart() {
         data->showAlterView(tableName);
         next();
 
+    } else if (mAction.type() == Action::ActionSelectTablesNone) {
+
+        auto* view = schemaView();
+        if (!view) {
+            qDebug() << "no schema view" << __FILE__ << __LINE__;
+            next();
+            return;
+        }
+        view->on_uncheckAll_clicked();
+        next();
+
+    } else if (mAction.type() == Action::ActionSelectTablesAll) {
+
+        auto* view = schemaView();
+        if (!view) {
+            qDebug() << "no schema view" << __FILE__ << __LINE__;
+            next();
+            return;
+        }
+        view->on_checkAll_clicked();
+        next();
+
+    } else if (mAction.type() == Action::ActionSelectTables) {
+
+        QStringList tableNames = mAction.arg(0).toStringList();
+
+        auto* view = schemaView();
+        if (!view) {
+            qDebug() << "no schema view" << __FILE__ << __LINE__;
+            next();
+            return;
+        }
+        auto* tables = view->data()->tables();
+        for(const QString& table: tableNames) {
+            tables->setGrayed(table, false);
+        }
+        next();
+
+    } else if (mAction.type() == Action::ActionExportTo) {
+
+        mExportDialogArgs = mAction.args();
+        auto* view = schemaView();
+        if (!view) {
+            qDebug() << "no schema view" << __FILE__ << __LINE__;
+            next();
+            return;
+        }
+        view->on_saveAs_clicked();
+        next();
+
     }
 
 }
@@ -499,6 +570,36 @@ void Automation::beforeDialog(DatabaseConnectDialog *dialog)
     //qDebug() << "beforeDialog(AddDatabaseDialog *dialog)";
     mAddDatabaseDialog = dialog;
     QTimer::singleShot(0,this,SLOT(onAddDatabaseDialog()));
+}
+
+#include "exportdialog.h"
+
+void Automation::beforeDialog(ExportDialog *dialog)
+{
+
+    if (mAction.type() != Action::ActionExportTo) {
+        qDebug() << "mAction.type() != Action::ActionExportTo";
+        return;
+    }
+
+    QTimer::singleShot(0,[=](){
+        auto args = mExportDialogArgs;
+        //format, cropAll, itemsAll, clipboard, path
+        int format = args[0].toInt();
+        bool cropAll = args[1].toBool();
+        bool itemsAll = args[2].toBool();
+        bool clipboard = args[3].toBool();
+        QString path = args[4].toString();
+
+        dialog->setFormat(format);
+        dialog->setCropAll(cropAll);
+        dialog->setItemsAll(itemsAll);
+        dialog->setClipboard(clipboard);
+        dialog->setPath(path);
+        dialog->updateExt();
+        dialog->accept();
+    });
+
 }
 
 void Automation::beforeDialog(DatabaseHistoryDialog *dialog)

@@ -7,6 +7,7 @@
 #include <QSortFilterProxyModel>
 #include <QInputDialog>
 #include "schema2tablesmodel.h"
+#include "automation.h"
 
 QList<double> Schema2View::mScales = {0.1, 0.25, 0.5, 1.0};
 QStringList Schema2View::mScalesText = {"10%", "25%", "50%", "100%"};
@@ -169,6 +170,16 @@ QRectF Schema2View::sceneRect() const
     return ui->view->sceneRect();
 }
 
+QGraphicsScene *Schema2View::scene()
+{
+    return mData->scene();
+}
+
+Schema2TablesModel *Schema2View::tables() const
+{
+    return mData->tables();
+}
+
 void Schema2View::on_create_clicked()
 {
     QString tableName = QInputDialog::getText(this, "Table Name", "Name");
@@ -296,21 +307,31 @@ void Schema2View::on_saveAs_clicked()
 #endif
 
     ExportDialog dialog(this);
+
+    Automation::instance()->beforeDialog(&dialog);
+
     dialog.setName(mData->connectionName());
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
     bool clipboard = dialog.clipboard();
     QString path = dialog.path();
-    bool overwrite = dialog.overwrite();
 
-    if (!clipboard && !overwrite && QFile::exists(path)) {
+    QRectF rect;
+    if (dialog.cropViewport()) {
+        auto* view = ui->view;
+        rect = view->mapToScene(view->viewport()->geometry()).boundingRect();
+    } else {
+        rect = sceneRect();
+    }
+    if (!clipboard && QFile::exists(path)) {
         int res = QMessageBox::question(this, "Overwrite", "File exists, overwrite?", QMessageBox::No, QMessageBox::Yes);
         if (res != QMessageBox::Yes) {
             return;
         }
     }
+    mData->saveAs(clipboard, path, rect, dialog.itemsSelected(), dialog.format(), this);
 
-    mData->saveAs(clipboard, path, dialog.format(), this);
+    Automation::instance()->afterDialog(&dialog);
 }
 

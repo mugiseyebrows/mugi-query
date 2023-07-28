@@ -1224,12 +1224,12 @@ void Schema2Data::copyPrimaryKeysToClipboard(QWidget *widget) {
     QMessageBox::information(widget, "", "Copied to clipboard");
 }
 
-
-
-void Schema2Data::saveAs(bool clipboard, const QString &path, Schema2Export::ExportFormat format, QWidget *widget)
+void Schema2Data::saveAs(bool clipboard, const QString &path,
+                         const QRectF& rect, bool onlySelected,
+                         Schema2Export::ExportFormat format, QWidget *widget)
 {
-    Schema2Export exp(mScene, mView, mTables);
-    exp.saveAs(clipboard, path, format, widget);
+    Schema2Export exp(mView);
+    exp.saveAs(clipboard, path, rect, onlySelected, format, widget);
 }
 
 void Schema2Data::scriptDialog(QWidget *widget)

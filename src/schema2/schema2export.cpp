@@ -73,13 +73,14 @@ static void outputText(bool clipboard, const QString& path, const QString& text,
     }
 }
 
-Schema2Export::Schema2Export(QGraphicsScene *scene, Schema2View *view, Schema2TablesModel *tables)
-    : mScene(scene), mView(view), mTables(tables)
+Schema2Export::Schema2Export(Schema2View *view)
+    : mView(view)
 {
 
 }
 
-void Schema2Export::saveAs(bool clipboard, const QString &path, ExportFormat format, QWidget *widget)
+void Schema2Export::saveAs(bool clipboard, const QString &path, const QRectF& rect,
+                           bool onlySelected, ExportFormat format, QWidget *widget)
 {
     if (format == PngFormat) {
 
@@ -88,9 +89,10 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, ExportFormat for
             return;
         }
 
-        QRectF rect = mView->sceneRect();
+        //QRectF rect = mView->sceneRect();
 
         QImage image(rect.toRect().size(), QImage::Format_ARGB32);
+        image.fill(Qt::white);
 
         QPainter painter;
         painter.begin(&image);
@@ -98,6 +100,8 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, ExportFormat for
         QPointF p = rect.topLeft();
         QTransform transform = QTransform().translate(-p.x(), -p.y());
         painter.setTransform(transform);
+
+        auto* mScene = mView->scene();
 
         mScene->render(&painter, rect);
         painter.end();
@@ -118,14 +122,15 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, ExportFormat for
 
         QSvgGenerator generator;
 
-        auto rect = mView->sceneRect();
+        //auto rect = mView->sceneRect();
 
         generator.setFileName(path);
         generator.setSize(rect.size().toSize());
         generator.setViewBox(rect);
         QPainter painter;
         painter.begin(&generator);
-        mScene->render(&painter, rect);
+        auto* scene = mView->scene();
+        scene->render(&painter, rect);
         painter.end();
 
     } else if (format == DotFormat) {
@@ -133,9 +138,11 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, ExportFormat for
         QStringList res;
         double posk = 0.01;
 
+        auto* mTables = mView->tables();
+
         auto tables = mTables->tableItems();
         for(auto* table: tables) {
-            if (table->grayed()) {
+            if (table->grayed() && onlySelected) {
                 continue;
             }
             res.append(dotTable(table, posk));
@@ -146,10 +153,10 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, ExportFormat for
             for(auto* relation: relations) {
                 auto* childTable = mTables->tableItem(relation->parentTable());
                 auto* parentTable = mTables->tableItem(relation->childTable());
-                if (childTable->grayed()) {
+                if (childTable->grayed() && onlySelected) {
                     continue;
                 }
-                if (parentTable->grayed()) {
+                if (parentTable->grayed() && onlySelected) {
                     continue;
                 }
                 res.append(dotRelation(relation));
@@ -175,11 +182,13 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, ExportFormat for
         QStringList tablesText;
         QStringList relationsText;
 
+        auto* mTables = mView->tables();
+
         auto tables = mTables->tableItems();
 
         for(auto* table: tables) {
 
-            if (table->grayed()) {
+            if (table->grayed() && onlySelected) {
                 continue;
             }
 
@@ -188,10 +197,10 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, ExportFormat for
             for(Schema2Relation* relation: relations) {
                 auto* childTable = mTables->tableItem(relation->parentTable());
                 auto* parentTable = mTables->tableItem(relation->childTable());
-                if (childTable->grayed()) {
+                if (childTable->grayed() && onlySelected) {
                     continue;
                 }
-                if (parentTable->grayed()) {
+                if (parentTable->grayed() && onlySelected) {
                     continue;
                 }
                 QString item = QString("ref {\n    %1.%2 > %3.%4\n}")

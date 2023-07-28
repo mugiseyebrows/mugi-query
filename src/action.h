@@ -34,6 +34,10 @@ public:
         ActionPushSchema,
         ActionCompareTable,
         ActionShowAlterView,
+        ActionSelectTablesNone,
+        ActionSelectTablesAll,
+        ActionSelectTables,
+        ActionExportTo,
     };
     Action(Type type = ActionEmpty, const QVariantList& args = QVariantList());
     Type type() const;

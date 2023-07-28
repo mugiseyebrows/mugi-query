@@ -33,11 +33,6 @@ bool ExportDialog::clipboard() const
     return ui->output->clipboard();
 }
 
-bool ExportDialog::overwrite() const
-{
-    return ui->output->overwrite();
-}
-
 QString ExportDialog::path() const
 {
     return ui->output->path();
@@ -49,8 +44,85 @@ Schema2Export::ExportFormat ExportDialog::format() const
     return mFormats[checked];
 }
 
+bool ExportDialog::cropViewport() const
+{
+    return ui->cropViewport->isChecked();
+}
+
+bool ExportDialog::cropAll() const
+{
+    return ui->cropAll->isChecked();
+}
+
+void ExportDialog::setFormat(int index)
+{
+    ui->format->setChecked(index);
+}
+
+void ExportDialog::setItemsSelected(bool value)
+{
+    if (!value) {
+        ui->itemsAll->setChecked(true);
+    } else {
+        ui->itemsSelected->setChecked(true);
+    }
+}
+
+void ExportDialog::setItemsAll(bool value)
+{
+    if (value) {
+        ui->itemsAll->setChecked(true);
+    } else {
+        ui->itemsSelected->setChecked(true);
+    }
+}
+
+void ExportDialog::setCropViewport(bool value)
+{
+    if (!value) {
+        ui->cropAll->setChecked(true);
+    } else {
+        ui->cropViewport->setChecked(true);
+    }
+}
+
+void ExportDialog::setCropAll(bool value)
+{
+    if (value) {
+        ui->cropAll->setChecked(true);
+    } else {
+        ui->cropViewport->setChecked(true);
+    }
+}
+
+void ExportDialog::setClipboard(bool value)
+{
+    ui->output->setClipboard(value);
+}
+
+void ExportDialog::setPath(const QString &path)
+{
+    ui->output->setPath(path);
+}
+
+bool ExportDialog::itemsSelected() const
+{
+    return ui->itemsSelected->isChecked();
+}
+
+bool ExportDialog::itemsAll() const
+{
+    return ui->itemsAll->isChecked();
+}
+
 void ExportDialog::on_format_clicked(int index)
 {
     static QStringList exts = {"svg", "png", "dot", "txt"};
+    ui->output->setExt(exts[index]);
+}
+
+void ExportDialog::updateExt() {
+    static QStringList exts = {"svg", "png", "dot", "txt"};
+    int index = ui->format->checkedIndex();
     ui->output->setExt(exts[index]);
 }

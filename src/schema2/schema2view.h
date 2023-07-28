@@ -8,10 +8,15 @@ class QGraphicsScene;
 class QPushButton;
 class Schema2Data;
 class Schema2TableModel;
+class Schema2TablesModel;
 
 namespace Ui {
 class Schema2View;
 }
+
+class ExportParams {
+
+};
 
 class Schema2View : public QWidget
 {
@@ -43,6 +48,10 @@ public:
 
     QRectF sceneRect() const;
 
+    QGraphicsScene* scene();
+
+    Schema2TablesModel* tables() const;
+
 public slots:
     void onTableClicked(QString tableName);
 
@@ -56,6 +65,7 @@ protected:
     QStringList mTableStack;
 
     int mScaleIndex;
+
 
 protected slots:
     void onFiterViewCurrentChanged(QModelIndex index, QModelIndex);
