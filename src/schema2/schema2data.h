@@ -31,6 +31,13 @@ class Schema2Data : public QObject
 {
     Q_OBJECT
 public:
+    enum OutputFormat {
+        PngFormat,
+        SvgFormat,
+        DotFormat,
+        DbioFormat,
+    };
+
     static QHash<int, QString> mOdbcTypes;
 
     static bool mDontAskOnDropTable;
@@ -104,7 +111,7 @@ public:
     void copyRelationsToClipboard(QWidget *widget);
     void copyPrimaryKeysToClipboard(QWidget *widget);
 
-    void saveImage(const QString& path, QWidget *widget);
+    void saveAs(const QString& path, OutputFormat format, QWidget *widget);
 
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);

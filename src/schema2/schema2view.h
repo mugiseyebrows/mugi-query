@@ -104,7 +104,7 @@ private slots:
 
     void on_invisible_clicked();
 
-    void on_saveImage_clicked();
+    void on_saveAs_clicked();
 
 private:
     Ui::Schema2View *ui;

@@ -259,10 +259,10 @@ void Schema2View::on_invisible_clicked()
 
 #include <QFileDialog>
 
-void Schema2View::on_saveImage_clicked()
+void Schema2View::on_saveAs_clicked()
 {
     ChoiceDialog dialog;
-    dialog.init({"Svg", "Png", "Dot"}, 0);
+    dialog.init({"Svg", "Png", "Dot", "dbdiagram.io"}, 0);
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
@@ -271,15 +271,22 @@ void Schema2View::on_saveImage_clicked()
         "Svg files (*.svg)",
         "Png files (*.png)",
         "Dot files (*.dot)",
+        "Txt files (*.txt)",
+    };
+
+    QList<Schema2Data::OutputFormat> formats = {
+        Schema2Data::SvgFormat,
+        Schema2Data::PngFormat,
+        Schema2Data::DotFormat,
+        Schema2Data::DbioFormat,
     };
 
     auto filter = filters[dialog.checkedIndex()];
-
     QString path = QFileDialog::getSaveFileName(this, QString(), QString(), filter);
     if (path.isEmpty()) {
         return;
     }
-
-    mData->saveImage(path, this);
+    Schema2Data::OutputFormat format = formats[dialog.checkedIndex()];
+    mData->saveAs(path, format, this);
 }
 

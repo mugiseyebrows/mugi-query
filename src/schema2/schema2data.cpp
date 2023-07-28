@@ -1268,18 +1268,14 @@ static QString dotRelation(Schema2Relation* relation) {
             .arg(dotQuoted(parentTable));
 }
 
-void Schema2Data::saveImage(const QString &path, QWidget *widget)
+void Schema2Data::saveAs(const QString &path, OutputFormat format, QWidget *widget)
 {
 
-    QFileInfo info(path);
-
-    QString ext = info.suffix().toLower();
-
-    if (ext == "png") {
+    if (format == PngFormat) {
 
 
 
-    } else if (ext == "svg") {
+    } else if (format == SvgFormat) {
 
         QSvgGenerator generator;
 
@@ -1293,7 +1289,7 @@ void Schema2Data::saveImage(const QString &path, QWidget *widget)
         mScene->render(&painter, rect);
         painter.end();
 
-    } else if (ext == "dot") {
+    } else if (format == DotFormat) {
 
         QStringList res;
         double posk = 0.01;
@@ -1329,6 +1325,65 @@ void Schema2Data::saveImage(const QString &path, QWidget *widget)
 
         QString text = QString("digraph G {\nnode [shape=plain]\n%1\n}").arg(res.join("\n"));
         file.write(text.toUtf8());
+
+    } else if (format == DbioFormat) {
+
+        QStringList tablesText;
+        QStringList relationsText;
+
+        auto tables = mTables->tableItems();
+
+        for(auto* table: tables) {
+
+            if (table->grayed()) {
+                continue;
+            }
+
+            auto relations = table->model()->relations()->values();
+
+            for(Schema2Relation* relation: relations) {
+                auto* childTable = mTables->tableItem(relation->parentTable());
+                auto* parentTable = mTables->tableItem(relation->childTable());
+                if (childTable->grayed()) {
+                    continue;
+                }
+                if (parentTable->grayed()) {
+                    continue;
+                }
+                QString item = QString("ref {\n    %1.%2 > %3.%4\n}")
+                        .arg(relation->childTable())
+                        .arg(relation->childColumns().join(""))
+                        .arg(relation->parentTable())
+                        .arg(relation->parentColumns().join(""));
+                relationsText.append(item);
+            }
+
+            Schema2TableModel* tableModel = table->model();
+
+            QStringList fields;
+            for(int row=0;row<tableModel->rowCount();row++) {
+                QString type = tableModel->type(row);
+                type.replace(" unsigned", "");
+                QString field = QString("    %1 %2")
+                        .arg(tableModel->name(row))
+                        .arg(type);
+                fields.append(field);
+            }
+            QString item = QString("table %1\n{\n%2\n}")
+                    .arg(table->tableName())
+                    .arg(fields.join("\n"));
+            tablesText.append(item);
+        }
+
+        QFile file(path);
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::critical(widget, "Error", QString("Cannot open %1 for writing").arg(path));
+            return;
+        }
+
+        file.write((tablesText.join("\n") + "\n").toUtf8());
+        file.write((relationsText.join("\n") + "\n").toUtf8());
+
     }
 
 }

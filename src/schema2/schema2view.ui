@@ -143,9 +143,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="saveImage">
+      <widget class="QPushButton" name="saveAs">
        <property name="text">
-        <string>Save image</string>
+        <string>Save</string>
        </property>
       </widget>
      </item>
