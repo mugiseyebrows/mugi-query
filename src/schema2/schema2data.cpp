@@ -194,7 +194,7 @@ void Schema2Data::pullTablesMysql() {
 
         // todo character_maximum_length, numeric_precision
         QSqlQuery q(db);
-        q.prepare("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?");
+        q.prepare("SELECT column_name, column_type, is_nullable FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?");
         q.addBindValue(table);
         q.exec();
 
@@ -202,8 +202,7 @@ void Schema2Data::pullTablesMysql() {
         while(q.next()) {
             QString name = q.value(0).toString();
             QString type = q.value(1).toString();
-            bool notNull = false;
-            // todo mysql not null
+            bool notNull = q.value(2).toString() == "NO";
             model->insertColumnsIfNotContains(name, type, notNull, prev);
             prev = name;
         }
