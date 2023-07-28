@@ -25,11 +25,14 @@ void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QS
 {
     int insertRow = rowCount();
 
+    QString name_ = name.toLower();
+    QString prev_ = prev.toLower();
+
     for(int row=0;row<mColumns.size();row++) {
-        if (this->namePrev(row) == name) {
+        if (this->namePrev(row).toLower() == name_) {
             return;
         }
-        if (this->namePrev(row) == prev) {
+        if (this->namePrev(row).toLower() == prev_) {
             insertRow = row + 1;
         }
     }
