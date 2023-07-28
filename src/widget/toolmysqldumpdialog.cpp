@@ -63,6 +63,11 @@ bool ToolMysqldumpDialog::schema() const
     return ui->schema->isChecked();
 }
 
+bool ToolMysqldumpDialog::tab() const
+{
+    return ui->tab->isChecked();
+}
+
 bool ToolMysqldumpDialog::multipleFiles() const
 {
     return ui->multipleFiles->isChecked();

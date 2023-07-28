@@ -36,6 +36,13 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
+       <widget class="QCheckBox" name="tab">
+        <property name="text">
+         <string>--tab</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="schema">
         <property name="text">
          <string>Schema</string>

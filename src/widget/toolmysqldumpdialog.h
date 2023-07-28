@@ -29,6 +29,7 @@ public:
 
     QStringList tables() const;
 
+    bool tab() const;
 private slots:
     void on_multipleFiles_clicked(bool checked);
 

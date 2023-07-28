@@ -11,6 +11,23 @@
 #include "toolmysqldumpdialog.h"
 #include <QDesktopServices>
 
+#include <QFile>
+#include <QTextStream>
+#include <QTextCodec>
+void dump(const QString& path, const QStringList& lines) {
+    QFile f(path);
+    if (!f.open(QIODevice::WriteOnly)) {
+        qDebug() << "!open" << path;
+        return;
+    }
+    QTextStream stream(&f);
+    stream.setCodec(QTextCodec::codecForName("UTF-8"));
+    foreach(const QString& line, lines) {
+        stream << line << "\n";
+    }
+    qDebug() << "text writen to" << path;
+}
+
 #define MYSQL_TIMEOUT 600000
 #define MYSQLDUMP_TIMEOUT 600000
 
@@ -141,6 +158,7 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
     QStringList tables = dialog.tables();
     bool schema = dialog.schema();
     bool data = dialog.data();
+    bool tab = dialog.tab();
 
     QString output = dialog.output();
     if (!data && !schema) {
@@ -157,7 +175,34 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
     QDir dir;
     dir.mkpath(output);
 
-    if (multipleFiles) {
+    if (tab) {
+
+        QStringList args_ = args;
+        args_.append("--tab");
+        args_.append(QDir::toNativeSeparators(output));
+
+        args_ = args_ + tables;
+
+        QProcess process;
+        process.setProgram(mysqldump);
+        process.setArguments(args_);
+        process.start(QIODevice::ReadOnly);
+        if (!process.waitForStarted()) {
+            QMessageBox::critical(widget, "Error", QString("WaitForStarted error %1").arg(process.errorString()));
+            return;
+        }
+        if (!process.waitForFinished(MYSQLDUMP_TIMEOUT)) {
+            QMessageBox::critical(widget, "Error", QString("WaitForFinished error %1").arg(process.errorString()));
+        }
+        QByteArray stderrData = process.readAllStandardError();
+        if (!stderrData.isEmpty()) {
+            QMessageBox::critical(widget, "Error", QString::fromUtf8(stderrData));
+        }
+
+        QUrl url = QUrl::fromLocalFile(output);
+        QDesktopServices::openUrl(url);
+
+    } else if (multipleFiles) {
 
         QString schema_base = QDir(output).filePath("schema");
         QString data_base = QDir(output).filePath("data");
@@ -255,7 +300,10 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
         }
         args_.append("--result-file");
         args_.append(QDir::toNativeSeparators(path));
+
         args_ = args_ + tables;
+
+        //dump("D:\\w\\mysqdump.txt", {args_.join(" ")}); return;
 
         QProcess process;
         process.setProgram(mysqldump);
