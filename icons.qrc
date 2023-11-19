@@ -1,5 +1,22 @@
 <RCC>
     <qresource prefix="/icons">
         <file>src/icons/undo.png</file>
+        <file>src/icons/9022231_download_duotone_icon.png</file>
+        <file>src/icons/9022355_download_simple_duotone_icon.png</file>
+        <file>src/icons/9022583_magnifying_glass_plus_duotone_icon.png</file>
+        <file>src/icons/9022691_magnifying_glass_minus_duotone_icon.png</file>
+        <file>src/icons/9022692_magnifying_glass_duotone_icon.png</file>
+        <file>src/icons/9022711_pencil_duotone_icon.png</file>
+        <file>src/icons/9022808_plugs_connected_duotone_icon.png</file>
+        <file>src/icons/9022809_plugs_duotone_icon.png</file>
+        <file>src/icons/9022869_trash_duotone_icon.png</file>
+        <file>src/icons/9022926_upload_duotone_icon.png</file>
+        <file>src/icons/9022961_table_duotone_icon.png</file>
+        <file>src/icons/9022095_arrows_out_cardinal_duotone_icon.png</file>
+        <file>src/icons/9022100_browser_duotone_icon.png</file>
+        <file>src/icons/9022360_file_code_duotone_icon.png</file>
+        <file>src/icons/9022743_squares_four_duotone_icon.png</file>
+        <file>src/icons/9022810_plus_duotone_icon.png</file>
+        <file>src/icons/9022683_image_duotone_icon.png</file>
     </qresource>
 </RCC>

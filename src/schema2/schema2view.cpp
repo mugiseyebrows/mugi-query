@@ -8,20 +8,54 @@
 #include <QInputDialog>
 #include "schema2tablesmodel.h"
 #include "automation.h"
-
-QList<double> Schema2View::mScales = {0.1, 0.25, 0.5, 1.0};
-QStringList Schema2View::mScalesText = {"10%", "25%", "50%", "100%"};
+#include "schema2toolbar.h"
+#include "schema2zoomtoolbar.h"
+#include "choicedialog.h"
+#include <QMessageBox>
+#include <QFileDialog>
+#include "exportdialog.h"
 
 Schema2View::Schema2View(QWidget *parent) :
-    mMode(ModeNone),
     mData(0),
     QWidget(parent),
-    mScaleIndex(mScales.size() - 1),
+
     ui(new Ui::Schema2View)
 {
     ui->setupUi(this);
-    ui->scale->addItems(mScalesText);
-    ui->scale->setCurrentIndex(mScaleIndex);
+
+
+    connect(ui->toolbar, &Schema2Toolbar::clearTableStack, [=](){
+        mTableStack.clear();
+    });
+
+    connect(ui->zoom, &Schema2ZoomToolbar::zoom, [=](double scale){
+       ui->view->setTransform(QTransform().scale(scale, scale));
+    });
+
+    connect(ui->actions, &Schema2ActionToolbar::action, [=](int action){
+
+        switch(action) {
+        case Schema2ActionToolbar::Create: onCreate(); break;
+        case Schema2ActionToolbar::Arrange: onArrange(); break;
+        case Schema2ActionToolbar::Script: onScript(); break;
+        case Schema2ActionToolbar::Save: onSave(); break;
+        }
+
+    });
+
+    connect(ui->sync, SIGNAL(pull()),this, SLOT(onPull()));
+    connect(ui->sync, SIGNAL(push()),this, SLOT(onPush()));
+}
+
+
+void Schema2View::onPull()
+{
+    mData->pull();
+}
+
+void Schema2View::onPush()
+{
+    mData->push(this);
 }
 
 Schema2View::~Schema2View()
@@ -66,16 +100,20 @@ void Schema2View::onFiterViewCurrentChanged(QModelIndex index,QModelIndex) {
     ui->view->centerOn(item->sceneBoundingRect().center());
 }
 
+#include "schema2/schema2toolbar.h"
+
 void Schema2View::onTableClicked(QString tableName)
 {
 
     //qDebug() << "onTableClicked" << tableName << mMode;
 
-    switch (mMode) {
-    case ModeNone: break;
-    case ModeMove: break;
-    case ModeSelect: mData->selectOrDeselect(tableName); break;
-    case ModeRelate:
+    Schema2Toolbar::Mode mode = ui->toolbar->mode();
+
+    switch (mode) {
+    case Schema2Toolbar::ModeNone: break;
+    case Schema2Toolbar::ModeMove: break;
+    case Schema2Toolbar::ModeSelect: mData->selectOrDeselect(tableName); break;
+    case Schema2Toolbar::ModeRelate:
         mTableStack.append(tableName);
         if (mTableStack.size() == 2) {
             QString childTable = mTableStack[0];
@@ -86,7 +124,7 @@ void Schema2View::onTableClicked(QString tableName)
             mTableStack.clear();
         }
         break;
-    case ModeUnrelate:
+    case Schema2Toolbar::ModeUnrelate:
         mTableStack.append(tableName);
         if (mTableStack.size() == 2) {
             QString childTable = mTableStack[0];
@@ -97,67 +135,14 @@ void Schema2View::onTableClicked(QString tableName)
             mTableStack.clear();
         }
         break;
-    case ModeDrop:
+    case Schema2Toolbar::ModeDrop:
         mData->dropTableDialog(tableName, this);
         break;
-    case ModeAlter: mData->showAlterView(tableName); break;
-    case ModeInsert: mData->showInsertView(tableName); break;
+    case Schema2Toolbar::ModeAlter: mData->showAlterView(tableName); break;
+    case Schema2Toolbar::ModeInsert: mData->showInsertView(tableName); break;
     }
 }
 
-void Schema2View::uncheckAllExcept(QPushButton* checked) {
-    QList<QPushButton*> buttons = {ui->move, ui->select, ui->relate, ui->alter, ui->insert, ui->unrelate, ui->drop};
-    for(QPushButton* button: buttons) {
-        if (button == checked) {
-            continue;
-        }
-        button->setChecked(false);
-    }
-}
-
-void Schema2View::on_select_clicked(bool checked)
-{
-    uncheckAllExcept(ui->select);
-    mMode = checked ? ModeSelect : ModeNone;
-}
-
-void Schema2View::on_move_clicked(bool checked)
-{
-    uncheckAllExcept(ui->move);
-    mMode = checked ? ModeMove : ModeNone;
-}
-
-void Schema2View::on_relate_clicked(bool checked)
-{
-    uncheckAllExcept(ui->relate);
-    mMode = checked ? ModeRelate : ModeNone;
-    mTableStack.clear();
-}
-
-void Schema2View::on_unrelate_clicked(bool checked)
-{
-    uncheckAllExcept(ui->unrelate);
-    mMode = checked ? ModeUnrelate : ModeNone;
-    mTableStack.clear();
-}
-
-void Schema2View::on_drop_clicked(bool checked)
-{
-    uncheckAllExcept(ui->drop);
-    mMode = checked ? ModeDrop : ModeNone;
-}
-
-void Schema2View::on_alter_clicked(bool checked)
-{
-    uncheckAllExcept(ui->alter);
-    mMode = checked ? ModeAlter : ModeNone;
-}
-
-void Schema2View::on_insert_clicked(bool checked)
-{
-    uncheckAllExcept(ui->insert);
-    mMode = checked ? ModeInsert : ModeNone;
-}
 
 Schema2TableModel* Schema2View::createTable(const QString& tableName) {
     Schema2TableModel* table = mData->createTable(tableName);
@@ -180,7 +165,7 @@ Schema2TablesModel *Schema2View::tables() const
     return mData->tables();
 }
 
-void Schema2View::on_create_clicked()
+void Schema2View::onCreate()
 {
     QString tableName = QInputDialog::getText(this, "Table Name", "Name");
     if (tableName.isEmpty()) {
@@ -189,62 +174,26 @@ void Schema2View::on_create_clicked()
     createTable(tableName);
 }
 
-#include "choicedialog.h"
-#include <QMessageBox>
 
-void Schema2View::on_arrange_clicked()
+
+void Schema2View::onArrange()
 {
     ChoiceDialog dialog(this);
     dialog.init({"All", "Selected"});
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
-
     bool all = dialog.checkedIndex() == 0;
-
     mData->arrange(all);
-
-
 }
 
-void Schema2View::on_pull_clicked()
-{
-    mData->pull();
-}
-
-void Schema2View::on_push_clicked()
-{
-    mData->push(this);
-}
-
-void Schema2View::on_zoomOut_clicked()
-{
-    int currentIndex = ui->scale->currentIndex();
-    if (currentIndex - 1 > -1) {
-        ui->scale->setCurrentIndex(currentIndex - 1);
-    }
-}
-
-void Schema2View::on_zoomIn_clicked()
-{
-    int currentIndex = ui->scale->currentIndex();
-    if (currentIndex + 1 < mScales.size()) {
-        ui->scale->setCurrentIndex(currentIndex + 1);
-    }
-}
-
-void Schema2View::on_scale_currentIndexChanged(int index)
-{
-    double scale = mScales[index];
-    ui->view->setTransform(QTransform().scale(scale, scale));
-}
 
 void Schema2View::on_filterLine_textChanged(const QString &text)
 {
     mData->selectProxyModel()->setFilterRegularExpression(QRegularExpression(text, QRegularExpression::CaseInsensitiveOption));
 }
 
-void Schema2View::on_script_clicked()
+void Schema2View::onScript()
 {
     mData->scriptDialog(this);
 }
@@ -269,42 +218,8 @@ void Schema2View::on_invisible_clicked()
     mData->tables()->setUncheckedMode(UncheckedInvisible);
 }
 
-#include <QFileDialog>
-#include "exportdialog.h"
-
-void Schema2View::on_saveAs_clicked()
+void Schema2View::onSave()
 {
-#if 0
-
-    ChoiceDialog dialog;
-    dialog.init({"Svg", "Png", "Dot", "dbdiagram.io"}, 0);
-    if (dialog.exec() != QDialog::Accepted) {
-        return;
-    }
-
-    QStringList filters = {
-        "Svg files (*.svg)",
-        "Png files (*.png)",
-        "Dot files (*.dot)",
-        "Txt files (*.txt)",
-    };
-
-    QList<Schema2Data::OutputFormat> formats = {
-        Schema2Data::SvgFormat,
-        Schema2Data::PngFormat,
-        Schema2Data::DotFormat,
-        Schema2Data::DbioFormat,
-    };
-
-    auto filter = filters[dialog.checkedIndex()];
-    QString path = QFileDialog::getSaveFileName(this, QString(), QString(), filter);
-    if (path.isEmpty()) {
-        return;
-    }
-    Schema2Data::OutputFormat format = formats[dialog.checkedIndex()];
-    mData->saveAs(path, format, this);
-
-#endif
 
     ExportDialog dialog(this);
 
@@ -331,7 +246,7 @@ void Schema2View::on_saveAs_clicked()
         }
     }
     mData->saveAs(clipboard, path, rect, dialog.itemsSelected(), dialog.format(), this);
-
     Automation::instance()->afterDialog(&dialog);
 }
+
 

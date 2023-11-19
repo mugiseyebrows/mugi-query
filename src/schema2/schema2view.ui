@@ -13,141 +13,50 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
+  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QPushButton" name="move">
-       <property name="text">
-        <string>Move</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
+      <widget class="Schema2Toolbar" name="toolbar" native="true"/>
      </item>
      <item>
-      <widget class="QPushButton" name="select">
-       <property name="text">
-        <string>Select</string>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-       <property name="checkable">
-        <bool>true</bool>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="relate">
-       <property name="text">
-        <string>Relate</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="unrelate">
-       <property name="text">
-        <string>Unrelate</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="alter">
-       <property name="text">
-        <string>Alter</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="drop">
-       <property name="text">
-        <string>Drop</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="insert">
-       <property name="text">
-        <string>Insert</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
+      </spacer>
      </item>
     </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="create">
-       <property name="text">
-        <string>Create</string>
-       </property>
-      </widget>
+      <widget class="Schema2ActionToolbar" name="actions" native="true"/>
      </item>
      <item>
-      <widget class="QPushButton" name="arrange">
-       <property name="text">
-        <string>Arrange</string>
-       </property>
-      </widget>
+      <widget class="Schema2SyncToolbar" name="sync" native="true"/>
      </item>
      <item>
-      <widget class="QPushButton" name="pull">
-       <property name="text">
-        <string>Pull</string>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-      </widget>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="push">
-       <property name="text">
-        <string>Push</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="zoomOut">
-       <property name="text">
-        <string>-</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="scale"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="zoomIn">
-       <property name="text">
-        <string>+</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="script">
-       <property name="text">
-        <string>Script</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="saveAs">
-       <property name="text">
-        <string>Save</string>
-       </property>
-      </widget>
+      <widget class="Schema2ZoomToolbar" name="zoom" native="true"/>
      </item>
     </layout>
    </item>
@@ -228,6 +137,32 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Schema2Toolbar</class>
+   <extends>QWidget</extends>
+   <header>src/schema2/schema2toolbar.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Schema2ZoomToolbar</class>
+   <extends>QWidget</extends>
+   <header>src/schema2/schema2zoomtoolbar.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Schema2ActionToolbar</class>
+   <extends>QWidget</extends>
+   <header>src/schema2/schema2actiontoolbar.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Schema2SyncToolbar</class>
+   <extends>QWidget</extends>
+   <header>src/schema2/schema2synctoolbar.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

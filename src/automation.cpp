@@ -490,7 +490,7 @@ void Automation::onStart() {
     } else if (mAction.type() == Action::ActionPushSchema) {
 
         auto* view = schemaView();
-        view->on_push_clicked();
+        view->onPush();
         next();
 
     } else if (mAction.type() == Action::ActionCompareTable) {
@@ -556,7 +556,7 @@ void Automation::onStart() {
             next();
             return;
         }
-        view->on_saveAs_clicked();
+        view->onSave();
         next();
 
     }
