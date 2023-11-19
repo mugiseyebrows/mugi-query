@@ -2,7 +2,6 @@
 #include "ui_schema2alterview.h"
 
 #include "schema2tablemodel.h"
-#include "schema2relationmodel.h"
 #include "schema2index.h"
 #include <QStandardItemModel>
 #include "tablebuttons.h"
@@ -49,6 +48,7 @@ void Schema2AlterView::initColumns() {
     ui->columns->hideColumn(Schema2TableModel::col_name_prev);
     ui->columns->hideColumn(Schema2TableModel::col_type_prev);
     ui->columns->hideColumn(Schema2TableModel::col_notnull_prev);
+    ui->columns->hideColumn(Schema2TableModel::col_default_prev);
     ui->columns->hideColumn(Schema2TableModel::col_autoincrement_prev);
 
     TableButtons* buttons = new TableButtons();

@@ -6,7 +6,6 @@
 #include "hash.h"
 
 class Schema2TableModel;
-class Schema2RelationModel;
 class Schema2TablesModel;
 
 enum JoinType {

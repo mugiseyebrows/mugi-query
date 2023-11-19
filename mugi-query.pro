@@ -101,8 +101,6 @@ HEADERS += \
     src/schema2/schema2relationitem2.h \
     src/schema2/schema2relationmodel.h \
     src/schema2/schema2relationsfiltermodel.h \
-    src/schema2/schema2relationslistdialog.h \
-    src/schema2/schema2relationslistmodel.h \
     src/schema2/schema2relationsmodel.h \
     src/schema2/schema2status.h \
     src/schema2/schema2store.h \
@@ -270,8 +268,6 @@ SOURCES += \
     src/schema2/schema2relationitem2.cpp \
     src/schema2/schema2relationmodel.cpp \
     src/schema2/schema2relationsfiltermodel.cpp \
-    src/schema2/schema2relationslistdialog.cpp \
-    src/schema2/schema2relationslistmodel.cpp \
     src/schema2/schema2relationsmodel.cpp \
     src/schema2/schema2status.cpp \
     src/schema2/schema2store.cpp \

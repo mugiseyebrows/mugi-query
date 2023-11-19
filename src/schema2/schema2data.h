@@ -12,7 +12,6 @@ class Schema2TableView;
 class Schema2Data;
 class Schema2View;
 class QGraphicsItem;
-class Schema2RelationModel;
 class Schema2TableItem;
 class ClickListener;
 class Schema2AlterView;
@@ -125,8 +124,6 @@ protected:
     //QHash<QString, Schema2TableView*> mViews;
 
     StringHash<Schema2AlterView*> mAlterViews;
-
-    //StringListHash<Schema2RelationModel*> mRelationModels;
 
     //QList<QPair<QString, Schema2Relation*>> mDropRelationsQueue;
 

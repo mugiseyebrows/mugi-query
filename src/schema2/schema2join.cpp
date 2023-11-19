@@ -1,7 +1,7 @@
 #include "schema2join.h"
 #include <QDebug>
 
-#include "schema2relationmodel.h"
+
 #include "schema2relation.h"
 #include "schema2tablemodel.h"
 #include "schema2relationsmodel.h"
@@ -24,22 +24,6 @@ static QStringList toLower(const QStringList& items) {
     return res;
 }
 
-#if 0
-static QStringList childColumnParentColumn(const StringListHash<Schema2RelationModel *>& relationModels,
-                               const QStringList& key, bool reverse = false) {
-    if (relationModels.contains(key)) {
-        QString childColumn = relationModels.get(key)->childColumn();
-        QString parentColumn = relationModels.get(key)->parentColumn();
-        if (reverse) {
-            return {parentColumn, childColumn};
-        } else {
-            return {childColumn, parentColumn};
-        }
-    }
-    return {};
-}
-#endif
-
 static QList<QStringList> findChildColumnsParentColumns(
         const QString &childTable, const QString &parentTable,
         Schema2TablesModel* tableModels) {
@@ -53,36 +37,6 @@ static QList<QStringList> findChildColumnsParentColumns(
     }
     return {};
 }
-
-#if 0
-static QStringList findChildColumnParentColumn(const QString &childTable, const QString &parentTable,
-                           const StringListHash<Schema2RelationModel *>& relationModels) {
-
-    QStringList key1 = {childTable, parentTable};
-    if (relationModels.contains(key1)) {
-        return childColumnParentColumn(relationModels, key1, false);
-    }
-    QStringList key2 = {parentTable, childTable};
-    if (relationModels.contains(key2)) {
-        return childColumnParentColumn(relationModels, key2, true);
-    }
-
-    QStringList key3 = toLower(key1);
-    QStringList key4 = toLower(key2);
-
-    QList<QStringList> keys = relationModels.keys();
-    for(const QStringList& key: keys) {
-        QStringList other = toLower(key);
-        if (other == key3) {
-            return childColumnParentColumn(relationModels, other, false);
-        } else if (other == key4) {
-            return childColumnParentColumn(relationModels, other, true);
-        }
-    }
-    return {};
-}
-#endif
-
 
 QList<Schema2Join> findJoinImpl(const QStringList &join_,
                  Schema2TablesModel* tableModels)
@@ -112,21 +66,6 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
             relations[parentTable].append(childTable);
         }
     }
-
-#if 0
-    for(const QStringList& item: qAsConst(relations_)) {
-        int childTable = tables.indexOf(item[0].toLower());
-        int parentTable = tables.indexOf(item[1].toLower());
-        if (!relations.contains(childTable)) {
-            relations[childTable] = {};
-        }
-        if (!relations.contains(parentTable)) {
-            relations[parentTable] = {};
-        }
-        relations[childTable].append(parentTable);
-        relations[parentTable].append(childTable);
-    }
-#endif
 
     QList<int> join;
     for(const QString& name: qAsConst(join_)) {

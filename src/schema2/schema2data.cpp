@@ -9,7 +9,7 @@
 #include "schema2view.h"
 #include "schema2tableitem.h"
 #include "schema2relationitem2.h"
-#include "schema2relationmodel.h"
+
 #include <QDebug>
 #include "schema2arrange.h"
 #include "schema2alterview.h"
@@ -20,7 +20,7 @@
 #include "schema2arrange.h"
 #include <QSortFilterProxyModel>
 #include "checkablestringlistmodel.h"
-#include "schema2relationslistdialog.h"
+
 #include <QAxObject>
 #include <QStandardItemModel>
 #include "history.h"
@@ -196,7 +196,7 @@ void Schema2Data::pullTablesMysql() {
 
         // todo character_maximum_length, numeric_precision
         QSqlQuery q(db);
-        q.prepare("SELECT column_name, column_type, is_nullable, extra FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?");
+        q.prepare("SELECT column_name, column_type, is_nullable, column_default, extra FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?");
         q.addBindValue(table);
         q.exec();
 
@@ -205,8 +205,12 @@ void Schema2Data::pullTablesMysql() {
             QString name = q.value(0).toString();
             QString type = q.value(1).toString();
             bool notNull = q.value(2).toString() == "NO";
-            bool autoincrement = q.value(3).toString() == "auto_increment";
-            model->insertColumnsIfNotContains(name, type, notNull, autoincrement, prev);
+            QString default_ = q.value(3).toString();
+            bool autoincrement = q.value(4).toString() == "auto_increment";
+            if (default_ == "NULL") {
+                default_ = QString();
+            }
+            model->insertColumnsIfNotContains(name, type, notNull, default_, autoincrement, prev);
             prev = name;
         }
 
@@ -265,8 +269,9 @@ void Schema2Data::pullTablesOdbc() {
 
             // todo odbc autoincrement
             bool autoincrement = false;
+            QString default_;
 
-            model->insertColumnsIfNotContains(name, typeName, notNull, autoincrement, prev);
+            model->insertColumnsIfNotContains(name, typeName, notNull, default_, autoincrement, prev);
 
             prev = name;
         }
@@ -296,7 +301,8 @@ void Schema2Data::pullTablesOther() {
             QString type;
             bool notNull = false;
             bool autoincrement = false;
-            model->insertColumnsIfNotContains(name, type, notNull, autoincrement, prev);
+            QString default_;
+            model->insertColumnsIfNotContains(name, type, notNull, default_, autoincrement, prev);
             prev = name;
         }
 
@@ -560,45 +566,6 @@ void Schema2Data::pullRelationsOdbc() {
 
         mTables->relationPulled(constraintName, childTable, childColumns, parentTable, parentColumns, true, StatusExisting);
 
-#if 0
-
-        QStringList key = {childTable, parentTable};
-
-        if (!mRelationModels.contains(key)) {
-            Schema2RelationModel* relationModel = new Schema2RelationModel(childTable, childColumn,
-                                                                           parentTable, parentColumn, constraintName,
-                                                                           true, true);
-            mRelationModels.set(key, relationModel);
-        }
-
-        if (!mRelationItems.contains(key)) {
-
-            Schema2TableItem* childTableItem = mTableItems.get(childTable);
-            Schema2TableItem* parentTableItem = mTableItems.get(parentTable);
-
-            if (childTableItem && parentTableItem) {
-
-                Schema2RelationItem* item = new Schema2RelationItem(mRelationModels.get(key), childTableItem, parentTableItem);
-                mRelationItems.set(key, item);
-
-                parentTableItem->addRelation(item);
-                childTableItem->addRelation(item);
-
-                mScene->addItem(item);
-            } else {
-                if (!childTableItem) {
-                    qDebug() << "!mTableItems.contains(childTable)" << childTable;
-                }
-                if (!parentTableItem) {
-                    qDebug() << "!mTableItems.contains(parentTable)" << parentTable;
-                }
-            }
-
-
-        }
-
-#endif
-
 
     }
 
@@ -793,74 +760,17 @@ void Schema2Data::push(QWidget* widget)
     }
 
 
-#if 0
-
-    for(Schema2RelationModel* relation: mRemoveRelationsQueue) {
-        changeSet->append(relation->removeQuery(), [=](){
-            mRemoveRelationsQueue.removeOne(relation);
-        });
-    }
-
-    QList<Schema2RelationModel*> relations = mRelationModels.values();
-    for(Schema2RelationModel* relation: relations) {
-        if (relation->constrained() && !relation->existing()) {
-            changeSet->append(relation->createQuery(),[=](){
-                relation->setExisting(true);
-            });
-        }
-    }
-#endif
-
     if (changeSet->isEmpty()) {
         delete changeSet;
         return;
     }
 
-#if 0
-    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
-
-    QStandardItemModel* model = new QStandardItemModel(queries.size(), 2);
-
-    for(int i=0;i<queries.size();i++) {
-        QSqlQuery q(db);
-        QString query = queries[i];
-        QString error;
-        if (!q.exec(query)) {
-            error = q.lastError().text();
-        } else {
-            history->addQuery(mConnectionName, query);
-        }
-        model->setData(model->index(i, 0), query);
-        model->setData(model->index(i, 1), error);
-    }
-#endif
-
     changeSet->execute(mConnectionName);
-
-    /*QTableView* view = new QTableView();
-    view->setWindowTitle("Push Result");
-    view->setModel(changeSet);*/
 
     Schema2PushView* view = new Schema2PushView();
     view->setModel(changeSet);
 
     showAndRaise(view);
-
-
-
-    /*QList<Schema2TableModel*> models = mTableModels.values();
-    for(Schema2TableModel* model: models) {
-        if (model->hasPendingChanges()) {
-
-        }
-    }
-    QList<Schema2RelationModel*> relations = mRelationModels.values();
-    for(Schema2RelationModel* relation: qAsConst(relations)) {
-        if (relation->hasPendingChanges()) {
-
-        }
-    }*/
-
 
 }
 
@@ -888,14 +798,6 @@ bool Schema2Data::hasPendingChanges() const
             return true;
         }
     }
-#if 0
-    QList<Schema2RelationModel*> relations = mRelationModels.values();
-    for(Schema2RelationModel* relation: qAsConst(relations)) {
-        if (relation->hasPendingChanges()) {
-            return true;
-        }
-    }
-#endif
     return false;
 }
 
@@ -978,67 +880,6 @@ void Schema2Data::createRelationDialog(const QString &childTable, const QString&
                    childTable, dialog.childColumns(),
                    parentTable, dialog.parentColumns(), dialog.constrained(), StatusNew);
 
-
-#if 0
-    if (!mTableModels.contains(childTable)
-            || !mTableModels.contains(parentTable)
-            || !mTableItems.contains(childTable)
-            || !mTableItems.contains(parentTable)
-            ) {
-        report_error("!mTableModels.contains() || !mTableItems.contains()", __FILE__, __LINE__, widget);
-        return;
-    }
-
-    QStringList key = {childTable, parentTable};
-
-    Schema2RelationModel* model = 0;
-    bool newRelation = true;
-
-    if (mRelationModels.contains(key)) {
-        model = mRelationModels.get(key);
-        newRelation = false;
-    }
-
-    Schema2TableModel* childModel = mTableModels.get(childTable);
-    Schema2TableModel* parentModel = mTableModels.get(parentTable);
-
-    Schema2TableItem* childItem = mTableItems.get(childTable);
-    Schema2TableItem* parentItem = mTableItems.get(parentTable);
-
-    Schema2RelationDialog dialog(widget);
-    dialog.init(childModel, parentModel, model);
-    if (dialog.exec() != QDialog::Accepted) {
-        return;
-    }
-
-    if (dialog.remove()) {
-        if (model) {
-            mRemoveRelationsQueue.append(model);
-        }
-    } else {
-
-        if (newRelation) {
-
-            Schema2RelationModel* model = new Schema2RelationModel(childTable, dialog.childColumn(),
-                                                                   parentTable, dialog.parentColumn(),
-                                                                   dialog.constraintName(),
-                                                                   dialog.constrained(), false);
-            mRelationModels.set(key,model);
-            Schema2RelationItem* item = new Schema2RelationItem(model, childItem, parentItem);
-            mRelationItems.set(key, item);
-            mScene->addItem(item);
-
-            childItem->addRelation(item);
-            parentItem->addRelation(item);
-
-        } else {
-
-
-        }
-
-    }
-
-#endif
 }
 
 void Schema2Data::dropRelationDialog(Schema2Relation *relation, QWidget *widget) {
@@ -1440,22 +1281,6 @@ QList<Schema2Join> Schema2Data::findJoin(const QStringList &join)
 QSortFilterProxyModel *Schema2Data::selectProxyModel() {
     return mSelectProxyModel;
 }
-
-
-#if 0
-void Schema2Data::showRelationsListDialog(QWidget* widget) {
-
-    Schema2RelationsListDialog dialog;
-    dialog.init(mTableModels, mRelationModels);
-    if (dialog.exec() != QDialog::Accepted) {
-        return;
-    }
-    QString childTable = dialog.childTable();
-    QString parentTable = dialog.parentTable();
-    showRelationDialog(childTable, parentTable, widget);
-
-}
-#endif
 
 Schema2TableModel* Schema2Data::createTable(const QString &name)
 {

@@ -3,7 +3,6 @@
 #include "schema2tablesmodel.h"
 #include "schema2tablemodel.h"
 #include "schema2relationsmodel.h"
-#include "schema2relationmodel.h"
 
 
 Schema2ParentRelationsModel::Schema2ParentRelationsModel(Schema2TableModel *table, QObject *parent)

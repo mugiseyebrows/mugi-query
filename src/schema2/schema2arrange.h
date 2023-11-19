@@ -7,11 +7,6 @@ class Schema2TablesModel;
 
 //void arrangeInGrid(const QList<Schema2TableItem*>& items, int width, int heigth, int spacing);
 
-#if 0
-void squareArrange(const QStringList tables, const QHash<QStringList, Schema2RelationModel*>& relationModels,
-                      const QHash<QString, Schema2TableItem *> &tableItems);
-#endif
-
 enum GridType {
     GridSquare,
     GridTriangle
