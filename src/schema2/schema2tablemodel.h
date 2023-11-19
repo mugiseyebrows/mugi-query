@@ -21,16 +21,18 @@ public:
         col_name,
         col_type,
         col_notnull,
+        col_autoincrement,
 
         col_name_prev,
         col_type_prev,
         col_notnull_prev,
+        col_autoincrement_prev,
         cols_count
     };
 
     explicit Schema2TableModel(const QString& name, Status status, QObject *parent = nullptr);
 
-    void insertColumnsIfNotContains(const QString& name, const QString& type, bool notNull, const QString &prev);
+    void insertColumnsIfNotContains(const QString& name, const QString& type, bool notNull, bool autoIncrement, const QString &prev);
 
     bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex());
 
@@ -47,6 +49,10 @@ public:
     bool notNull(int row) const;
 
     bool notNullPrev(int row) const;
+
+    bool autoincrement(int row) const;
+
+    bool autoincrementPrev(int row) const;
 
     bool hasPendingChanges() const;
 
@@ -84,7 +90,7 @@ public:
 
     Schema2Relation* relationTo(const QString& tableName) const;
 
-    void pushed();
+    void pushed(bool created);
 
     Status status() const;
 
@@ -93,6 +99,8 @@ public:
     QStringList alterQueries(const QString &driverName, QSqlDriver *driver) const;
 
     QStringList dropQueries(const QString &driverName, QSqlDriver *driver) const;
+
+    QStringList autoincrementQueries(const QString &driverName, QSqlDriver *driver) const;
 
     void setStatus(Status status);
 
@@ -149,10 +157,15 @@ public:
 
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
+
+    QString columnDefinition(const QString &driverName, QSqlDriver *driver, int row, bool skipAutoIncrement = false) const;
+
     // QAbstractItemModel interface
 public:
     bool removeRows(int row, int count, const QModelIndex &parent);
     void updateParentRelations(Schema2TablesModel *tables);
+
+
 };
 
 #endif // SCHEMA2TABLEMODEL_H

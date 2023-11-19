@@ -49,6 +49,7 @@ void Schema2AlterView::initColumns() {
     ui->columns->hideColumn(Schema2TableModel::col_name_prev);
     ui->columns->hideColumn(Schema2TableModel::col_type_prev);
     ui->columns->hideColumn(Schema2TableModel::col_notnull_prev);
+    ui->columns->hideColumn(Schema2TableModel::col_autoincrement_prev);
 
     TableButtons* buttons = new TableButtons();
 

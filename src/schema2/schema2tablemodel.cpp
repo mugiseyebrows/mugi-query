@@ -21,7 +21,7 @@ Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject
 }
 
 void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QString &type, bool notNull,
-                                                   const QString& prev)
+                                                   bool autoIncrement, const QString& prev)
 {
     int insertRow = rowCount();
 
@@ -39,8 +39,8 @@ void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QS
 
     beginInsertRows(QModelIndex(), insertRow, insertRow);
     //mColumns.insert(insertRow, {name, name, type, type});
-    mColumns.insert(insertRow, Schema2TableColumn(name, type, notNull));
-    mColumnsPrev.insert(insertRow, Schema2TableColumn(name, type, notNull));
+    mColumns.insert(insertRow, Schema2TableColumn(name, type, notNull, autoIncrement));
+    mColumnsPrev.insert(insertRow, Schema2TableColumn(name, type, notNull, autoIncrement));
     endInsertRows();
 }
 
@@ -88,6 +88,14 @@ bool Schema2TableModel::notNull(int row) const
 bool Schema2TableModel::notNullPrev(int row) const
 {
     return mColumnsPrev[row].notNull;
+}
+
+bool Schema2TableModel::autoincrement(int row) const {
+    return mColumns[row].autoincrement;
+}
+
+bool Schema2TableModel::autoincrementPrev(int row) const {
+    return mColumnsPrev[row].autoincrement;
 }
 
 bool Schema2TableModel::hasPendingChanges() const
@@ -194,15 +202,14 @@ Schema2Relation *Schema2TableModel::relationTo(const QString &tableName) const
     return mRelations->getRelationTo(tableName);
 }
 
-void Schema2TableModel::pushed() {
+void Schema2TableModel::pushed(bool created) {
     mStatus = StatusExisting;
     for(int row=0;row<rowCount();row++) {
-# if 0
-        QString newName = this->name(row);
-        QString newType = this->type(row);
-        setData(index(row, col_name), newName);
-        setData(index(row, col_type), newType);
-#endif
+
+        if (created) {
+
+        }
+
         mColumnsPrev[row] = mColumns[row];
     }
     mDropColumnsQueue.clear();
@@ -220,7 +227,7 @@ Status Schema2TableModel::status() const {
             if (name(row).isEmpty()) {
                 continue;
             }
-            if (namePrev(row) != name(row) || typePrev(row) != type(row)) {
+            if (namePrev(row) != name(row) || typePrev(row) != type(row) || autoincrement(row) != autoincrementPrev(row)) {
                 return StatusModified;
             }
         }
@@ -231,20 +238,19 @@ Status Schema2TableModel::status() const {
 
 QStringList Schema2TableModel::createQueries(const QString &driverName, QSqlDriver *driver) const {
     SqlEscaper es(driver);
-    QStringList fields;
+    QStringList columns;
     for(int row=0;row<rowCount();row++) {
         QString name = this->name(row);
         QString type = this->type(row);
-        bool notNull = this->notNull(row);
         if (name.isEmpty() || type.isEmpty()) {
             continue;
         }
-        QString field = filterEmpty({es.field(name), type, notNull ? "NOT NULL" : ""}).join(" ");
-        fields.append(field);
+        QString column_definition = columnDefinition(driverName, driver, row, true);
+        columns.append(column_definition);
     }
     QString expr = QString("CREATE TABLE %1 (%2)")
             .arg(es.table(mTableName))
-            .arg(fields.join(", "));
+            .arg(columns.join(", "));
     return {expr};
 }
 
@@ -268,23 +274,28 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
         QString typePrev = this->typePrev(row);
         QString type = this->type(row);
         bool notNull = this->notNull(row);
+        bool notNullPrev = this->notNullPrev(row);
+        bool autoincrement = this->autoincrement(row);
+        bool autoincrementPrev = this->autoincrementPrev(row);
 
         bool nameChanged = name != namePrev;
         bool typeChanged = type != typePrev;
-        bool notNullChanged = notNull != notNull;
+        bool notNullChanged = notNull != notNullPrev;
+        bool autoincrementChanged = autoincrement != autoincrementPrev;
 
         if (name.isEmpty()) {
 
         } else {
             if (namePrev.isEmpty()) {
 
-                QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
-                                            "ADD COLUMN",
-                                            es.field(name), type, notNull ? "NOT NULL" : ""}).join(" ");
+                QString column_definition = columnDefinition(driverName, driver, row);
+
+                QString expr = QStringList{"ALTER TABLE", es.table(mTableName),
+                                            "ADD COLUMN", column_definition}.join(" ");
 
                 res.append(expr);
 
-            } else if (nameChanged || typeChanged || notNullChanged) {
+            } else if (nameChanged || typeChanged || notNullChanged || autoincrementChanged) {
 
                 if (driverName == DRIVER_ODBC) {
 
@@ -304,8 +315,10 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
 
                 } else if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
 
+                    QString column_definition = columnDefinition(driverName, driver, row);
+
                     QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
-                                                "CHANGE COLUMN", es.field(namePrev), es.field(name), type, notNull ? "NOT NULL" : ""}).join(" ");
+                                                "CHANGE COLUMN", es.field(namePrev), column_definition}).join(" ");
 
                     res.append(expr);
                 } else {
@@ -320,6 +333,41 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
         }
     }
 
+    return res;
+}
+
+QStringList Schema2TableModel::autoincrementQueries(const QString &driverName, QSqlDriver *driver) const {
+    SqlEscaper es(driver);
+    QStringList res;
+    for(int row=0;row<rowCount();row++) {
+        QString namePrev = this->namePrev(row);
+        QString name = this->name(row);
+        QString type = this->type(row);
+        bool autoincrement = this->autoincrement(row);
+        if (namePrev.isEmpty() && !name.isEmpty() && !type.isEmpty() && autoincrement) {
+            QString column_definition = columnDefinition(driverName, driver, row);
+            QString expr = QStringList {"ALTER TABLE", es.table(mTableName),
+                                        "MODIFY COLUMN", column_definition}.join(" ");
+            res.append(expr);
+        }
+    }
+    return res;
+}
+
+QString Schema2TableModel::columnDefinition(const QString &driverName, QSqlDriver *driver, int row, bool skipAutoIncrement) const {
+
+    //Q_ASSERT(driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB);
+
+    SqlEscaper es(driver);
+
+    QString name = this->name(row);
+    QString type = this->type(row);
+    bool notNull = this->notNull(row);
+    bool autoincrement = this->autoincrement(row);
+
+    QString res = filterEmpty({es.field(name), type,
+                               notNull ? "NOT NULL" : "",
+                               (autoincrement && !skipAutoIncrement) ? "AUTO_INCREMENT" : ""}).join(" ");
     return res;
 }
 
@@ -392,6 +440,10 @@ int Schema2TableModel::columnCount(const QModelIndex &parent) const
     return cols_count;
 }
 
+static int bool_to_checked(bool value) {
+    return value ? Qt::Checked : Qt::Unchecked;
+}
+
 QVariant Schema2TableModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid()) {
@@ -411,8 +463,10 @@ QVariant Schema2TableModel::data(const QModelIndex &index, int role) const
     if (role == Qt::CheckStateRole) {
         int row = index.row();
         switch(index.column()) {
-        case col_notnull: return mColumns[row].notNull ? Qt::Checked : Qt::Unchecked;
-        case col_notnull_prev: return mColumnsPrev[row].notNull ? Qt::Checked : Qt::Unchecked;
+        case col_notnull: return bool_to_checked(mColumns[row].notNull);
+        case col_notnull_prev: return bool_to_checked(mColumnsPrev[row].notNull);
+        case col_autoincrement: return bool_to_checked(mColumns[row].autoincrement);
+        case col_autoincrement_prev: return bool_to_checked(mColumnsPrev[row].autoincrement);
         }
     }
 
@@ -425,10 +479,14 @@ Qt::ItemFlags Schema2TableModel::flags(const QModelIndex &index) const
     if (index.column() == col_name || index.column() == col_type) {
         flags |= Qt::ItemIsEditable;
     }
-    if (index.column() == col_notnull) {
+    if (index.column() == col_notnull || index.column() == col_autoincrement) {
         flags |= Qt::ItemIsUserCheckable;
     }
     return flags;
+}
+
+static bool checked_to_bool(const QVariant& value) {
+    return value.toInt() == Qt::Checked;
 }
 
 bool Schema2TableModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -444,12 +502,13 @@ bool Schema2TableModel::setData(const QModelIndex &index, const QVariant &value,
         }
 
         emit dataChanged(index, index);
-    } else if (role == Qt::CheckStateRole) {
-
+    } else if (role == Qt::CheckStateRole) {        
         int row = index.row();
         switch(index.column()) {
-        case col_notnull: mColumns[row].notNull = value.toInt() == Qt::Checked; break;
-        case col_notnull_prev: mColumnsPrev[row].notNull = value.toInt() == Qt::Checked; break;
+        case col_notnull: mColumns[row].notNull = checked_to_bool(value); break;
+        case col_notnull_prev: mColumnsPrev[row].notNull = checked_to_bool(value); break;
+        case col_autoincrement: mColumns[row].autoincrement = checked_to_bool(value); break;
+        case col_autoincrement_prev: mColumnsPrev[row].autoincrement = checked_to_bool(value); break;
         }
         emit dataChanged(index, index);
     }
@@ -463,10 +522,12 @@ QVariant Schema2TableModel::headerData(int section, Qt::Orientation orientation,
         {col_name, "Name"},
         {col_notnull, "Non null"},
         {col_type, "Type"},
+        {col_autoincrement, "Autoinc"},
 
         {col_name_prev, "Name"},
         {col_notnull_prev, "Non null"},
         {col_type_prev, "Type"},
+        {col_autoincrement_prev, "Autoinc"},
     };
 
     if (role == Qt::DisplayRole) {

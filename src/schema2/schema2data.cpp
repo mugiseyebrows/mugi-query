@@ -196,7 +196,7 @@ void Schema2Data::pullTablesMysql() {
 
         // todo character_maximum_length, numeric_precision
         QSqlQuery q(db);
-        q.prepare("SELECT column_name, column_type, is_nullable FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?");
+        q.prepare("SELECT column_name, column_type, is_nullable, extra FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?");
         q.addBindValue(table);
         q.exec();
 
@@ -205,7 +205,8 @@ void Schema2Data::pullTablesMysql() {
             QString name = q.value(0).toString();
             QString type = q.value(1).toString();
             bool notNull = q.value(2).toString() == "NO";
-            model->insertColumnsIfNotContains(name, type, notNull, prev);
+            bool autoincrement = q.value(3).toString() == "auto_increment";
+            model->insertColumnsIfNotContains(name, type, notNull, autoincrement, prev);
             prev = name;
         }
 
@@ -262,7 +263,10 @@ void Schema2Data::pullTablesOdbc() {
                 }
             }
 
-            model->insertColumnsIfNotContains(name, typeName, notNull, prev);
+            // todo odbc autoincrement
+            bool autoincrement = false;
+
+            model->insertColumnsIfNotContains(name, typeName, notNull, autoincrement, prev);
 
             prev = name;
         }
@@ -291,7 +295,8 @@ void Schema2Data::pullTablesOther() {
             QString name = r.fieldName(i);
             QString type;
             bool notNull = false;
-            model->insertColumnsIfNotContains(name, type, notNull, prev);
+            bool autoincrement = false;
+            model->insertColumnsIfNotContains(name, type, notNull, autoincrement, prev);
             prev = name;
         }
 
@@ -717,12 +722,12 @@ void Schema2Data::push(QWidget* widget)
         switch(table->status()) {
         case StatusNew:
             changeSet->append(table->createQueries(driverName, driver), [=](){
-                table->pushed();
+                table->pushed(true);
             });
             break;
         case StatusModified:
             changeSet->append(table->alterQueries(driverName, driver), [=](){
-                table->pushed();
+                table->pushed(false);
             });
             break;
         case StatusExisting:
@@ -736,6 +741,15 @@ void Schema2Data::push(QWidget* widget)
         changeSet->append(indexes->queries(table->tableName(), driverName, driver), [=](){
             indexes->pushed();
         });
+    }
+
+    // update autoincrement
+    for(Schema2TableModel* table: tables) {
+        if (table->status() == StatusNew) {
+            changeSet->append(table->autoincrementQueries(driverName, driver), [=](){
+                table->pushed(true);
+            });
+        }
     }
 
     // create and alter relations
