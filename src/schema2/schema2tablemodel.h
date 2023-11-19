@@ -21,18 +21,20 @@ public:
         col_name,
         col_type,
         col_notnull,
+        col_default,
         col_autoincrement,
 
         col_name_prev,
         col_type_prev,
         col_notnull_prev,
+        col_default_prev,
         col_autoincrement_prev,
         cols_count
     };
 
     explicit Schema2TableModel(const QString& name, Status status, QObject *parent = nullptr);
 
-    void insertColumnsIfNotContains(const QString& name, const QString& type, bool notNull, bool autoIncrement, const QString &prev);
+    void insertColumnsIfNotContains(const QString& name, const QString& type, bool notNull, const QString &default_, bool autoIncrement, const QString &prev);
 
     bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex());
 
@@ -53,6 +55,10 @@ public:
     bool autoincrement(int row) const;
 
     bool autoincrementPrev(int row) const;
+
+    QString defaultPrev(int row) const;
+
+    QString default_(int row) const;
 
     bool hasPendingChanges() const;
 
@@ -164,6 +170,7 @@ public:
 public:
     bool removeRows(int row, int count, const QModelIndex &parent);
     void updateParentRelations(Schema2TablesModel *tables);
+
 
 
 };

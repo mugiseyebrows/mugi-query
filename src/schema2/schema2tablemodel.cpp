@@ -21,6 +21,7 @@ Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject
 }
 
 void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QString &type, bool notNull,
+                                                   const QString& default_,
                                                    bool autoIncrement, const QString& prev)
 {
     int insertRow = rowCount();
@@ -39,8 +40,8 @@ void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QS
 
     beginInsertRows(QModelIndex(), insertRow, insertRow);
     //mColumns.insert(insertRow, {name, name, type, type});
-    mColumns.insert(insertRow, Schema2TableColumn(name, type, notNull, autoIncrement));
-    mColumnsPrev.insert(insertRow, Schema2TableColumn(name, type, notNull, autoIncrement));
+    mColumns.insert(insertRow, Schema2TableColumn(name, type, notNull, default_, autoIncrement));
+    mColumnsPrev.insert(insertRow, Schema2TableColumn(name, type, notNull, default_, autoIncrement));
     endInsertRows();
 }
 
@@ -96,6 +97,14 @@ bool Schema2TableModel::autoincrement(int row) const {
 
 bool Schema2TableModel::autoincrementPrev(int row) const {
     return mColumnsPrev[row].autoincrement;
+}
+
+QString Schema2TableModel::default_(int row) const {
+    return mColumns[row].default_;
+}
+
+QString Schema2TableModel::defaultPrev(int row) const {
+    return mColumnsPrev[row].default_;
 }
 
 bool Schema2TableModel::hasPendingChanges() const
@@ -227,7 +236,11 @@ Status Schema2TableModel::status() const {
             if (name(row).isEmpty()) {
                 continue;
             }
-            if (namePrev(row) != name(row) || typePrev(row) != type(row) || autoincrement(row) != autoincrementPrev(row)) {
+            if (namePrev(row) != name(row)
+                    || typePrev(row) != type(row)
+                    || notNullPrev(row) != notNull(row)
+                    || defaultPrev(row) != default_(row)
+                    || autoincrementPrev(row) != autoincrement(row)) {
                 return StatusModified;
             }
         }
@@ -277,11 +290,14 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
         bool notNullPrev = this->notNullPrev(row);
         bool autoincrement = this->autoincrement(row);
         bool autoincrementPrev = this->autoincrementPrev(row);
+        QString default_ = this->default_(row);
+        QString defaultPrev = this->defaultPrev(row);
 
         bool nameChanged = name != namePrev;
         bool typeChanged = type != typePrev;
         bool notNullChanged = notNull != notNullPrev;
         bool autoincrementChanged = autoincrement != autoincrementPrev;
+        bool defaultChanged = default_ != defaultPrev;
 
         if (name.isEmpty()) {
 
@@ -295,7 +311,7 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
 
                 res.append(expr);
 
-            } else if (nameChanged || typeChanged || notNullChanged || autoincrementChanged) {
+            } else if (nameChanged || typeChanged || notNullChanged || autoincrementChanged || defaultChanged) {
 
                 if (driverName == DRIVER_ODBC) {
 
@@ -354,6 +370,10 @@ QStringList Schema2TableModel::autoincrementQueries(const QString &driverName, Q
     return res;
 }
 
+static bool is_text_type(const QString& driverName, const QString& type) {
+    return type.toLower().startsWith("varchar") || type.toLower() == "text";
+}
+
 QString Schema2TableModel::columnDefinition(const QString &driverName, QSqlDriver *driver, int row, bool skipAutoIncrement) const {
 
     //Q_ASSERT(driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB);
@@ -363,10 +383,33 @@ QString Schema2TableModel::columnDefinition(const QString &driverName, QSqlDrive
     QString name = this->name(row);
     QString type = this->type(row);
     bool notNull = this->notNull(row);
+    QString default_ = this->default_(row);
     bool autoincrement = this->autoincrement(row);
+
+    QString default_def;
+    if (!default_.isEmpty()) {
+        if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
+            QString value = default_;
+            if (default_.startsWith("'")) {
+
+            } else if (default_.startsWith("(")) {
+
+            } else {
+                if (is_text_type(driverName, type)) {
+                    value = "'" + value + "'";
+                } else {
+                    value = "(" + value + ")";
+                }
+            }
+            default_def = QString("DEFAULT %1").arg(value);
+        } else {
+            default_def = QString("DEFAULT %1").arg(default_);
+        }
+    }
 
     QString res = filterEmpty({es.field(name), type,
                                notNull ? "NOT NULL" : "",
+                               default_def,
                                (autoincrement && !skipAutoIncrement) ? "AUTO_INCREMENT" : ""}).join(" ");
     return res;
 }
@@ -455,9 +498,10 @@ QVariant Schema2TableModel::data(const QModelIndex &index, int role) const
         switch(index.column()) {
         case col_name: return mColumns[row].name;
         case col_type: return mColumns[row].type;
-
+        case col_default: return mColumns[row].default_;
         case col_name_prev: return mColumnsPrev[row].name;
         case col_type_prev: return mColumnsPrev[row].type;
+        case col_default_prev: return mColumnsPrev[row].default_;
         }
     }
     if (role == Qt::CheckStateRole) {
@@ -476,7 +520,7 @@ QVariant Schema2TableModel::data(const QModelIndex &index, int role) const
 Qt::ItemFlags Schema2TableModel::flags(const QModelIndex &index) const
 {
     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
-    if (index.column() == col_name || index.column() == col_type) {
+    if (index.column() == col_name || index.column() == col_type || index.column() == col_default) {
         flags |= Qt::ItemIsEditable;
     }
     if (index.column() == col_notnull || index.column() == col_autoincrement) {
@@ -497,8 +541,10 @@ bool Schema2TableModel::setData(const QModelIndex &index, const QVariant &value,
         switch(index.column()) {
         case col_name: mColumns[row].name = value.toString(); break;
         case col_type: mColumns[row].type = value.toString(); break;
+        case col_default: mColumns[row].default_ = value.toString(); break;
         case col_name_prev: mColumnsPrev[row].name = value.toString(); break;
         case col_type_prev: mColumnsPrev[row].type = value.toString(); break;
+        case col_default_prev: mColumnsPrev[row].default_ = value.toString(); break;
         }
 
         emit dataChanged(index, index);
@@ -523,11 +569,13 @@ QVariant Schema2TableModel::headerData(int section, Qt::Orientation orientation,
         {col_notnull, "Non null"},
         {col_type, "Type"},
         {col_autoincrement, "Autoinc"},
+        {col_default, "Default"},
 
         {col_name_prev, "Name"},
         {col_notnull_prev, "Non null"},
         {col_type_prev, "Type"},
         {col_autoincrement_prev, "Autoinc"},
+        {col_default_prev, "Default"},
     };
 
     if (role == Qt::DisplayRole) {
