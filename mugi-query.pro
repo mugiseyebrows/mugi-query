@@ -11,7 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 win32 {
 
 INCLUDEPATH += C:/Qwt-6.2.0/include
-LIBS += -LC:/Qwt-6.2.0/lib -LC:/mysql-8.0.33-winx64/lib
+LIBS += -LC:/Qwt-6.2.0/lib -LC:/mysql-8.2.0-winx64/lib
 
 CONFIG(debug, debug|release) {
     LIBS += -lqwtd
