@@ -32,6 +32,7 @@ if exist C:\mysql-8.2.0-winx64\bin\mysql.exe goto mysql_end
 if not exist mysql-8.2.0-winx64.zip "%CURL%" -L -o mysql-8.2.0-winx64.zip https://cdn.mysql.com/Downloads/MySQL-8.2/mysql-8.2.0-winx64.zip
 "%P7Z%" x -y -oC:\ mysql-8.2.0-winx64.zip
 :mysql_end
+mugideploy version
 qmake
 mingw32-make release -j4
 mugideploy collect --app mugi-query --git-version --bin release\mugi-query.exe --plugins odbc mysql sqlite psql --zip

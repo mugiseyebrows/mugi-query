@@ -45,6 +45,7 @@ jobs:
       shell: cmd
       run: |
         set PATH=C:\Program Files\PostgreSQL\14\bin;C:\Qwt-6.2.0\lib;C:\mysql-8.2.0-winx64\bin;C:\mysql-8.2.0-winx64\lib;C:\Miniconda3;C:\Miniconda3\Scripts;%USERPROFILE%\Miniconda3;%USERPROFILE%\Miniconda3\Scripts;C:\Qt\5.15.2\mingw81_64\bin;C:\Qt\Tools\mingw810_64\bin;%PATH%
+        mugideploy version
         qmake
         mingw32-make release -j4
         mugideploy collect --app mugi-query --git-version --bin release\mugi-query.exe --plugins odbc mysql sqlite psql --zip

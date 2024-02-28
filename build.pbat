@@ -28,6 +28,7 @@ def mysql
     unzip(mysql-8.2.0-winx64.zip, :o=C:\)
 
 def build
+    mugideploy version
     qmake
     mingw32-make release -j4
     mugideploy collect --app mugi-query --git-version --bin release\mugi-query.exe --plugins odbc mysql sqlite psql --zip
