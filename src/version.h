@@ -1,3 +1,2 @@
-#define APP_NAME "mugi-query"
-#define APP_VERSION "1.1.0"
-#define APP_VERSION_INT 1,1,0,0
+#define VERSION "4d0dde4"
+#define VERSION_INT 0,0,0,1

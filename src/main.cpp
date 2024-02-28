@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
-    a.setApplicationName(APP_NAME);
-    a.setApplicationVersion(APP_VERSION);
+    a.setApplicationName("mugi-query");
+    a.setApplicationVersion(VERSION);
 
     MainWindow w;
     w.show();
