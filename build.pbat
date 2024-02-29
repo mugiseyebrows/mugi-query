@@ -9,25 +9,12 @@ def main
     install(mingw, 8.1.0)
     install(mugicli)
     install(mugideploy)
-
-def qsqlmysql
-    if exist "C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers\qsqlmysql.dll" goto qsqlmysql_end
-    download(https://github.com/mugiseyebrows/qsqlmysql-builds/releases/download/5.15.2/qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip, qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip)
-    unzip(qsqlmysql-qt5.15.2-mingw8.1.0-x86_64.zip, qsqlmysql-qt5.15.2-mingw8.1.0-x86_64)
-    copy_file(qsqlmysql-qt5.15.2-mingw8.1.0-x86_64\qsqlmysql.dll, C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers)
-    copy_file(qsqlmysql-qt5.15.2-mingw8.1.0-x86_64\qsqlmysqld.dll, C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers)
-
-def qwt
-    if exist "C:\Qwt-6.2.0\lib\qwt.dll" goto qwt_end
-    download(https://github.com/mugiseyebrows/qwt-builds/releases/download/qwt6.2.0-qt5.15.2/qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip, qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip)
-    unzip(qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip, :o=C:\)
-
-def mysql
-    if exist C:\mysql-8.2.0-winx64\bin\mysql.exe goto mysql_end
-    download(https://cdn.mysql.com/Downloads/MySQL-8.2/mysql-8.2.0-winx64.zip, mysql-8.2.0-winx64.zip)
-    unzip(mysql-8.2.0-winx64.zip, :o=C:\)
+    if not exist "C:\Qt\5.15.2\mingw81_64\plugins\sqldrivers\qsqlmysql.dll" call install-qsqlmysql
+    if not exist "C:\Qwt-6.2.0\lib\qwt.dll" call install-qwt
+    if not exist "C:\mysql-8.2.0-winx64\bin\mysql.exe" call install-mysql
 
 def build
+    echo building mugi-query
     mugideploy version
     qmake
     mingw32-make release -j4
@@ -35,7 +22,7 @@ def build
     github_upload(mugi-query-*-win64, :n=mugi-query-win64)
     github_release(mugi-query-*-win64.zip)
 
-order main qsqlmysql qwt mysql build
+order main build
 
 github-workflow 1
 github-image windows-latest
