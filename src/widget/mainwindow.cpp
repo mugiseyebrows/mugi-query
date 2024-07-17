@@ -18,6 +18,8 @@
 #include <QCursor>
 #include <QCloseEvent>
 #include <QSqlDriver>
+#include <QSqlTableModel>
+#include <QTableView>
 
 #include "sessionmodel.h"
 #include "sessiontab.h"
@@ -629,6 +631,10 @@ void MainWindow::on_selectionCopyAsCondition_triggered()
     copySelected(CopyFormat::Condition);
 }
 
+void MainWindow::on_selectionCopyNames_triggered() {
+    copySelected(CopyFormat::Names);
+}
+
 void MainWindow::copySelected(CopyFormat fmt)
 {
     SessionTab* tab = currentTab();
@@ -821,6 +827,10 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
     QAction* drop = new QAction("Drop",&menu);
     menu.addAction(drop);
 
+    QAction* edit = new QAction("Edit",&menu);
+    menu.addAction(edit);
+
+
     QAction* result = menu.exec(QCursor::pos());
 
 #if 0
@@ -971,6 +981,22 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         QString connectionName = this->connectionName();
         updateTokens(connectionName);
         pushTokens(connectionName);
+    }
+
+    if (result == edit) {
+        QString connectionName = this->connectionName();
+        QStringList tables = schemaTreeSelectedTables();
+        QSqlDatabase db = QSqlDatabase::database(connectionName);
+        for(const QString& table: qAsConst(tables)) {
+            QTableView* view = new QTableView();
+            view->setAttribute(Qt::WA_DeleteOnClose);
+            QSqlTableModel* model = new QSqlTableModel(view, db);
+            model->setEditStrategy(QSqlTableModel::OnFieldChange);
+            model->setTable(table);
+            model->select();
+            view->setModel(model);
+            view->show();
+        }
     }
 
 }

@@ -320,6 +320,8 @@ void SessionTab::copySelected(CopyFormat fmt)
         Clipboard::copySelected(model, selection, format, separator, true, locale(), error);
     } else if (fmt == CopyFormat::Condition) {
         Clipboard::copySelectedAsCondition(model, selection);
+    } else if (fmt == CopyFormat::Names) {
+        Clipboard::copySelectedNames(model, selection);
     }
     if (!error.isEmpty()) {
         QMessageBox::critical(this,"Error",error);

@@ -4,7 +4,8 @@
 enum class CopyFormat {
     Table,
     List,
-    Condition
+    Condition,
+    Names,
 };
 
 #endif // ENUMS_H

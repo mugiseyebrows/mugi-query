@@ -15,7 +15,21 @@
 #include <QSqlField>
 #include <QDebug>
 
-void Clipboard::streamHeader(QTextStream& stream, const QItemSelectionRange &rng, const QString &separator) {
+
+void Clipboard::streamHeader(QTextStream& stream, QSqlQueryModel *model, const QString &separator, const QString& end) {
+    int columnCount = model->columnCount();
+    if (columnCount < 1) {
+        return;
+    }
+    stream << model->headerData(0, Qt::Horizontal).toString();
+    for(int col=1; col < columnCount; col++) {
+        stream << separator << model->headerData(col, Qt::Horizontal).toString();
+    }
+    stream << end;
+}
+
+void Clipboard::streamHeader(QTextStream& stream, const QItemSelectionRange &rng,
+                             const QString &separator, const QString& end) {
 
 
     QAbstractItemModel* model = const_cast<QAbstractItemModel*>(rng.model());
@@ -24,7 +38,7 @@ void Clipboard::streamHeader(QTextStream& stream, const QItemSelectionRange &rng
     for(; col <= rng.bottomRight().column(); col++) {
         stream << separator << model->headerData(col, Qt::Horizontal).toString();
     }
-    stream << "\n";
+    stream << end;
 }
 
 void Clipboard::streamRange(QTextStream& stream, const QItemSelectionRange &rng,
@@ -167,6 +181,24 @@ void Clipboard::copySelectedAsList(QSqlQueryModel *model,
     }
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText("(" + result.join(",") + ")");
+}
+
+void Clipboard::copySelectedNames(QSqlQueryModel *model, const QItemSelection &selection)
+{
+    /*if (selection.size() == 0) {
+        return;
+    }*/
+    QString text;
+    QTextStream stream(&text);
+    if (selection.size() == 0) {
+        streamHeader(stream, model, "\t", "\t");
+    } else {
+        for(const QItemSelectionRange& range: selection) {
+            streamHeader(stream, range, "\t", "\t");
+        }
+    }
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(text);
 }
 
 class ExprArg {

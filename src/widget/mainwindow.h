@@ -90,6 +90,7 @@ protected slots:
     void on_selectionCopy_triggered();
     void on_selectionCopyAsList_triggered();
     void on_selectionCopyAsCondition_triggered();
+    void on_selectionCopyNames_triggered();
 
     void on_settingsFormat_triggered();
 
