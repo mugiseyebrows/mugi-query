@@ -4,23 +4,23 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql axcontainer svg
+QT       += core gui sql svg axcontainer
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 win32 {
 
-INCLUDEPATH += C:/Qwt-6.2.0/include
-LIBS += -LC:/Qwt-6.2.0/lib -LC:/mysql-8.2.0-winx64/lib
+#INCLUDEPATH += C:/Qwt-6.2.0/include
+#LIBS += -LC:/Qwt-6.2.0/lib -LC:/mysql-8.2.0-winx64/lib
+
+LIBS += -LC:/qwt/6.3.0/mingw1120_64/lib
+INCLUDEPATH += C:/qwt/6.3.0/mingw1120_64/include
 
 CONFIG(debug, debug|release) {
     LIBS += -lqwtd
 } else {
     LIBS += -lqwt
 }
-
-LIBS += -lmysql
-
 }
 
 unix {
