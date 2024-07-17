@@ -15,6 +15,19 @@
 #include "callonce.h"
 #include <QLineEdit>
 #include <QComboBox>
+#include <algorithm>
+
+// todo: optimize
+template <typename T>
+static QList<T> uniq(const QList<T>& values) {
+    QList<T> res;
+    for(const T& value: values) {
+        if (!res.contains(value)) {
+            res.append(value);
+        }
+    }
+    return res;
+}
 
 namespace {
 
@@ -24,8 +37,8 @@ QList<int> partialySelectedRows(QItemSelectionModel* selectionModel) {
     foreach (const QModelIndex& index, indexes) {
         rows << index.row();
     }
-    rows = rows.toSet().toList();
-    qSort(rows.begin(),rows.end());
+    rows = uniq(rows);
+    std::sort(rows.begin(),rows.end());
     return rows;
 }
 

@@ -20,9 +20,16 @@ TableButtons::~TableButtons()
     clear();
 }
 
+
+template <typename T>
+static QSet<T> toSet(const QList<T>& qlist)
+{
+    return QSet<T> (qlist.constBegin(), qlist.constEnd());
+}
+
 int TableButtons::nextId()
 {
-    QSet<int> keys = mButtons.keys().toSet();
+    QSet<int> keys = toSet(mButtons.keys());
     int i = 0;
     while (keys.contains(i)) {
         i++;

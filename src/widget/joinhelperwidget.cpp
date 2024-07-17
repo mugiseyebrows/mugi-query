@@ -8,7 +8,6 @@
 #include <QStandardItemModel>
 #include <QStringListModel>
 #include <QTextStream>
-#include <QTextCodec>
 #include <QMessageBox>
 #include "modelappender.h"
 #include "itemdelegatewithcompleter.h"

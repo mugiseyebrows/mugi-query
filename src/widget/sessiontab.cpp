@@ -5,7 +5,6 @@
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QDebug>
-#include <QTextCodec>
 #include "queriesstatmodel.h"
 #include "savedatadialog.h"
 #include <QFileDialog>
@@ -49,11 +48,12 @@ QStringList quote(const QStringList& items) {
 QStringList unquote(const QStringList& items) {
     QStringList res;
     foreach(const QString& item, items) {
-        QRegExp rx("^\\s*[\"](.*)[\"]\\s*$");
-        if (item.indexOf(rx) > -1) {
-            res << rx.cap(1).trimmed();
+        auto trimmed = item.trimmed();
+        if (trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
+            trimmed = trimmed.mid(1, trimmed.size() - 2);
+            res.append(trimmed);
         } else {
-            res << item;
+            res.append(item);
         }
     }
     return res;
@@ -279,7 +279,7 @@ void SessionTab::saveData()
     }
 
     if (!stream.isNull()) {
-        stream->setCodec(QTextCodec::codecForName("UTF-8"));
+        stream->setEncoding(QStringConverter::Utf8);
     }
 
     QString error;

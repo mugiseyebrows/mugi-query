@@ -8,7 +8,7 @@ CheckableModel::CheckableModel(QObject *parent, const QStringList &items)
 
 void CheckableModel::append(const QStringList &items)
 {
-    for(const QString& item: qAsConst(items)) {
+    for(const QString& item: std::as_const(items)) {
         QStandardItem* standardItem = new QStandardItem(item);
         standardItem->setCheckable(true);
         appendRow(standardItem);

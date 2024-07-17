@@ -2,7 +2,7 @@
 #define MODELCOLUMN_H
 
 class QAbstractItemModel;
-class QStringList;
+#include <QStringList>
 
 void setModelColumn(QAbstractItemModel* model, int column, const QStringList& values);
 

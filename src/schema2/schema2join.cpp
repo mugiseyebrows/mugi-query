@@ -68,7 +68,7 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
     }
 
     QList<int> join;
-    for(const QString& name: qAsConst(join_)) {
+    for(const QString& name: std::as_const(join_)) {
         int index = tables.indexOf(name.toLower());
         if (index < 0) {
             return {};
@@ -76,7 +76,7 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
         join.append(index);
     }
 
-    for(int key: qAsConst(join)) {
+    for(int key: std::as_const(join)) {
         if (!relations.contains(key)) {
             qDebug() << "!relations.contains(key)";
             return {};
@@ -86,11 +86,11 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
 
     QList<QList<int>> queue;
     /*QList<int> keys = relations.keys();
-    for(int key: qAsConst(keys)) {
+    for(int key: std::as_const(keys)) {
         queue.append({key});
     }*/
-    for(int key: qAsConst(join)) {
-        queue.append({key});
+    for(int key: std::as_const(join)) {
+        queue.append(QList<int>{key});
     }
 
     QList<int> found;
@@ -104,7 +104,7 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
         }
 
         QList<int> related = relations[item[item.size()-1]];
-        for(int key: qAsConst(related)) {
+        for(int key: std::as_const(related)) {
             if (item.contains(key)) {
                 continue;
             }

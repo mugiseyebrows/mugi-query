@@ -1,7 +1,7 @@
 #ifndef FIELDNAMES_H
 #define FIELDNAMES_H
 
-class QStringList;
+#include <QStringList>
 class QSqlRecord;
 
 QStringList fieldNames(const QSqlRecord& record);

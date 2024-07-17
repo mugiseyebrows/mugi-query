@@ -1,6 +1,7 @@
 #include "multinameenum.h"
 
 #include <QSet>
+#include <algorithm>
 
 MultinameEnum::MultinameEnum(const QStringList &ns1, const QStringList &ns2, const QStringList &ns3, const QStringList &ns4, const QStringList &ns5)
 {
@@ -36,7 +37,7 @@ QString MultinameEnum::regExp(bool cap) const
         result.append(names);
     }
     // sort by length in descending order
-    qSort(result.begin(),result.end(),[](const QString& s1, const QString& s2){
+    std::sort(result.begin(),result.end(),[](const QString& s1, const QString& s2){
         return s1.size() > s2.size();
     });
     return group(result, cap);

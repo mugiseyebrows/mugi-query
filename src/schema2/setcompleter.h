@@ -2,7 +2,7 @@
 #define SETCOMPLETER_H
 
 class QLineEdit;
-class QStringList;
+#include <QStringList>
 
 void setCompleter(QLineEdit* lineEdit, const QStringList& completions);
 

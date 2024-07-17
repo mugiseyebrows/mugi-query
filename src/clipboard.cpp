@@ -14,7 +14,7 @@
 #include <QSqlRecord>
 #include <QSqlField>
 #include <QDebug>
-
+#include <algorithm>
 
 void Clipboard::streamHeader(QTextStream& stream, QSqlQueryModel *model, const QString &separator, const QString& end) {
     int columnCount = model->columnCount();
@@ -236,6 +236,12 @@ public:
     }
 };
 
+template <typename T>
+static QList<T> toList(const QSet<T>& qlist)
+{
+    return QList<T> (qlist.constBegin(), qlist.constEnd());
+}
+
 void Clipboard::copySelectedAsCondition(QSqlQueryModel *model,
                              const QItemSelection &selection) {
 
@@ -252,8 +258,8 @@ void Clipboard::copySelectedAsCondition(QSqlQueryModel *model,
     for(const QPair<int,int>& index: ranges_) {
         rows.insert(index.first);
     }
-    QList<int> rows_ = rows.toList();
-    qSort(rows_.begin(),rows_.end());
+    QList<int> rows_ = toList(rows);
+    std::sort(rows_.begin(),rows_.end());
 
     QStringList exprs;
 

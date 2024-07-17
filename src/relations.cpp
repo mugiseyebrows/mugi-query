@@ -250,6 +250,17 @@ QString Relations::expression(const Relations::PathList &path, bool leftJoin, bo
     return expression;
 }
 
+// todo: optimize
+static QStringList uniq(const QStringList& values) {
+    QStringList res;
+    for(const QString& value: values) {
+        if (!res.contains(value)) {
+            res.append(value);
+        }
+    }
+    return res;
+}
+
 void Relations::initRelations(QAbstractItemModel *model)
 {
     for(int row=0;row<model->rowCount();row++) {
@@ -263,7 +274,7 @@ void Relations::initRelations(QAbstractItemModel *model)
     foreach(const Relation& relation, mRelations) {
         mTables << relation.primaryTable() << relation.foreignTable();
     }
-    mTables = mTables.toSet().toList();
+    mTables = uniq(mTables);
     for(int i=0;i<mRelations.size();i++) {
         Relation& relation = mRelations[i];
         relation.setPrimary(mTables.indexOf(relation.primaryTable()));

@@ -120,7 +120,7 @@ void Schema2TablesModel::loadPos() {
 void Schema2TablesModel::savePos()
 {
     QHash<QString, QPointF> pos;
-    for(Schema2TableItem* item: qAsConst(mTableItems)) {
+    for(Schema2TableItem* item: std::as_const(mTableItems)) {
         pos[item->tableName()] = item->pos();
     }
     Schema2Store::instance(this)->savePos(mConnectionName, pos);
@@ -158,7 +158,7 @@ QList<Schema2TableModel *> Schema2TablesModel::tables() const
 QStringList Schema2TablesModel::tableNames() const
 {
     QStringList res;
-    for(Schema2TableModel* model: qAsConst(mTableModels)) {
+    for(Schema2TableModel* model: std::as_const(mTableModels)) {
         res.append(model->tableName());
     }
     return res;
@@ -176,7 +176,7 @@ QList<Schema2Relation *> Schema2TablesModel::relationsTo(const QString &tableNam
 {
 #if 0
     QList<Schema2Relation *> res;
-    for(Schema2TableModel* table: qAsConst(mTableModels)) {
+    for(Schema2TableModel* table: std::as_const(mTableModels)) {
         auto* relation = table->relationTo(tableName);
         if (relation) {
             res.append(relation);
@@ -190,7 +190,7 @@ QList<Schema2Relation *> Schema2TablesModel::relationsTo(const QString &tableNam
 
 Schema2TableModel *Schema2TablesModel::findChildTable(Schema2Relation *relation)
 {
-    for(Schema2TableModel* table: qAsConst(mTableModels)) {
+    for(Schema2TableModel* table: std::as_const(mTableModels)) {
         if (table->contains(relation)) {
             return table;
         }

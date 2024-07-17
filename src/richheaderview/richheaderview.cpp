@@ -291,7 +291,7 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
     int visual = visualIndex(logicalIndex);
 
     QStyleOptionHeader opt;
-    opt.init(this);
+    opt.initFrom(this);
 
     QStyle::State state = QStyle::State_None | QStyle::State_Raised;
     if (isEnabled()) {
@@ -308,7 +308,7 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
 
     RichHeaderCellList cells = mHeaderData->cells(logicalIndex);
 
-    QMatrix original = painter->matrix();
+    auto original = painter->transform();
 
     foreach(RichHeaderCellImpl* cell, cells) {
 
@@ -407,16 +407,16 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
                 align |= Qt::TextWordWrap;
             }
 
-            QMatrix rotated = QMatrix();
+            auto rotated = QTransform();
             rotated.translate(center.x(), center.y());
             rotated.rotate(rotation);
             rotated.translate(-center.x(), -center.y());
 
-            painter->setMatrix(rotated);
+            painter->setTransform(rotated);
 
             style()->drawItemText(painter, textRect, align, this->palette(), isEnabled(), text, QPalette::WindowText);
 
-            painter->setMatrix(original);
+            painter->setTransform(original);
         }
 
     }

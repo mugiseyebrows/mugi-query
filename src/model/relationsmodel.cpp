@@ -2,7 +2,6 @@
 
 #include <QFile>
 #include <QTextStream>
-#include <QTextCodec>
 #include <QRegularExpression>
 #include <QApplication>
 #include <QMessageBox>
@@ -43,7 +42,7 @@ void RelationsModel::load(const QString &path)
     if (file.exists()) {
         if (file.open(QIODevice::ReadOnly)) {
             QTextStream stream(&file);
-            stream.setCodec(QTextCodec::codecForName("UTF-8"));
+            stream.setEncoding(QStringConverter::Utf8);
             while (!stream.atEnd()) {
                 QString line = stream.readLine();
                 QStringList cols = line.split(QRegularExpression("\t"));
@@ -78,7 +77,7 @@ void RelationsModel::save(const QString &path)
         return;
     }
     QTextStream stream(&file);
-    stream.setCodec(QTextCodec::codecForName("UTF-8"));
+    stream.setEncoding(QStringConverter::Utf8);
     for(int row=0;row<rowCount();row++) {
         QString col1 = data(index(row,0)).toString().trimmed();
         QString col2 = data(index(row,1)).toString().trimmed();
@@ -101,8 +100,8 @@ QString RelationsModel::path(const QString &connectionName)
           << db.userName() << db.databaseName();
 
     QString name = props.join(" ")
-            .replace(QRegExp("[^a-z0-9._ -]",Qt::CaseInsensitive)," ")
-            .replace(QRegExp("[ ]+")," ") + ".txt";
+            .replace(QRegularExpression("[^a-z0-9._ -]", QRegularExpression::CaseInsensitiveOption)," ")
+            .replace(QRegularExpression("[ ]+")," ") + ".txt";
 
     return QDir(Settings::instance()->dir()).filePath(name);
 }

@@ -32,7 +32,7 @@ bool Schema2ChangeSet::execute(const QString& connectionName)
         QSqlQuery q(db);
         QStringList errors;
         bool hasErrors = false;
-        for(const QString& query: qAsConst(mItems[row].queries)) {
+        for(const QString& query: std::as_const(mItems[row].queries)) {
             QString error;
             if (!q.exec(query)) {
                 error = q.lastError().text();

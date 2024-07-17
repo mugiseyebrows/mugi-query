@@ -2,8 +2,7 @@
 #define SQLESCAPER_H
 
 class QSqlDriver;
-class QStringList;
-class QString;
+#include <QStringList>
 
 class SqlEscaper {
 public:

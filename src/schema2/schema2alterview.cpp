@@ -21,6 +21,7 @@
 #include "showandraise.h"
 #include "schema2relatedtableswidget.h"
 #include "ones.h"
+#include <algorithm>
 
 // todo push / pull schema for one table
 
@@ -209,14 +210,22 @@ void Schema2AlterView::setModel(Schema2TableModel *model)
 */
 
 
+template <typename T>
+static QList<T> toList(const QSet<T>& qlist)
+{
+    return QList<T> (qlist.constBegin(), qlist.constEnd());
+}
+
+
+
 static QList<int> selectedRows(QTableView* view) {
     QSet<int> res;
     auto indexes = view->selectionModel()->selectedIndexes();
     for(auto index: indexes) {
         res.insert(index.row());
     }
-    QList<int> res_ = res.toList();
-    qSort(res_.begin(), res_.end());
+    QList<int> res_ = toList(res);
+    std::sort(res_.begin(), res_.end());
     return res_;
 }
 

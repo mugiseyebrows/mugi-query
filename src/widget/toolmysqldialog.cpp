@@ -57,7 +57,7 @@ void ToolMysqlDialog::setMode(Mode mode)
 
 static QStringList toNativeSeparators(const QStringList& names) {
     QStringList res;
-    for(const QString& name: qAsConst(names)) {
+    for(const QString& name: std::as_const(names)) {
         res.append(QDir::toNativeSeparators(name));
     }
     return res;

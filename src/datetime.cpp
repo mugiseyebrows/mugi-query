@@ -1,6 +1,5 @@
 #include "datetime.h"
 #include <QDir>
-#include <QTextCodec>
 #include <QTextStream>
 #include <QDebug>
 #include <QTimeZone>
@@ -509,19 +508,23 @@ void DateTime::writeSamples()
 {
     static QList<Qt::DateFormat> dateFormats = {Qt::TextDate,
                                             Qt::ISODate,
+#if 0
                                             Qt::SystemLocaleShortDate,
                                             Qt::SystemLocaleLongDate,
                                             Qt::DefaultLocaleShortDate,
                                             Qt::DefaultLocaleLongDate,
+#endif
                                             Qt::RFC2822Date,
                                             Qt::ISODateWithMs};
 
     QStringList dateFormatNames = {"TextDate",
                                    "ISODate",
+#if 0
                                    "SystemLocaleShortDate",
                                    "SystemLocaleLongDate",
                                    "DefaultLocaleShortDate",
                                    "DefaultLocaleLongDate",
+#endif
                                    "RFC2822Date",
                                    "ISODateWithMs"};
 
@@ -549,7 +552,7 @@ void DateTime::writeSamples()
             }
 
             QTextStream stream(&file);
-            stream.setCodec(QTextCodec::codecForName("UTF-8"));
+            stream.setEncoding(QStringConverter::Utf8);
 
             for(int j=0;j<100;j++) {
 
@@ -631,16 +634,14 @@ void DateTime::writeTimeZones() {
         return;
     }
 
-    QTextCodec* utf = QTextCodec::codecForName("UTF-8");
-
     QTextStream stream(&file);
-    stream.setCodec(utf);
+    stream.setEncoding(QStringConverter::Utf8);
 
     foreach(const QByteArray& timeZoneId, timeZoneIds) {
         QDateTime dateTime(QDate(2000,1,1),QTime(10,11,12),QTimeZone(timeZoneId));
         QString abbr = dateTime.timeZoneAbbreviation();
         stream << abbr
-               << "\t" << utf->toUnicode(timeZoneId)
+               << "\t" << QString::fromUtf8(timeZoneId)
                << "\n";
     }
 
@@ -663,7 +664,7 @@ void DateTime::writeNumber() {
     }
 
     QTextStream stream(&file);
-    stream.setCodec(QTextCodec::codecForName("UTF-8"));
+    stream.setEncoding(QStringConverter::Utf8);
 
     for (int i=0;i<500;i++) {
         int a = rand() % 100;

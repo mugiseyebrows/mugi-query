@@ -7,6 +7,7 @@
 #include "schema2tablesmodel.h"
 #include "schema2tablemodel.h"
 #include "schema2relationsmodel.h"
+#include <algorithm>
 
 class Node {
 public:
@@ -195,7 +196,7 @@ static QList<Node> buildNodes(Schema2TablesModel* tablesModel, bool all) {
         nodes.append(node);
     }
 
-    qSort(nodes.begin(), nodes.end(), lessThan);
+    std::sort(nodes.begin(), nodes.end(), lessThan);
 
     return nodes;
 }
@@ -231,7 +232,7 @@ void arrangeTables(GridType type, Schema2TablesModel* tablesModel, bool all) {
         setPos(nodes, nodeIndex, positioned, gridIndex, grid);
     }
 
-    for(const Node& node: qAsConst(positioned)) {
+    for(const Node& node: std::as_const(positioned)) {
         tablesModel->tableItem(node.name)->setCenterPos(node.pos);
     }
 

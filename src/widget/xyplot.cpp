@@ -74,7 +74,7 @@ void XYPlot::init() {
     mPicker = new PlotPicker(ui->plot->canvas());
 
     QwtPlotPanner *panner = new QwtPlotPanner(ui->plot->canvas());
-    panner->setMouseButton( Qt::MidButton );
+    panner->setMouseButton( Qt::MiddleButton );
 
     QwtPlotLegendItem* legend = new QwtPlotLegendItem();
 

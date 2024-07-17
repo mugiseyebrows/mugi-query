@@ -4,8 +4,6 @@
 #include <QDebug>
 
 #include "settings.h"
-#include <QTextCodec>
-#include <QTextDecoder>
 
 ItemDelegate::ItemDelegate(QObject *parent) : QStyledItemDelegate (parent)
 {
@@ -72,7 +70,7 @@ QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelInd
     
     QVariant::Type t = index.data().type();
     if (t == QVariant::DateTime || t == QVariant::Date || t == QVariant::Time) {
-        int w = option.fontMetrics.width(displayText(index.data(),option.locale)) + 16;
+        int w = option.fontMetrics.horizontalAdvance(displayText(index.data(), option.locale)) + 16;
         int h = option.fontMetrics.lineSpacing();
         return QSize(w,h);
     }

@@ -6,7 +6,6 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QTextCodec>
 
 #include <QDate>
 #include <QDateTime>
@@ -95,8 +94,7 @@ QString spaced(const QString& s) {
 QString jsonToString(const QJsonObject& v) {
     QJsonDocument document;
     document.setObject(v);
-    QTextCodec* codec = QTextCodec::codecForName("UTF-8");
-    return codec->toUnicode(document.toJson());
+    return QString::fromUtf8(document.toJson());
 }
 
 QString joinNonEmpty(const QStringList& values, const QString& glue) {
@@ -180,7 +178,7 @@ QString DataStreamer::variantToString(const QVariant& value,
             return value_.toString(formats.timeFormat);
         }
         case QVariant::String:
-            return value.toString().replace(QRegExp("\\n[\\r]?\\s*")," ");
+            return value.toString().replace(QRegularExpression("\\n[\\r]?\\s*")," ");
         case QVariant::ByteArray:
 
         /*{

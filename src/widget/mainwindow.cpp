@@ -375,7 +375,7 @@ void MainWindow::onQuery(QString queries) {
 
     QSqlDatabase db = QSqlDatabase::database(connectionName);
 
-    QTime time;
+    QElapsedTimer time;
     time.start();
 
     bool schemaChanged = false;
@@ -987,7 +987,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         QString connectionName = this->connectionName();
         QStringList tables = schemaTreeSelectedTables();
         QSqlDatabase db = QSqlDatabase::database(connectionName);
-        for(const QString& table: qAsConst(tables)) {
+        for(const QString& table: std::as_const(tables)) {
             QTableView* view = new QTableView();
             view->setAttribute(Qt::WA_DeleteOnClose);
             QSqlTableModel* model = new QSqlTableModel(view, db);

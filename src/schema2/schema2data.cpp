@@ -170,7 +170,7 @@ void Schema2Data::tablePulled(const QString& tableName, Status status) {
 #if 0
     // todo move me to pullTables
     QStringList dropQueue;
-    for(Schema2TableModel* table: qAsConst(mDropTableQueue)) {
+    for(Schema2TableModel* table: std::as_const(mDropTableQueue)) {
         dropQueue.append(table->tableName().toLower());
     }
     if (dropQueue.contains(tableName.toLower())) {
@@ -188,7 +188,7 @@ void Schema2Data::pullTablesMysql() {
 
     QStringList tables = db.tables();
 
-    for(const QString& table: qAsConst(tables)) {
+    for(const QString& table: std::as_const(tables)) {
 
         mTables->tablePulled(table, StatusExisting);
 
@@ -288,7 +288,7 @@ void Schema2Data::pullTablesOther() {
 
     QStringList tables = db.tables();
 
-    for(const QString& table: qAsConst(tables)) {
+    for(const QString& table: std::as_const(tables)) {
 
         mTables->tablePulled(table, StatusExisting);
 
@@ -402,7 +402,7 @@ void Schema2Data::pullRelationsMysql() {
 
     }
 
-    for(const RelationItem& relation: qAsConst(relations)) {
+    for(const RelationItem& relation: std::as_const(relations)) {
         mTables->relationPulled(relation.constraintName, relation.childTable,
                                 relation.childColumns, relation.parentTable,
                                 relation.parentColumns, true, StatusExisting);
@@ -907,6 +907,12 @@ void Schema2Data::dropRelationDialog(const QString &childTable, const QString &p
     }
 }
 
+template <typename T>
+static QSet<T> toSet(const QList<T>& qlist)
+{
+    return QSet<T> (qlist.constBegin(), qlist.constEnd());
+}
+
 void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
 
     QString message = QString("Are you sure to drop table %1?").arg(tableName);
@@ -920,7 +926,7 @@ void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
         qDebug() << __FILE__ << __LINE__;
         return;
     }
-    auto relations = (mTables->relationsTo(tableName) + mTables->relationsFrom(tableName)).toSet();
+    auto relations = toSet(mTables->relationsTo(tableName) + mTables->relationsFrom(tableName));
 
     qDebug() << relations.size() << "relations with table" << tableName;
 

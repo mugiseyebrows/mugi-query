@@ -1,4 +1,5 @@
 #include "schemamodel.h"
+#include <algorithm>
 
 SchemaModel::SchemaModel(QObject *parent) : QAbstractItemModel(parent)
 {
@@ -36,7 +37,7 @@ void SchemaModel::setChildren(const QModelIndex& index, const QStringList& data)
 void SchemaModel::update(const QMap<QString, Tokens> &tokens)
 {
     QStringList connectionNames = tokens.keys();
-    qSort(connectionNames);
+    std::sort(connectionNames.begin(), connectionNames.end());
 
     // databases
     setChildren(QModelIndex(),connectionNames);

@@ -828,7 +828,7 @@ void DataImportWidget::on_abc_clicked()
     if (ui->optionExistingTable->isChecked()) {
         return;
     }
-    QStringList alp = QString("abcdefghijklmnopqrstuvwxyz").split("", QString::SkipEmptyParts);
+    QStringList alp = QString("abcdefghijklmnopqrstuvwxyz").split("");
     setColumnNames(alp.mid(0,dataModel()->columnCount()));
 }
 

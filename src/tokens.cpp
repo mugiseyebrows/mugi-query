@@ -7,6 +7,7 @@
 #include <QSqlField>
 #include <QDebug>
 #include "drivernames.h"
+#include <algorithm>
 
 QStringList tableFields(QSqlDatabase db, const QString& table) {
     QSqlRecord record = db.record(table);
@@ -385,6 +386,17 @@ QStringList Tokens::tables() const
     return res;
 }
 
+static QStringList uniq(const QStringList& values) {
+    QStringList res;
+    for(const QString& value: values) {
+        if (!res.contains(value)) {
+            res.append(value);
+        }
+    }
+    return res;
+}
+
+
 QStringList Tokens::autocompletion(const QMap<QString,QString>& aliases) const
 {
     QStringList res;
@@ -399,9 +411,8 @@ QStringList Tokens::autocompletion(const QMap<QString,QString>& aliases) const
         res << name;
     }
 
-    res = res.toSet().toList();
-
-    qSort(res);
+    res = uniq(res);
+    std::sort(res.begin(), res.end());
     return res;
 }
 

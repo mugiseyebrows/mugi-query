@@ -13,7 +13,7 @@
 
 #include <QFile>
 #include <QTextStream>
-#include <QTextCodec>
+
 void dump(const QString& path, const QStringList& lines) {
     QFile f(path);
     if (!f.open(QIODevice::WriteOnly)) {
@@ -21,7 +21,7 @@ void dump(const QString& path, const QStringList& lines) {
         return;
     }
     QTextStream stream(&f);
-    stream.setCodec(QTextCodec::codecForName("UTF-8"));
+    stream.setEncoding(QStringConverter::Utf8);
     foreach(const QString& line, lines) {
         stream << line << "\n";
     }
@@ -110,7 +110,7 @@ void Tools::mysql(QSqlDatabase db, QWidget *widget)
     QStringList args = mysql_args(db);
 
     int complete = 0;
-    for(const QString& input: qAsConst(inputs)) {
+    for(const QString& input: std::as_const(inputs)) {
         QProcess process;
         process.setProgram(mysql);
         process.setArguments(args);

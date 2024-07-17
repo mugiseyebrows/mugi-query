@@ -4,7 +4,7 @@
 
 #include <QSqlDatabase>
 #include <QVariantList>
-class QStringList;
+#include <QStringList>
 class QString;
 
 namespace sql {

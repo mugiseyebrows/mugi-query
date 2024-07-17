@@ -17,7 +17,7 @@
 #include "distributionplot.h"
 #include "widget/datetimerangewidget.h"
 #include "datetimerangewidgetmanager.h"
-#include <QTextCodec>
+
 #include "statview.h"
 #include "clipboard.h"
 #include <QDateTime>
@@ -34,7 +34,7 @@ bool saveToFile(const QString& path, const QString& data) {
         qDebug() << "cannot open" << path;
         return false;
     }
-    file.write(QTextCodec::codecForName("UTF-8")->fromUnicode(data));
+    file.write(data.toUtf8());
     file.close();
 
     qDebug() << path << "saved";

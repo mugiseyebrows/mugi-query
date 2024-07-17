@@ -6,7 +6,7 @@
 class PlotMultiBarChart : public QwtPlotMultiBarChart
 {
 public:
-    PlotMultiBarChart(const QString &title = QString::null);
+    PlotMultiBarChart(const QString &title = QString());
 
     void drawBar( QPainter *painter, int sampleIndex, int valueIndex, const QwtColumnRect &rect ) const override;
 
