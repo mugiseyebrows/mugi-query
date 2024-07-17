@@ -182,6 +182,16 @@ QString DataStreamer::variantToString(const QVariant& value,
         case QVariant::String:
             return value.toString().replace(QRegExp("\\n[\\r]?\\s*")," ");
         case QVariant::ByteArray:
+
+        /*{
+            auto* codec = QTextCodec::codecForName("UTF-8");
+            auto* decoder = codec->makeDecoder();
+            QString text = decoder->toUnicode(value.toByteArray());
+            if (!decoder->hasFailure()) {
+                return text;
+            }
+        }*/
+
             return "0x" + value.toByteArray().toHex();
 
         case QVariant::List:

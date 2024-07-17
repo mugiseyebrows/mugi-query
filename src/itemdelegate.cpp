@@ -4,6 +4,8 @@
 #include <QDebug>
 
 #include "settings.h"
+#include <QTextCodec>
+#include <QTextDecoder>
 
 ItemDelegate::ItemDelegate(QObject *parent) : QStyledItemDelegate (parent)
 {
@@ -35,6 +37,13 @@ QString ItemDelegate::displayText(const QVariant &value, const QLocale &locale) 
         }
     } else if (t == QVariant::ByteArray) {
         QByteArray data = value.toByteArray();
+        /*auto* codec = QTextCodec::codecForName("UTF-8");
+        auto* decoder = codec->makeDecoder();
+        QString text = decoder->toUnicode(data);
+        if (!decoder->hasFailure()) {
+            return text;
+        }*/
+
         QStringList hex;
         int showSize = qMin(data.size(),256);
         for (int i=0;i<showSize;i++) {
