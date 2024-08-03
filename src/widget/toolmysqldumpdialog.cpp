@@ -68,6 +68,11 @@ bool ToolMysqldumpDialog::tab() const
     return ui->tab->isChecked();
 }
 
+bool ToolMysqldumpDialog::ssl() const
+{
+    return ui->ssl->isChecked();
+}
+
 bool ToolMysqldumpDialog::multipleFiles() const
 {
     return ui->multipleFiles->isChecked();

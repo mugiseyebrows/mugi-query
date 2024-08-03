@@ -30,6 +30,8 @@ public:
     QStringList tables() const;
 
     bool tab() const;
+
+    bool ssl() const;
 private slots:
     void on_multipleFiles_clicked(bool checked);
 

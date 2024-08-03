@@ -159,7 +159,7 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
     bool schema = dialog.schema();
     bool data = dialog.data();
     bool tab = dialog.tab();
-
+    bool ssl = dialog.ssl();
     QString output = dialog.output();
     if (!data && !schema) {
         return;
@@ -169,6 +169,9 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
     }
 
     QStringList args = mysql_args(db);
+    if (!ssl) {
+        args.append("--ssl=FALSE");
+    }
 
     bool multipleFiles = dialog.multipleFiles();
 
