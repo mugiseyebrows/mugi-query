@@ -1,0 +1,14 @@
+фильтруемое дерево таблиц с колонками и типами
+emmet
+фильтр дат истории
+rm mugisql
+History::insert
+column as hex menu
+починить relate
+починить дёрганье когда режим не перемещения
+починить join helper
+окна для кодогенерации
+контекстнозависимый autocomplete
+join helper в окне редактирования
+rework xy plot
+rework hist plot
