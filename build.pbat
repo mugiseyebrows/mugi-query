@@ -153,4 +153,4 @@ def main depends on qtbase671 qwt630 qsqlmysql671 qsqlpsql671 qtactiveqt671
     github_upload(mugi-query-*-win64, :n=mugi-query-win64)
     github_release(mugi-query-*-win64.zip)
 
-github-workflow 1
+github-workflow 0
