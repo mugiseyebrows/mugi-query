@@ -28,6 +28,14 @@ void automate(QWidget *widget)
 
 #if 0
     Automation* automation = Automation::instance(widget);
+    QString database = "dvdrental";
+    automation->connectToDatabaseFromHistory(database);
+    automation->start();
+#endif
+
+
+#if 0
+    Automation* automation = Automation::instance(widget);
     //QString database = 0 ? "testaccess" : "test2";
     QString database = "mysql1";
     automation->connectToDatabaseFromHistory(database);
