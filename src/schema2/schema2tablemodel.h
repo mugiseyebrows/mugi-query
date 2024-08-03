@@ -34,7 +34,7 @@ public:
 
     explicit Schema2TableModel(const QString& name, Status status, QObject *parent = nullptr);
 
-    void insertColumnsIfNotContains(const QString& name, const QString& type, bool notNull, const QString &default_, bool autoIncrement, const QString &prev);
+    bool updateColumn(const QString& name, const QString& type, bool notNull, const QString &default_, bool autoIncrement, const QString &prev);
 
     bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex());
 

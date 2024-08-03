@@ -2,12 +2,15 @@
 #define SCHEMA2TABLESMODEL_H
 
 #include <QAbstractTableModel>
+
 class Schema2TableItem;
 class Schema2TableModel;
 class QGraphicsScene;
 class Schema2RelationItem2;
 class Schema2Relation;
 class QSqlDriver;
+class Schema2TreeModel;
+class Schema2TreeProxyModel;
 
 #include <QPointF>
 #include "hash.h"
@@ -24,7 +27,7 @@ public:
 
     bool contains(const QString& table);
 
-    Schema2TableModel *tablePulled(const QString &table, Status status);
+    Schema2TableModel *updateTable(const QString &table, Status status);
 
     Schema2TableModel *tableRemoved(const QString &tableName);
 
@@ -68,8 +71,17 @@ public:
 
     void setUncheckedMode(UncheckedMode mode);
 
+    void updateColumn(const QString &tableName, const QString &name, const QString &type, bool notNull, const QString &default_, bool autoIncrement, const QString &prev);
+
+    Schema2TreeModel* tree() const;
+
+    Schema2TreeProxyModel* treeProxy() const;
 
 protected:
+
+    Schema2TreeModel* mTreeModel;
+
+    Schema2TreeProxyModel* mTreeProxyModel;
 
     QList<QPair<QString, Schema2Relation*>> mDropRelationsQueue;
 
@@ -88,6 +100,7 @@ protected:
     QString mConnectionName;
 
     int indexOf(const QString &name) const;
+
 signals:
 
     void tableClicked(QString);
@@ -112,6 +125,7 @@ public:
     QStringList createTablesQueries(const QString &driverName, QSqlDriver *driver) const;
     QStringList createIndexesQueries(const QString &driverName, QSqlDriver *driver) const;
     QStringList createRelationsQueries(const QString &driverName, QSqlDriver *driver) const;
+    void updateColumns(const QString &tableName);
 };
 
 #endif // SCHEMA2TABLESMODEL_H

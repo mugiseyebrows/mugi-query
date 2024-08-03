@@ -18,3 +18,8 @@ mugi-query_resource.rc
 users2e78~*
 .qtc_clangd/
 *.zip
+mugi-query-*-win64/
+qtsvg-everywhere-src-6.7.1/
+qtactiveqt-everywhere-src-6.7.1/
+mugi-query-0.0.1-win64_/
+qrc_icons.cpp

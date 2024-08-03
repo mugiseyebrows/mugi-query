@@ -12,11 +12,13 @@
 #include "schema2parentrelationsmodel.h"
 #include "schema2indexesmodel.h"
 #include "schema2index.h"
+#include "schema2treemodel.h"
+#include "schema2treeproxymodel.h"
 
 Schema2TablesModel::Schema2TablesModel(const QString& connectionName, QGraphicsScene *scene, QObject *parent)
-    : mConnectionName(connectionName), mScene(scene), QAbstractTableModel{parent}
+    : mConnectionName(connectionName), mScene(scene), mTreeModel(new Schema2TreeModel(this)), mTreeProxyModel(new Schema2TreeProxyModel(this)), QAbstractTableModel{parent}
 {
-
+    mTreeProxyModel->setSourceModel(mTreeModel);
 }
 
 int Schema2TablesModel::indexOf(const QString& name) const {
@@ -41,7 +43,7 @@ bool Schema2TablesModel::contains(const QString &table) {
     return indexOf(table) > -1;
 }
 
-Schema2TableModel* Schema2TablesModel::tablePulled(const QString& table, Status status) {
+Schema2TableModel* Schema2TablesModel::updateTable(const QString& table, Status status) {
 
     if (contains(table)) {
         return 0;
@@ -61,9 +63,37 @@ Schema2TableModel* Schema2TablesModel::tablePulled(const QString& table, Status 
     beginInsertRows(QModelIndex(), row, row);
     mTableModels.append(model);
     mTableItems.append(item);
+    mTreeModel->updateTable(model);
     endInsertRows();
     mScene->addItem(item);
     return model;
+}
+
+void Schema2TablesModel::updateColumns(const QString& tableName) {
+
+
+
+    mTreeModel->updateColumns(tableName);
+}
+
+// todo updateColumn(const QString& tableName, const QList<ColumnData>& data)
+void Schema2TablesModel::updateColumn(const QString& tableName, const QString &name, const QString &type, bool notNull,
+                                                   const QString& default_,
+                                                   bool autoIncrement, const QString& prev) {
+    Schema2TableModel* model = this->table(tableName);
+    if (model->updateColumn(name, type, notNull, default_, autoIncrement, prev)) {
+        //mTreeModel->updateColumn(tableName, name);
+    }
+}
+
+Schema2TreeModel *Schema2TablesModel::tree() const
+{
+    return mTreeModel;
+}
+
+Schema2TreeProxyModel *Schema2TablesModel::treeProxy() const
+{
+    return mTreeProxyModel;
 }
 
 Schema2TableModel* Schema2TablesModel::tableRemoved(const QString &tableName)

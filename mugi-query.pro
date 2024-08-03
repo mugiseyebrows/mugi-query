@@ -110,6 +110,8 @@ HEADERS += \
     src/schema2/schema2tablemodel.h \
     src/schema2/schema2tablesmodel.h \
     src/schema2/schema2toolbar.h \
+    src/schema2/schema2treemodel.h \
+    src/schema2/schema2treeproxymodel.h \
     src/schema2/schema2view.h \
     src/schema2/schema2relatedtableswidget.h \
     src/schema2/schema2zoomtoolbar.h \
@@ -277,6 +279,8 @@ SOURCES += \
     src/schema2/schema2tablemodel.cpp \
     src/schema2/schema2tablesmodel.cpp \
     src/schema2/schema2toolbar.cpp \
+    src/schema2/schema2treemodel.cpp \
+    src/schema2/schema2treeproxymodel.cpp \
     src/schema2/schema2view.cpp \
     src/schema2/schema2relatedtableswidget.cpp \
     src/schema2/schema2zoomtoolbar.cpp \

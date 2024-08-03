@@ -55,6 +55,10 @@
 #include "schema2tablesmodel.h"
 #include "schema2tablemodel.h"
 #include "tolower.h"
+#include "schema2data.h"
+#include "schema2view.h"
+#include "schema2treemodel.h"
+#include "schema2treeproxymodel.h"
 
 using namespace DataUtils;
 
@@ -99,7 +103,11 @@ MainWindow::MainWindow(QWidget *parent) :
     SessionModel* sessionModel = new SessionModel(ui->sessionTree);
     ui->sessionTree->setModel(sessionModel);
 
+    mSchemaModel = new SchemaModel(this);
+
+#if 0
     ui->schemaTree->setModel(new SchemaModel(ui->schemaTree));
+#endif
 
     connect(sessionModel,
             SIGNAL(sessionAdded(QString,QString,QString)),
@@ -169,7 +177,7 @@ void MainWindow::on_sessionTree_customContextMenuRequested(QPoint pos) {
 }
 
 void MainWindow::onAdjustSplitter() {
-    SplitterUtil::setRatio(ui->horizontalSplitter,{1,4});
+    SplitterUtil::setRatio(ui->horizontalSplitter,{1,3});
     SplitterUtil::setRatio(ui->verticalSplitter,{1,3});
 }
 
@@ -240,8 +248,7 @@ SessionTab *MainWindow::currentTab()
 }
 
 void MainWindow::updateSchemaModel() {
-    SchemaModel* schemaModel = this->schemaModel();
-    schemaModel->update(mTokens);
+    mSchemaModel->update(mTokens);
 }
 
 void MainWindow::updateTokens(const QString &connectionName)
@@ -281,17 +288,20 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
 
     tab(tabIndex)->focusQuery();
 
-    SchemaModel* schemaModel = this->schemaModel();
+    /*SchemaModel* schemaModel = this->schemaModel();
     QModelIndex rootIndex = schemaModel->find(connectionName);
     if (rootIndex != ui->schemaTree->rootIndex()) {
         ui->schemaTree->setRootIndex(rootIndex);
-    }
+    }*/
+
+    ui->tableName->setText("");
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    auto* tree = data->tables()->treeProxy();
+    tree->setFilterRegularExpression(QRegularExpression(""));
+    ui->schemaTree->setModel(tree);
 
 }
 
-SchemaModel* MainWindow::schemaModel() {
-    return qobject_cast<SchemaModel*>(ui->schemaTree->model());
-}
 
 void MainWindow::onSessionAdded(QString connectionName, QString name, QString namePrev) {
 
@@ -1004,7 +1014,9 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
 
 QStringList MainWindow::schemaTreeSelectedTables() {
+
     QStringList tables;
+#if 0
     QModelIndexList indexes = ui->schemaTree->selectionModel()->selectedIndexes();
     if (indexes.isEmpty()) {
         return tables;
@@ -1019,6 +1031,7 @@ QStringList MainWindow::schemaTreeSelectedTables() {
             tables << model->data(index).toString();
         }
     }
+#endif
     return tables;
 }
 
@@ -1026,6 +1039,7 @@ QStringList MainWindow::schemaTreeSelectedTables() {
 
 void MainWindow::on_schemaTree_doubleClicked(const QModelIndex &index)
 {
+#if 0
     SchemaModel* model = qobject_cast<SchemaModel*>(ui->schemaTree->model());
     if (!model) {
         qDebug() << __FILE__ << __LINE__;
@@ -1040,10 +1054,9 @@ void MainWindow::on_schemaTree_doubleClicked(const QModelIndex &index)
     QString table = model->data(index).toString();
     QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100").arg(table).arg(table);
     onAppendQuery(connectionName, query);
+#endif
 }
 
-#include "schema2data.h"
-#include "schema2view.h"
 
 void MainWindow::on_schemaEdit_triggered()
 {
@@ -1237,5 +1250,19 @@ void MainWindow::on_dataTruncate_triggered()
 void MainWindow::on_settingsDirectory_triggered()
 {
 
+}
+
+void MainWindow::on_tableName_textChanged(const QString &text)
+{
+    auto* model = ui->schemaTree->model();
+    auto* proxyModel = qobject_cast<Schema2TreeProxyModel*>(model);
+    if (!proxyModel) {
+        qDebug() << "!proxyModel" << __FILE__ << __LINE__;
+        return;
+    }
+    QRegularExpression regExp(text, QRegularExpression::CaseInsensitiveOption);
+    if (regExp.isValid()) {
+        proxyModel->setFilterRegularExpression(regExp);
+    }
 }
 

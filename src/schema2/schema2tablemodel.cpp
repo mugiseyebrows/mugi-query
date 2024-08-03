@@ -20,7 +20,7 @@ Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject
 
 }
 
-void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QString &type, bool notNull,
+bool Schema2TableModel::updateColumn(const QString &name, const QString &type, bool notNull,
                                                    const QString& default_,
                                                    bool autoIncrement, const QString& prev)
 {
@@ -31,7 +31,7 @@ void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QS
 
     for(int row=0;row<mColumns.size();row++) {
         if (this->namePrev(row).toLower() == name_) {
-            return;
+            return false;
         }
         if (this->namePrev(row).toLower() == prev_) {
             insertRow = row + 1;
@@ -43,6 +43,7 @@ void Schema2TableModel::insertColumnsIfNotContains(const QString &name, const QS
     mColumns.insert(insertRow, Schema2TableColumn(name, type, notNull, default_, autoIncrement));
     mColumnsPrev.insert(insertRow, Schema2TableColumn(name, type, notNull, default_, autoIncrement));
     endInsertRows();
+    return true;
 }
 
 bool Schema2TableModel::insertRows(int row, int count, const QModelIndex &parent)

@@ -190,9 +190,7 @@ void Schema2Data::pullTablesMysql() {
 
     for(const QString& table: std::as_const(tables)) {
 
-        mTables->tablePulled(table, StatusExisting);
-
-        Schema2TableModel* model = mTables->table(table);
+        mTables->updateTable(table, StatusExisting);
 
         // todo character_maximum_length, numeric_precision
         QSqlQuery q(db);
@@ -210,9 +208,11 @@ void Schema2Data::pullTablesMysql() {
             if (default_ == "NULL") {
                 default_ = QString();
             }
-            model->insertColumnsIfNotContains(name, type, notNull, default_, autoincrement, prev);
+            mTables->updateColumn(table, name, type, notNull, default_, autoincrement, prev);
             prev = name;
         }
+
+        mTables->updateColumns(table);
 
     }
 }
@@ -234,13 +234,9 @@ void Schema2Data::pullTablesOdbc() {
     QAxObject engine("DAO.DBEngine.120");
     QAxObject* database = engine.querySubObject("OpenDatabase(QString, bool)", filePath, false);
 
-
-
     for(const QString& tableName: tables) {
 
-        mTables->tablePulled(tableName, StatusExisting);
-
-        Schema2TableModel* model = mTables->table(tableName);
+        mTables->updateTable(tableName, StatusExisting);
 
         QAxObject* tableDef = database->querySubObject("TableDefs(QString)", tableName);
 
@@ -271,12 +267,16 @@ void Schema2Data::pullTablesOdbc() {
             bool autoincrement = false;
             QString default_;
 
-            model->insertColumnsIfNotContains(name, typeName, notNull, default_, autoincrement, prev);
+            mTables->updateColumn(tableName, name, typeName, notNull, default_, autoincrement, prev);
 
             prev = name;
         }
 
+        mTables->updateColumns(tableName);
+
     }
+
+
 
 
 }
@@ -290,9 +290,7 @@ void Schema2Data::pullTablesOther() {
 
     for(const QString& table: std::as_const(tables)) {
 
-        mTables->tablePulled(table, StatusExisting);
-
-        Schema2TableModel* model = mTables->table(table);
+        mTables->updateTable(table, StatusExisting);
 
         QSqlRecord r = db.record(table);
         QString prev;
@@ -302,9 +300,11 @@ void Schema2Data::pullTablesOther() {
             bool notNull = false;
             bool autoincrement = false;
             QString default_;
-            model->insertColumnsIfNotContains(name, type, notNull, default_, autoincrement, prev);
+            mTables->updateColumn(table, name, type, notNull, default_, autoincrement, prev);
             prev = name;
         }
+
+        mTables->updateColumns(table);
 
     }
 
@@ -1290,7 +1290,7 @@ QSortFilterProxyModel *Schema2Data::selectProxyModel() {
 
 Schema2TableModel* Schema2Data::createTable(const QString &name)
 {
-    return mTables->tablePulled(name, StatusNew);
+    return mTables->updateTable(name, StatusNew);
 }
 
 Schema2TableItem *Schema2Data::tableItem(const QString &name) const {

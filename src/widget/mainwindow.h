@@ -49,7 +49,6 @@ public:
     void selectTab(const QString &name);
     QMenu* selectionMenu() const;
 
-    SchemaModel *schemaModel();
 protected:
     void closeEvent(QCloseEvent *event);
     QueryHistoryWidget* mQueryHistory;
@@ -67,6 +66,8 @@ protected:
     void selectDatabase(const QString &connectionName);
     void updateSchemaModel();
     QStringList schemaTreeSelectedTables();
+
+    SchemaModel* mSchemaModel;
 
 protected slots:
 
@@ -142,6 +143,8 @@ private slots:
     void on_dataTruncate_triggered();
 
     void on_settingsDirectory_triggered();
+
+    void on_tableName_textChanged(const QString &arg1);
 
 private:
     Ui::MainWindow *ui;
