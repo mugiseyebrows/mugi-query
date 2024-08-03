@@ -1,5 +1,0 @@
-use(7z)
-echo downloading mysql-8.2.0
-download(https://cdn.mysql.com/Downloads/MySQL-8.2/mysql-8.2.0-winx64.zip, mysql-8.2.0-winx64.zip)
-echo installing mysql-8.2.0
-unzip(mysql-8.2.0-winx64.zip, :o=C:\)

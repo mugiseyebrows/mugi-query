@@ -1,5 +1,0 @@
-use(7z)
-echo downloading qwt
-download(https://github.com/mugiseyebrows/qwt-builds/releases/download/qwt6.2.0-qt5.15.2/qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip, qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip)
-echo installing qwt
-unzip(qwt6.2.0-qt5.15.2-mingw8.1.0-x86_64.zip, :o=C:\)
