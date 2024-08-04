@@ -115,6 +115,7 @@ HEADERS += \
     src/schema2/schema2view.h \
     src/schema2/schema2relatedtableswidget.h \
     src/schema2/schema2zoomtoolbar.h \
+    src/schema2/sdata.h \
     src/schema2/setcompleter.h \
     src/schema2/sqlescaper.h \
     src/schema2/tablestretcher.h \
@@ -284,6 +285,7 @@ SOURCES += \
     src/schema2/schema2view.cpp \
     src/schema2/schema2relatedtableswidget.cpp \
     src/schema2/schema2zoomtoolbar.cpp \
+    src/schema2/sdata.cpp \
     src/schema2/setcompleter.cpp \
     src/schema2/sqlescaper.cpp \
     src/schema2/tablestretcher.cpp \
