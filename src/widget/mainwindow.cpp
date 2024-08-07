@@ -127,7 +127,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QTimer::singleShot(0,this,SLOT(onAdjustSplitter()));
 
-    automate(this);
+    if (qApp->applicationDirPath().endsWith("debug")) {
+        automate(this);
+    }
 }
 
 QAction* cloneAction(QAction* src, const QString& text, QObject* parent) {

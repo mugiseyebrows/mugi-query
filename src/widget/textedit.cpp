@@ -279,6 +279,7 @@ void TextEdit::keyPressEvent(QKeyEvent *event)
             }
         }
     }
+    fixEdits();
 }
 
 
@@ -382,7 +383,7 @@ bool TextEdit::tryEmmet() {
         auto p = selectionToPair(c);
         m_edits.append(p);
     }
-    fixEdits();
+    //fixEdits();
     if (m_edits.size() > 0) {
         moveTextCursorToEdit(0);
     }
@@ -428,7 +429,7 @@ int TextEdit::editIndex() const {
 
 bool TextEdit::keyPressEventEdits(QKeyEvent *event) {
     if (event->key() == Qt::Key_Tab) {
-        fixEdits();
+
         int index = editIndex();
         if (index > -1) {
             moveTextCursorToEdit((index + 1) % m_edits.size());
@@ -444,7 +445,7 @@ bool TextEdit::keyPressEventEdits(QKeyEvent *event) {
         }
         return true;
     } else if (event->key() == Qt::Key_Backtab) {
-        fixEdits();
+        //fixEdits();
         int index = editIndex();
         if (index > -1) {
             moveTextCursorToEdit((m_edits.size() + index - 1) % m_edits.size());
@@ -459,9 +460,9 @@ bool TextEdit::keyPressEventEdits(QKeyEvent *event) {
         clearEdits();
         return true;
     }
-    if (event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete) {
+    /*if (event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete) {
         fixEdits();
-    }
+    }*/
     return false;
 }
 
