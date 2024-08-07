@@ -23,6 +23,8 @@ public:
     QString test() const;
 
     static QList<int> colorQueries(const QString &queries);
+
+    static QStringList splitQueries(const QString &queries);
 };
 
 #endif // SQLPARSE_H

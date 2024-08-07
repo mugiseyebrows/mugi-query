@@ -38,14 +38,37 @@ QStringList sortedUnique(const QStringList& values) {
     return res;
 }
 
+QStringList sorted(const QStringList& values) {
+    QStringList res = values;
+    std::sort(res.begin(), res.end());
+    return res;
+}
+
+static QStringList sortedFields(const QStringList fields) {
+
+    QStringList shortName;
+    QStringList fullName;
+    for(const QString& name: fields) {
+        if (name.contains('.')) {
+            fullName.append(name);
+        } else {
+            shortName.append(name);
+        }
+    }
+    return sortedUnique(shortName) + sortedUnique(fullName);
+}
+
 void Completer::setContext(Context context)
 {
     static QSet<Context> fieldContexts = {Select, On, Where, Set};
     static QSet<Context> tableContexts = {From, Join, Update};
     mContext = context;
     QStringListModel* model = nullptr;
+    QCompleter::ModelSorting sorting = CaseSensitivelySortedModel;
     if (fieldContexts.contains(context)) {
-        model = new QStringListModel(sortedUnique(mData.keywords + mData.fields + mData.functions), this);
+        QStringList items = sortedFields(mData.fields) + sorted(mData.functions) + sorted(mData.keywords);
+        model = new QStringListModel(items, this);
+        sorting = UnsortedModel;
     } else if (tableContexts.contains(context)) {
         model = new QStringListModel(sortedUnique(mData.keywords + mData.tables), this);
     } else {
@@ -54,6 +77,7 @@ void Completer::setContext(Context context)
     if (model) {
         qDebug() << QString("set completer model %1 rows").arg(model->rowCount());
         setModel(model);
+        setModelSorting(sorting);
     }
 }
 

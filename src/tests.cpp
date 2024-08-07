@@ -26,7 +26,7 @@ QString tail(const QString& s) {
 void Tests::run()
 {
 
-    testSplit();
+    //testSplit();
     testJoinSplit();
     testAliases();
     testFlatQueries();
@@ -352,7 +352,7 @@ bool Tests::testJoinSplit() {
     return passed;
 }
 
-
+#if 0
 bool Tests::testSplit() {
 
     QList<bool> ok;
@@ -375,6 +375,7 @@ bool Tests::testSplit() {
     qDebug() << "testSplit" << (passed ? "passed" : "failed");
     return passed;
 }
+#endif
 
 bool Tests::testFlatQueries() {
     QList<bool> ok;

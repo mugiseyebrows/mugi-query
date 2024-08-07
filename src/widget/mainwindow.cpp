@@ -59,6 +59,7 @@
 #include "schema2view.h"
 #include "schema2treemodel.h"
 #include "schema2treeproxymodel.h"
+#include <sqlparse.h>
 
 using namespace DataUtils;
 
@@ -372,13 +373,16 @@ QStringList filterBlank(const QStringList items) {
     return res;
 }
 
+
+
 void MainWindow::onQuery(QString queries) {
 
     SessionTab* tab = currentTab();
 
     QString connectionName = tab->connectionName();
 
-    QStringList queries_ = filterBlank(QueryParser::split(queries));
+    // todo remove comments for drivers that do not support comments
+    QStringList queries_ = filterBlank(SqlParse::splitQueries(queries));
 
     QStringList errors;
     QList<QSqlQueryModel*> models;

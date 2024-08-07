@@ -14,6 +14,14 @@ win32 {
     LIBS += -lqwt
 }
 
+CONFIG(debug, debug|release) {
+    LIBS += -L$$PWD/lib/sqlparse/debug -L$$PWD/lib/emmet/debug
+} else {
+    LIBS += -L$$PWD/lib/sqlparse/release -L$$PWD/lib/emmet/release
+}
+LIBS += -lsqlparse -lemmet
+INCLUDEPATH += $$PWD/lib/sqlparse $$PWD/lib/emmet
+
 unix {
     CONFIG += qwt
     INCLUDEPATH += /usr/include/qwt
@@ -51,7 +59,6 @@ HEADERS += \
     src/datastreamer.h \
     src/datautils.h \
     src/deleteeventfilter.h \
-    src/emmet.h \
     src/fieldnames.h \
     src/filterempty.h \
     src/filterplotitem.h \
@@ -225,7 +232,6 @@ SOURCES += \
     src/datastreamer.cpp \
     src/datautils.cpp \
     src/deleteeventfilter.cpp \
-    src/emmet.cpp \
     src/fieldnames.cpp \
     src/filterempty.cpp \
     src/filterplotitem.cpp \

@@ -5,7 +5,7 @@ namespace Tests
 {
     void run();
 
-    bool testSplit();
+    //bool testSplit();
     bool testJoinSplit();
     bool testAliases();
     bool testFlatQueries();

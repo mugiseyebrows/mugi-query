@@ -1,19 +1,13 @@
 #include "emmet.h"
 
-#include <QHash>
+#include <QRegularExpression>
+#include <QCoreApplication>
 #include <QDir>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonValue>
-#include <QDebug>
-#include <QApplication>
-
 #include <QHash>
 #include <QJsonDocument>
 #include <QDir>
 #include <QJsonArray>
 #include <QJsonParseError>
-
 
 static QStringList toStringList(const QJsonArray& arr) {
     QStringList res;
@@ -44,6 +38,10 @@ static QHash<QString, QString> loadEmmetDict() {
     QDir dir(qApp->applicationDirPath());
     if (dir.dirName() == "debug") {
         dir.cdUp();
+    }
+    if (dir.dirName() == "mugi-query") {
+        dir.cd("lib");
+        dir.cd("emmet");
     }
     QString path = dir.filePath("emmet.json");
     QJsonDocument doc = readJson(path);
@@ -133,7 +131,36 @@ static QString parseCt(const QString& captured) {
     return "create table # (" + columns.join(", ") + ")";
 }
 
-QString parseEmmet(const QString& text) {
+QString parseCw(const QString& text) {
+    QString tail = text;
+    QRegularExpression rx("^wt([0-9]*)");
+    QStringList res = {"case"};
+    while (tail.size()) {
+        auto m = rx.match(tail);
+        if (!m.hasMatch()) {
+            return QString();
+        }
+        QString ns = m.captured(1);
+        int n;
+        if (ns.isEmpty()) {
+            n = 1;
+        } else {
+            n = ns.toInt();
+        }
+        for(int i=0;i<n;i++) {
+            res.append("when # then #");
+        }
+        tail = tail.mid(m.capturedLength());
+    }
+    res.append("else #");
+    res.append("end\n");
+    if (tail.isEmpty()) {
+        return res.join("\n");
+    }
+    return QString();
+}
+
+QString Emmet::parse(const QString& text) {
 
     static QHash<QString, QString> dict = loadEmmetDict();
 
@@ -143,6 +170,7 @@ QString parseEmmet(const QString& text) {
 
     QRegularExpression vn("^v([0-9]+)(a?)(.*)");
     QRegularExpression ct("^ct\\(([a-z,]+)\\)(.*)");
+    QRegularExpression cw("^c(((wt)([0-9]*))+)(ee)?");
 
     while(true) {
         QString key;
@@ -166,6 +194,15 @@ QString parseEmmet(const QString& text) {
             if (!repl.isEmpty()) {
                 res.append(repl);
                 tail = m.captured(2);
+                continue;
+            }
+        }
+        m = cw.match(tail);
+        if (m.hasMatch()) {
+            QString repl = parseCw(m.captured(1));
+            if (!repl.isEmpty()) {
+                res.append(repl);
+                tail = tail.mid(m.capturedLength());
                 continue;
             }
         }
@@ -213,37 +250,4 @@ QString parseEmmet(const QString& text) {
         return expr;
     }
     return QString();
-}
-
-
-QTextCursor selectEmmetExpression(const QTextCursor& cursor) {
-    QTextCursor begin = cursor;
-    QTextCursor startOfLine = cursor;
-    startOfLine.movePosition(QTextCursor::StartOfLine);
-
-    while (begin.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor)) {
-        if (begin.selectedText().mid(0,1) == " ") {
-            begin.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
-            break;
-        }
-        if (begin.position() == startOfLine.position()) {
-            break;
-        }
-    }
-
-    begin.setPosition(begin.position());
-    begin.setPosition(cursor.position(), QTextCursor::KeepAnchor);
-
-    /*h.movePosition(QTextCursor::StartOfWord);
-    h.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor);
-    if (h.selectedText() == ",") {
-        h.movePosition(QTextCursor::StartOfWord);
-    }
-    t.movePosition(QTextCursor::EndOfWord);
-
-    h.setPosition(t.position(), QTextCursor::KeepAnchor);*/
-
-    //qDebug() << begin.selectedText();
-
-    return begin;
 }

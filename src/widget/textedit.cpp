@@ -19,6 +19,7 @@
 #include "emmet.h"
 #include <QPainter>
 #include <QPainterPath>
+#include <emmet.h>
 
 TextEdit::TextEdit(QWidget *parent)
 : QPlainTextEdit(parent), mCompleter(nullptr), mHighlighter(nullptr)
@@ -358,6 +359,41 @@ static QPair<QTextCursor, QTextCursor> selectionToPair(const QTextCursor& cursor
     return {first, second};
 }
 
+
+static QTextCursor selectEmmetExpression(const QTextCursor& cursor) {
+    QTextCursor begin = cursor;
+    QTextCursor startOfLine = cursor;
+    startOfLine.movePosition(QTextCursor::StartOfLine);
+
+    while (begin.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor)) {
+        if (begin.selectedText().mid(0,1) == " ") {
+            begin.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+            break;
+        }
+        if (begin.position() == startOfLine.position()) {
+            break;
+        }
+    }
+
+    begin.setPosition(begin.position());
+    begin.setPosition(cursor.position(), QTextCursor::KeepAnchor);
+
+    /*h.movePosition(QTextCursor::StartOfWord);
+    h.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor);
+    if (h.selectedText() == ",") {
+        h.movePosition(QTextCursor::StartOfWord);
+    }
+    t.movePosition(QTextCursor::EndOfWord);
+
+    h.setPosition(t.position(), QTextCursor::KeepAnchor);*/
+
+    //qDebug() << begin.selectedText();
+
+    return begin;
+}
+
+
+
 bool TextEdit::tryEmmet() {
     if (!cursorAtEndOfWord()) {
         return false;
@@ -368,7 +404,7 @@ bool TextEdit::tryEmmet() {
         qDebug() << "cursor.selectedText() is empty";
         return false;
     }
-    QString e = parseEmmet(text);
+    QString e = Emmet::parse(text);
     if (e.isEmpty()) {
         qDebug() << "cannot emmet text" << text;
         return false;
