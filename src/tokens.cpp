@@ -362,6 +362,17 @@ QStringList Tokens::fields(const QString &tableName, bool dotted) const
     return res;
 }
 
+CompleterData Tokens::completerData() const
+{
+    CompleterData data;
+    data.tables = tables();
+    data.keywords = keywords() + driverKeywords();
+    data.functions = functions();
+    data.types = types();
+    data.fields = fields(true) + fields(false);
+    return data;
+}
+
 QStringList Tokens::fields(bool doted) const
 {
     QStringList res;
@@ -397,6 +408,41 @@ static QStringList uniq(const QStringList& values) {
 }
 
 
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+
+static void dumpJson(const QString& path, const QStringList& data) {
+
+    QString path_;
+
+    if (path.contains("%1")) {
+        int i = 1;
+        while (true) {
+            path_ = path.arg(i, 3, 10, QChar('0'));
+            if (!QFile(path_).exists()) {
+                break;
+            }
+            i += 1;
+        }
+    } else {
+        path_ = path;
+    }
+
+    QFile file(path_);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << QString("failed to open %1 for writing").arg(path_);
+        return;
+    }
+
+    QJsonArray arr = QJsonArray::fromStringList(data);
+    QJsonDocument doc(arr);
+    QByteArray bytes = doc.toJson();
+    file.write(bytes);
+    qDebug() << QString("dumped to %1").arg(path_);
+}
+
+
 QStringList Tokens::autocompletion(const QMap<QString,QString>& aliases) const
 {
     QStringList res;
@@ -404,6 +450,9 @@ QStringList Tokens::autocompletion(const QMap<QString,QString>& aliases) const
     res << tablesAndFields(true);
     res << functions();
     res << types();
+
+    //dumpJson("D:\\w\\tables-%1.json", tables());
+    //dumpJson("D:\\w\\fields-%1.json", fields(false) + fields(true));
 
     QStringList names = aliases.keys();
     foreach (const QString& name, names) {
@@ -459,7 +508,7 @@ document.body.innerText = tds.map( (e,i) => ` << "${e}"` + ((i % 7) == 6 ? "\n" 
         res << "smallint" << "integer" << "bigint" << "decimal" << "numeric" << "real" << "double precision"
             << "smallserial" << "serial" << "bigserial"
             << "money"
-            << "character varying" << " varchar" << "character" << " char" << "text"
+            << "character varying" << "varchar" << "character" << "char" << "text"
             << "bytea"
             << "timestamp" << "date" << "time" << "interval"
             << "boolean"

@@ -5,9 +5,8 @@
 #include "tokens.h"
 #include <QMap>
 
-class QCompleter;
+class Completer;
 class Highlighter;
-
 
 class TextEdit : public QPlainTextEdit
 {
@@ -30,13 +29,32 @@ protected:
     void keyPressEvent(QKeyEvent *e);
     void focusInEvent(QFocusEvent *e);
 
+#if 0
     void setCompleter(QCompleter *completer);
     QCompleter *completer() const;
+#endif
 
     void setHighlighter(Highlighter* highlighter);
     Highlighter* highlighter() const;
 
 
+    bool isCompeleterVisible();
+    bool completerForwardedToIgnore(QKeyEvent *e);
+    void updateCompleter(QKeyEvent *e);
+    void showCompleter(bool testPrefixLength);
+    void hideCompleter();
+    bool keyPressEventCompleter(QKeyEvent *e);
+    void paintEvent(QPaintEvent *e);
+    QPainterPath createSelectionPath(const QTextCursor &begin, const QTextCursor &end, const QRect &clip);
+    bool keyPressEventEdits(QKeyEvent *event);
+    void clearEdits();
+    void fixEdits();
+    bool tryEmmet();
+    bool cursorAtEndOfWord() const;
+    void moveTextCursorToEdit(int index);
+    int prevEditIndex() const;
+    int nextEditIndex() const;
+    int editIndex() const;
 protected slots:
     void onTextChanged();
     void insertCompletion(const QString &completion);
@@ -45,10 +63,11 @@ private:
     QString textUnderCursor() const;
 
 private:
-    QCompleter *mCompleter;
+    Completer *mCompleter;
     Highlighter* mHighlighter;
     Tokens mTokens;
     QMap<QString,QString> mAliases;
+    QList<QPair<QTextCursor, QTextCursor>> m_edits;
 };
 
 #endif // TEXTEDIT_H

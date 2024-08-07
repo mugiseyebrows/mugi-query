@@ -26,7 +26,7 @@ void automate(QWidget *widget)
     automation->start();
 #endif
 
-#if 0
+#if 1
     Automation* automation = Automation::instance(widget);
     QString database = "dvdrental";
     automation->connectToDatabaseFromHistory(database);

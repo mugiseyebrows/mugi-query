@@ -52,12 +52,15 @@ HEADERS += \
     src/choicedialog.h \
     src/clicklistener.h \
     src/colorpalette.h \
+    src/completer.h \
+    src/completerdata.h \
     src/confirmationdialog.h \
     src/copyeventfilter.h \
     src/dataformat.h \
     src/datastreamer.h \
     src/datautils.h \
     src/deleteeventfilter.h \
+    src/emmet.h \
     src/fieldnames.h \
     src/filterempty.h \
     src/filterplotitem.h \
@@ -126,6 +129,7 @@ HEADERS += \
     src/setheaderdata.h \
     src/settings.h \
     src/showandraise.h \
+    src/showhidefilter.h \
     src/splitterutil.h \
     src/sqlhelper.h \
     src/sqlutil.h \
@@ -222,12 +226,15 @@ SOURCES += \
     src/choicedialog.cpp \
     src/clicklistener.cpp \
     src/colorpalette.cpp \
+    src/completer.cpp \
+    src/completerdata.cpp \
     src/confirmationdialog.cpp \
     src/copyeventfilter.cpp \
     src/dataformat.cpp \
     src/datastreamer.cpp \
     src/datautils.cpp \
     src/deleteeventfilter.cpp \
+    src/emmet.cpp \
     src/fieldnames.cpp \
     src/filterempty.cpp \
     src/filterplotitem.cpp \
@@ -296,6 +303,7 @@ SOURCES += \
     src/setheaderdata.cpp \
     src/settings.cpp \
     src/showandraise.cpp \
+    src/showhidefilter.cpp \
     src/splitterutil.cpp \
     src/sqlhelper.cpp \
     src/sqlutil.cpp \

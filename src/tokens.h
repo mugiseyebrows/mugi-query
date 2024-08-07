@@ -5,6 +5,7 @@
 #include <QSqlDatabase>
 #include <QMap>
 #include <QMetaType>
+#include "completerdata.h"
 
 class Tokens
 {
@@ -30,6 +31,8 @@ public:
     QStringList fields(const QString &table, const QString &alias) const;
 
     QStringList fields(const QString &table, bool dotted) const;
+
+    CompleterData completerData() const;
 
 protected:
     struct Table {
