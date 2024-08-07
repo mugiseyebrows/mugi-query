@@ -251,7 +251,9 @@ bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {
 
     if (mCompleter->context() == Completer::Undefined) {
         auto context = determineContext(textCursor());
-        //qDebug() << "determined context" << context;
+        if (context == Completer::On) {
+            // todo join hint
+        }
         mCompleter->setContext(context);
     }
 
