@@ -1,0 +1,1 @@
+pyfind %~dp0 -iname *.cpp -not -iname moc_*.cpp qrc_*.cpp -xargs -exec pywc -l {} ;
