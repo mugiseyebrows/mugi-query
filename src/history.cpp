@@ -13,11 +13,7 @@
 #include <QDebug>
 #include "settings.h"
 #include "drivernames.h"
-#include "mugisql/mugisql.h"
-
-#define PARENT_WIDGET 0
-
-#define QUERY_EXEC(q) do { if (!q.exec()) QMessageBox::critical(PARENT_WIDGET,"Error",q.lastError().text()); } while (0)
+#include "query_exec.h"
 
 History::History(QObject* parent)
 {
@@ -27,7 +23,7 @@ History::History(QObject* parent)
     QSqlDatabase db = QSqlDatabase::addDatabase(DRIVER_SQLITE,"_history");
     db.setDatabaseName(d.filePath("history.sqlite"));
     if (!db.open()) {
-        QMessageBox::critical(PARENT_WIDGET,"error",db.lastError().text());
+        QMessageBox::critical(0, "error",db.lastError().text());
         return;
     }
 
@@ -46,17 +42,19 @@ History *History::instance()
     return mInstance;
 }
 
-void History::addQuery(const QString& connectionName, const QString& query_) {
-
-    QSqlDatabase db = QSqlDatabase::database("_history");
-
-    using namespace mugisql;
-    using namespace mugisql::sqlite;
-
-    insert_t q = insert(db).into(query, {query.date, query.connectionName, query.query})
-            .values({datetime("now", "localtime"), connectionName, query_});
-
+// python insert-record.py -o tmp.txt query -c date connectionName query
+static void insert_into_query(QSqlDatabase db, const QVariant& date, const QVariant& connectionName, const QVariant& query) {
+    QSqlQuery q(db);
+    q.prepare("INSERT INTO query(date, connectionName, query) VALUES(?, ?, ?)");
+    q.addBindValue(date);
+    q.addBindValue(connectionName);
+    q.addBindValue(query);
     QUERY_EXEC(q);
+}
+
+void History::addQuery(const QString& connectionName, const QString& query) {
+    QSqlDatabase db = QSqlDatabase::database("_history");
+    insert_into_query(db, QDateTime::currentDateTime(), connectionName, query);
 }
 
 void History::addJoin(const QString& connectionName1, const QString& query1, const QStringList& columns1,
@@ -66,40 +64,25 @@ void History::addJoin(const QString& connectionName1, const QString& query1, con
 
 }
 
-// echo ', const QString& '{connectionName,driver,host,user,password,database,port}
+// python insert-record.py -o tmp.txt database --columns date connectionName driver host user password database port
+
+static void insert_into_database(QSqlDatabase db, const QVariant& date, const QVariant& connectionName, const QVariant& driver, const QVariant& host, const QVariant& user, const QVariant& password, const QVariant& database, const QVariant& port) {
+    QSqlQuery q(db);
+    q.prepare("INSERT INTO database(date, connectionName, driver, host, user, password, database, port) VALUES(?, ?, ?, ?, ?, ?, ?, ?)");
+    q.addBindValue(date);
+    q.addBindValue(connectionName);
+    q.addBindValue(driver);
+    q.addBindValue(host);
+    q.addBindValue(user);
+    q.addBindValue(password);
+    q.addBindValue(database);
+    q.addBindValue(port);
+    QUERY_EXEC(q);
+}
 
 
-
-void History::addDatabase(const QString &connectionName, const QString &driver, const QString &host, const QString &user, const QString &password, const QString &database_, int port)
+void History::addDatabase(const QString &connectionName, const QString &driver, const QString &host, const QString &user, const QString &password, const QString &database, int port)
 {
     QSqlDatabase db = QSqlDatabase::database("_history");
-
-    using namespace mugisql;
-    using namespace mugisql::sqlite;
-
-    exprlist_t fields = {
-        database.date,
-        database.connectionName,
-        database.driver,
-        database.host,
-        database.user,
-        database.password,
-        database.database,
-        database.port
-    };
-
-    exprlist_t values = {
-        datetime("now", "localtime"),
-        connectionName,
-        driver,
-        host,
-        user,
-        (Settings::instance()->savePasswords() ? password : QString()),
-        database_,
-        port
-    };
-
-    insert_t q = insert(db).into(database, fields).values(values);
-
-    QUERY_EXEC(q);
+    insert_into_database(db, QDateTime::currentDateTime(), connectionName, driver, host, user, (Settings::instance()->savePasswords() ? password : QString()), database, port);
 }

@@ -21,7 +21,7 @@ SelectColumnsWidget::~SelectColumnsWidget()
     delete ui;
 }
 
-void SelectColumnsWidget::setFields(const QStringList& fields, const QList<QVariant::Type>& types) {
+void SelectColumnsWidget::setFields(const QStringList& fields, const QList<QMetaType::Type>& types) {
     ui->data->setFields(fields, types);
     ui->keys->setFields(fields, types);
 }
@@ -35,7 +35,7 @@ QList<bool> SelectColumnsWidget::dataCheckList() const {
 }
 
 
-void SelectColumnsWidget::checked(QStringList &fields, QList<QVariant::Type> &types)
+void SelectColumnsWidget::checked(QStringList &fields, QList<QMetaType::Type> &types)
 {
     if (!ui->data->model()) {
         return;
@@ -47,12 +47,12 @@ void SelectColumnsWidget::checked(QStringList &fields, QList<QVariant::Type> &ty
     }
 }
 
-void SelectColumnsWidget::dataChecked(QStringList &fields, QList<QVariant::Type> &types)
+void SelectColumnsWidget::dataChecked(QStringList &fields, QList<QMetaType::Type> &types)
 {
     ui->data->model()->checked(fields, types);
 }
 
-void SelectColumnsWidget::keysChecked(QStringList &fields, QList<QVariant::Type> &types)
+void SelectColumnsWidget::keysChecked(QStringList &fields, QList<QMetaType::Type> &types)
 {
     ui->keys->model()->checked(fields, types);
 }

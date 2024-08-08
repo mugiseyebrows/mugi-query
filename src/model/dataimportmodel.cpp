@@ -20,9 +20,9 @@ QVariant DataImportModel::data(const QModelIndex &index, int role) const
                 return QVariant();
             }
 
-            QVariant::Type type = mTypes[index.column()];
+            QMetaType::Type type = mTypes[index.column()];
             int size = mSizes[index.column()];
-            if (type == QVariant::String) {
+            if (type == QMetaType::QString) {
                 if (size > -1) {
                     return v.toString().size() > size ? QVariant(QColor(Qt::red)) : QVariant();
                 }
@@ -42,7 +42,7 @@ QVariant DataImportModel::data(const QModelIndex &index, int role) const
     return QStandardItemModel::data(index,role);
 }
 
-void DataImportModel::setTypes(const QMap<int, QVariant::Type> &types, const QMap<int, int> &sizes)
+void DataImportModel::setTypes(const QMap<int, QMetaType::Type> &types, const QMap<int, int> &sizes)
 {
     if (mTypes == types && mSizes == sizes) {
         //qDebug() << "same types";

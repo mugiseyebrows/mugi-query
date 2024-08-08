@@ -9,15 +9,11 @@
 #include "clipboardutil.h"
 #include "itemdelegate.h"
 
-namespace {
-
-void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QVariant::Type>& types) {
+static void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QMetaType::Type>& types) {
     for(int c=0;c<record.count();c++) {
         names << record.fieldName(c);
-        types << record.field(c).type();
+        types << (QMetaType::Type) record.field(c).metaType().id();
     }
-}
-
 }
 
 DataCompareWidget::DataCompareWidget(QWidget *parent) :
@@ -98,7 +94,7 @@ void DataCompareWidget::onColumnsChanged() {
 void DataCompareWidget::setModels(QSqlQueryModel* model1, QSqlQueryModel* model2) {
 
     QStringList names;
-    QList<QVariant::Type> types;
+    QList<QMetaType::Type> types;
     recordToNamesTypes(model1->record(0), names, types);
     ui->columns->setFields(names, types);
     ui->columns->setFormat(DataFormat::SqlInsert);

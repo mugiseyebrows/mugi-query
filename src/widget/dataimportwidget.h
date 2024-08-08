@@ -84,7 +84,7 @@ protected:
     RichHeaderView *headerView() const;
     void createHeaderViewWidgets();
     void setColumnNames(const QStringList &names);
-    void setColumnTypes(const QList<QVariant::Type> &types);
+    void setColumnTypes(const QList<QMetaType::Type> &types);
     void newOrExistingTable();
     DataImportModel *dataModel() const;
     QString queries(bool preview);
@@ -97,7 +97,7 @@ protected:
     QString tableName();
     QList<Field> fields() const;
     bool newTable() const;
-    static QVariant::Type guessType(QAbstractItemModel *model, const QModelIndex &topLeft, const QModelIndex &bottomRight);
+    static QMetaType::Type guessType(QAbstractItemModel *model, const QModelIndex &topLeft, const QModelIndex &bottomRight);
     void guessColumnType(int column);
     void setFields(const QList<Field> &fields);
     void setDataModelColumnCount(int count);

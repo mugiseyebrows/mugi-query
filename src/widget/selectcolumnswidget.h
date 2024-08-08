@@ -31,12 +31,12 @@ public:
     SelectColumnsListWidget * data() const;
     SelectColumnsListWidget * keys() const;
 
-    void setFields(const QStringList &fields, const QList<QVariant::Type> &types = {});
+    void setFields(const QStringList &fields, const QList<QMetaType::Type> &types = {});
 
-    void checked(QStringList &fields, QList<QVariant::Type> &types);
+    void checked(QStringList &fields, QList<QMetaType::Type> &types);
 
-    void dataChecked(QStringList &fields, QList<QVariant::Type> &types);
-    void keysChecked(QStringList &fields, QList<QVariant::Type> &types);
+    void dataChecked(QStringList &fields, QList<QMetaType::Type> &types);
+    void keysChecked(QStringList &fields, QList<QMetaType::Type> &types);
 
     void setLabelsMode(LabelsMode mode);
 

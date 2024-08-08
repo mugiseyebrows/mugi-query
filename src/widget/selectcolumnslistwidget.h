@@ -18,7 +18,7 @@ public:
     explicit SelectColumnsListWidget(QWidget *parent = nullptr);
     ~SelectColumnsListWidget();
 
-    void setFields(const QStringList &fields, const QList<QVariant::Type> &types);
+    void setFields(const QStringList &fields, const QList<QMetaType::Type> &types);
     void setLabelText(const QString& text);
 
     DataImportColumnModel* model() const;

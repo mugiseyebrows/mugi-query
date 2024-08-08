@@ -12,28 +12,28 @@ ItemDelegate::ItemDelegate(QObject *parent) : QStyledItemDelegate (parent)
 
 QString ItemDelegate::displayText(const QVariant &value, const QLocale &locale) const
 {
-    QVariant::Type t = value.type();
-    if (t == QVariant::DateTime || t == QVariant::Date || t == QVariant::Time) {
+    auto t = value.typeId();
+    if (t == QMetaType::QDateTime || t == QMetaType::QDate || t == QMetaType::QTime) {
         if (Settings::instance()->dateTimeUseLocale()) {
             return QStyledItemDelegate::displayText(value,locale);
         } else {
-            if (t == QVariant::DateTime) {
+            if (t == QMetaType::QDateTime) {
                 const QDateTime dateTime = value.toDateTime();
                 QString text = dateTime.toString(Settings::instance()->dateFormat())
                         + QLatin1Char(' ')
                         + dateTime.toString(Settings::instance()->timeFormat());
                 return text;
-            } else if (t == QVariant::Date) {
+            } else if (t == QMetaType::QDate) {
                 return value.toDate().toString(Settings::instance()->dateFormat());
-            } else if (t == QVariant::Time) {
+            } else if (t == QMetaType::QTime) {
                 return value.toTime().toString(Settings::instance()->timeFormat());
             }
         }
-    } else if (t == QVariant::Double) {
+    } else if (t == QMetaType::Double) {
         if (!Settings::instance()->realUseLocale()) {
             return QString::number(value.toDouble());
         }
-    } else if (t == QVariant::ByteArray) {
+    } else if (t == QMetaType::QByteArray) {
         QByteArray data = value.toByteArray();
         /*auto* codec = QTextCodec::codecForName("UTF-8");
         auto* decoder = codec->makeDecoder();
@@ -68,8 +68,8 @@ QString ItemDelegate::displayText(const QVariant &value, const QLocale &locale) 
 QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     
-    QVariant::Type t = index.data().type();
-    if (t == QVariant::DateTime || t == QVariant::Date || t == QVariant::Time) {
+    auto t = index.data().typeId();
+    if (t == QMetaType::QDateTime || t == QMetaType::QDate || t == QMetaType::QTime) {
         int w = option.fontMetrics.horizontalAdvance(displayText(index.data(), option.locale)) + 16;
         int h = option.fontMetrics.lineSpacing();
         return QSize(w,h);

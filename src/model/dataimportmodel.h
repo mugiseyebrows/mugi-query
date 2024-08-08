@@ -14,13 +14,13 @@ public:
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
-    void setTypes(const QMap<int, QVariant::Type>& types, const QMap<int,int>& sizes);
+    void setTypes(const QMap<int, QMetaType::Type>& types, const QMap<int,int>& sizes);
 
     void setLocale(const QLocale& locale);
 
 protected:
 
-    QMap<int, QVariant::Type> mTypes;
+    QMap<int, QMetaType::Type> mTypes;
     QMap<int, int> mSizes;
 
     QLocale mLocale;

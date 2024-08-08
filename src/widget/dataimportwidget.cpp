@@ -48,10 +48,10 @@ void setSpacerEnabled(QSpacerItem* spacer, bool enabled, QLayout* layout) {
     layout->invalidate();
 }
 
-void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QVariant::Type>& types) {
+void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QMetaType::Type>& types) {
     for(int c=0;c<record.count();c++) {
         names << record.fieldName(c);
-        types << record.field(c).type();
+        types << (QMetaType::Type) record.field(c).metaType().id();
     }
 }
 
@@ -243,7 +243,7 @@ void DataImportWidget::on_existingTable_currentIndexChanged(int index) {
     QSqlRecord record = db.record(table);
 
     QStringList names;
-    QList<QVariant::Type> types;
+    QList<QMetaType::Type> types;
     recordToNamesTypes(record,names,types);
 
     ui->columns->setTable(table);
@@ -317,7 +317,7 @@ void DataImportWidget::setColumnSizes() {
 }
 
 
-void DataImportWidget::setColumnTypes(const QList<QVariant::Type>& types) {
+void DataImportWidget::setColumnTypes(const QList<QMetaType::Type>& types) {
 
     RichHeaderView* view = headerView();
     if (!view) {
@@ -327,7 +327,7 @@ void DataImportWidget::setColumnTypes(const QList<QVariant::Type>& types) {
     QAbstractItemModel* model = dataModel();
 
     QStringList names = SqlDataTypes::names();
-    QMap<QVariant::Type, QString> m = SqlDataTypes::mapFromVariant();
+    QMap<QMetaType::Type, QString> m = SqlDataTypes::mapFromVariant();
 
     for(int c=0;c<model->columnCount();c++) {
         QComboBox* type = widgetType(c);
@@ -529,9 +529,9 @@ void DataImportWidget::onSetColumnNamesAndTypes() {
 
     qDebug() << "onSetColumnNamesAndTypes";
     QStringList names;
-    QList<QVariant::Type> types;
+    QList<QMetaType::Type> types;
     ui->columns->checked(names,types);
-    QMap<QVariant::Type, QString> m = SqlDataTypes::mapFromVariant();
+    QMap<QMetaType::Type, QString> m = SqlDataTypes::mapFromVariant();
     QList<Field> fields;
     for(int c=0;c<names.size();c++) {
         fields << Field(names[c],m.value(types[c]));
@@ -554,7 +554,7 @@ void DataImportWidget::onModelSetTypes() {
         return;
     }
 
-    QMap<int,QVariant::Type> columnType;
+    QMap<int,QMetaType::Type> columnType;
     QMap<int,int> columnSize;
 
     /*QStringList names;
@@ -565,7 +565,7 @@ void DataImportWidget::onModelSetTypes() {
 
     QList<Field> fields = this->fields();
 
-    QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
+    QMap<QString,QMetaType::Type> m = SqlDataTypes::mapToVariant();
 
     for(int c=0;c<fields.size();c++) {
         const Field& field = fields[c];
@@ -613,7 +613,7 @@ void DataImportWidget::newOrExistingTable() {
     mUpdatePreview->onPost();
 }
 
-QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
+QMetaType::Type DataImportWidget::guessType(QAbstractItemModel* model,
                                     const QModelIndex& topLeft,
                                     const QModelIndex& bottomRight) {
 
@@ -665,30 +665,30 @@ QVariant::Type DataImportWidget::guessType(QAbstractItemModel* model,
     }
 
     if (total < 1) {
-        return QVariant::Invalid;
+        return QMetaType::UnknownType;
     }
 
     if (dates * 100 / total > 90) {
-        return QVariant::Date;
+        return QMetaType::QDate;
     } else if (ints * 100 / total > 90) {
-        return QVariant::Int;
+        return QMetaType::Int;
     } else if ((doubles + ints) * 100 / total > 90) {
-        return QVariant::Double;
+        return QMetaType::Double;
     } else if (times * 100 / total > 90) {
-        return QVariant::Time;
+        return QMetaType::QTime;
     } else if (strings * 100 / total > 90) {
-        return QVariant::String;
+        return QMetaType::QString;
     } else if (dateTimes * 100 / total > 90) {
-        return QVariant::DateTime;
+        return QMetaType::QDateTime;
     }
-    return QVariant::Invalid;
+    return QMetaType::UnknownType;
 }
 
 void DataImportWidget::guessColumnType(int column) {
     QAbstractItemModel* model = dataModel();
-    QMap<QVariant::Type, QString> m = SqlDataTypes::mapFromVariant();
+    QMap<QMetaType::Type, QString> m = SqlDataTypes::mapFromVariant();
     QStringList ts = SqlDataTypes::names();
-    QVariant::Type type = guessType(model,model->index(0,column),model->index(model->rowCount()-1,column));
+    QMetaType::Type type = guessType(model,model->index(0,column),model->index(model->rowCount()-1,column));
     if (type == QVariant::Invalid) {
         return;
     }

@@ -9,8 +9,8 @@ DoubleItemDelegate::DoubleItemDelegate(QObject *parent, int prec) : QStyledItemD
 
 QString DoubleItemDelegate::displayText(const QVariant &value, const QLocale &locale) const
 {
-    QVariant::Type t = value.type();
-    if (t == QVariant::Double) {
+    auto t = value.typeId();
+    if (t == QMetaType::Double) {
         if (!Settings::instance()->realUseLocale()) {
             return QString::number(value.toDouble(), 'f', mPrec);
         }

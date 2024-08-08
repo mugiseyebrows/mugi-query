@@ -636,7 +636,7 @@ bool Tests::testTryConvert1() {
         foreach(Qt::DateFormat format, dateFormats) {
             QString string = date.toString(format);
             bool ok;
-            QVariant converted = SqlDataTypes::tryConvert(string,QVariant::Date,locale,inLocalDateTime,outUtc,minYear,&ok);
+            QVariant converted = SqlDataTypes::tryConvert(string,QMetaType::QDate,locale,inLocalDateTime,outUtc,minYear,&ok);
             //if ((rand() % 40) == 0) converted = converted.toDate().addDays(1);
             passed << equals(__LINE__,date,format,string,converted,ok);
         }
@@ -644,7 +644,7 @@ bool Tests::testTryConvert1() {
         foreach(const QString& format, dateFormats2) {
             QString string = date.toString(format);
             bool ok;
-            QVariant converted = SqlDataTypes::tryConvert(string,QVariant::Date,locale,inLocalDateTime,outUtc,minYear,&ok);
+            QVariant converted = SqlDataTypes::tryConvert(string,QMetaType::QDate,locale,inLocalDateTime,outUtc,minYear,&ok);
             //if ((rand() % 40) == 0) converted = converted.toDate().addDays(1);
             passed << equals(__LINE__,date,format,string,converted,ok);
         }
@@ -662,7 +662,7 @@ bool Tests::testTryConvert1() {
             bool hasSeconds = rxTimeWithS.match(string).hasMatch();
             bool hasMilliseconds = rxTimeWithMs.match(string).hasMatch();
             bool ok;
-            QVariant converted = SqlDataTypes::tryConvert(string, QVariant::Time, locale,inLocalDateTime,outUtc,minYear,&ok);
+            QVariant converted = SqlDataTypes::tryConvert(string, QMetaType::QTime, locale,inLocalDateTime,outUtc,minYear,&ok);
             QTime time_ = QTime(h, m, hasSeconds ? s : 0, hasMilliseconds ? ms : 0);
             //if ((rand() % 40) == 0) converted = converted.toTime().addSecs(1);
             passed << equals(__LINE__,time_,format,string,converted,ok);
@@ -692,7 +692,7 @@ UTC QDateTime(1991-04-12 04:49:28.000 UTC Qt::TimeSpec(UTC))
                                             QTime(h, m, hasSeconds ? s : 0, hasMilliseconds ? ms : 0),
                                             Qt::LocalTime);
             bool ok = false;
-            QVariant converted = SqlDataTypes::tryConvert(string,QVariant::DateTime,locale,minYear,inLocalDateTime,outUtc,&ok);
+            QVariant converted = SqlDataTypes::tryConvert(string,QMetaType::QDateTime,locale,minYear,inLocalDateTime,outUtc,&ok);
             //if ((rand() % 40) == 0) converted = converted.toDateTime().addDays(1);
             passed << equals(__LINE__,dateTime_,format,string,converted,ok);
 
@@ -726,10 +726,10 @@ bool Tests::testTryConvert2() {
     bool ok_ = false;
 
     int minYear = 1950;
-    d1 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, true, false, &ok_).toDateTime();
-    d2 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, false, true, &ok_).toDateTime();
-    d3 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, false, false, &ok_).toDateTime();
-    d4 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, true, true, &ok_).toDateTime();
+    d1 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, true, false, &ok_).toDateTime();
+    d2 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, false, true, &ok_).toDateTime();
+    d3 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, false, false, &ok_).toDateTime();
+    d4 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, true, true, &ok_).toDateTime();
 
     // d1 TF 12MSK 12MSK
     // d2 FT 12GMT 12GMT
@@ -754,10 +754,10 @@ bool Tests::testTryConvert2() {
     s = dlocal.toString(Qt::RFC2822Date); // with numeric timezone
     //qDebug() << s;
 
-    d1 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, true, false, &ok_).toDateTime();
-    d2 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, false, true, &ok_).toDateTime();
-    d3 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, false, false, &ok_).toDateTime();
-    d4 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, true, true, &ok_).toDateTime();
+    d1 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, true, false, &ok_).toDateTime();
+    d2 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, false, true, &ok_).toDateTime();
+    d3 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, false, false, &ok_).toDateTime();
+    d4 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, true, true, &ok_).toDateTime();
 
     // d1 TF 12MSK 12MSK
     // d2 FT 12MSK  9GMT
@@ -779,10 +779,10 @@ bool Tests::testTryConvert2() {
     s = dlocal.toString("yyyy-MM-dd hh:mm:ss.zzz t"); // with abbreviated timezone
     //qDebug() << s;
 
-    d1 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, true, false, &ok_).toDateTime();
-    d2 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, false, true, &ok_).toDateTime();
-    d3 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, false, false, &ok_).toDateTime();
-    d4 = SqlDataTypes::tryConvert(s, QVariant::DateTime, locale, minYear, true, true, &ok_).toDateTime();
+    d1 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, true, false, &ok_).toDateTime();
+    d2 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, false, true, &ok_).toDateTime();
+    d3 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, false, false, &ok_).toDateTime();
+    d4 = SqlDataTypes::tryConvert(s, QMetaType::QDateTime, locale, minYear, true, true, &ok_).toDateTime();
 
     // d1 TF 12MSK 12MSK
     // d2 FT 12MSK  9GMT

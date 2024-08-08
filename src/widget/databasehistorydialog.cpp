@@ -4,16 +4,16 @@
 #include <QSqlQueryModel>
 #include <QVariant>
 #include <QSqlQuery>
-#include "mugisql/mugisql.h"
+
 #include "richheaderview/richheaderview.h"
 #include "datetimerangewidget.h"
 #include "datetimerangewidgetmanager.h"
 #include <QComboBox>
 #include "intlineedit.h"
+#include "query_exec.h"
+#include "history.h"
 
-namespace {
-
-QStringList availableSqlDrivers() {
+static QStringList availableSqlDrivers() {
     QStringList drivers = QSqlDatabase::drivers();
     drivers.removeAll("QMYSQL3");
     drivers.removeAll("QOCI8");
@@ -22,10 +22,6 @@ QStringList availableSqlDrivers() {
     drivers.removeAll("QTDS7");
     return drivers;
 }
-
-}
-
-#include "history.h"
 
 DatabaseHistoryDialog::DatabaseHistoryDialog(QWidget *parent) :
     QDialog(parent),
@@ -91,37 +87,66 @@ QString likeExpr(const QString& value) {
     return value.isEmpty() ? "%" : "%" + value + "%";
 }
 
+static QString like(const QString& value) {
+    if (value.isEmpty()) {
+        return QString();
+    }
+    return "%" + value + "%";
+}
+
 void DatabaseHistoryDialog::onUpdateQuery() {
 
-    using namespace mugisql;
     QSqlDatabase db = QSqlDatabase::database("_history");
 
-    select_t q = mugisql::select(db, database._all)
-            .from(database)
-            .where(
-                and_({between(database.date, mDateEdit->dateTime1(), mDateEdit->dateTime2()),
-                      like(database.connectionName, likeExpr(mConnectionNameEdit->text())),
-                      or_(equal(mDriverEdit->currentText(), "any"),
-                        equal(database.driver, mDriverEdit->currentText())),
-                      like(database.host, likeExpr(mHostEdit->text())),
-                      like(database.user, likeExpr(mUserEdit->text())),
-                      like(database.database, likeExpr(mDatabaseEdit->text())),
-                      or_(equal(mPortEdit->value(-1),-1),
-                        equal(database.port, mPortEdit->value(-1)))}))
-            .orderBy(desc(database.date));
+    QDateTime date1 = mDateEdit->dateTime1();
+    QDateTime date2 = mDateEdit->dateTime2();
+    QString connectionName = like(mConnectionNameEdit->text());
+    QString driver = mDriverEdit->currentText();
+    QString host = like(mHostEdit->text());
+    QString user = like(mUserEdit->text());
+    QString database = like(mDatabaseEdit->text());
 
-    if (!q.exec()) {
-        qDebug() << q.lastError().text();
-        return;
+    QSqlQuery q(db);
+
+    QStringList conditions;
+    QVariantList values;
+    conditions.append("date between ? and ?");
+    values.append(date1);
+    values.append(date2);
+    if (driver != "any") {
+        conditions.append("driver=?");
+        values.append(driver);
+    }
+    if (!connectionName.isEmpty()) {
+        conditions.append("connectionName like ?");
+        values.append(connectionName);
+    }
+    if (!host.isEmpty()) {
+        conditions.append("host like ?");
+        values.append(host);
+    }
+    if (!user.isEmpty()) {
+        conditions.append("user like ?");
+        values.append(user);
+    }
+    if (!database.isEmpty()) {
+        conditions.append("database like ?");
+        values.append(database);
     }
 
+    QString expr = "select * from database where " + conditions.join(" and ");
+    q.prepare(expr);
+    for(const QVariant& value: values) {
+        q.addBindValue(value);
+    }
+    QUERY_EXEC(q);
     QSqlQueryModel* model = qobject_cast<QSqlQueryModel*>(ui->tableView->model());
     if (!model) {
         qDebug() << "!model";
         return;
     }
-    model->setQuery(q.query());
-    ui->tableView->setColumnWidth(0,160);
+    model->setQuery(q);
+    ui->tableView->setColumnWidth(0, 160);
 }
 
 void DatabaseHistoryDialog::select(const QString &connectionName)

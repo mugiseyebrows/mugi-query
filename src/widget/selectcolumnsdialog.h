@@ -16,13 +16,13 @@ public:
     explicit SelectColumnsDialog(QWidget *parent = nullptr);
     ~SelectColumnsDialog();
 
-    void initUpdate(const QString& table, const QStringList& fields, const QList<QVariant::Type>& types);
+    void initUpdate(const QString& table, const QStringList& fields, const QList<QMetaType::Type>& types);
 
     QStringList dataChecked() const;
     QStringList keysChecked() const;
     QStringList checked() const;
 
-    void initInsert(const QString &table, const QStringList &fields, const QList<QVariant::Type> &types);
+    void initInsert(const QString &table, const QStringList &fields, const QList<QMetaType::Type> &types);
 private:
     Ui::SelectColumnsDialog *ui;
 };

@@ -277,7 +277,7 @@ void Clipboard::copySelectedAsCondition(QSqlQueryModel *model,
             QSqlField field = record.field(column);
             QVariant value_ = field.value();
             QString value = driver->formatValue(field);
-            expr.args.append(ExprArg(name,value,value_.type() == QVariant::Double));
+            expr.args.append(ExprArg(name,value,value_.metaType().id() == QMetaType::Double));
         }
         exprs.append(expr.toString());
     }

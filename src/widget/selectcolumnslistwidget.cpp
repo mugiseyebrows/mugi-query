@@ -15,7 +15,7 @@ SelectColumnsListWidget::~SelectColumnsListWidget()
     delete ui;
 }
 
-void SelectColumnsListWidget::setFields(const QStringList &fields, const QList<QVariant::Type>& types)
+void SelectColumnsListWidget::setFields(const QStringList &fields, const QList<QMetaType::Type>& types)
 {
     DataImportColumnModel* model = new DataImportColumnModel(fields, types, this);
     ui->columns->setModel(model);

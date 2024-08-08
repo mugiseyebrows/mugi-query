@@ -39,10 +39,10 @@ static QHash<QString, QString> loadEmmetDict() {
     if (dir.dirName() == "debug") {
         dir.cdUp();
     }
-    if (dir.dirName() == "mugi-query") {
+    /*if (dir.dirName() == "mugi-query") {
         dir.cd("lib");
         dir.cd("emmet");
-    }
+    }*/
     QString path = dir.filePath("emmet.json");
     QJsonDocument doc = readJson(path);
     QJsonArray arr = doc.array();

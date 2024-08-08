@@ -67,10 +67,10 @@ namespace {
 
 
 
-void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QVariant::Type>& types) {
+void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QMetaType::Type>& types) {
     for(int c=0;c<record.count();c++) {
         names << record.fieldName(c);
-        types << record.field(c).type();
+        types << (QMetaType::Type) record.field(c).metaType().id();
     }
 }
 
@@ -947,7 +947,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         QString table = tables.first();
         QSqlRecord record = db.record(table);
         QStringList names;
-        QList<QVariant::Type> types;
+        QList<QMetaType::Type> types;
         recordToNamesTypes(record,names,types);
         SelectColumnsDialog dialog;
 

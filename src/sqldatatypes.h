@@ -13,13 +13,13 @@ public:
 
     static QStringList names();
 
-    static QMap<QString,QVariant::Type> mapToVariant();
+    static QMap<QString,QMetaType::Type> mapToVariant();
 
-    static QMap<QVariant::Type, QString> mapFromVariant();
+    static QMap<QMetaType::Type, QString> mapFromVariant();
 
-    static QMap<QVariant::Type, QString> mapToDriver(const QString& driver);
+    static QMap<QMetaType::Type, QString> mapToDriver(const QString& driver);
 
-    static QVariant tryConvert(const QVariant &v, QVariant::Type t, const QLocale &locale, int minYear,
+    static QVariant tryConvert(const QVariant &v, QMetaType::Type t, const QLocale &locale, int minYear,
                                bool inLocalTime, bool outUtc, bool *ok);
 
 

@@ -137,23 +137,23 @@ QString DataStreamer::variantToString(const QVariant& value,
             return "";
         }
         switch(value.type()) {
-        case QVariant::Int:
+        case QMetaType::Int:
             return QString::number(value.toInt());
-        case QVariant::UInt:
+        case QMetaType::UInt:
             return QString::number(value.toUInt());
-        case QVariant::LongLong:
+        case QMetaType::LongLong:
             return QString::number(value.toLongLong());
-        case QVariant::ULongLong:
+        case QMetaType::ULongLong:
             return QString::number(value.toULongLong());
-        case QVariant::Double:
+        case QMetaType::Double:
             if (formats.realUseLocale) {
                 return locale.toString(value.toDouble());
             } else {
                 return QString::number(value.toDouble());
             }
-        case QVariant::Bool:
+        case QMetaType::Bool:
             return QString::number(value.toInt());
-        case QVariant::Date:
+        case QMetaType::QDate:
         {
             QDate value_ = value.toDate();
             if (formats.dateTimeUseLocale) {
@@ -161,7 +161,7 @@ QString DataStreamer::variantToString(const QVariant& value,
             }
             return value_.toString(formats.dateFormat);
         }
-        case QVariant::DateTime:
+        case QMetaType::QDateTime:
         {
             QDateTime value_ = value.toDateTime();
             if (formats.dateTimeUseLocale) {
@@ -169,7 +169,7 @@ QString DataStreamer::variantToString(const QVariant& value,
             }
             return value_.toString(formats.dateFormat + " " + formats.timeFormat);
         }
-        case QVariant::Time:
+        case QMetaType::QTime:
         {
             QTime value_ = value.toTime();
             if (formats.dateTimeUseLocale) {
@@ -177,9 +177,9 @@ QString DataStreamer::variantToString(const QVariant& value,
             }
             return value_.toString(formats.timeFormat);
         }
-        case QVariant::String:
+        case QMetaType::QString:
             return value.toString().replace(QRegularExpression("\\n[\\r]?\\s*")," ");
-        case QVariant::ByteArray:
+        case QMetaType::QByteArray:
 
         /*{
             auto* codec = QTextCodec::codecForName("UTF-8");
@@ -192,7 +192,7 @@ QString DataStreamer::variantToString(const QVariant& value,
 
             return "0x" + value.toByteArray().toHex();
 
-        case QVariant::List:
+        case QMetaType::QVariantList:
         {
             QVariantList vs = value.toList();
             QVariant v1 = vs.value(0);
@@ -215,25 +215,25 @@ QString DataStreamer::variantToString(const QVariant& value,
             return "null";
         }
         switch(value.type()) {
-        case QVariant::Bool:
+        case QMetaType::Bool:
             return QString::number(value.toInt());
-        case QVariant::UInt:
+        case QMetaType::UInt:
             return QString::number(value.toUInt());
-        case QVariant::Int:
+        case QMetaType::Int:
             return QString::number(value.toInt());
-        case QVariant::ULongLong:
+        case QMetaType::ULongLong:
             return QString::number(value.toULongLong());
-        case QVariant::LongLong:
+        case QMetaType::LongLong:
             return QString::number(value.toLongLong());
-        case QVariant::Double:
+        case QMetaType::Double:
             return QString::number(value.toDouble());
-        case QVariant::Date:
+        case QMetaType::QDate:
             return "'" + value.toDate().toString("yyyy-MM-dd") + "'";
-        case QVariant::DateTime:
+        case QMetaType::QDateTime:
             return "'" + value.toDateTime().toString("yyyy-MM-dd hh:mm:ss") + "'";
-        case QVariant::String:
+        case QMetaType::QString:
             return "'" + escapeChars(value.toString()) + "'";
-        case QVariant::ByteArray:
+        case QMetaType::QByteArray:
             return "0x" + value.toByteArray().toHex();
         default:
             error = QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
@@ -247,33 +247,34 @@ QString DataStreamer::variantToString(const QVariant& value,
 }
 
 QSqlRecord createDataRecord(const QList<Field>& fields) {
-    QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
+    QMap<QString,QMetaType::Type> m = SqlDataTypes::mapToVariant();
     QSqlRecord record;
 
     foreach(const Field& field, fields) {
         if (field.name().isEmpty()) {
             continue;
         }
-        record.append(QSqlField(field.name(),m[field.type()]));
+        auto t = m[field.type()];
+        record.append(QSqlField(field.name(),QMetaType(t)));
     }
     return record;
 }
 
 QJsonValue DataStreamer::variantToJson(const QVariant& v) {
-    QVariant::Type type = v.type();
+    auto type = v.typeId();
     if (v.isNull()) {
         return QJsonValue();
-    } else if (type == QVariant::Int) {
+    } else if (type == QMetaType::Int) {
         return v.toInt();
-    } else if (type == QVariant::Double) {
+    } else if (type == QMetaType::Double) {
         return v.toDouble();
-    } else if (type == QVariant::String) {
+    } else if (type == QMetaType::QString) {
         return v.toString();
-    } else if (type == QVariant::Date || type == QVariant::DateTime) {
+    } else if (type == QMetaType::QDate || type == QMetaType::QDateTime) {
         return v.toDateTime().toString(Qt::ISODateWithMs);
-    } else if (type == QVariant::Time) {
+    } else if (type == QMetaType::QTime) {
         return v.toTime().toString("hh:mm:ss.zzz");
-    } else if (type == QVariant::ByteArray) {
+    } else if (type == QMetaType::QByteArray) {
         QJsonArray res;
         QByteArray d = v.toByteArray();
         for(int i=0;i<d.size();i++) {
@@ -298,7 +299,7 @@ QString DataStreamer::streamJson(const QSqlDatabase& db,
                              QString& error) {
 
     QJsonArray data;
-    QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
+    QMap<QString,QMetaType::Type> m = SqlDataTypes::mapToVariant();
     *hasMore = false;
     int nonEmpty = 0;
     for(int r=0;r<model->rowCount();r++) {
@@ -312,7 +313,7 @@ QString DataStreamer::streamJson(const QSqlDatabase& db,
             QModelIndex index = model->index(r,c);
             bool ok = false;
 
-            QVariant::Type type = m[field.type()];
+            QMetaType::Type type = m[field.type()];
 
             QVariant v = SqlDataTypes::tryConvert(model->data(index),type,
                                                   locale, minYear, inLocal, outUtc, &ok);
@@ -367,7 +368,7 @@ QString DataStreamer::stream(DataFormat::Format format,
 
     QTextStream stream(&result);
 
-    QMap<QString,QVariant::Type> m = SqlDataTypes::mapToVariant();
+    QMap<QString,QMetaType::Type> m = SqlDataTypes::mapToVariant();
 
 
     QSqlRecord keysRecord = createDataRecord(fields.mid(dataColumns));
@@ -481,7 +482,7 @@ QStringList DataStreamer::createIndexStatements(const QSqlDatabase &db, const QS
                                              const QList<Field>& fields) {
 
     QSqlDriver* driver = db.driver();
-    QMap<QString,QVariant::Type> variant = SqlDataTypes::mapToVariant();
+    QMap<QString,QMetaType::Type> variant = SqlDataTypes::mapToVariant();
     QString driverName = db.driverName();
     QStringList result;
     for(int c=0;c<fields.size();c++) {
@@ -489,11 +490,11 @@ QStringList DataStreamer::createIndexStatements(const QSqlDatabase &db, const QS
         if (field.name().isEmpty() || (!field.unique() && !field.index())) {
             continue;
         }
-        QVariant::Type type = variant[field.type()];
+        QMetaType::Type type = variant[field.type()];
         QString indexType;
         if (field.unique()) {
             indexType = "UNIQUE";
-        } else if (driverName == DRIVER_MYSQL && type == QVariant::String && field.size() < 0) {
+        } else if (driverName == DRIVER_MYSQL && type == QMetaType::QString && field.size() < 0) {
             indexType = "FULLTEXT";
         }
         result << QString("CREATE" + spaced(indexType) + "INDEX %1 ON %2(%1)")
@@ -520,8 +521,8 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
 {
     QSqlDriver* driver = db.driver();
 
-    QMap<QString,QVariant::Type> variant = SqlDataTypes::mapToVariant();
-    QMap<QVariant::Type,QString> specific = SqlDataTypes::mapToDriver(db.driverName());
+    QMap<QString,QMetaType::Type> variant = SqlDataTypes::mapToVariant();
+    QMap<QMetaType::Type,QString> specific = SqlDataTypes::mapToDriver(db.driverName());
 
     QString driverName = db.driverName();
 
@@ -554,7 +555,7 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
 
         QString type = specific[variant[field.type()]];
 
-        if (driverName == DRIVER_PSQL && field.autoincrement() && variant[field.type()] == QVariant::Int) {
+        if (driverName == DRIVER_PSQL && field.autoincrement() && variant[field.type()] == QMetaType::Int) {
             type = "SERIAL";
         }
 
@@ -564,7 +565,7 @@ QString DataStreamer::createTableStatement(const QSqlDatabase &db, const QString
             {DRIVER_ODBC, "VARCHAR"},
         };
 
-        if (variant[field.type()] == QVariant::String) {
+        if (variant[field.type()] == QMetaType::QString) {
             if (field.size() > -1) {
                 type = QString("%1(%2)")
                         .arg(varchar.value(driverName,"VARCHAR"))

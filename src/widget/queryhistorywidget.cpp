@@ -9,13 +9,14 @@
 #include <QClipboard>
 #include "richheaderview/richheaderview.h"
 #include "widget/datetimerangewidget.h"
-#include "mugisql/mugisql.h"
+
 #include <QTimer>
 #include "datetimerangewidgetmanager.h"
 #include "callonce.h"
 #include <QLineEdit>
 #include <QComboBox>
 #include <algorithm>
+#include "query_exec.h"
 
 // todo: optimize
 template <typename T>
@@ -29,9 +30,7 @@ static QList<T> uniq(const QList<T>& values) {
     return res;
 }
 
-namespace {
-
-QList<int> partialySelectedRows(QItemSelectionModel* selectionModel) {
+static QList<int> partialySelectedRows(QItemSelectionModel* selectionModel) {
     QModelIndexList indexes = selectionModel->selectedIndexes();
     QList<int> rows;
     foreach (const QModelIndex& index, indexes) {
@@ -40,8 +39,6 @@ QList<int> partialySelectedRows(QItemSelectionModel* selectionModel) {
     rows = uniq(rows);
     std::sort(rows.begin(),rows.end());
     return rows;
-}
-
 }
 
 
@@ -149,20 +146,19 @@ void QueryHistoryWidget::on_tableView_doubleClicked(QModelIndex index) {
 
 void QueryHistoryWidget::refresh(const QString& connectionName)
 {
-
     QComboBox* comboBox = connectionNameEdit();
     if (!comboBox) {
         return;
     }
-
-    using namespace mugisql;
     QSqlDatabase db = QSqlDatabase::database("_history");
-    select_t q = select(db, distinct(query.connectionName)).from(query);
-    q.exec();
-    QStringList connectionNames;
-    connectionNames << "any";
-    connectionNames << util::toStringList(q, 0);
-    comboBox->setModel(new QStringListModel(connectionNames,this));
+    QSqlQuery q(db);
+    q.prepare("select distinct connectionName from query");
+    QUERY_EXEC(q);
+    QStringList connectionNames = {"any"};
+    while (q.next()) {
+        connectionNames.append(q.value(0).toString());
+    }
+    comboBox->setModel(new QStringListModel(connectionNames, this));
     int index = connectionNames.indexOf(connectionName);
     if (index > -1) {
         comboBox->setCurrentIndex(index);
@@ -190,6 +186,13 @@ void QueryHistoryWidget::on_copy_clicked()
     emit appendQuery(connectionName,queries.join(";\n"));
 }
 
+static QString like(const QString& value) {
+    if (value.isEmpty()) {
+        return QString();
+    }
+    return "%" + value + "%";
+}
+
 void QueryHistoryWidget::onUpdateQuery() {
 
     if (!headerView()) {
@@ -197,34 +200,39 @@ void QueryHistoryWidget::onUpdateQuery() {
     }
 
     QSqlDatabase db = QSqlDatabase::database("_history");
-    QString like_ = "%" + queryEdit()->text() + "%";
+    QString query = like(queryEdit()->text());
 
     DateTimeRangeWidget* dateEdit = this->dateEdit();
 
     QDateTime date1 = dateEdit->dateTime1();
     QDateTime date2 = dateEdit->dateTime2();
     QString connectionName = connectionNameEdit()->currentText();
-    int any = connectionName == "any" ? 1 : 0;
 
-    using namespace mugisql;
-
-    select_t q = select(db, query._all).from(query).where(
-                and_(
-                    between(query.date, date1, date2),
-                    like(query.query, like_),
-                    or_(equal(query.connectionName, connectionName),any)))
-            .orderBy(desc(query.date));
-
-    if (!q.exec()) {
-        qDebug() << q.lastError().text();
+    QStringList conditions;
+    QVariantList values;
+    conditions.append("date between ? and ?");
+    values.append(date1);
+    values.append(date2);
+    if (connectionName != "any") {
+        conditions.append("connectionName=?");
+        values.append(connectionName);
+    }
+    if (!query.isEmpty()) {
+        conditions.append("query like ?");
+        values.append(query);
     }
 
+    QSqlQuery q(db);
+    q.prepare("select * from query where " + conditions.join(" and "));
+    for(const QVariant& value: values) {
+        q.addBindValue(value);
+    }
+    QUERY_EXEC(q);
     QSqlQueryModel* model = qobject_cast<QSqlQueryModel*>(ui->tableView->model());
     if (!model) {
         qDebug() << "not model";
         return;
     }
-    model->setQuery(q.query());
-
+    model->setQuery(q);
     ui->tableView->setColumnWidth(QueryHistoryModel::col_date, dateEdit->sizeHint().width() + 10);
 }

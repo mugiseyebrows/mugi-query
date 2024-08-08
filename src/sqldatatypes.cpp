@@ -23,16 +23,16 @@ QStringList SqlDataTypes::names()
     return result;
 }
 
-QMap<QString,QVariant::Type> SqlDataTypes::mapToVariant()
+QMap<QString, QMetaType::Type> SqlDataTypes::mapToVariant()
 {
-    QMap<QString,QVariant::Type> m;
-    m["INT"] = QVariant::Int;
-    m["DOUBLE"] = QVariant::Double;
-    m["TEXT"] = QVariant::String;
-    m["DATE"] = QVariant::Date;
-    m["TIME"] = QVariant::Time;
-    m["DATETIME"] = QVariant::DateTime;
-    m["BLOB"] = QVariant::ByteArray;
+    QMap<QString,QMetaType::Type> m;
+    m["INT"] = QMetaType::Int;
+    m["DOUBLE"] = QMetaType::Double;
+    m["TEXT"] = QMetaType::QString;
+    m["DATE"] = QMetaType::QDate;
+    m["TIME"] = QMetaType::QTime;
+    m["DATETIME"] = QMetaType::QDateTime;
+    m["BLOB"] = QMetaType::QByteArray;
     return m;
 }
 
@@ -48,40 +48,40 @@ QMap<B,A> invert(const QMap<A,B>& vs) {
     return res;
 }
 
-QMap<QVariant::Type, QString> SqlDataTypes::mapFromVariant()
+QMap<QMetaType::Type, QString> SqlDataTypes::mapFromVariant()
 {
     return invert(mapToVariant());
 }
 
-QMap<QVariant::Type, QString> SqlDataTypes::mapToDriver(const QString &driver)
+QMap<QMetaType::Type, QString> SqlDataTypes::mapToDriver(const QString &driver)
 {
-    QMap<QVariant::Type, QString> m;
+    QMap<QMetaType::Type, QString> m;
 
     if (driver == DRIVER_MYSQL) {
-        m[static_cast<QVariant::Type>(QMetaType::UChar)] = "TINYINT UNSIGNED";
-        m[static_cast<QVariant::Type>(QMetaType::Char)] = "TINYINT";
-        m[static_cast<QVariant::Type>(QMetaType::UShort)] = "SMALLINT UNSIGNED";
-        m[static_cast<QVariant::Type>(QMetaType::Short)] = "SMALLINT";
-        m[QVariant::UInt] = "INT UNSIGNED";
-        m[QVariant::Int] = "INT";
-        m[QVariant::ULongLong] = "BIGINT UNSIGNED";
-        m[QVariant::LongLong] = "BIGINT";
-        m[QVariant::Double] = "DOUBLE";
-        m[QVariant::Date] = "DATE";
-        m[QVariant::Time] = "TIME";
-        m[QVariant::DateTime] = "DATETIME";
-        m[QVariant::String] = "TEXT";
-        m[QVariant::ByteArray] = "BLOB";
+        m[QMetaType::UChar] = "TINYINT UNSIGNED";
+        m[QMetaType::Char] = "TINYINT";
+        m[QMetaType::UShort] = "SMALLINT UNSIGNED";
+        m[QMetaType::Short] = "SMALLINT";
+        m[QMetaType::UInt] = "INT UNSIGNED";
+        m[QMetaType::Int] = "INT";
+        m[QMetaType::ULongLong] = "BIGINT UNSIGNED";
+        m[QMetaType::LongLong] = "BIGINT";
+        m[QMetaType::Double] = "DOUBLE";
+        m[QMetaType::QDate] = "DATE";
+        m[QMetaType::QTime] = "TIME";
+        m[QMetaType::QDateTime] = "DATETIME";
+        m[QMetaType::QString] = "TEXT";
+        m[QMetaType::QByteArray] = "BLOB";
     } else {
 
-        m[QVariant::Int] = "INT";
-        m[QVariant::Double] = "DOUBLE";
-        m[QVariant::String] = "TEXT";
-        m[QVariant::Date] = "DATE";
-        m[QVariant::Time] = "TIME";
-        m[QVariant::DateTime] = "DATETIME";
-        m[QVariant::String] = "TEXT";
-        m[QVariant::ByteArray] = "BLOB";
+        m[QMetaType::Int] = "INT";
+        m[QMetaType::Double] = "DOUBLE";
+        m[QMetaType::QString] = "TEXT";
+        m[QMetaType::QDate] = "DATE";
+        m[QMetaType::QTime] = "TIME";
+        m[QMetaType::QDateTime] = "DATETIME";
+        m[QMetaType::QString] = "TEXT";
+        m[QMetaType::QByteArray] = "BLOB";
 
     }
 
@@ -89,7 +89,7 @@ QMap<QVariant::Type, QString> SqlDataTypes::mapToDriver(const QString &driver)
     return m;
 }
 
-QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
+QVariant SqlDataTypes::tryConvert(const QVariant& v, QMetaType::Type t,
                                   const QLocale& locale,
                                   int minYear,
                                   bool inLocalTime,
@@ -110,20 +110,20 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
         return v;
     }
 
-    if (t == QVariant::String) {
+    if (t == QMetaType::QString) {
         return v.toString();
     }
 
-    if (v.type() != QVariant::String) {
-        qDebug() << "t != QVariant::String" << __FILE__ << __LINE__;
+    if (v.metaType().id() != QMetaType::QString) {
+        qDebug() << "t != QMetaType::QString" << __FILE__ << __LINE__;
         return v;
     }
 
     QString s = v.toString();
 
-    if (t == QVariant::Int) {
+    if (t == QMetaType::Int) {
         return v.toInt(ok);
-    } else if (t == QVariant::Double) {
+    } else if (t == QMetaType::Double) {
 
         bool ok_;
 
@@ -147,7 +147,7 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
         s.replace(",",".");
 
         return s.toDouble(ok);
-    } else if (t == QVariant::Date) {
+    } else if (t == QMetaType::QDate) {
         QDate date;
         if (DateTime::parseAsDate(s,date,minYear)) {
             if (ok) {
@@ -160,7 +160,7 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
         }
         return QVariant();
 
-    } else if (t == QVariant::Time) {
+    } else if (t == QMetaType::QTime) {
 
         QTime time;
         if (DateTime::parseAsTime(s,time)) {
@@ -175,7 +175,7 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
         }
         return QVariant();
 
-    } else if (t == QVariant::DateTime) {
+    } else if (t == QMetaType::QDateTime) {
 
         QDateTime dateTime;
         if (DateTime::parseAsDateTime(s,dateTime,minYear,inLocalTime, outUtc)) {
@@ -190,7 +190,7 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QVariant::Type t,
         }
         return QVariant();
 
-    } else if (t == QVariant::ByteArray) {
+    } else if (t == QMetaType::QByteArray) {
         if (ok) {
             *ok = true;
         }
