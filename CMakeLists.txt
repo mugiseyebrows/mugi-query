@@ -227,6 +227,7 @@ qt_add_executable(mugi-query WIN32 MACOSX_BUNDLE
     src/widget/xjoinwidget.cpp src/widget/xjoinwidget.h src/widget/xjoinwidget.ui
     src/widget/xyplot.cpp src/widget/xyplot.h src/widget/xyplot.ui
     src/zipunzip.h src/query_exec.h
+    src/widget/daterangewidget.h src/widget/daterangewidget.cpp src/widget/daterangewidget.ui
 )
 target_include_directories(mugi-query PUBLIC
     src

@@ -134,7 +134,7 @@ void DatabaseHistoryDialog::onUpdateQuery() {
         values.append(database);
     }
 
-    QString expr = "select * from database where " + conditions.join(" and ");
+    QString expr = "select * from database where " + conditions.join(" and ") + " order by date desc";
     q.prepare(expr);
     for(const QVariant& value: values) {
         q.addBindValue(value);

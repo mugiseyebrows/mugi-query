@@ -13,6 +13,7 @@ class RichHeaderView;
 class DateTimeRangeWidget;
 class QComboBox;
 class QLineEdit;
+class DateRangeWidget;
 
 class QueryHistoryWidget : public QWidget
 {
@@ -28,7 +29,7 @@ public:
 
     QStringList selectedQueries() const;
     RichHeaderView *headerView();
-    DateTimeRangeWidget *dateEdit();
+    DateRangeWidget *dateEdit();
     QComboBox *connectionNameEdit();
     QLineEdit *queryEdit();
     QWidget *edit(int column);

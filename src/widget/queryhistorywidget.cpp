@@ -17,6 +17,7 @@
 #include <QComboBox>
 #include <algorithm>
 #include "query_exec.h"
+#include "daterangewidget.h"
 
 // todo: optimize
 template <typename T>
@@ -73,7 +74,10 @@ QueryHistoryWidget::QueryHistoryWidget(QWidget *parent) :
 
     data.subsectionSizes({ui->tableView->verticalHeader()->defaultSectionSize() * 3 / 2});
 
-    DateTimeRangeWidget* dateEdit = new DateTimeRangeWidget(view->viewport());
+    //DateTimeRangeWidget* dateEdit = new DateTimeRangeWidget(view->viewport());
+
+    DateRangeWidget* dateEdit = new DateRangeWidget(view->viewport());
+
     QLineEdit* queryEdit = new QLineEdit(view->viewport());
     QComboBox* connectionNameEdit = new QComboBox(view->viewport());
 
@@ -81,11 +85,11 @@ QueryHistoryWidget::QueryHistoryWidget(QWidget *parent) :
     connect(queryEdit,SIGNAL(textChanged(QString)),once,SLOT(onPost()));
     connect(once,SIGNAL(call()),this,SLOT(onUpdateQuery()));
 
-    connect(dateEdit,SIGNAL(dateTimesChanged(QDateTime,QDateTime)),this,SLOT(onUpdateQuery()));
+    connect(dateEdit,SIGNAL(changed(int,int,QDate,QDate)),this,SLOT(onUpdateQuery()));
     connect(connectionNameEdit,SIGNAL(currentIndexChanged(int)),this,SLOT(onUpdateQuery()));
 
-    DateTimeRangeWidgetManager* manager = new DateTimeRangeWidgetManager(this);
-    manager->init(dateEdit);
+    /*DateTimeRangeWidgetManager* manager = new DateTimeRangeWidgetManager(this);
+    manager->init(dateEdit);*/
 
     data.cell(0, QueryHistoryModel::col_date).widget(dateEdit).padding(0,5);
     data.cell(0, QueryHistoryModel::col_query).widget(queryEdit);
@@ -106,8 +110,8 @@ QWidget* QueryHistoryWidget::edit(int column) {
     return data.cell(0, column).widget();
 }
 
-DateTimeRangeWidget* QueryHistoryWidget::dateEdit() {
-    return qobject_cast<DateTimeRangeWidget*>(edit(QueryHistoryModel::col_date));
+DateRangeWidget* QueryHistoryWidget::dateEdit() {
+    return qobject_cast<DateRangeWidget*>(edit(QueryHistoryModel::col_date));
 }
 
 QComboBox* QueryHistoryWidget::connectionNameEdit() {
@@ -193,6 +197,8 @@ static QString like(const QString& value) {
     return "%" + value + "%";
 }
 
+#include <QFontMetrics>
+
 void QueryHistoryWidget::onUpdateQuery() {
 
     if (!headerView()) {
@@ -202,17 +208,31 @@ void QueryHistoryWidget::onUpdateQuery() {
     QSqlDatabase db = QSqlDatabase::database("_history");
     QString query = like(queryEdit()->text());
 
-    DateTimeRangeWidget* dateEdit = this->dateEdit();
+    DateRangeWidget* dateEdit = this->dateEdit();
 
-    QDateTime date1 = dateEdit->dateTime1();
-    QDateTime date2 = dateEdit->dateTime2();
+
+    DateRangeWidget::Mode mode = dateEdit->mode();
+
     QString connectionName = connectionNameEdit()->currentText();
 
     QStringList conditions;
     QVariantList values;
-    conditions.append("date between ? and ?");
-    values.append(date1);
-    values.append(date2);
+
+    if (mode == DateRangeWidget::All) {
+        // do nothing
+        //qDebug() << "All";
+    } else if (mode == DateRangeWidget::NDays) {
+        QDate date = QDate::currentDate().addDays(-dateEdit->days());
+        conditions.append("date > ?");
+        values.append(date);
+        //qDebug() << "NDays" << date;
+    } else if (mode == DateRangeWidget::Range) {
+        conditions.append("date between ? and ?");
+        values.append(dateEdit->date1());
+        values.append(dateEdit->date2());
+        //qDebug() << "Range" << dateEdit->date1() << dateEdit->date2();
+    }
+
     if (connectionName != "any") {
         conditions.append("connectionName=?");
         values.append(connectionName);
@@ -223,7 +243,7 @@ void QueryHistoryWidget::onUpdateQuery() {
     }
 
     QSqlQuery q(db);
-    q.prepare("select * from query where " + conditions.join(" and "));
+    q.prepare("select * from query where " + conditions.join(" and ") + " order by date desc");
     for(const QVariant& value: values) {
         q.addBindValue(value);
     }
@@ -234,5 +254,8 @@ void QueryHistoryWidget::onUpdateQuery() {
         return;
     }
     model->setQuery(q);
-    ui->tableView->setColumnWidth(QueryHistoryModel::col_date, dateEdit->sizeHint().width() + 10);
+
+    QFontMetrics m(dateEdit->font());
+    int width = m.horizontalAdvance("0000-00-00") * 3;
+    ui->tableView->setColumnWidth(QueryHistoryModel::col_date, width);
 }
