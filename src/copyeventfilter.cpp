@@ -26,7 +26,7 @@ void CopyEventFilter::copyTsv(QTableView *view)
 {
     CopyEventFilter* filter = new CopyEventFilter(view);
     filter->setView(view);
-    connect(filter,CopyEventFilter::copy,[=](){
+    connect(filter,&CopyEventFilter::copy,[=](){
         ClipboardUtil::copyTsv(view);
     });
 }

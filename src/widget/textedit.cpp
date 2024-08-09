@@ -392,7 +392,7 @@ static QTextCursor selectEmmetExpression(const QTextCursor& cursor) {
     return begin;
 }
 
-
+#include <QMessageBox>
 
 bool TextEdit::tryEmmet() {
     if (!cursorAtEndOfWord()) {
@@ -404,7 +404,12 @@ bool TextEdit::tryEmmet() {
         qDebug() << "cursor.selectedText() is empty";
         return false;
     }
-    QString e = Emmet::parse(text);
+    QString error;
+    QString e = Emmet::parse(text, error);
+    if (!error.isEmpty()) {
+        QMessageBox::critical(this, "Error", error);
+        return false;
+    }
     if (e.isEmpty()) {
         qDebug() << "cannot emmet text" << text;
         return false;

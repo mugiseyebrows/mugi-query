@@ -21,7 +21,10 @@
 #include <QSortFilterProxyModel>
 #include "checkablestringlistmodel.h"
 
-#include <QAxObject>
+#ifdef Q_OS_WIN
+    #include <QAxObject>
+#endif
+
 #include <QStandardItemModel>
 #include "history.h"
 #include <QSqlError>
@@ -230,6 +233,7 @@ void Schema2Data::pullTablesOdbc() {
     if (filePath.isEmpty()) {
         return;
     }
+#ifdef Q_OS_WIN
 
     QAxObject engine("DAO.DBEngine.120");
     QAxObject* database = engine.querySubObject("OpenDatabase(QString, bool)", filePath, false);
@@ -275,10 +279,9 @@ void Schema2Data::pullTablesOdbc() {
         mTables->updateColumns(tableName);
 
     }
-
-
-
-
+#else
+    // todo
+#endif
 }
 
 
@@ -454,6 +457,8 @@ void Schema2Data::pullIndexesOdbc() {
         return;
     }
 
+#ifdef Q_OS_WIN
+
     QAxObject engine("DAO.DBEngine.120");
 
     QAxObject* database = engine.querySubObject("OpenDatabase(QString)", filePath);
@@ -513,6 +518,9 @@ void Schema2Data::pullIndexesOdbc() {
 
         }
     }
+#else
+
+#endif
 
 
 }
@@ -537,6 +545,8 @@ void Schema2Data::pullRelationsOdbc() {
     if (filePath.isEmpty()) {
         return;
     }
+
+#ifdef Q_OS_WIN
 
     QAxObject engine("DAO.DBEngine.120");
     QAxObject* database = engine.querySubObject("OpenDatabase(QString, bool)", filePath, false);
@@ -568,7 +578,9 @@ void Schema2Data::pullRelationsOdbc() {
 
 
     }
-
+#else
+    // todo
+#endif
 
 }
 

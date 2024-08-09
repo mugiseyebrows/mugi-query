@@ -24,3 +24,4 @@ qtactiveqt-everywhere-src-6.7.1/
 mugi-query-0.0.1-win64_/
 qrc_icons.cpp
 CMakeLists.txt.user
+build/

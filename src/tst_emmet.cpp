@@ -28,7 +28,11 @@ void tst_Emmet::testCw()
 {
     QFETCH(QString, in);
     QFETCH(QString, expected);
-    QString parsed = Emmet::parse(in);
+    QString error;
+    QString parsed = Emmet::parse(in, error);
+    if (!error.isEmpty()) {
+        qDebug() << error;
+    }
     //qDebug() << parsed;
     QCOMPARE(wssplit(parsed), wssplit(expected));
 }

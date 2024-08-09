@@ -18,33 +18,37 @@ static QStringList toStringList(const QJsonArray& arr) {
     return res;
 }
 
-static QJsonDocument readJson(const QString& path) {
+static QJsonDocument readJson(const QString& path, QString& error) {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "cannot open" << path;
+        error = QString("cannot open %1").arg(path);
         return QJsonDocument();
     }
     QByteArray data = file.readAll();
     QJsonParseError err;
     QJsonDocument doc = QJsonDocument::fromJson(data, &err);
     if (err.error != QJsonParseError::NoError) {
-        qDebug() << err.errorString();
+        error = err.errorString();
     }
     return doc;
 }
 
-static QHash<QString, QString> loadEmmetDict() {
+static QHash<QString, QString> loadEmmetDict(QString& error) {
     QHash<QString, QString> dict;
     QDir dir(qApp->applicationDirPath());
-    if (dir.dirName() == "debug") {
+    if (dir.dirName() == "debug" || dir.dirName() == "release" || dir.dirName() == "build") {
         dir.cdUp();
+    }
+    if (dir.dirName() == "bin") {
+        dir.cdUp();
+        dir.cd("share");
     }
     /*if (dir.dirName() == "mugi-query") {
         dir.cd("lib");
         dir.cd("emmet");
     }*/
     QString path = dir.filePath("emmet.json");
-    QJsonDocument doc = readJson(path);
+    QJsonDocument doc = readJson(path, error);
     QJsonArray arr = doc.array();
     QStringList keys;
     for(QJsonArray::iterator it=arr.begin(); it!= arr.end(); it++) {
@@ -160,9 +164,9 @@ QString parseCw(const QString& text) {
     return QString();
 }
 
-QString Emmet::parse(const QString& text) {
+QString Emmet::parse(const QString& text, QString& error) {
 
-    static QHash<QString, QString> dict = loadEmmetDict();
+    static QHash<QString, QString> dict = loadEmmetDict(error);
 
     QStringList res;
     QString tail = text;

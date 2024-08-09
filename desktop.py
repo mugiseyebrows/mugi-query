@@ -14,8 +14,10 @@ for size in sizes:
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     shutil.copy(src,dst)
 
+# /usr/bin/bash -c "LD_LIBRARY_PATH=/usr/local/lib:/usr/local/qwt-6.3.0-dev/lib /usr/local/bin/mugi-query"
+
 icon = dst = os.path.join(icons,'256x256','apps','%s.png' % name)
-executable = '/usr/local/bin/%s' % name
+executable = '/usr/bin/bash -c "LD_LIBRARY_PATH=/usr/local/lib:/usr/local/qwt-6.3.0-dev/lib /usr/local/bin/mugi-query"'
 categories = ['Utility']
 with open(desktop,'w') as f:
     f.write('[Desktop Entry]\nName=%s\nExec=%s\nIcon=%s\nType=Application\nCategories=%s' % (name,executable,icon,';'.join(categories) + ';'))

@@ -25,7 +25,7 @@ void RadioButtons::init(const QStringList &items, int checkedIndex)
             button->setChecked(true);
         }
         mButtons.append(button);
-        connect(button, qOverload<bool>(QRadioButton::clicked),[=](bool on){
+        connect(button, qOverload<bool>(&QRadioButton::clicked),[=](bool on){
             if (on) {
                 emit clicked(i);
             }

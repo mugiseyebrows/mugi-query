@@ -8,7 +8,7 @@
 class EMMET_EXPORT Emmet
 {
 public:
-    static QString parse(const QString &text);
+    static QString parse(const QString &text, QString& error);
 };
 
 #endif // EMMET_H

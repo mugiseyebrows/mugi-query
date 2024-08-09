@@ -47,24 +47,28 @@ Data import
 
 ### Linux (Ubuntu)
 
-In terminal run
-
 ```bash
-# installs qt5 and build tools
-sudo apt install git build-essential qtbase5-dev qtchooser
+# install qt6 and build tools
+sudo apt install git build-essential cmake ninja-build qt6-base-dev libqt6svg6-dev libxkbcommon-dev
 
-# installs qwt and dependencies
-sudo apt install libqwt-qt5-dev libqt5svg5-dev 
+# build qwt
+git clone https://git.code.sf.net/p/qwt/git qwt-git
+cd qwt-git
+qmake6
+make
+sudo install
+cd ..
 
-# installs sql plugins
-sudo apt install libqt5sql5-mysql libqt5sql5-odbc libqt5sql5-psql libqt5sql5-sqlite libqt5sql5-tds libqt5sql5-ibase 
+# install sql plugins
+sudo apt install libqt6sql6-ibase libqt6sql6-mysql libqt6sql6-odbc libqt6sql6-psql libqt6sql6-sqlite
 
 git clone https://github.com/mugiseyebrows/mugi-query.git
 cd mugi-query
-qmake -qt=5 'CONFIG+=release'
-make
-make clean
-strip mugi-query
-sudo make install # installs to /usr/local/bin
-python desktop.py # copies icons, creates desktop file
+mkdir build
+cd build
+cmake -G Ninja ..
+cmake --build .
+sudo cmake --install .
+cd ..
+python3 desktop.py
 ```

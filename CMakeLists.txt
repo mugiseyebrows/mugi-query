@@ -6,10 +6,18 @@ project(mugi-query VERSION 1.0 LANGUAGES CXX)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+if (WIN32)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql Svg Widgets AxContainer Test)
-find_package(qwt REQUIRED)
+else()
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql Svg Widgets Test)
+endif()
 
-qt_standard_project_setup()
+find_package(Qwt REQUIRED)
+
+#qt_standard_project_setup()
+set(CMAKE_AUTOMOC TRUE)
+set(CMAKE_AUTOUIC TRUE)
+
 
 # emmet
 add_library(emmet SHARED
@@ -268,13 +276,31 @@ qt6_add_resources(mugi-query "icons"
         ${icons_resource_files}
 )
 
-target_link_libraries(mugi-query PUBLIC
-    Qt::AxContainer
-    Qt::Core
-    Qt::Gui
-    Qt::Sql
-    Qt::Svg
-    qwt
-    emmet
-    sqlparse
-)
+if (WIN32)
+    target_link_libraries(mugi-query PUBLIC
+        Qt::AxContainer
+        Qt::Core
+        Qt::Gui
+        Qt::Widgets
+        Qt::Sql
+        Qt::Svg
+        Qwt
+        emmet
+        sqlparse
+    )
+else()
+    target_link_libraries(mugi-query PUBLIC
+        Qt::Core
+        Qt::Gui
+        Qt::Widgets
+        Qt::Sql
+        Qt::Svg
+        Qwt
+        emmet
+        sqlparse
+    )
+endif()
+
+# LD_LIBRARY_PATH="/usr/local/qwt-6.3.0-dev/lib:/usr/local/lib" /usr/local/bin/mugi-query
+install(TARGETS mugi-query emmet sqlparse)
+install(FILES emmet.json DESTINATION share)
