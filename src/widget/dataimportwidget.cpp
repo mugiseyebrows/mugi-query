@@ -689,7 +689,7 @@ void DataImportWidget::guessColumnType(int column) {
     QMap<QMetaType::Type, QString> m = SqlDataTypes::mapFromVariant();
     QStringList ts = SqlDataTypes::names();
     QMetaType::Type type = guessType(model,model->index(0,column),model->index(model->rowCount()-1,column));
-    if (type == QVariant::Invalid) {
+    if (type == QMetaType::UnknownType) {
         return;
     }
     QComboBox* types = widgetType(column);

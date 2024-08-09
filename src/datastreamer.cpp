@@ -136,7 +136,7 @@ QString DataStreamer::variantToString(const QVariant& value,
         if (value.isNull()) {
             return "";
         }
-        switch(value.type()) {
+        switch(value.typeId()) {
         case QMetaType::Int:
             return QString::number(value.toInt());
         case QMetaType::UInt:
@@ -204,7 +204,7 @@ QString DataStreamer::variantToString(const QVariant& value,
         }
 
         default:
-            error = QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
+            error = QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.typeId()).arg(format);
             return QString();
         }
 
@@ -214,7 +214,7 @@ QString DataStreamer::variantToString(const QVariant& value,
         if (value.isNull()) {
             return "null";
         }
-        switch(value.type()) {
+        switch(value.typeId()) {
         case QMetaType::Bool:
             return QString::number(value.toInt());
         case QMetaType::UInt:
@@ -236,7 +236,7 @@ QString DataStreamer::variantToString(const QVariant& value,
         case QMetaType::QByteArray:
             return "0x" + value.toByteArray().toHex();
         default:
-            error = QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.type()).arg(format);
+            error = QString("DataStreamer::variantToString(format == %2) is not defined for value.type() == %1").arg(value.typeId()).arg(format);
             return QString();
         }
     } else {
