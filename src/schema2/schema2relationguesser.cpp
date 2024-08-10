@@ -14,7 +14,10 @@ Schema2RelationGuesser::Schema2RelationGuesser(Schema2TableModel* childTable,
 
 QString Schema2RelationGuesser::relationName()
 {
-    return QString("fk_%1_%2").arg(mParentTable->tableName()).arg(mChildTable->tableName());
+    //return QString("fk_%1_%2").arg(mParentTable->tableName()).arg(mChildTable->tableName());
+    return QString("%1_%2_fkey")
+        .arg(mChildTable->tableName())
+        .arg(mChildTable->columnNames().join("_"));
 }
 
 QStringList Schema2RelationGuesser::parentColumns()

@@ -10,6 +10,7 @@ class Schema2RelationItem2;
 class Schema2TableItem : public QGraphicsItem
 {
 public:
+    enum { Type = UserType + 1 };
 
     Schema2TableItem(Schema2TableModel* model, QGraphicsItem *parent = nullptr);
 
@@ -58,6 +59,10 @@ protected:
     // QGraphicsItem interface
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
+
+    // QGraphicsItem interface
+public:
+    int type() const override;
 };
 
 #endif // SCHEMA2TABLEITEM_H

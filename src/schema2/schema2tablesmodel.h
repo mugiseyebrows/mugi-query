@@ -103,7 +103,7 @@ protected:
 
 signals:
 
-    void tableClicked(QString);
+    void tableClicked(QString, QPointF);
 
     // QAbstractItemModel interface
 public:

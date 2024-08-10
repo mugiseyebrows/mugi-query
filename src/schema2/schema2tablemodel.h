@@ -125,7 +125,8 @@ public:
 
 
 signals:
-    void tableClicked(QString);
+    void tableClicked(QString, QPointF);
+
 
 protected:
     //QList<QStringList> mColumns;

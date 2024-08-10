@@ -55,7 +55,7 @@ public:
 
     Schema2View* view();
 
-    QGraphicsScene* scene();
+    QGraphicsScene* scene() const;
 
     void showAlterView(const QString& tableName);
 
@@ -155,7 +155,7 @@ protected:
     void tablePulled(const QString &tableName, Status status);
     //QStringList guessParentColumns(QString childTable, QStringList childColumns, QString parentTable);
 signals:
-    void tableClicked(QString);
+    void tableClicked(QString, QPointF);
 protected slots:
     void onSelectModelChanged(QModelIndex, QModelIndex);
 

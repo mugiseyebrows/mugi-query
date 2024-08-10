@@ -9,6 +9,7 @@ class QPushButton;
 class Schema2Data;
 class Schema2TableModel;
 class Schema2TablesModel;
+class Schema2TableItem;
 
 namespace Ui {
 class Schema2View;
@@ -35,20 +36,22 @@ public:
 
     QRectF sceneRect() const;
 
-    QGraphicsScene* scene();
+    QGraphicsScene* scene() const;
 
     Schema2TablesModel* tables() const;
 
 public slots:
-    void onTableClicked(QString tableName);
+    void onTableClicked(QString tableName, QPointF scenePos);
 
 protected:
     void uncheckAllExcept(QPushButton *checked);
 
     Schema2Data* mData;
 
-    QStringList mTableStack;
+    //QStringList mTableStack;
 
+    QList<Schema2TableItem *> tablesAt(const QPointF &pos) const;
+    void setTablesMovable(bool on);
 protected slots:
     void onFiterViewCurrentChanged(QModelIndex index, QModelIndex);
     void onCreate();

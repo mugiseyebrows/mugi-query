@@ -1,8 +1,8 @@
 #include "schema2zoomtoolbar.h"
 #include "ui_schema2zoomtoolbar.h"
 
-QList<double> Schema2ZoomToolbar::mScales = {0.1, 0.25, 0.5, 1.0};
-QStringList Schema2ZoomToolbar::mScalesText = {"10%", "25%", "50%", "100%"};
+QList<double> Schema2ZoomToolbar::mScales = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1};
+QStringList Schema2ZoomToolbar::mScalesText = {"10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"};
 
 Schema2ZoomToolbar::Schema2ZoomToolbar(QWidget *parent) :
     QWidget(parent),

@@ -22,7 +22,7 @@
 #include "checkablestringlistmodel.h"
 
 #ifdef Q_OS_WIN
-    #include <QAxObject>
+#include <QAxObject>
 #endif
 
 #include <QStandardItemModel>
@@ -824,7 +824,7 @@ Schema2View *Schema2Data::view()
     return mView;
 }
 
-QGraphicsScene *Schema2Data::scene()
+QGraphicsScene *Schema2Data::scene() const
 {
     return mScene;
 }
@@ -1330,7 +1330,7 @@ Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)
     mSelectProxyModel->sort(0);
     //mSelectProxyModel->setDynamicSortFilter(true);
 
-    connect(mTables,SIGNAL(tableClicked(QString)),this,SIGNAL(tableClicked(QString)));
+    connect(mTables,SIGNAL(tableClicked(QString, QPointF)),this,SIGNAL(tableClicked(QString, QPointF)));
 
     //connect(mSelectModel,SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(onSelectModelChanged(QModelIndex,QModelIndex)));
     load();

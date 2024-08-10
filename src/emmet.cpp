@@ -176,6 +176,8 @@ QString Emmet::parse(const QString& text, QString& error) {
     QRegularExpression ct("^ct\\(([a-z,]+)\\)(.*)");
     QRegularExpression cw("^c(((wt)([0-9]*))+)(ee)?");
 
+    const int MAX_SIZE = 4;
+
     while(true) {
         QString key;
         auto m = vn.match(tail);
@@ -211,7 +213,7 @@ QString Emmet::parse(const QString& text, QString& error) {
             }
         }
 
-        for(int size=4;size>0;size--) {
+        for(int size=MAX_SIZE;size>0;size--) {
             QString abbr = tail.mid(0, size);
             if (dict.contains(abbr)) {
                 key = abbr;
@@ -224,6 +226,7 @@ QString Emmet::parse(const QString& text, QString& error) {
         } else {
             tail = tail.mid(key.size());
             QString repl = dict[key];
+#if 0
             if (key == "us") {
                 if (first) {
                     repl = "update # set #";
@@ -237,6 +240,7 @@ QString Emmet::parse(const QString& text, QString& error) {
                     repl = "union";
                 }
             }
+#endif
             res.append(repl);
         }
         first = false;

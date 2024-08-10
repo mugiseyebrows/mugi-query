@@ -31,7 +31,8 @@ public:
 
 
 signals:
-    void clearTableStack();
+    //void clearTableStack();
+    void modeChanged(int);
 
 protected:
     Mode mMode;

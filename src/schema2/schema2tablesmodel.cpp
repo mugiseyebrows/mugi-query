@@ -52,7 +52,7 @@ Schema2TableModel* Schema2TablesModel::updateTable(const QString& table, Status 
 
     Schema2TableModel* model = new Schema2TableModel(table, status);
 
-    connect(model, SIGNAL(tableClicked(QString)), this, SIGNAL(tableClicked(QString)));
+    connect(model, SIGNAL(tableClicked(QString, QPointF)), this, SIGNAL(tableClicked(QString, QPointF)));
     Schema2TableItem* item = new Schema2TableItem(model);
     if (mTablePos.contains(table)) {
         item->setPos(mTablePos.get(table));

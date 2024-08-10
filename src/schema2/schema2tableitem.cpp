@@ -10,7 +10,7 @@ Schema2TableItem::Schema2TableItem(Schema2TableModel *model, QGraphicsItem *pare
     : mModel(model), QGraphicsItem(parent), mGrayed(false)
 {
     setFlag(QGraphicsItem::ItemIsMovable, true);
-    setFlag(QGraphicsItem::ItemSendsGeometryChanges);
+    setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
 }
 
 void Schema2TableItem::addRelation(Schema2RelationItem2 *relation)
@@ -154,7 +154,17 @@ QVariant Schema2TableItem::itemChange(GraphicsItemChange change, const QVariant 
     return QGraphicsItem::itemChange(change, value);
 }
 
+#include <QGraphicsSceneMouseEvent>
+
 void Schema2TableItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    emit mModel->tableClicked(mModel->tableName());
+    /*qDebug() << "mousePressEvent" << mModel->tableName()
+             << "pos" << event->pos()
+             << "scenePos" << event->scenePos();*/
+    emit mModel->tableClicked(mModel->tableName(), event->scenePos());
+}
+
+int Schema2TableItem::type() const
+{
+    return Type;
 }

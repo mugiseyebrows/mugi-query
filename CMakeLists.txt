@@ -14,7 +14,7 @@ endif()
 
 find_package(Qwt REQUIRED)
 
-#qt_standard_project_setup()
+
 set(CMAKE_AUTOMOC TRUE)
 set(CMAKE_AUTOUIC TRUE)
 
@@ -236,6 +236,8 @@ qt_add_executable(mugi-query WIN32 MACOSX_BUNDLE
     src/widget/xyplot.cpp src/widget/xyplot.h src/widget/xyplot.ui
     src/zipunzip.h src/query_exec.h
     src/widget/daterangewidget.h src/widget/daterangewidget.cpp src/widget/daterangewidget.ui
+    src/widget/relatetoolwidget.h src/widget/relatetoolwidget.cpp src/widget/relatetoolwidget.ui
+    mugi-query_resource.rc
 )
 target_include_directories(mugi-query PUBLIC
     src

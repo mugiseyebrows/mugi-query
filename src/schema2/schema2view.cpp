@@ -10,6 +10,7 @@
 #include "automation.h"
 #include "schema2toolbar.h"
 #include "schema2zoomtoolbar.h"
+#include "schema2/schema2toolbar.h"
 #include "choicedialog.h"
 #include <QMessageBox>
 #include <QFileDialog>
@@ -24,8 +25,22 @@ Schema2View::Schema2View(QWidget *parent) :
     ui->setupUi(this);
 
 
-    connect(ui->toolbar, &Schema2Toolbar::clearTableStack, [=](){
-        mTableStack.clear();
+    connect(ui->toolbar, &Schema2Toolbar::modeChanged, [=](int mode){
+        bool visible = mode == Schema2Toolbar::ModeRelate || mode == Schema2Toolbar::ModeUnrelate;
+        ui->relate->setVisible(visible);
+        ui->relate->clear();
+        setTablesMovable(mode == Schema2Toolbar::ModeMove);
+    });
+
+    connect(ui->relate, &RelateToolWidget::selected, [=](QString parentTable, QString childTable){
+        Schema2Toolbar::Mode mode = ui->toolbar->mode();
+        if (mode == Schema2Toolbar::ModeRelate) {
+            mData->createRelationDialog(childTable, parentTable, this);
+            ui->relate->clear();
+        } else if (mode == Schema2Toolbar::ModeUnrelate) {
+            mData->dropRelationDialog(childTable, parentTable, this);
+            ui->relate->clear();
+        }
     });
 
     connect(ui->zoom, &Schema2ZoomToolbar::zoom, [=](double scale){
@@ -45,6 +60,8 @@ Schema2View::Schema2View(QWidget *parent) :
 
     connect(ui->sync, SIGNAL(pull()),this, SLOT(onPull()));
     connect(ui->sync, SIGNAL(push()),this, SLOT(onPush()));
+
+    ui->relate->hide();
 }
 
 
@@ -67,7 +84,7 @@ void Schema2View::setData(Schema2Data *data)
 {
     mData = data;
 
-    connect(mData,SIGNAL(tableClicked(QString)),this,SLOT(onTableClicked(QString)));
+    connect(mData,SIGNAL(tableClicked(QString, QPointF)),this,SLOT(onTableClicked(QString, QPointF)));
 
     ui->view->setScene(mData->scene());
 
@@ -77,7 +94,17 @@ void Schema2View::setData(Schema2Data *data)
             SIGNAL(currentChanged(QModelIndex,QModelIndex)),
             this,
             SLOT(onFiterViewCurrentChanged(QModelIndex,QModelIndex)));
+}
 
+void Schema2View::setTablesMovable(bool on) {
+    QList<QGraphicsItem *> items = scene()->items();
+    for(auto* item: items) {
+        Schema2TableItem* table = qgraphicsitem_cast<Schema2TableItem*>(item);
+        if (table) {
+            //qDebug() << table;
+            table->setFlag(QGraphicsItem::ItemIsMovable, on);
+        }
+    }
 }
 
 Schema2Data *Schema2View::data() const {
@@ -100,12 +127,38 @@ void Schema2View::onFiterViewCurrentChanged(QModelIndex index,QModelIndex) {
     ui->view->centerOn(item->sceneBoundingRect().center());
 }
 
-#include "schema2/schema2toolbar.h"
 
-void Schema2View::onTableClicked(QString tableName)
+
+QList<Schema2TableItem*> Schema2View::tablesAt(const QPointF& pos) const {
+    QList<QGraphicsItem*> items = scene()->items(pos);
+    QList<Schema2TableItem*> res;
+    for(auto* item: items) {
+        Schema2TableItem* table = qgraphicsitem_cast<Schema2TableItem*>(item);
+        if (table) {
+            res.append(table);
+        }
+    }
+    return res;
+}
+
+void Schema2View::onTableClicked(QString tableName_, QPointF scenePos)
 {
 
     //qDebug() << "onTableClicked" << tableName << mMode;
+
+
+    auto tables = tablesAt(scenePos);
+    /*for(auto* table: tables) {
+        qDebug() << "table at pos" << scenePos << table->tableName() << table;
+    }
+    qDebug() << "--";*/
+    // todo figure out, file bug report
+    QString tableName;
+    if (tables.size() == 1) {
+        tableName = tables[0]->tableName();
+    } else {
+        tableName = tableName_;
+    }
 
     Schema2Toolbar::Mode mode = ui->toolbar->mode();
 
@@ -114,7 +167,7 @@ void Schema2View::onTableClicked(QString tableName)
     case Schema2Toolbar::ModeMove: break;
     case Schema2Toolbar::ModeSelect: mData->selectOrDeselect(tableName); break;
     case Schema2Toolbar::ModeRelate:
-        mTableStack.append(tableName);
+        /*mTableStack.append(tableName);
         if (mTableStack.size() == 2) {
             QString childTable = mTableStack[0];
             QString parentTable = mTableStack[1];
@@ -122,10 +175,11 @@ void Schema2View::onTableClicked(QString tableName)
                 mData->createRelationDialog(childTable, parentTable, this);
             //}
             mTableStack.clear();
-        }
+        }*/
+        ui->relate->push(tableName);
         break;
     case Schema2Toolbar::ModeUnrelate:
-        mTableStack.append(tableName);
+        /*mTableStack.append(tableName);
         if (mTableStack.size() == 2) {
             QString childTable = mTableStack[0];
             QString parentTable = mTableStack[1];
@@ -133,7 +187,8 @@ void Schema2View::onTableClicked(QString tableName)
                 mData->dropRelationDialog(childTable, parentTable, this);
             //}
             mTableStack.clear();
-        }
+        }*/
+        ui->relate->push(tableName);
         break;
     case Schema2Toolbar::ModeDrop:
         mData->dropTableDialog(tableName, this);
@@ -155,7 +210,7 @@ QRectF Schema2View::sceneRect() const
     return ui->view->sceneRect();
 }
 
-QGraphicsScene *Schema2View::scene()
+QGraphicsScene *Schema2View::scene() const
 {
     return mData->scene();
 }

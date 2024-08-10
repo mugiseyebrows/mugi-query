@@ -40,7 +40,7 @@ void Schema2Toolbar::on_relate_clicked(bool checked)
 {
     uncheckAllExcept(ui->relate);
     mMode = checked ? ModeRelate : ModeMove;
-    emit clearTableStack();
+    //emit clearTableStack();
     syncMove();
 }
 
@@ -48,7 +48,7 @@ void Schema2Toolbar::on_unrelate_clicked(bool checked)
 {
     uncheckAllExcept(ui->unrelate);
     mMode = checked ? ModeUnrelate : ModeMove;
-    emit clearTableStack();
+    //emit clearTableStack();
     syncMove();
 }
 
@@ -70,6 +70,7 @@ void Schema2Toolbar::syncMove() {
     if (mMode == ModeMove) {
         ui->move->setChecked(true);
     }
+    emit modeChanged(mMode);
 }
 
 void Schema2Toolbar::on_insert_clicked(bool checked)

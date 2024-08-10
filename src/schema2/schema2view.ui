@@ -13,11 +13,21 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1">
+  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,1">
+   <property name="spacing">
+    <number>0</number>
+   </property>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="Schema2Toolbar" name="toolbar" native="true"/>
+      <widget class="Schema2Toolbar" name="toolbar" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer_3">
@@ -37,10 +47,24 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="Schema2ActionToolbar" name="actions" native="true"/>
+      <widget class="Schema2ActionToolbar" name="actions" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="Schema2SyncToolbar" name="sync" native="true"/>
+      <widget class="Schema2SyncToolbar" name="sync" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer_2">
@@ -56,7 +80,41 @@
       </spacer>
      </item>
      <item>
-      <widget class="Schema2ZoomToolbar" name="zoom" native="true"/>
+      <widget class="Schema2ZoomToolbar" name="zoom" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="RelateToolWidget" name="relate" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>2</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </item>
@@ -160,6 +218,12 @@
    <class>Schema2SyncToolbar</class>
    <extends>QWidget</extends>
    <header>src/schema2/schema2synctoolbar.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RelateToolWidget</class>
+   <extends>QWidget</extends>
+   <header>src/widget/relatetoolwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
