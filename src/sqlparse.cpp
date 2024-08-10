@@ -2,9 +2,40 @@
 
 SqlParse::SqlParse() {}
 
-QString SqlParse::test() const
+#include <QRegularExpression>
+
+static QString untick(const QString& s) {
+    if (s.startsWith("`") && s.endsWith("`")) {
+        return s.mid(1,s.size()-2);
+    }
+    return s;
+}
+
+QueryEffect SqlParse::queryEffect(const QString &query)
 {
-    return "huest";
+    QRegularExpression rx("(create|drop|alter)\\s+table\\s+([^ ]*)", QRegularExpression::CaseInsensitiveOption);
+    auto m = rx.match(query);
+    if (m.hasMatch()) {
+        QueryEffect::Type type = QueryEffect::None;
+        auto c = m.captured(1);
+        auto table = untick(m.captured(2));
+        if (c == "create") {
+            type = QueryEffect::Create;
+        } else if (c == "drop") {
+            type = QueryEffect::Drop;
+        } else if (c == "alter") {
+            type = QueryEffect::Alter;
+        }
+        return QueryEffect(type, table, QString());
+    }
+    rx = QRegularExpression("rename\\s+table\\s+([^ ]*)\\s+to\\s+([^ ]*)", QRegularExpression::CaseInsensitiveOption);
+    m = rx.match(query);
+    if (m.hasMatch()) {
+        auto oldName = untick(m.captured(1));
+        auto table = untick(m.captured(2));
+        return QueryEffect(QueryEffect::Rename, table, oldName);
+    }
+    return QueryEffect();
 }
 
 static int countSlashes(const QString &queries, int p) {
@@ -86,4 +117,16 @@ QStringList SqlParse::splitQueries(const QString &queries)
         res.append(queries.mid(p1, l));
     }
     return res;
+}
+
+QueryEffect::QueryEffect() : type(None) {
+
+}
+
+QueryEffect::QueryEffect(Type type, const QString &table, const QString oldName)
+    : type(type), table(table), oldName(oldName) {
+}
+
+bool QueryEffect::isNone() const {
+    return type == None;
 }

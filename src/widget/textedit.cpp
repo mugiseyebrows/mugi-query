@@ -164,14 +164,16 @@ static Completer::Context determineContext(const QTextCursor& cur) {
     QRegularExpression rxWord("([a-z]+)", QRegularExpression::CaseInsensitiveOption);
 
     static QHash<QString, Completer::Context> contexts = {
-                                                          {"from",Completer::From},
-                                                          {"select",Completer::Select},
-                                                          {"join",Completer::Join},
-                                                          {"where",Completer::Where},
-                                                          {"on",Completer::On},
-                                                          {"update",Completer::Update},
-                                                          {"set",Completer::Set},
-                                                          };
+        {"from",Completer::From},
+        {"select",Completer::Select},
+        {"join",Completer::Join},
+        {"where",Completer::Where},
+        {"on",Completer::On},
+        {"update",Completer::Update},
+        {"set",Completer::Set},
+        {"table", Completer::Table},
+        {"to", Completer::To},
+        };
 
     auto curCopy = cur;
     while (true) {
@@ -681,7 +683,7 @@ QPainterPath TextEdit::createSelectionPath(const QTextCursor &begin, const QText
     if (right.isNull())
         right = bottom;
 
-    QPointF marginOffset = {borderWidth, borderWidth};
+    //QPointF marginOffset = {borderWidth, borderWidth};
     /*right += marginOffset;
     bottom += marginOffset;*/
 

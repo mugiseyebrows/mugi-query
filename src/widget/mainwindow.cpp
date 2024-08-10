@@ -394,13 +394,16 @@ void MainWindow::onQuery(QString queries) {
     QElapsedTimer time;
     time.start();
 
-    bool schemaChanged = false;
+    QList<QueryEffect> effects;
 
     foreach(QString query, queries_) {
 
         History::instance()->addQuery(connectionName,query.trimmed());
 
-        schemaChanged = schemaChanged | QueryParser::isAlterSchemaQuery(query);
+        auto effect = SqlParse::queryEffect(query);
+        if (!effect.isNone()) {
+            effects.append(effect);
+        }
 
         QSqlQuery q(db);
         QSqlQueryModel* model = 0;
@@ -409,11 +412,11 @@ void MainWindow::onQuery(QString queries) {
         if (!q.exec(query)) {
             error = q.lastError().text();
         } else {
+            rowsAffected_ = q.numRowsAffected();
             if (q.isSelect()) {
                 model = new QSqlQueryModel();
                 model->setQuery(std::move(q));
             }
-            rowsAffected_ = q.numRowsAffected();
         }
         perf << time.restart();
         models << model;
@@ -423,9 +426,12 @@ void MainWindow::onQuery(QString queries) {
 
     tab->setResult(queries_,errors,models,perf,rowsAffected);
 
-    if (schemaChanged) {
+    if (effects.size() > 0) {
         updateTokens(connectionName);
         pushTokens(connectionName);
+        // todo optimize
+        Schema2Data* data = Schema2Data::instance(connectionName, this);
+        data->pull();
     }
 
 }

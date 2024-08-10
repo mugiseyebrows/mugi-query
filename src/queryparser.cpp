@@ -23,10 +23,12 @@ QStringList trimmed(const QStringList& vs) {
 
 }
 
+#if 0
 bool QueryParser::isAlterSchemaQuery(const QString& query) {
     QRegularExpression rx("(create|drop|alter)\\s+table", QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
     return rx.match(query).hasMatch();
 }
+#endif
 
 QStringList QueryParser::split(const QString &queries)
 {

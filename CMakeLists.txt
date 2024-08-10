@@ -6,47 +6,38 @@ project(mugi-query VERSION 1.0 LANGUAGES CXX)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+option(BUILD_APP "" ON)
+
 if (WIN32)
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql Svg Widgets AxContainer Test)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql Svg Widgets Test AxContainer)
 else()
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql Svg Widgets Test)
 endif()
 
 find_package(Qwt REQUIRED)
 
-
 set(CMAKE_AUTOMOC TRUE)
 set(CMAKE_AUTOUIC TRUE)
 
-
-# emmet
-add_library(emmet SHARED
-  src/emmet_global.h
-  src/emmet.cpp
-  src/emmet.h
+qt_add_executable(tst_emmet
+    src/tst_emmet.cpp
+    src/emmet.cpp
+    src/emmet.h
 )
-target_link_libraries(emmet PRIVATE Qt::Core)
-target_compile_definitions(emmet PRIVATE EMMET_LIBRARY)
-qt_add_executable(tst_emmet src/tst_emmet.cpp)
 add_test(NAME tst_emmet COMMAND tst_emmet)
-target_link_libraries(tst_emmet PRIVATE Qt::Test emmet)
+target_link_libraries(tst_emmet PRIVATE Qt::Test)
 target_include_directories(tst_emmet PRIVATE src)
 
-# sqlparse
-add_library(sqlparse SHARED
-  src/sqlparse_global.h
-  src/sqlparse.cpp
-  src/sqlparse.h
+qt_add_executable(tst_sqlparse
+    src/sqlparse.cpp
+    src/sqlparse.h
+    src/tst_sqlparse.cpp
 )
-target_link_libraries(sqlparse PRIVATE Qt::Core)
-target_compile_definitions(sqlparse PRIVATE SQLPARSE_LIBRARY)
-qt_add_executable(tst_sqlparse src/tst_sqlparse.cpp)
 add_test(NAME tst_sqlparse COMMAND tst_sqlparse)
-target_link_libraries(tst_sqlparse PRIVATE Qt::Test sqlparse)
+target_link_libraries(tst_sqlparse PRIVATE Qt::Test)
 target_include_directories(tst_sqlparse PRIVATE src)
 
-# main
-qt_add_executable(mugi-query WIN32 MACOSX_BUNDLE
+set(SOURCES
     src/accessuri.cpp src/accessuri.h
     src/action.cpp src/action.h
     src/automate.cpp src/automate.h
@@ -237,17 +228,10 @@ qt_add_executable(mugi-query WIN32 MACOSX_BUNDLE
     src/zipunzip.h src/query_exec.h
     src/widget/daterangewidget.h src/widget/daterangewidget.cpp src/widget/daterangewidget.ui
     src/widget/relatetoolwidget.h src/widget/relatetoolwidget.cpp src/widget/relatetoolwidget.ui
+    src/sqlparse.cpp src/sqlparse.h
+    src/emmet.cpp src/emmet.h
     mugi-query_resource.rc
 )
-target_include_directories(mugi-query PUBLIC
-    src
-    src/model
-    src/schema2
-    src/tablebuttons
-    src/widget
-)
-
-
 
 # Resources:
 set(icons_resource_files
@@ -271,38 +255,40 @@ set(icons_resource_files
     "src/icons/undo.png"
 )
 
-qt6_add_resources(mugi-query "icons"
-    PREFIX
-        "/icons"
-    FILES
-        ${icons_resource_files}
-)
+# cmake -D BUILD_APP=ON ..
+# cmake -D BUILD_APP=OFF ..
 
-if (WIN32)
+if (BUILD_APP)
+    qt_add_executable(mugi-query WIN32 ${SOURCES})
+    target_include_directories(mugi-query PUBLIC
+        src
+        src/model
+        src/schema2
+        src/tablebuttons
+        src/widget
+    )
+    qt6_add_resources(mugi-query "icons"
+        PREFIX "/icons"
+        FILES ${icons_resource_files}
+    )
     target_link_libraries(mugi-query PUBLIC
-        Qt::AxContainer
         Qt::Core
         Qt::Gui
         Qt::Widgets
         Qt::Sql
         Qt::Svg
         Qwt
-        emmet
-        sqlparse
     )
-else()
-    target_link_libraries(mugi-query PUBLIC
-        Qt::Core
-        Qt::Gui
-        Qt::Widgets
-        Qt::Sql
-        Qt::Svg
-        Qwt
-        emmet
-        sqlparse
-    )
+
+    if (WIN32)
+        target_link_libraries(mugi-query PUBLIC Qt::AxContainer)
+    endif()
+
+    # LD_LIBRARY_PATH="/usr/local/qwt-6.3.0-dev/lib:/usr/local/lib" /usr/local/bin/mugi-query
+    install(TARGETS mugi-query)
+    install(FILES emmet.json DESTINATION share)
 endif()
 
-# LD_LIBRARY_PATH="/usr/local/qwt-6.3.0-dev/lib:/usr/local/lib" /usr/local/bin/mugi-query
-install(TARGETS mugi-query emmet sqlparse)
-install(FILES emmet.json DESTINATION share)
+
+
+

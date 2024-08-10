@@ -44,7 +44,7 @@
     ["atdc"], "alter table # drop column #",
     ["atmc"], "alter table # modify column #",
     ["atr"], "alter table # rename #",
-    ["rtt"], "rename table # to #",
+    ["rtt", "rt"], "rename table # to #",
     ["atacfkr", "atacfk", "atfk"], "alter table # add constraint # foreign key ( # ) references #",
     ["ouc"], "on update cascade",
     ["our"], "on update restrict",

@@ -18,6 +18,8 @@ public:
         On,
         Update,
         Set,
+        Table,
+        To,
     };
     Completer(QObject* parent = nullptr);
     void setContext(Context ctx);
