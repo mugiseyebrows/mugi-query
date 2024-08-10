@@ -186,7 +186,15 @@ void DatabaseConnectDialog::on_pick_clicked()
     }
 }
 
+#if 0
 void DatabaseConnectDialog::on_driver_currentIndexChanged(const QString &name)
 {
     ui->pick->setVisible(name == DRIVER_ODBC || name == DRIVER_SQLITE);
 }
+#endif
+
+void DatabaseConnectDialog::on_driver_currentTextChanged(const QString &name)
+{
+    ui->pick->setVisible(name == DRIVER_ODBC || name == DRIVER_SQLITE);
+}
+
