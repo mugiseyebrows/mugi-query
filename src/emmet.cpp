@@ -176,7 +176,7 @@ QString Emmet::parse(const QString& text, QString& error) {
     QRegularExpression ct("^ct\\(([a-z,]+)\\)(.*)");
     QRegularExpression cw("^c(((wt)([0-9]*))+)(ee)?");
 
-    const int MAX_SIZE = 4;
+    const int MAX_SIZE = 7;
 
     while(true) {
         QString key;
