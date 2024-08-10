@@ -411,7 +411,7 @@ void MainWindow::onQuery(QString queries) {
         } else {
             if (q.isSelect()) {
                 model = new QSqlQueryModel();
-                model->setQuery(q);
+                model->setQuery(std::move(q));
             }
             rowsAffected_ = q.numRowsAffected();
         }

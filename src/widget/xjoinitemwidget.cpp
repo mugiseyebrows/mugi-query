@@ -32,7 +32,7 @@ void XJoinItemWidget::on_execute_clicked()
 
     } else {
         QSqlQueryModel* model = new QSqlQueryModel(this);
-        model->setQuery(q);
+        model->setQuery(std::move(q));
         ui->result->setModel(model);
 
         QStringList names = fieldNames(model->record());

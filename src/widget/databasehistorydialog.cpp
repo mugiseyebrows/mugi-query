@@ -145,7 +145,7 @@ void DatabaseHistoryDialog::onUpdateQuery() {
         qDebug() << "!model";
         return;
     }
-    model->setQuery(q);
+    model->setQuery(std::move(q));
     ui->tableView->setColumnWidth(0, 160);
 }
 
