@@ -258,6 +258,7 @@ if (BUILD_APP)
         src/emmet.cpp src/emmet.h
         src/schema2/dataimportwidget2.cpp src/schema2/dataimportwidget2.h src/schema2/dataimportwidget2.ui
         mugi-query_resource.rc
+        src/model/hexitemdelegate.h src/model/hexitemdelegate.cpp
     )
     target_include_directories(mugi-query PUBLIC
         src

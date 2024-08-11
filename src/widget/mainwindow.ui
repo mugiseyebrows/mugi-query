@@ -135,6 +135,8 @@
     <addaction name="selectionCopyAsList"/>
     <addaction name="selectionCopyAsCondition"/>
     <addaction name="selectionCopyNames"/>
+    <addaction name="selectionViewAsHex"/>
+    <addaction name="selectionViewAsString"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -419,6 +421,16 @@
   <action name="selectionCopyNames">
    <property name="text">
     <string>Copy column names</string>
+   </property>
+  </action>
+  <action name="selectionViewAsHex">
+   <property name="text">
+    <string>View as hex</string>
+   </property>
+  </action>
+  <action name="selectionViewAsString">
+   <property name="text">
+    <string>View as string</string>
    </property>
   </action>
  </widget>

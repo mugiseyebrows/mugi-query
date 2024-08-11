@@ -9,6 +9,7 @@ class QAbstractItemModel;
 class RichHeaderView;
 class Schema2Data;
 class QSqlRecord;
+class CopyEventFilter;
 #include <QSqlDatabase>
 
 namespace Ui {
@@ -32,6 +33,7 @@ protected:
     DataImportModel* mModel;
     RichHeaderView* mHeaderView;
     Schema2Data* mData;
+    CopyEventFilter* mFilter;
 
     void updateHorizontalHeader();
     void createHorizontalHeader();
@@ -49,6 +51,10 @@ private slots:
     void on_save_clicked();
     void on_copy_clicked();
     void on_paste_clicked();
+    void on_delete__clicked();
+
+    void on_clear_clicked();
+
 private:
 
 };

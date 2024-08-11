@@ -17,6 +17,14 @@ static QVariant parseInt(const QVariant& value, bool* ok) {
         *ok = false;
         return QVariant();
     }
+    if (s == "t") {
+        *ok = true;
+        return 1;
+    }
+    if (s == "f") {
+        *ok = true;
+        return 0;
+    }
     return s.toInt(ok);
 }
 static QVariant parseDouble(const QVariant& value, bool* ok) {

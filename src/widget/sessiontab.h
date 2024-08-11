@@ -58,6 +58,11 @@ public:
     StatView *statView();
 
     void fetchAll();
+
+    void viewAsHex();
+
+    void viewAsString();
+
 signals:
     void query(QString);
     void showQueryHistory();

@@ -146,6 +146,10 @@ private slots:
 
     void on_tableName_textChanged(const QString &arg1);
 
+    void on_selectionViewAsHex_triggered();
+
+    void on_selectionViewAsString_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

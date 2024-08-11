@@ -34,7 +34,6 @@ static QMetaType::Type toMetaType(const QString& type) {
 
     QString type_ = type.toLower();
 
-
     QRegularExpression rxInt("int\\([0-9]+\\)");
     QRegularExpression rxVarchar("varchar\\([0-9]+\\)");
     if (rxInt.match(type_).hasMatch()) {
@@ -49,6 +48,7 @@ static QMetaType::Type toMetaType(const QString& type) {
     if (type_ == "timestamp") {
         return QMetaType::QDateTime;
     }
+    qDebug() << "toMetaType unknown type" << type_ << __FILE__ << __LINE__;
     return QMetaType::UnknownType;
 }
 
@@ -110,6 +110,7 @@ void DataImportWidget2::initCopyFilter() {
         onDataCopy();
         filter->onDeleteSelected();
     });
+    mFilter = filter;
 }
 
 void DataImportWidget2::createHorizontalHeader() {
@@ -254,6 +255,7 @@ QSqlRecord DataImportWidget2::record(QSqlDatabase db, const QString& tableName, 
 
 #include <QMessageBox>
 #include <QSqlError>
+#include <QProgressDialog>
 
 void DataImportWidget2::on_execute_clicked()
 {
@@ -269,6 +271,10 @@ void DataImportWidget2::on_execute_clicked()
     QStringList errors;
     int count = 0;
 
+    QProgressDialog dialog(this);
+    dialog.setMaximum(mModel->rowCount());
+    dialog.show();
+
     bool ok;
     for(int row=0;row<mModel->rowCount();row++) {
         QSqlRecord record = this->record(db, tableName, row, &ok);
@@ -281,7 +287,11 @@ void DataImportWidget2::on_execute_clicked()
                 errors.append(q.lastError().text());
             }
         }
+        dialog.setValue(row);
+        qApp->processEvents();
     }
+
+    dialog.close();
 
     if (errors.size() > 0) {
         QStandardItemModel* errorModel = new QStandardItemModel(errors.size(), 2);
@@ -335,5 +345,21 @@ void DataImportWidget2::on_copy_clicked()
 void DataImportWidget2::on_paste_clicked()
 {
     onDataPaste();
+}
+
+
+void DataImportWidget2::on_delete__clicked()
+{
+    mFilter->onDeleteSelected();
+}
+
+void DataImportWidget2::on_clear_clicked()
+{
+    auto ans = QMessageBox::question(this, "", "Clear all data?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (ans != QMessageBox::Yes) {
+        return;
+    }
+    mModel->setRowCount(0);
+    mModel->setRowCount(10);
 }
 

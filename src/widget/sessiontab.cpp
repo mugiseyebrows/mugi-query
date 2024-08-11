@@ -237,6 +237,17 @@ void SessionTab::fetchAll() {
     }
 }
 
+void SessionTab::viewAsHex()
+{
+    auto* view = currentView();
+    view->viewAsHex();
+}
+
+void SessionTab::viewAsString() {
+    auto* view = currentView();
+    view->viewAsString();
+}
+
 void SessionTab::saveData()
 {
     QSqlQueryModel* model = currentModel();

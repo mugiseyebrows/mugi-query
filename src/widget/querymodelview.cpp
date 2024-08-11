@@ -14,6 +14,7 @@
 #include <QMessageBox>
 #include "clipboard.h"
 #include "clipboardutil.h"
+#include "hexitemdelegate.h"
 
 namespace {
 
@@ -59,8 +60,10 @@ QueryModelView::QueryModelView(QWidget *parent) :
     filter->setView(view);
     connect(filter,SIGNAL(copy()),this,SLOT(onCopy()));
 
-    ItemDelegate* delegate = new ItemDelegate(view);
-    view->setItemDelegate(delegate);
+    mItemDelegate = new ItemDelegate(view);
+    view->setItemDelegate(mItemDelegate);
+
+    mHexItemDelegate = new HexItemDelegate(view);
 
     connect(ui->table,SIGNAL(customContextMenuRequested(QPoint)),
             this,SLOT(onTableCustomContextMenuRequested(QPoint)));
@@ -74,6 +77,40 @@ QueryModelView::~QueryModelView()
 {
     qDebug() << "~QueryModelView";
     delete ui;
+}
+
+
+
+template <typename T>
+static QList<T> toList(const QSet<T>& qlist)
+{
+    return QList<T> (qlist.constBegin(), qlist.constEnd());
+}
+
+static QList<int> selectedColumns(QItemSelectionModel* selectionModel) {
+    auto indexes = selectionModel->selectedIndexes();
+    QSet<int> columns;
+    for(auto index: indexes) {
+        columns.insert(index.column());
+    }
+    return toList(columns);
+}
+
+void QueryModelView::setItemDelegateForColumns(const QList<int> columns, QAbstractItemDelegate* delegate) {
+    QTableView* view = ui->table;
+    for(int column: columns) {
+        view->setItemDelegateForColumn(column, delegate);
+    }
+}
+
+void QueryModelView::viewAsHex()
+{
+    setItemDelegateForColumns(selectedColumns(selectionModel()), mHexItemDelegate);
+}
+
+void QueryModelView::viewAsString()
+{
+    setItemDelegateForColumns(selectedColumns(selectionModel()), mItemDelegate);
 }
 
 XYPlot* QueryModelView::xyPlot() const {

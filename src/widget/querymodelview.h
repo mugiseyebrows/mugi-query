@@ -7,6 +7,9 @@ class QAbstractItemModel;
 class QItemSelectionModel;
 class DistributionPlot;
 class XYPlot;
+class HexItemDelegate;
+class ItemDelegate;
+class QAbstractItemDelegate;
 
 namespace Ui {
 class QueryModelView;
@@ -25,6 +28,10 @@ public:
 
     explicit QueryModelView(QWidget *parent = nullptr);
     ~QueryModelView();
+
+    void viewAsHex();
+
+    void viewAsString();
 
     void setModel(QAbstractItemModel* model);
 
@@ -45,10 +52,13 @@ protected slots:
 
 private slots:
     void onCopy();
-private:
+protected:
     Ui::QueryModelView *ui;
     int mTabHeight;
     bool mSplitterUpdated;
+    ItemDelegate* mItemDelegate;
+    HexItemDelegate* mHexItemDelegate;
+    void setItemDelegateForColumns(const QList<int> columns, QAbstractItemDelegate *delegate);
 };
 
 #endif // QUERYMODELVIEW_H

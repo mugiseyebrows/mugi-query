@@ -5,6 +5,7 @@
 
 #include "settings.h"
 
+
 ItemDelegate::ItemDelegate(QObject *parent) : QStyledItemDelegate (parent)
 {
 
@@ -35,6 +36,10 @@ QString ItemDelegate::displayText(const QVariant &value, const QLocale &locale) 
         }
     } else if (t == QMetaType::QByteArray) {
         QByteArray data = value.toByteArray();
+        return QString::fromUtf8(data);
+
+#if 0
+
         /*auto* codec = QTextCodec::codecForName("UTF-8");
         auto* decoder = codec->makeDecoder();
         QString text = decoder->toUnicode(data);
@@ -42,10 +47,10 @@ QString ItemDelegate::displayText(const QVariant &value, const QLocale &locale) 
             return text;
         }*/
 
+
         QStringList hex;
-        int showSize = qMin(data.size(),256);
+        int showSize = qMin(data.size(), 256);
         for (int i=0;i<showSize;i++) {
-            //hex << QString::number((uchar) data[i], 16).rightJustified(2,'0');
             hex << QString("%1").arg((uchar) data[i],2,16,QChar('0'));
             if (i % 16 == 15)
                 hex << "\n";
@@ -54,7 +59,8 @@ QString ItemDelegate::displayText(const QVariant &value, const QLocale &locale) 
             hex << "...";
         }
         return hex.join(" ");
-    } else if (t == QVariant::List) {
+#endif
+    } else if (t == QMetaType::QVariantList) {
         QVariantList vs = value.toList();
         QVariant v1 = vs.value(0);
         QVariant v2 = vs.value(1);

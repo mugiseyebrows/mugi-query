@@ -1278,3 +1278,16 @@ void MainWindow::on_tableName_textChanged(const QString &text)
     }
 }
 
+void MainWindow::on_selectionViewAsHex_triggered()
+{
+    SessionTab* tab = currentTab();
+    tab->viewAsHex();
+}
+
+
+void MainWindow::on_selectionViewAsString_triggered()
+{
+    SessionTab* tab = currentTab();
+    tab->viewAsString();
+}
+
