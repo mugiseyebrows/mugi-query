@@ -5,6 +5,7 @@
 #include <QStandardItemModel>
 #include <QMap>
 #include <QLocale>
+class QSqlRecord;
 
 class DataImportModel : public QStandardItemModel
 {
@@ -14,9 +15,15 @@ public:
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
+    QVariant parsed(int row, int column);
+
     void setTypes(const QMap<int, QMetaType::Type>& types, const QMap<int,int>& sizes);
 
     void setLocale(const QLocale& locale);
+
+    void setType(int column, QMetaType::Type type);
+
+    QSqlRecord record(int row, bool* ok);
 
 protected:
 

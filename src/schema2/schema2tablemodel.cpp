@@ -468,6 +468,15 @@ Schema2ParentRelationsModel *Schema2TableModel::parentRelations() const {
     return mParentRelations;
 }
 
+QStringList Schema2TableModel::names() const
+{
+    QStringList res;
+    for(int row=0;row<rowCount();row++) {
+        res.append(mColumns[row].name);
+    }
+    return res;
+}
+
 int Schema2TableModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) {

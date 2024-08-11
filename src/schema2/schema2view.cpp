@@ -194,7 +194,7 @@ void Schema2View::onTableClicked(QString tableName_, QPointF scenePos)
         mData->dropTableDialog(tableName, this);
         break;
     case Schema2Toolbar::ModeAlter: mData->showAlterView(tableName); break;
-    case Schema2Toolbar::ModeInsert: mData->showInsertView(tableName); break;
+    case Schema2Toolbar::ModeInsert: mData->showDataImportWidget(tableName); break;
     }
 }
 

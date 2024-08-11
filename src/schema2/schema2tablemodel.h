@@ -122,7 +122,7 @@ public:
 
     Schema2ParentRelationsModel *parentRelations() const;
 
-
+    QStringList names() const;
 
 signals:
     void tableClicked(QString, QPointF);

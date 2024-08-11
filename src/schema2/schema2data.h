@@ -21,6 +21,7 @@ class Schema2RelationItem2;
 class Schema2Relation;
 class Schema2TablesModel;
 class QSqlDriver;
+class DataImportWidget2;
 
 #include "schema2join.h"
 #include "hash.h"
@@ -59,7 +60,7 @@ public:
 
     void showAlterView(const QString& tableName);
 
-    void showInsertView(const QString &tableName);
+    void showDataImportWidget(const QString &tableName);
 
     void arrange(bool all);
 
@@ -124,6 +125,8 @@ protected:
     //QHash<QString, Schema2TableView*> mViews;
 
     StringHash<Schema2AlterView*> mAlterViews;
+
+    StringHash<DataImportWidget2*> mDataImportWidgets;
 
     //QList<QPair<QString, Schema2Relation*>> mDropRelationsQueue;
 

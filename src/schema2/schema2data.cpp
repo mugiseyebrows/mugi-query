@@ -1000,7 +1000,7 @@ void Schema2Data::showDataStatistics(QWidget *widget)
             return;
         }
         QSqlQueryModel* model = new QSqlQueryModel();
-        model->setQuery(q);
+        model->setQuery(std::move(q));
 
         model->setHeaderData(0, Qt::Horizontal, "Name");
         model->setHeaderData(1, Qt::Horizontal, "Rows");
@@ -1280,9 +1280,17 @@ void Schema2Data::showAlterView(const QString &tableName)
     showAndRaise(view);
 }
 
-void Schema2Data::showInsertView(const QString &tableName)
-{
+#include "dataimportwidget2.h"
 
+void Schema2Data::showDataImportWidget(const QString &tableName)
+{
+    if (!mDataImportWidgets.contains(tableName)) {
+        DataImportWidget2* widget = new DataImportWidget2();
+        widget->init(this, mTables->table(tableName));
+        mDataImportWidgets.set(tableName, widget);
+    }
+    auto* widget = mDataImportWidgets.get(tableName);
+    showAndRaise(widget);
 }
 
 void Schema2Data::arrange(bool all)
