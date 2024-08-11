@@ -78,6 +78,16 @@ bool RichHeaderCellImpl::visible() const {
 void RichHeaderCellImpl::visible(bool value) {
     mVisible = value;
 }
+
+QColor RichHeaderCellImpl::textColor()
+{
+    return mTextColor;
+}
+
+void RichHeaderCellImpl::textColor(const QColor &color)
+{
+    mTextColor = color;
+}
 int RichHeaderCellImpl::paddingTop() const {
     return mPaddingTop;
 }

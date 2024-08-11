@@ -363,9 +363,18 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
 
         if (mHeaderData->flatStyle()) {
             painter->fillRect(cellRect,Qt::white);
-            painter->setPen(QColor("#A0A0A0"));
+            painter->setPen(QColor(0xA0A0A0));
             painter->drawRect(cellRect);
         } else {
+            /*QColor color = cell->textColor();
+            if (color.isValid()) {
+                qDebug() << "color.isValid()";
+                auto palette = opt.palette;
+                for(int role=0;role<QPalette::NColorRoles;role++) {
+                    palette.setBrush((QPalette::ColorRole) role, Qt::red);
+                }
+                opt.palette = palette;
+            }*/
             style()->drawControl(QStyle::CE_Header, &opt, painter, this);
         }
 
@@ -414,7 +423,13 @@ void RichHeaderView::paintSection(QPainter *painter, const QRect &rect, int logi
 
             painter->setTransform(rotated);
 
-            style()->drawItemText(painter, textRect, align, this->palette(), isEnabled(), text, QPalette::WindowText);
+            QPalette palette = this->palette();
+            QColor textColor = cell->textColor();
+            if (textColor.isValid()) {
+                palette.setColor(QPalette::WindowText, textColor);
+            }
+
+            style()->drawItemText(painter, textRect, align, palette, isEnabled(), text, QPalette::WindowText);
 
             painter->setTransform(original);
         }

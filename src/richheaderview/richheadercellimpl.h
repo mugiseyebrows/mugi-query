@@ -2,6 +2,7 @@
 #ifndef RICHHEADERCELLIMPL_H
 #define RICHHEADERCELLIMPL_H
 #include <QString>
+#include <QColor>
 class QWidget;
 
 class RichHeaderCellImpl {
@@ -48,6 +49,9 @@ public:
     void widget(QWidget* value);
     bool visible() const;
     void visible(bool value);
+    QColor textColor();
+    void textColor(const QColor& color);
+
     int paddingTop() const;
     void paddingTop(int value);
     int paddingRight() const;
@@ -69,6 +73,7 @@ protected:
     double mRotation;
     QWidget* mWidget;
     bool mVisible;
+    QColor mTextColor;
     int mPaddingTop;
     int mPaddingRight;
     int mPaddingBottom;

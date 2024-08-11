@@ -82,6 +82,15 @@ RichHeaderCell& RichHeaderCell::visible(bool value) {
     mImpl->visible(value);
     return *this;
 }
+QColor RichHeaderCell::textColor() const
+{
+    return mImpl->textColor();
+}
+RichHeaderCell &RichHeaderCell::textColor(const QColor &color)
+{
+    mImpl->textColor(color);
+    return *this;
+}
 int RichHeaderCell::paddingTop() const {
     return mImpl->paddingTop();
 }

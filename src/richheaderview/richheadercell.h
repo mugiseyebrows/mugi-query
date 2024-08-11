@@ -3,6 +3,7 @@
 #define RICHHEADERCELL_H
 #include <QList>
 #include <QString>
+#include <QColor>
 class QWidget;
 class RichHeaderCellImpl;
 typedef QList<RichHeaderCellImpl*> RichHeaderCellList;
@@ -33,6 +34,8 @@ public:
     RichHeaderCell& widget(QWidget* value);
     bool visible() const;
     RichHeaderCell& visible(bool value);
+    QColor textColor() const;
+    RichHeaderCell& textColor(const QColor& color);
     int paddingTop() const;
     RichHeaderCell& paddingTop(int value);
     int paddingRight() const;
