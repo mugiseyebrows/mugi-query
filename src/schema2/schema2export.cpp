@@ -142,7 +142,7 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, const QRectF& re
 
         auto tables = mTables->tableItems();
         for(auto* table: tables) {
-            if (table->grayed() && onlySelected) {
+            if (table->checked() && onlySelected) {
                 continue;
             }
             res.append(dotTable(table, posk));
@@ -153,10 +153,10 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, const QRectF& re
             for(auto* relation: relations) {
                 auto* childTable = mTables->tableItem(relation->parentTable());
                 auto* parentTable = mTables->tableItem(relation->childTable());
-                if (childTable->grayed() && onlySelected) {
+                if (childTable->checked() && onlySelected) {
                     continue;
                 }
-                if (parentTable->grayed() && onlySelected) {
+                if (parentTable->checked() && onlySelected) {
                     continue;
                 }
                 res.append(dotRelation(relation));
@@ -188,7 +188,7 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, const QRectF& re
 
         for(auto* table: tables) {
 
-            if (table->grayed() && onlySelected) {
+            if (table->checked() && onlySelected) {
                 continue;
             }
 
@@ -197,10 +197,10 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, const QRectF& re
             for(Schema2Relation* relation: relations) {
                 auto* childTable = mTables->tableItem(relation->parentTable());
                 auto* parentTable = mTables->tableItem(relation->childTable());
-                if (childTable->grayed() && onlySelected) {
+                if (childTable->checked() && onlySelected) {
                     continue;
                 }
-                if (parentTable->grayed() && onlySelected) {
+                if (parentTable->checked() && onlySelected) {
                     continue;
                 }
                 QString item = QString("ref {\n    %1.%2 > %3.%4\n}")

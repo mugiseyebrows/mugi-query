@@ -146,9 +146,7 @@ static int findBestPos(const Node& node, const QList<Node>& positioned, const QL
 
 
 
-static QList<Node> buildNodes(Schema2TablesModel* tablesModel, bool all) {
-
-    QList<Node> nodes;
+static void buildNodes(Schema2TablesModel* tablesModel, bool all, QList<Node>& nodes, QList<Node>& unchecked) {
 
     //QList<QStringList> keys = relationModels.keys();
 
@@ -158,7 +156,7 @@ static QList<Node> buildNodes(Schema2TablesModel* tablesModel, bool all) {
     if (!all) {
         auto items = tablesModel->tableItems();
         for(auto* item: items) {
-            if (item->grayed()) {
+            if (!item->checked()) {
                 skip.append(item->tableName().toLower());
             }
         }
@@ -183,6 +181,7 @@ static QList<Node> buildNodes(Schema2TablesModel* tablesModel, bool all) {
     for(const QString& table: tables) {
         Node node(table);
         if (skip.contains(table.toLower())) {
+            unchecked.append(node);
             continue;
         }
 
@@ -197,8 +196,6 @@ static QList<Node> buildNodes(Schema2TablesModel* tablesModel, bool all) {
     }
 
     std::sort(nodes.begin(), nodes.end(), lessThan);
-
-    return nodes;
 }
 
 static void setPos(QList<Node>& nodes, int nodeIndex, QList<Node>& positioned, int gridIndex, QList<QPointF>& grid) {
@@ -219,7 +216,12 @@ void arrangeTables(GridType type, Schema2TablesModel* tablesModel, bool all) {
     }
 
     QList<QPointF> grid = createGrid(type, tables.size());
-    QList<Node> nodes = buildNodes(tablesModel, all);
+
+    QList<Node> nodes;
+    QList<Node> unchecked;
+
+    buildNodes(tablesModel, all, nodes, unchecked);
+
     QList<Node> positioned = {};
 
     int gridIndex = findCenter(grid);
@@ -232,7 +234,17 @@ void arrangeTables(GridType type, Schema2TablesModel* tablesModel, bool all) {
         setPos(nodes, nodeIndex, positioned, gridIndex, grid);
     }
 
+    while(!unchecked.isEmpty()) {
+        nodeIndex = findMostConnected(unchecked, positioned);
+        gridIndex = findBestPos(unchecked[nodeIndex], positioned, grid);
+        setPos(unchecked, nodeIndex, positioned, gridIndex, grid);
+    }
+
     for(const Node& node: std::as_const(positioned)) {
+        tablesModel->tableItem(node.name)->setCenterPos(node.pos);
+    }
+
+    for(const Node& node: std::as_const(unchecked)) {
         tablesModel->tableItem(node.name)->setCenterPos(node.pos);
     }
 

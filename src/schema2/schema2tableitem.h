@@ -25,10 +25,10 @@ public:
 
     QPointF centerPos() const;
 
-    void setGrayed(bool value);
+    void setChecked(bool value);
 
-    bool grayed() const {
-        return mGrayed;
+    bool checked() const {
+        return mChecked;
     }
 
     Schema2TableModel* model() const {
@@ -49,7 +49,7 @@ public:
 protected:
     Schema2TableModel* mModel;
     QList<Schema2RelationItem2*> mRelations;
-    bool mGrayed;
+    bool mChecked;
     UncheckedMode mMode = UncheckedGrayed;
 
     // QGraphicsItem interface

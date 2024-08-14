@@ -78,9 +78,11 @@ void Schema2RelationItem2::paint(QPainter *painter, const QStyleOptionGraphicsIt
         return;
     }
 
-    bool grayed = mParentTable->grayed() || mChildTable->grayed();
+    bool checked = mParentTable->checked() && mChildTable->checked();
 
-    if (grayed && mParentTable->uncheckedMode() == UncheckedInvisible) {
+    bool unchecked = !checked;
+
+    if (unchecked && mParentTable->uncheckedMode() == UncheckedInvisible) {
         return;
     }
 
@@ -99,8 +101,8 @@ void Schema2RelationItem2::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
 
 
-    painter->setPen(grayed ? QColor("#888888") : QColor("#000000"));
-    painter->setBrush(grayed ? QColor("#888888") : QColor("#000000"));
+    painter->setPen(unchecked ? QColor("#888888") : QColor("#000000"));
+    painter->setBrush(unchecked ? QColor("#888888") : QColor("#000000"));
 
     QPointF p1 = intersection(line, rect1, &ok1);
     QPointF p2 = intersection(line, rect2, &ok2);

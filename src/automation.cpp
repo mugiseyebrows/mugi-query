@@ -543,7 +543,7 @@ void Automation::onStart() {
         }
         auto* tables = view->data()->tables();
         for(const QString& table: tableNames) {
-            tables->setGrayed(table, false);
+            tables->setChecked(table, false);
         }
         next();
 

@@ -35,9 +35,11 @@ public:
 
     Schema2TableItem* tableItem(const QString& name) const;
 
-    void setGrayed(const QString& name, bool value);
+    void setChecked(const QStringList& names, bool value);
 
-    void setAllGrayed(bool value);
+    void setChecked(const QString& name, bool value);
+
+    void setChecked(bool value);
 
     void loadPos();
 
@@ -126,6 +128,7 @@ public:
     QStringList createIndexesQueries(const QString &driverName, QSqlDriver *driver) const;
     QStringList createRelationsQueries(const QString &driverName, QSqlDriver *driver) const;
     void updateColumns(const QString &tableName);
+    QStringList checked(bool value) const;
 };
 
 #endif // SCHEMA2TABLESMODEL_H

@@ -130,7 +130,11 @@
         <widget class="QLineEdit" name="filterLine"/>
        </item>
        <item>
-        <widget class="QListView" name="filterView"/>
+        <widget class="QListView" name="filterView">
+         <property name="contextMenuPolicy">
+          <enum>Qt::ActionsContextMenu</enum>
+         </property>
+        </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">

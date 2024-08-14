@@ -1322,7 +1322,7 @@ void Schema2Data::onSelectModelChanged(QModelIndex, QModelIndex) {
     /*QList<QPair<QString,bool>> data = mSelectModel->dataAsTupleList();
     for(int i=0;i<data.size();i++) {
         QPair<QString,bool> item = data[i];
-        mTables->setGrayed(item.first, !item.second);
+        mTables->setChecked(item.first, !item.second);
     }*/
 }
 

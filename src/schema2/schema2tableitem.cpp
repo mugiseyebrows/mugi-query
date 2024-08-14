@@ -7,7 +7,7 @@
 
 
 Schema2TableItem::Schema2TableItem(Schema2TableModel *model, QGraphicsItem *parent)
-    : mModel(model), QGraphicsItem(parent), mGrayed(false)
+    : mModel(model), QGraphicsItem(parent), mChecked(true)
 {
     setFlag(QGraphicsItem::ItemIsMovable, true);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
@@ -40,13 +40,15 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     int w = 200;
     int s = 25;
 
-    if (mGrayed && mMode == UncheckedInvisible) {
+    bool unchecked = !mChecked;
+
+    if (unchecked && mMode == UncheckedInvisible) {
         return;
     }
 
     painter->setFont(QFont("Liberation Sans", 11));
 
-    painter->setPen(mGrayed ? QColor("#888888") : QColor("#000000"));
+    painter->setPen(unchecked ? QColor("#888888") : QColor("#000000"));
 
     {
         QRectF rect = boundingRect();
@@ -54,7 +56,7 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
         painter->save();
 
-        QBrush bodyBrush = mGrayed ? QColor("#ffffff") : QColor("#FFFBAC");
+        QBrush bodyBrush = unchecked ? QColor("#ffffff") : QColor("#FFFBAC");
 
         painter->setBrush(bodyBrush);
         painter->drawRect(rect);
@@ -62,7 +64,7 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
         rect = QRectF(0,0,w,s);
 
-        QBrush titleBrush = mGrayed ? QColor("#ffffff") : QColor("#FFD495");
+        QBrush titleBrush = unchecked ? QColor("#ffffff") : QColor("#FFD495");
 
         painter->setBrush(titleBrush);
         //painter->setPen(Qt::NoPen);
@@ -114,12 +116,12 @@ QPointF Schema2TableItem::centerPos() const
     return this->pos() + boundingRect().center();
 }
 
-void Schema2TableItem::setGrayed(bool value)
+void Schema2TableItem::setChecked(bool value)
 {
-    if (mGrayed == value) {
+    if (mChecked == value) {
         return;
     }
-    mGrayed = value;
+    mChecked = value;
     update();
     for(Schema2RelationItem2* item: mRelations) {
         item->update();

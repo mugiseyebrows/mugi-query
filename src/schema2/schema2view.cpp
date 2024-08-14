@@ -15,6 +15,8 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include "exportdialog.h"
+#include "schema2tablemodel.h"
+#include "schema2relationsmodel.h"
 
 Schema2View::Schema2View(QWidget *parent) :
     mData(0),
@@ -62,6 +64,31 @@ Schema2View::Schema2View(QWidget *parent) :
     connect(ui->sync, SIGNAL(push()),this, SLOT(onPush()));
 
     ui->relate->hide();
+
+    QAction* checkRelated = new QAction("Check related", this);
+    ui->filterView->addAction(checkRelated);
+    //ui->filterView->setContextMenuPolicy(Qt::ActionsContextMenu);
+
+    connect(checkRelated, &QAction::triggered, [=](){
+        auto checked = mData->tables()->checked(true);
+        QStringList related;
+        QList<Schema2TableModel *> tables = mData->tables()->tables();
+        for(auto* table: tables) {
+            Schema2RelationsModel* relationsModel = table->relations();
+            for(int row=0;row<relationsModel->rowCount();row++) {
+                Schema2Relation* relation = relationsModel->at(row);
+                auto parent = relation->parentTable();
+                auto child = relation->childTable();
+                if (checked.contains(parent)) {
+                    related.append(child);
+                }
+                if (checked.contains(child)) {
+                    related.append(parent);
+                }
+            }
+        }
+        mData->tables()->setChecked(related, true);
+    });
 }
 
 
@@ -255,12 +282,12 @@ void Schema2View::onScript()
 
 void Schema2View::on_checkAll_clicked()
 {
-    mData->tables()->setAllGrayed(false);
+    mData->tables()->setChecked(true);
 }
 
 void Schema2View::on_uncheckAll_clicked()
 {
-    mData->tables()->setAllGrayed(true);
+    mData->tables()->setChecked(false);
 }
 
 void Schema2View::on_grayed_clicked()

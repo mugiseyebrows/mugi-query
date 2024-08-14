@@ -126,19 +126,37 @@ Schema2TableItem *Schema2TablesModel::tableItem(const QString &name) const {
     return mTableItems[index];
 }
 
-void Schema2TablesModel::setGrayed(const QString &name, bool value) {
+void Schema2TablesModel::setChecked(const QString &name, bool value) {
     auto* table = tableItem(name);
     if (!table) {
         qDebug() << "!table" << __FILE__ << __LINE__;
         return;
     }
-    table->setGrayed(value);
+    table->setChecked(value);
 }
 
-void Schema2TablesModel::setAllGrayed(bool value)
+void Schema2TablesModel::setChecked(const QStringList& names, bool value) {
+    for(const QString& name: names) {
+        setChecked(name, value);
+    }
+}
+
+
+
+QStringList Schema2TablesModel::checked(bool value) const {
+    QStringList res;
+    for(auto* item: mTableItems) {
+        if (item->checked() == value) {
+            res.append(item->tableName());
+        }
+    }
+    return res;
+}
+
+void Schema2TablesModel::setChecked(bool value)
 {
     for(auto* item: mTableItems) {
-        item->setGrayed(value);
+        item->setChecked(value);
     }
     emit dataChanged(index(0,0), index(rowCount() - 1, columnCount() - 1));
 }
@@ -325,7 +343,7 @@ QVariant Schema2TablesModel::data(const QModelIndex &index, int role) const
     }
     if (role == Qt::CheckStateRole) {
         if (index.column() == 0) {
-            return mTableItems[index.row()]->grayed() ? Qt::Unchecked : Qt::Checked;
+            return mTableItems[index.row()]->checked() ? Qt::Checked : Qt::Unchecked;
         }
     }
     return QVariant();
@@ -342,9 +360,9 @@ bool Schema2TablesModel::setData(const QModelIndex &index, const QVariant &value
 
         auto* item = mTableItems[index.row()];
 
-        item->setGrayed(!checked);
+        item->setChecked(checked);
 
-        if (checked) {
+        if (!checked) {
             mScene->removeItem(item);
             mScene->addItem(item);
         }
