@@ -1,1 +1,1 @@
-pyfind %~dp0 -iname *.cpp -not -iname moc_*.cpp qrc_*.cpp -xargs -exec pywc -l {} ;
+pyfind %~dp0 -iname *.cpp -not -iname moc_*.cpp mocs_*.cpp qrc_*.cpp CMakeCXXCompilerId.cpp -xargs -exec pywc -l {} ;
