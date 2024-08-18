@@ -20,6 +20,7 @@
 #include "schema2arrange.h"
 #include <QSortFilterProxyModel>
 #include "checkablestringlistmodel.h"
+#include "codewidget.h"
 
 #ifdef Q_OS_WIN
 #include <QAxObject>
@@ -191,16 +192,20 @@ void Schema2Data::pullTablesMysql() {
 
     QStringList tables = db.tables();
 
+    QList<STable> state = mTables->state();
+    QList<STable> newState;
+
     for(const QString& table: std::as_const(tables)) {
-
-        mTables->updateTable(table, StatusExisting);
-
+        //mTables->updateTable(table, StatusExisting);
         // todo character_maximum_length, numeric_precision
-        QSqlQuery q(db);
-        q.prepare("SELECT column_name, column_type, is_nullable, column_default, extra FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?");
-        q.addBindValue(table);
-        q.exec();
 
+        QList<SColumn> columns;
+
+        QSqlQuery q(db);
+        q.prepare("SELECT column_name, column_type, is_nullable, column_default, extra FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=? AND TABLE_SCHEMA=?");
+        q.addBindValue(table);
+        q.addBindValue(db.databaseName());
+        q.exec();
         QString prev;
         while(q.next()) {
             QString name = q.value(0).toString();
@@ -211,13 +216,19 @@ void Schema2Data::pullTablesMysql() {
             if (default_ == "NULL") {
                 default_ = QString();
             }
-            mTables->updateColumn(table, name, type, notNull, default_, autoincrement, prev);
+            columns.append(SColumn(name, type, notNull, default_, autoincrement));
+            //mTables->updateColumn(table, name, type, notNull, default_, autoincrement, prev);
             prev = name;
         }
 
-        mTables->updateColumns(table);
+        newState.append(STable(table, columns));
+        //mTables->updateColumns(table);
 
     }
+
+    SDiff diff = getDiff(state, newState);
+    mTables->merge(diff);
+
 }
 
 
@@ -238,15 +249,20 @@ void Schema2Data::pullTablesOdbc() {
     QAxObject engine("DAO.DBEngine.120");
     QAxObject* database = engine.querySubObject("OpenDatabase(QString, bool)", filePath, false);
 
+    QList<STable> state = mTables->state();
+    QList<STable> newState;
+
     for(const QString& tableName: tables) {
 
-        mTables->updateTable(tableName, StatusExisting);
+        //mTables->tableCreated(tableName, StatusExisting);
+
+        QList<SColumn> columns;
 
         QAxObject* tableDef = database->querySubObject("TableDefs(QString)", tableName);
 
         QAxObject* fields = tableDef->querySubObject("Fields");
         int fieldCount = fields->property("Count").toInt();
-        QString prev;
+        //QString prev;
         for(int i=0;i<fieldCount;i++) {
             QAxObject* field = tableDef->querySubObject("Fields(int)", i);
             QString name = field->property("Name").toString();
@@ -269,16 +285,24 @@ void Schema2Data::pullTablesOdbc() {
 
             // todo odbc autoincrement
             bool autoincrement = false;
+            // todo odbc default
             QString default_;
 
-            mTables->updateColumn(tableName, name, typeName, notNull, default_, autoincrement, prev);
+            columns.append(SColumn(name, typeName, notNull, default_, autoincrement));
 
-            prev = name;
+            //mTables->updateColumn(tableName, name, typeName, notNull, default_, autoincrement, prev);
+
+            //prev = name;
         }
 
-        mTables->updateColumns(tableName);
+        //mTables->updateColumns(tableName);
+        newState.append(STable(tableName, columns));
 
     }
+
+    SDiff diff = getDiff(state, newState);
+    mTables->merge(diff);
+
 #else
     // todo
 #endif
@@ -291,9 +315,14 @@ void Schema2Data::pullTablesOther() {
 
     QStringList tables = db.tables();
 
+    QList<STable> state = mTables->state();
+    QList<STable> newState;
+
     for(const QString& table: std::as_const(tables)) {
 
-        mTables->updateTable(table, StatusExisting);
+        //mTables->tableCreated(table, StatusExisting);
+
+        QList<SColumn> columns;
 
         QSqlRecord r = db.record(table);
         QString prev;
@@ -303,13 +332,18 @@ void Schema2Data::pullTablesOther() {
             bool notNull = false;
             bool autoincrement = false;
             QString default_;
-            mTables->updateColumn(table, name, type, notNull, default_, autoincrement, prev);
+            //mTables->updateColumn(table, name, type, notNull, default_, autoincrement, prev);
+            columns.append(SColumn(name, type, notNull, default_, autoincrement));
             prev = name;
         }
 
-        mTables->updateColumns(table);
+        //mTables->updateColumns(table);
+        newState.append(STable(table, columns));
 
     }
+
+    SDiff diff = getDiff(state, newState);
+    mTables->merge(diff);
 
 
 }
@@ -406,7 +440,7 @@ void Schema2Data::pullRelationsMysql() {
     }
 
     for(const RelationItem& relation: std::as_const(relations)) {
-        mTables->relationPulled(relation.constraintName, relation.childTable,
+        mTables->relationCreated(relation.constraintName, relation.childTable,
                                 relation.childColumns, relation.parentTable,
                                 relation.parentColumns, true, StatusExisting);
         //qDebug() << relation;
@@ -574,7 +608,7 @@ void Schema2Data::pullRelationsOdbc() {
             childColumns.append(childColumn);
         }
 
-        mTables->relationPulled(constraintName, childTable, childColumns, parentTable, parentColumns, true, StatusExisting);
+        mTables->relationCreated(constraintName, childTable, childColumns, parentTable, parentColumns, true, StatusExisting);
 
 
     }
@@ -843,7 +877,7 @@ void Schema2Data::createRelationDialog(const QString &childTable, const QString&
     auto* childTableModel = mTables->table(childTable);
     auto* parentTableModel = mTables->table(parentTable);
 
-    auto* relation = childTableModel->relationTo(parentTable);
+    auto relations = childTableModel->relationsTo(parentTable);
 
     if (!childTableModel) {
         qDebug() << "!childTableModel" << __FILE__ << __LINE__;
@@ -855,8 +889,8 @@ void Schema2Data::createRelationDialog(const QString &childTable, const QString&
     }
 
     // todo implement multiple relations between same pair of tables
-    if (relation) {
-        editRelationDialog(relation, widget);
+    if (relations.size() > 0) {
+        editRelationDialog(relations[0], widget);
         return;
     }
 
@@ -888,7 +922,7 @@ void Schema2Data::createRelationDialog(const QString &childTable, const QString&
         return;
     }
 
-    mTables->relationPulled(dialog.relationName(),
+    mTables->relationCreated(dialog.relationName(),
                    childTable, dialog.childColumns(),
                    parentTable, dialog.parentColumns(), dialog.constrained(), StatusNew);
 
@@ -909,13 +943,13 @@ void Schema2Data::dropRelationDialog(const QString &childTable, const QString &p
     if (!table1 || !table2) {
         return;
     }
-    auto* relation = table1->relationTo(table2->tableName());
-    if (relation) {
-        return dropRelationDialog(relation, widget);
+    auto relations = table1->relationsTo(table2->tableName());
+    if (relations.size() > 0) {
+        return dropRelationDialog(relations[0], widget);
     }
-    relation = table2->relationTo(table1->tableName());
-    if (relation) {
-        return dropRelationDialog(relation, widget);
+    relations = table2->relationsTo(table1->tableName());
+    if (relations.size() > 0) {
+        return dropRelationDialog(relations[0], widget);
     }
 }
 
@@ -1105,7 +1139,10 @@ void Schema2Data::saveAs(bool clipboard, const QString &path,
     exp.saveAs(clipboard, path, rect, onlySelected, format, widget);
 }
 
-void Schema2Data::scriptDialog(QWidget *widget)
+#include "highlighter.h"
+#include "tokens.h"
+
+void Schema2Data::scriptDialog(QWidget *parent)
 {
     auto driverName = this->driverName();
     auto* driver = this->driver();
@@ -1115,8 +1152,16 @@ void Schema2Data::scriptDialog(QWidget *widget)
             + mTables->createIndexesQueries(driverName, driver)
             + mTables->createRelationsQueries(driverName, driver);
 
-    qApp->clipboard()->setText(queries.join(";\n") + "\n");
-    QMessageBox::information(widget, "", "Copied to clipboard");
+    auto tokens = Tokens(QSqlDatabase::database(mConnectionName));
+    auto* highligher = new Highlighter(tokens, 0);
+
+    CodeWidget* widget = new CodeWidget();
+    widget->setText(queries.join(";\n") + "\n");
+    widget->setHighlighter(highligher);
+    widget->show();
+
+    /*qApp->clipboard()->setText();
+    QMessageBox::information(widget, "", "Copied to clipboard");*/
 }
 
 static QStringList mysqlTypes() {
@@ -1215,7 +1260,7 @@ void Schema2Data::createRelationDialog(Schema2TableModel* childTable,
         return;
     }
 
-    auto* relation = childTable->relationTo(parentTable);
+    auto relations = childTable->relationsTo(parentTable);
 
     QString relationName;
 
@@ -1223,10 +1268,11 @@ void Schema2Data::createRelationDialog(Schema2TableModel* childTable,
 
     Schema2RelationGuesser guesser(childTable, parentTableModel);
 
-    if (relation == 0) {
+    if (relations.size() == 0) {
         parentColumns = guesser.parentColumns();
         relationName = guesser.relationName();
     } else {
+        auto* relation = relations[0];
         parentColumns = relation->parentColumns();
         relationName = relation->name();
     }
@@ -1241,8 +1287,8 @@ void Schema2Data::createRelationDialog(Schema2TableModel* childTable,
         return;
     }
 
-    if (relation) {
-
+    if (relations.size() > 0) {
+        auto* relation = relations[0];
         relation->setName(dialog.relationName());
         relation->setChildColumns(dialog.childColumns());
         relation->setParentColumns(dialog.parentColumns());
@@ -1254,8 +1300,8 @@ void Schema2Data::createRelationDialog(Schema2TableModel* childTable,
         QStringList parentColumns = dialog.parentColumns();
         bool constrained = dialog.constrained();
 
-        mTables->relationPulled(constraintName, childTable->tableName(), childColumns,
-                                parentTable, parentColumns, constrained, StatusNew);
+        mTables->relationCreated(constraintName, childTable->tableName(), childColumns,
+                                 parentTable, parentColumns, constrained, StatusNew);
 
     }
 
@@ -1310,7 +1356,7 @@ QSortFilterProxyModel *Schema2Data::selectProxyModel() {
 
 Schema2TableModel* Schema2Data::createTable(const QString &name)
 {
-    return mTables->updateTable(name, StatusNew);
+    return mTables->tableCreated(name, StatusNew);
 }
 
 Schema2TableItem *Schema2Data::tableItem(const QString &name) const {

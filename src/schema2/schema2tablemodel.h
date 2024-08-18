@@ -6,12 +6,15 @@
 #include "schema2relation.h"
 #include "schema2status.h"
 #include "schema2tablecolumn.h"
+#include "sdata.h"
+
 class Schema2Index;
 class Schema2IndexesModel;
 class Schema2RelationsModel;
 class QSqlDriver;
 class Schema2ParentRelationsModel;
 class Schema2TablesModel;
+
 
 class Schema2TableModel : public QAbstractTableModel
 {
@@ -34,11 +37,13 @@ public:
 
     explicit Schema2TableModel(const QString& name, Status status, QObject *parent = nullptr);
 
-    bool updateColumn(const QString& name, const QString& type, bool notNull, const QString &default_, bool autoIncrement, const QString &prev);
+    bool updateColumn(const SColumn &column, const QString &prev);
 
     bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex());
 
     QString tableName() const;
+
+    void setTableName(const QString& name);
 
     QString namePrev(int row) const;
 
@@ -94,7 +99,7 @@ public:
 
     Schema2RelationsModel* relations() const;
 
-    Schema2Relation* relationTo(const QString& tableName) const;
+    QList<Schema2Relation*> relationsTo(const QString& tableName) const;
 
     void pushed(bool created);
 
@@ -131,8 +136,8 @@ signals:
 protected:
     //QList<QStringList> mColumns;
 
-    QList<Schema2TableColumn> mColumns;
-    QList<Schema2TableColumn> mColumnsPrev;
+    QList<SColumn> mColumns;
+    QList<SColumn> mColumnsPrev;
 
 
     QString mTableName;
@@ -164,15 +169,15 @@ public:
 
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
-
-    QString columnDefinition(const QString &driverName, QSqlDriver *driver, int row, bool skipAutoIncrement = false) const;
+    QString columnDefinition(const QString &driverName, QSqlDriver *driver, int row, bool skipAutoIncrement, const QStringList &primaryKey) const;
 
     // QAbstractItemModel interface
 public:
     bool removeRows(int row, int count, const QModelIndex &parent);
     void updateParentRelations(Schema2TablesModel *tables);
 
-
+    int indexOf(const QString &name);
+    void tableAltered(const STable &table);
 
 };
 

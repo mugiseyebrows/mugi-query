@@ -60,7 +60,7 @@ static QStringList sortedFields(const QStringList fields) {
 
 void Completer::setContext(Context context)
 {
-    static QSet<Context> fieldContexts = {Select, On, Where, Set};
+    static QSet<Context> fieldContexts = {Select, On, Where, Set, Column};
     static QSet<Context> tableContexts = {From, Join, Update, Table, To};
     mContext = context;
     QStringListModel* model = nullptr;

@@ -7,6 +7,8 @@
 
 class Schema2TableModel;
 class TableItem;
+class SRenamed;
+class STable;
 
 class Schema2TreeModel : public QStandardItemModel
 {
@@ -18,14 +20,25 @@ public:
 
     //void updateColumn(const QString& tableName, const QString& name);
 
-    void updateColumns(const QString& tableName);
+    //void updateColumns(const QString& tableName);
+
+    void tableDropped(const QString &name);
+
+    void tableRenamed(const SRenamed &table);
+
+    void tableAltered(Schema2TableModel *tableModel);
+
+    void tableCreated(Schema2TableModel* table);
 
 signals:
 
 
 
 protected:
-    TableItem *findTable(const QString &name);
+    int indexOf(const QString &name) const;
+    TableItem *findTable(const QString &name) const;
+    void emitRowChanged(int row);
+    QStringList tableNames() const;
 };
 
 #endif // SCHEMA2TREEMODEL_H

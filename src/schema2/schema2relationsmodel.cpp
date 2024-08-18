@@ -77,14 +77,15 @@ Schema2Relation *Schema2RelationsModel::remove(Schema2Relation * relation) {
     return removeAt(index);
 }
 
-Schema2Relation *Schema2RelationsModel::getRelationTo(const QString &tableName) const
+QList<Schema2Relation*> Schema2RelationsModel::getRelationsTo(const QString &tableName) const
 {
+    QList<Schema2Relation*> res;
     for(Schema2Relation* relation: mRelations) {
         if (relation->parentTable().toLower() == tableName.toLower()) {
-            return relation;
+            res.append(relation);
         }
     }
-    return 0;
+    return res;
 }
 
 QList<Schema2Relation*> Schema2RelationsModel::values() const

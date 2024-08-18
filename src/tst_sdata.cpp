@@ -11,7 +11,7 @@ STable mockTable(const QString &name, const QStringList &columnNames)
     return STable(name, columns);
 }
 
-class TestSData : public QObject {
+class tst_SData : public QObject {
     Q_OBJECT
 public:
 
@@ -21,7 +21,7 @@ private slots:
 };
 
 
-void TestSData::testDiffBasic()
+void tst_SData::testDiffBasic()
 {
     QList<STable> tables1 = {
                              mockTable("foo", {"a", "b", "c"}),
@@ -56,7 +56,7 @@ void TestSData::testDiffBasic()
 
 }
 
-void TestSData::testDiffEmpty()
+void tst_SData::testDiffEmpty()
 {
     QList<STable> tables1 = {};
     QList<STable> tables2 = {
@@ -81,5 +81,5 @@ void TestSData::testDiffEmpty()
 
 }
 
-QTEST_MAIN(TestSData)
-#include "testsdata.moc"
+QTEST_MAIN(tst_SData)
+#include "tst_sdata.moc"

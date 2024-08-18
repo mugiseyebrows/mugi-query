@@ -49,6 +49,7 @@ public:
     void selectTab(const QString &name);
     QMenu* selectionMenu() const;
 
+    void expandSchemaTree();
 protected:
     void closeEvent(QCloseEvent *event);
     QueryHistoryWidget* mQueryHistory;

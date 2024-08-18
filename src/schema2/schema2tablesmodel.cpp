@@ -43,7 +43,61 @@ bool Schema2TablesModel::contains(const QString &table) {
     return indexOf(table) > -1;
 }
 
-Schema2TableModel* Schema2TablesModel::updateTable(const QString& table, Status status) {
+
+
+#if 0
+void Schema2TablesModel::updateColumns(const QString& tableName) {
+
+    mTreeModel->updateColumns(tableName);
+
+}
+#endif
+
+#if 0
+// todo updateColumn(const QString& tableName, const QList<ColumnData>& data)
+void Schema2TablesModel::updateColumn(const QString& tableName, const QString &name, const QString &type, bool notNull,
+                                                   const QString& default_,
+                                                   bool autoIncrement, const QString& prev) {
+
+
+    Schema2TableModel* model = this->table(tableName);
+    if (model->updateColumn(name, type, notNull, default_, autoIncrement, prev)) {
+        //mTreeModel->updateColumn(tableName, name);
+    }
+
+}
+#endif
+
+Schema2TreeModel *Schema2TablesModel::tree() const
+{
+    return mTreeModel;
+}
+
+Schema2TreeProxyModel *Schema2TablesModel::treeProxy() const
+{
+    return mTreeProxyModel;
+}
+
+QList<STable> Schema2TablesModel::state() const
+{
+    QList<STable> res;
+    for(auto* table: mTableModels) {
+        QList<SColumn> columns;
+        QString tableName = table->tableName();
+        for(int row=0;row<table->rowCount();row++) {
+            QString name = table->name(row);
+            QString type = table->type(row);
+            bool notNull = table->notNull(row);
+            QString default_ = table->default_(row);
+            auto autoincrement = table->autoincrement(row);
+            columns.append(SColumn(name, type, notNull, default_, autoincrement));
+        }
+        res.append(STable(tableName, columns));
+    }
+    return res;
+}
+
+Schema2TableModel* Schema2TablesModel::tableCreated(const QString& table, Status status) {
 
     if (contains(table)) {
         return 0;
@@ -63,37 +117,92 @@ Schema2TableModel* Schema2TablesModel::updateTable(const QString& table, Status 
     beginInsertRows(QModelIndex(), row, row);
     mTableModels.append(model);
     mTableItems.append(item);
-    mTreeModel->updateTable(model);
     endInsertRows();
     mScene->addItem(item);
+    mTreeModel->tableCreated(model);
     return model;
 }
 
-void Schema2TablesModel::updateColumns(const QString& tableName) {
+void Schema2TablesModel::tableDropped(const QString& name) {
+    /*auto* table = this->table(name);
+    auto* tableItem = this->tableItem(name);
+*/
 
-
-
-    mTreeModel->updateColumns(tableName);
-}
-
-// todo updateColumn(const QString& tableName, const QList<ColumnData>& data)
-void Schema2TablesModel::updateColumn(const QString& tableName, const QString &name, const QString &type, bool notNull,
-                                                   const QString& default_,
-                                                   bool autoIncrement, const QString& prev) {
-    Schema2TableModel* model = this->table(tableName);
-    if (model->updateColumn(name, type, notNull, default_, autoIncrement, prev)) {
-        //mTreeModel->updateColumn(tableName, name);
+    int index = indexOf(name);
+    if (index < 0) {
+        qDebug() << "tableDropped error index < 0" << name << __FILE__ << __LINE__;
+        return;
     }
+    beginRemoveRows(QModelIndex(), index, index);
+
+    auto* table = mTableModels.takeAt(index);
+    auto* tableItem = mTableItems.takeAt(index);
+
+    mScene->removeItem(tableItem);
+
+    for(auto* item: mRelationItems) {
+        if (item->parentTable() == tableItem) {
+            //toRemove.append(item);
+            mScene->removeItem(item);
+            delete item;
+        } else if (item->childTable() == tableItem) {
+            //toRemove.append(item);
+            mScene->removeItem(item);
+            delete item;
+        }
+    }
+
+    for(auto* item: mTableModels) {
+        QList<Schema2Relation*> relations = item->relationsTo(name);
+        for(auto* relation: relations) {
+            item->relations()->remove(relation);
+        }
+    }
+
+    delete tableItem;
+
+    // todo: tree item uses this pointer
+    //delete table;
+
+    endRemoveRows();
+
+    mTreeModel->tableDropped(name);
 }
 
-Schema2TreeModel *Schema2TablesModel::tree() const
-{
-    return mTreeModel;
+void Schema2TablesModel::tableRenamed(const SRenamed& renamed) {
+    Schema2TableModel * table = this->table(renamed.oldName);
+    table->setTableName(renamed.newName);
+    mTreeModel->tableRenamed(renamed);
 }
 
-Schema2TreeProxyModel *Schema2TablesModel::treeProxy() const
+void Schema2TablesModel::tableAltered(const STable& table) {
+    Schema2TableModel* model = this->table(table.name);
+    model->tableAltered(table);
+    mTreeModel->tableAltered(model);
+}
+
+void Schema2TablesModel::merge(const SDiff &diff)
 {
-    return mTreeProxyModel;
+    QList<STable> created = diff.created;
+    QStringList dropped = diff.dropped;
+    QList<SRenamed> renamed = diff.renamed;
+    QList<STable> altered = diff.altered;
+
+    for(const auto& table: created) {
+        tableCreated(table.name, StatusExisting);
+        tableAltered(table);
+    }
+    for(const auto& table: dropped) {
+        tableDropped(table);
+    }
+    for(const auto& item: renamed) {
+        tableRenamed(item);
+        tableAltered(item.table);
+    }
+    for(const auto& table: altered) {
+        tableAltered(table);
+    }
+
 }
 
 Schema2TableModel* Schema2TablesModel::tableRemoved(const QString &tableName)
@@ -372,7 +481,7 @@ bool Schema2TablesModel::setData(const QModelIndex &index, const QVariant &value
     return false;
 }
 
-void Schema2TablesModel::relationPulled(const QString& constraintName, const QString& childTable, const QStringList& childColumns,
+void Schema2TablesModel::relationCreated(const QString& constraintName, const QString& childTable, const QStringList& childColumns,
                const QString& parentTable, const QStringList& parentColumns,
                bool constrained, Status status) {
 

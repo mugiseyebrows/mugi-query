@@ -27,12 +27,12 @@ static QStringList toLower(const QStringList& items) {
 static QList<QStringList> findChildColumnsParentColumns(
         const QString &childTable, const QString &parentTable,
         Schema2TablesModel* tableModels) {
-    Schema2Relation* relation = tableModels->table(childTable)->relationTo(parentTable);
-    if (relation) {
+    auto relations = tableModels->table(childTable)->relationsTo(parentTable);
+    for(auto* relation: relations) {
         return {relation->childColumns(), relation->parentColumns()};
     }
-    relation = tableModels->table(parentTable)->relationTo(childTable);
-    if (relation) {
+    relations = tableModels->table(parentTable)->relationsTo(childTable);
+    for(auto* relation: relations) {
         return {relation->parentColumns(), relation->childColumns()};
     }
     return {};

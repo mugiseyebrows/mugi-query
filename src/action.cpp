@@ -15,3 +15,8 @@ QVariantList Action::args() const {
 QVariant Action::arg(int index) const {
     return mArgs.value(index);
 }
+
+QList<Function> Action::functions() const
+{
+    return mFunctions;
+}

@@ -9,6 +9,7 @@
 #include "filterempty.h"
 #include "drivernames.h"
 #include "schema2parentrelationsmodel.h"
+#include "sdata.h"
 
 // todo table renames
 
@@ -20,13 +21,68 @@ Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject
 
 }
 
-bool Schema2TableModel::updateColumn(const QString &name, const QString &type, bool notNull,
-                                                   const QString& default_,
-                                                   bool autoIncrement, const QString& prev)
+void Schema2TableModel::tableAltered(const STable& table) {
+
+    QStringList state = this->columnNames();
+    QStringList newState = table.columnNames();
+
+    //qDebug() << "Schema2TableModel::tableAltered";
+
+    // removed
+    for(auto it=state.rbegin();it!=state.rend();it++) {
+        QString name = *it;
+        int index = newState.indexOf(name);
+        if (index < 0) {
+            index = state.indexOf(name);
+            qDebug() << "remove" << name;
+            beginRemoveRows(QModelIndex(), index, index);
+            mColumns.removeAt(index);
+            mColumnsPrev.removeAt(index);
+            endRemoveRows();
+        }
+    }
+
+    // inserted and changed
+    for(int i=0;i<table.columns.size();i++) {
+        auto column = table.columns[i];
+        int index = indexOf(column.name);
+        if (index > -1) {
+            // todo keep user changes
+            mColumns[index] = column;
+            mColumnsPrev[index] = column;
+            qDebug() << "replace" << column.name << index;
+        } else {
+            int index = mColumns.size();
+            if (i > 0) {
+                int indexPrev = indexOf(table.columns[i-1].name);
+                if (indexPrev > -1) {
+                    index = indexPrev + 1;
+                }
+            }
+            qDebug() << "insert" << column.name << index;
+            beginInsertRows(QModelIndex(), index, index);
+            mColumns.insert(index, column);
+            mColumnsPrev.insert(index, column);
+            endInsertRows();
+        }
+    }
+
+}
+
+int Schema2TableModel::indexOf(const QString& name) {
+    for(int row=0;row<mColumns.size();row++) {
+        if (mColumns[row].name == name) {
+            return row;
+        }
+    }
+    return -1;
+}
+
+bool Schema2TableModel::updateColumn(const SColumn& column, const QString& prev)
 {
     int insertRow = rowCount();
 
-    QString name_ = name.toLower();
+    QString name_ = column.name.toLower();
     QString prev_ = prev.toLower();
 
     for(int row=0;row<mColumns.size();row++) {
@@ -40,8 +96,8 @@ bool Schema2TableModel::updateColumn(const QString &name, const QString &type, b
 
     beginInsertRows(QModelIndex(), insertRow, insertRow);
     //mColumns.insert(insertRow, {name, name, type, type});
-    mColumns.insert(insertRow, Schema2TableColumn(name, type, notNull, default_, autoIncrement));
-    mColumnsPrev.insert(insertRow, Schema2TableColumn(name, type, notNull, default_, autoIncrement));
+    mColumns.insert(insertRow, column);
+    mColumnsPrev.insert(insertRow, column);
     endInsertRows();
     return true;
 }
@@ -50,8 +106,8 @@ bool Schema2TableModel::insertRows(int row, int count, const QModelIndex &parent
 {
     beginInsertRows(QModelIndex(), row, row + count - 1);
     for(int i=0;i<count;i++) {
-        mColumns.insert(row, Schema2TableColumn());
-        mColumnsPrev.insert(row, Schema2TableColumn());
+        mColumns.insert(row, SColumn());
+        mColumnsPrev.insert(row, SColumn());
     }
     endInsertRows();
     return true;
@@ -62,6 +118,11 @@ QString Schema2TableModel::tableName() const
     return mTableName;
 }
 
+void Schema2TableModel::setTableName(const QString &name)
+{
+    mTableName = name;
+}
+
 QString Schema2TableModel::namePrev(int row) const
 {
     return mColumnsPrev[row].name;
@@ -69,6 +130,9 @@ QString Schema2TableModel::namePrev(int row) const
 
 QString Schema2TableModel::name(int row) const
 {
+    if (row < 0 || row >= mColumns.size()) {
+        return QString();
+    }
     return mColumns[row].name;
 }
 
@@ -79,6 +143,9 @@ QString Schema2TableModel::typePrev(int row) const
 
 QString Schema2TableModel::type(int row) const
 {
+    if (row < 0 || row >= mColumns.size()) {
+        return QString();
+    }
     return mColumns[row].type;
 }
 
@@ -93,11 +160,11 @@ bool Schema2TableModel::notNullPrev(int row) const
 }
 
 bool Schema2TableModel::autoincrement(int row) const {
-    return mColumns[row].autoincrement;
+    return mColumns[row].autoIncrement;
 }
 
 bool Schema2TableModel::autoincrementPrev(int row) const {
-    return mColumnsPrev[row].autoincrement;
+    return mColumnsPrev[row].autoIncrement;
 }
 
 QString Schema2TableModel::default_(int row) const {
@@ -207,9 +274,9 @@ Schema2RelationsModel *Schema2TableModel::relations() const
     return mRelations;
 }
 
-Schema2Relation *Schema2TableModel::relationTo(const QString &tableName) const
+QList<Schema2Relation*> Schema2TableModel::relationsTo(const QString &tableName) const
 {
-    return mRelations->getRelationTo(tableName);
+    return mRelations->getRelationsTo(tableName);
 }
 
 void Schema2TableModel::pushed(bool created) {
@@ -253,15 +320,22 @@ Status Schema2TableModel::status() const {
 QStringList Schema2TableModel::createQueries(const QString &driverName, QSqlDriver *driver) const {
     SqlEscaper es(driver);
     QStringList columns;
+
+    QStringList primaryKey = this->indexes()->primaryKey();
+
     for(int row=0;row<rowCount();row++) {
         QString name = this->name(row);
         QString type = this->type(row);
         if (name.isEmpty() || type.isEmpty()) {
             continue;
         }
-        QString column_definition = columnDefinition(driverName, driver, row, true);
+        QString column_definition = columnDefinition(driverName, driver, row, false, primaryKey);
         columns.append(column_definition);
     }
+    if (primaryKey.size() > 1) {
+        columns.append(QString("CONSTRAINT PK_%1 PRIMARY KEY (%2)").arg(mTableName).arg(primaryKey.join(", ")));
+    }
+
     QString expr = QString("CREATE TABLE %1 (%2)")
             .arg(es.table(mTableName))
             .arg(columns.join(", "));
@@ -280,6 +354,8 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
                 .arg(es.field(colName));
         res.append(expr);
     }
+
+    QStringList primaryKey = indexes()->primaryKey();
 
     for(int row=0;row<rowCount();row++) {
 
@@ -305,7 +381,7 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
         } else {
             if (namePrev.isEmpty()) {
 
-                QString column_definition = columnDefinition(driverName, driver, row);
+                QString column_definition = columnDefinition(driverName, driver, row, false, primaryKey);
 
                 QString expr = QStringList{"ALTER TABLE", es.table(mTableName),
                                             "ADD COLUMN", column_definition}.join(" ");
@@ -332,7 +408,7 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
 
                 } else if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
 
-                    QString column_definition = columnDefinition(driverName, driver, row);
+                    QString column_definition = columnDefinition(driverName, driver, row, false, primaryKey);
 
                     QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
                                                 "CHANGE COLUMN", es.field(namePrev), column_definition}).join(" ");
@@ -356,13 +432,14 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
 QStringList Schema2TableModel::autoincrementQueries(const QString &driverName, QSqlDriver *driver) const {
     SqlEscaper es(driver);
     QStringList res;
+    auto primaryKey = indexes()->primaryKey();
     for(int row=0;row<rowCount();row++) {
         QString namePrev = this->namePrev(row);
         QString name = this->name(row);
         QString type = this->type(row);
         bool autoincrement = this->autoincrement(row);
         if (namePrev.isEmpty() && !name.isEmpty() && !type.isEmpty() && autoincrement) {
-            QString column_definition = columnDefinition(driverName, driver, row);
+            QString column_definition = columnDefinition(driverName, driver, row, false, primaryKey);
             QString expr = QStringList {"ALTER TABLE", es.table(mTableName),
                                         "MODIFY COLUMN", column_definition}.join(" ");
             res.append(expr);
@@ -375,7 +452,7 @@ static bool is_text_type(const QString& driverName, const QString& type) {
     return type.toLower().startsWith("varchar") || type.toLower() == "text";
 }
 
-QString Schema2TableModel::columnDefinition(const QString &driverName, QSqlDriver *driver, int row, bool skipAutoIncrement) const {
+QString Schema2TableModel::columnDefinition(const QString &driverName, QSqlDriver *driver, int row, bool skipAutoIncrement, const QStringList& primaryKey) const {
 
     //Q_ASSERT(driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB);
 
@@ -411,6 +488,7 @@ QString Schema2TableModel::columnDefinition(const QString &driverName, QSqlDrive
     QString res = filterEmpty({es.field(name), type,
                                notNull ? "NOT NULL" : "",
                                default_def,
+                               (primaryKey.size() == 1 && primaryKey[0] == name) ? "PRIMARY KEY" : "",
                                (autoincrement && !skipAutoIncrement) ? "AUTO_INCREMENT" : ""}).join(" ");
     return res;
 }
@@ -519,8 +597,8 @@ QVariant Schema2TableModel::data(const QModelIndex &index, int role) const
         switch(index.column()) {
         case col_notnull: return bool_to_checked(mColumns[row].notNull);
         case col_notnull_prev: return bool_to_checked(mColumnsPrev[row].notNull);
-        case col_autoincrement: return bool_to_checked(mColumns[row].autoincrement);
-        case col_autoincrement_prev: return bool_to_checked(mColumnsPrev[row].autoincrement);
+        case col_autoincrement: return bool_to_checked(mColumns[row].autoIncrement);
+        case col_autoincrement_prev: return bool_to_checked(mColumnsPrev[row].autoIncrement);
         }
     }
 
@@ -563,8 +641,8 @@ bool Schema2TableModel::setData(const QModelIndex &index, const QVariant &value,
         switch(index.column()) {
         case col_notnull: mColumns[row].notNull = checked_to_bool(value); break;
         case col_notnull_prev: mColumnsPrev[row].notNull = checked_to_bool(value); break;
-        case col_autoincrement: mColumns[row].autoincrement = checked_to_bool(value); break;
-        case col_autoincrement_prev: mColumnsPrev[row].autoincrement = checked_to_bool(value); break;
+        case col_autoincrement: mColumns[row].autoIncrement = checked_to_bool(value); break;
+        case col_autoincrement_prev: mColumnsPrev[row].autoIncrement = checked_to_bool(value); break;
         }
         emit dataChanged(index, index);
     }

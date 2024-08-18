@@ -37,6 +37,11 @@ add_test(NAME tst_sqlparse COMMAND tst_sqlparse)
 target_link_libraries(tst_sqlparse PRIVATE Qt::Test)
 target_include_directories(tst_sqlparse PRIVATE src)
 
+qt_add_executable(tst_sdata src/schema2/sdata.h src/schema2/sdata.cpp src/tst_sdata.cpp)
+add_test(NAME tst_sdata COMMAND tst_sdata)
+target_link_libraries(tst_sdata PRIVATE Qt::Test)
+target_include_directories(tst_sdata PRIVATE src src/schema2)
+
 # Resources:
 set(icons_resource_files
     "src/icons/9022095_arrows_out_cardinal_duotone_icon.png"
@@ -259,6 +264,8 @@ if (BUILD_APP)
         src/schema2/dataimportwidget2.cpp src/schema2/dataimportwidget2.h src/schema2/dataimportwidget2.ui
         mugi-query_resource.rc
         src/model/hexitemdelegate.h src/model/hexitemdelegate.cpp
+        src/widget/actionrunstepswidget.h src/widget/actionrunstepswidget.cpp src/widget/actionrunstepswidget.ui
+        src/schema2/codewidget.h src/schema2/codewidget.cpp src/schema2/codewidget.ui
     )
     target_include_directories(mugi-query PUBLIC
         src

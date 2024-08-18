@@ -3,16 +3,19 @@
 
 #include <QString>
 
+#if 0
+
 class Schema2TableColumn {
 public:
     Schema2TableColumn();
-    Schema2TableColumn(const QString& name, const QString& type,
-                       bool notNull, const QString& default_, bool autoincrement);
+    Schema2TableColumn(const SColumn& column);
     QString name;
     QString type;
     bool notNull;
     QString default_;
     bool autoincrement;
 };
+
+#endif
 
 #endif // SCHEMA2TABLECOLUMN_H

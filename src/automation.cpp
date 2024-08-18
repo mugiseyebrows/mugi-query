@@ -25,6 +25,7 @@
 #include "schema2data.h"
 #include "schema2tablesmodel.h"
 #include "schema2tablemodel.h"
+#include "actionrunstepswidget.h"
 
 namespace {
 
@@ -66,12 +67,11 @@ MainWindow *Automation::mainWindow()
 Schema2View* Automation::schemaView() {
     auto widgets = qApp->topLevelWidgets();
     for(auto* widget: widgets) {
-        Schema2View* view = qobject_cast<Schema2View*>(widget);
-        if (view) {
+        if (Schema2View* view = qobject_cast<Schema2View*>(widget)) {
             return view;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 Automation::Automation(QObject *parent) : QObject(parent), mAddDatabaseDialog(0), mDatabaseHistoryDialog(0)
@@ -219,6 +219,10 @@ void Automation::exportTo(int format, bool cropAll, bool itemsAll, bool clipboar
 void Automation::toolXJoin(const QString &conn1, const QString &conn2)
 {
     mQueued.append(Action(Action::ActionToolXJoin, {conn1, conn2}));
+}
+
+void Automation::runSteps(const QList<Function>& functions) {
+    mQueued.append(Action(functions));
 }
 
 static QVariant toVariant(const QList<QStringList>& values) {
@@ -469,7 +473,7 @@ void Automation::onStart() {
         auto* data = view->data();
         auto* tables = data->tables();
 
-        tables->relationPulled(name,
+        tables->relationCreated(name,
                                childTable, childColumns,
                                parentTable, parentColumns,
                                constrained, StatusNew);
@@ -489,8 +493,12 @@ void Automation::onStart() {
 
     } else if (mAction.type() == Action::ActionPushSchema) {
 
-        auto* view = schemaView();
-        view->onPush();
+        onPushSchema();
+        next();
+
+    } else if (mAction.type() == Action::ActionPullSchema) {
+
+        onPullSchema();
         next();
 
     } else if (mAction.type() == Action::ActionCompareTable) {
@@ -559,6 +567,16 @@ void Automation::onStart() {
         view->onSave();
         next();
 
+    } else if (mAction.type() == Action::ActionRunSteps) {
+
+        ActionRunStepsWidget* widget = new ActionRunStepsWidget();
+        widget->init(mAction.functions());
+        widget->show();
+
+        connect(widget, &ActionRunStepsWidget::completed, [=](){
+            next();
+        });
+
     }
 
 }
@@ -624,5 +642,15 @@ void Automation::onDatabaseHistoryDialog() {
         QString connectionName = mAction.args().value(0).toString();
         mDatabaseHistoryDialog->select(connectionName);
     }
+}
+
+void Automation::onPushSchema() {
+    auto* view = schemaView();
+    view->onPush();
+}
+
+void Automation::onPullSchema() {
+    auto* view = schemaView();
+    view->onPull();
 }
 

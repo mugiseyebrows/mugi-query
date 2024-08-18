@@ -34,7 +34,7 @@ public:
 
     Schema2Relation *remove(Schema2Relation *relation);
 
-    Schema2Relation *getRelationTo(const QString &tableName) const;
+    QList<Schema2Relation*> getRelationsTo(const QString &tableName) const;
 
     QList<Schema2Relation*> values() const;
 

@@ -6,7 +6,7 @@
 
 class SColumn {
 public:
-    SColumn() {
+    SColumn() : notNull(false), autoIncrement(false) {
 
     }
     SColumn(const QString& name, const QString& type, bool notNull = false, const QString& default_ = QString(), bool autoIncrement = false)

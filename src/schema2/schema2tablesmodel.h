@@ -16,6 +16,7 @@ class Schema2TreeProxyModel;
 #include "hash.h"
 #include "schema2status.h"
 #include "uncheckedmode.h"
+#include "sdata.h"
 
 class Schema2TablesModel : public QAbstractTableModel
 {
@@ -27,7 +28,7 @@ public:
 
     bool contains(const QString& table);
 
-    Schema2TableModel *updateTable(const QString &table, Status status);
+
 
     Schema2TableModel *tableRemoved(const QString &tableName);
 
@@ -73,11 +74,17 @@ public:
 
     void setUncheckedMode(UncheckedMode mode);
 
-    void updateColumn(const QString &tableName, const QString &name, const QString &type, bool notNull, const QString &default_, bool autoIncrement, const QString &prev);
+    //void updateColumn(const QString &tableName, const QString &name, const QString &type, bool notNull, const QString &default_, bool autoIncrement, const QString &prev);
 
     Schema2TreeModel* tree() const;
 
     Schema2TreeProxyModel* treeProxy() const;
+
+    QList<STable> state() const;
+
+    void merge(const SDiff& diff);
+
+    Schema2TableModel *tableCreated(const QString &table, Status status);
 
 protected:
 
@@ -103,6 +110,10 @@ protected:
 
     int indexOf(const QString &name) const;
 
+    void tableDropped(const QString &name);
+    void tableRenamed(const SRenamed &table);
+    void tableAltered(const STable &table);
+
 signals:
 
     void tableClicked(QString, QPointF);
@@ -120,15 +131,16 @@ public:
     // QAbstractItemModel interface
 public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
-    void relationPulled(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns, bool constrained, Status status);
+    void relationCreated(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns, bool constrained, Status status);
     void relationRemoved(Schema2Relation *relation);
 
 
     QStringList createTablesQueries(const QString &driverName, QSqlDriver *driver) const;
     QStringList createIndexesQueries(const QString &driverName, QSqlDriver *driver) const;
     QStringList createRelationsQueries(const QString &driverName, QSqlDriver *driver) const;
-    void updateColumns(const QString &tableName);
+    //void updateColumns(const QString &tableName);
     QStringList checked(bool value) const;
+
 };
 
 #endif // SCHEMA2TABLESMODEL_H

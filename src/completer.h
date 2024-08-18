@@ -10,7 +10,6 @@ class Completer : public QCompleter
 public:
     enum Context {
         Undefined,
-        Unknown,
         Select,
         From,
         Join,
@@ -20,6 +19,7 @@ public:
         Set,
         Table,
         To,
+        Column,
     };
     Completer(QObject* parent = nullptr);
     void setContext(Context ctx);

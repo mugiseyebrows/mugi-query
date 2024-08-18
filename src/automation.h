@@ -79,6 +79,10 @@ public:
     void selectTablesAll();
     void selectTables(const QStringList &tables);
     void exportTo(int format, bool cropAll, bool itemsAll, bool clipboard, const QString &path);
+    void runSteps(const QList<Function> &functions);
+public slots:
+    void onPullSchema();
+    void onPushSchema();
 protected:
 
     QQueue<Action> mQueued;

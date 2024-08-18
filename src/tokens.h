@@ -34,6 +34,7 @@ public:
 
     CompleterData completerData() const;
 
+    QStringList sizedTypes() const;
 protected:
     struct Table {
         QString table;

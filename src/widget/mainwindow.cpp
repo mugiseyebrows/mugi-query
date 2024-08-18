@@ -57,7 +57,7 @@
 #include "tolower.h"
 #include "schema2data.h"
 #include "schema2view.h"
-#include "schema2treemodel.h"
+//#include "schema2treemodel.h"
 #include "schema2treeproxymodel.h"
 #include <sqlparse.h>
 
@@ -305,6 +305,9 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
 
 }
 
+void MainWindow::expandSchemaTree() {
+    ui->schemaTree->expandAll();
+}
 
 void MainWindow::onSessionAdded(QString connectionName, QString name, QString namePrev) {
 

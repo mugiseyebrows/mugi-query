@@ -58,7 +58,7 @@ TextEdit::~TextEdit()
 
 
 void TextEdit::setTokens(const Tokens& tokens) {
-    qDebug() << "setTokens";
+    //qDebug() << "setTokens";
     mTokens = tokens;
     Highlighter* highlighter = new Highlighter(tokens,0);
     setHighlighter(highlighter);
@@ -173,22 +173,24 @@ static Completer::Context determineContext(const QTextCursor& cur) {
         {"set",Completer::Set},
         {"table", Completer::Table},
         {"to", Completer::To},
+        {"column", Completer::Column},
         };
 
     auto curCopy = cur;
     while (true) {
         if (!curCopy.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor)) {
-            return Completer::Unknown;
+            return Completer::Undefined;
         }
         if (curCopy.selectedText().contains(";")) {
             qDebug() << "went too far" << curCopy.selectedText();
-            return Completer::Unknown;
+            return Completer::Undefined;
         }
 
         auto m = rxWord.match(curCopy.selectedText());
         if (m.hasMatch()) {
             QString word = m.captured(1).toLower();
             if (contexts.contains(word)) {
+                qDebug() << "contexts.contains(word)" << word;
                 return contexts[word];
             } else {
                 qDebug() << "!contexts.contains(word)" << word;
@@ -198,7 +200,7 @@ static Completer::Context determineContext(const QTextCursor& cur) {
         }
         qDebug() << curCopy.selectedText();
     }
-    return Completer::Unknown;
+    return Completer::Undefined;
 }
 
 bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {

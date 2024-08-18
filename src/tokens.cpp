@@ -465,6 +465,14 @@ QStringList Tokens::autocompletion(const QMap<QString,QString>& aliases) const
     return res;
 }
 
+QStringList Tokens::sizedTypes() const {
+
+    if (mDriverName == DRIVER_MYSQL) {
+        return {"int", "varchar", "decimal", "smallint"};
+    }
+    return {};
+}
+
 QStringList Tokens::types() const
 {
     QStringList res;

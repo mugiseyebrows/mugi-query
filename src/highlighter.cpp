@@ -20,20 +20,28 @@ QStringList wordBounded(const QStringList& items) {
     return res;
 }
 
-QStringList wordBoundedWithBracket(const QStringList& items) {
+static QStringList wordBoundedWithBracket(const QStringList& items) {
     QStringList res;
     foreach (const QString& item, items) {
         res << "\\b" + item + "\\s*(?=\\()";
     }
     return res;
 }
-QStringList wordBoundedWithoutBracket(const QStringList& items) {
+static QStringList wordBoundedWithoutBracket(const QStringList& items) {
     QStringList res;
     foreach (const QString& item, items) {
         res << "\\b" + item + "\\s*(?![(_a-z])";
     }
     return res;
 }
+static QStringList wordBoundedWithSize(const QStringList& items) {
+    QStringList res;
+    foreach (const QString& item, items) {
+        res.append("\\b" + item + "\\b\\([0-9,]+\\)");
+    }
+    return res;
+}
+
 
 Highlighter::Highlighter(const Tokens &tokens, QTextDocument *parent) : QSyntaxHighlighter(parent)
 {
@@ -67,9 +75,10 @@ Highlighter::Highlighter(const Tokens &tokens, QTextDocument *parent) : QSyntaxH
     }
 
     typesFormat.setFontWeight(QFont::Bold);
-    QStringList typePatterns = wordBoundedWithoutBracket(tokens.types());
+    QStringList typePatterns = wordBoundedWithoutBracket(tokens.types())
+                               + wordBoundedWithSize(tokens.sizedTypes());
     foreach (const QString &pattern, typePatterns) {
-        rule.pattern = QRegularExpression(pattern,QRegularExpression::CaseInsensitiveOption);
+        rule.pattern = QRegularExpression(pattern, QRegularExpression::CaseInsensitiveOption);
         rule.format = typesFormat;
         highlightingRules.append(rule);
     }
