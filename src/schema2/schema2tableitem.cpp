@@ -144,16 +144,18 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         QTextOption opt(Qt::AlignCenter);
         painter->drawText(rect, name, opt);
 
-        if (primaryKey.contains(name)) {
-            QTextOption opt(Qt::AlignLeft);
-            QRectF rect(s, (row + 1) * s, w, s);
-            painter->drawText(rect, "🔑", opt);
-        }
+        if (mChecked) {
+            if (primaryKey.contains(name)) {
+                QTextOption opt(Qt::AlignLeft);
+                QRectF rect(s, (row + 1) * s, w, s);
+                painter->drawText(rect, "🔑", opt);
+            }
 
-        if (relationsChildColumns.contains(name)) {
-            QTextOption opt(Qt::AlignRight);
-            QRectF rect(0, (row + 1) * s, w - 20, s);
-            painter->drawText(rect, "👉", opt);
+            if (relationsChildColumns.contains(name)) {
+                QTextOption opt(Qt::AlignRight);
+                QRectF rect(0, (row + 1) * s, w - 20, s);
+                painter->drawText(rect, "👉", opt);
+            }
         }
 
         /*if (mModel->isIndexColumn(name)) {

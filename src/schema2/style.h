@@ -45,26 +45,6 @@ public:
         return res;
     }
 
-    static Style light() {
-        Style res;
-        res.SelectedBoundaryColor = QColor("#009BD5");
-        res.NormalBoundaryColor = QColor("#F4ADF1");
-        res.GradientColor0 = QColor("#ffffff");
-        res.GradientColor1 = QColor("#f5fffa");
-        res.GradientColor2 = QColor("#f5fffa");
-        res.GradientColor3 = QColor("#ffffff");
-        res.ArrowColor = QColor("#F7C0F4");
-        res.ArrowColorFaded = QColor("gray");
-        res.TitleColor = QColor("#FFEFFE");
-        res.BackgroundColor = QColor("#ffffff");
-        res.FineGridColor = QColor("#F2F2F2");
-        res.CoarseGridColor = QColor("#E5E5E5");
-        res.TextColor = QColor(Qt::black);
-        res.TextColorTitle = QColor(Qt::black);
-        res.TextColorFaded = QColor("#919A96");
-        return res;
-    }
-
     static Style pumpkin() {
         Style res;
         res.SelectedBoundaryColor = QColor("#EB9F5E");
@@ -79,9 +59,30 @@ public:
         res.BackgroundColor = QColor("#F6ECDF");
         res.FineGridColor = QColor("#EDD4C4");
         res.CoarseGridColor = QColor("#EFC9AE");
-        res.TextColor = QColor("#F4EDE3");
+        res.TextColor = QColor("#000000");
+        res.TextColorTitle = QColor("#000000");
+        res.TextColorFaded = QColor(Qt::lightGray);
+        return res;
+    }
+
+    static Style bubblegum() {
+        Style res;
+
+        res.ArrowColor = QColor("#B7BAFF");
+        res.ArrowColorFaded = QColor(Qt::lightGray);
+        res.BackgroundColor = QColor("#ffffff");
+        res.CoarseGridColor = QColor("#ffffff");
+        res.FineGridColor = QColor("#ffffff");
+        res.GradientColor0 = QColor("#F6E4EF");
+        res.GradientColor1 = QColor("#F6E4EF");
+        res.GradientColor2 = QColor("#EFEDFF");
+        res.GradientColor3 = QColor("#EFEDFF");
+        res.NormalBoundaryColor = QColor("#B7BAFF");
+        res.SelectedBoundaryColor = QColor("#B7BAFF");
+        res.TextColor = QColor("#000000");
         res.TextColorTitle = QColor(Qt::black);
         res.TextColorFaded = QColor(Qt::lightGray);
+        res.TitleColor = QColor("#B7BAFF");
         return res;
     }
 

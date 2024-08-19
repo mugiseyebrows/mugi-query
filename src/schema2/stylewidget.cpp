@@ -40,7 +40,8 @@ StyleWidget::StyleWidget(QWidget *parent)
         "BackgroundColor",
         "FineGridColor",
         "CoarseGridColor",
-        "TextColor"
+        "TextColor",
+        "TextColorTitle",
     };
 
     QGridLayout* layout = new QGridLayout();
@@ -49,6 +50,25 @@ StyleWidget::StyleWidget(QWidget *parent)
         QLineEdit* edit = new QLineEdit();
         layout->addWidget(label, row, 0);
         layout->addWidget(edit, row, 1);
+
+        QString value;
+        switch(row) {
+        case 0: value = Style::current.SelectedBoundaryColor.name(); break;
+        case 1: value = Style::current.NormalBoundaryColor.name(); break;
+        case 2: value = Style::current.GradientColor0.name(); break;
+        case 3: value = Style::current.GradientColor1.name(); break;
+        case 4: value = Style::current.GradientColor2.name(); break;
+        case 5: value = Style::current.GradientColor3.name(); break;
+        case 6: value = Style::current.ArrowColor.name(); break;
+        case 7: value = Style::current.TitleColor.name(); break;
+        case 8: value = Style::current.BackgroundColor.name(); break;
+        case 9: value = Style::current.FineGridColor.name(); break;
+        case 10: value = Style::current.CoarseGridColor.name(); break;
+        case 11: value = Style::current.TextColor.name(); break;
+        case 12: value = Style::current.TextColorTitle.name(); break;
+        }
+        edit->setText(value);
+
         mEdits.append(edit);
         connect(edit, &QLineEdit::textChanged, [=](const QString& text){
             qDebug() << "textChanged row" << row;
@@ -73,6 +93,7 @@ StyleWidget::StyleWidget(QWidget *parent)
             case 9: Style::current.FineGridColor = color; break;
             case 10: Style::current.CoarseGridColor = color; break;
             case 11: Style::current.TextColor = color; break;
+            case 12: Style::current.TextColorTitle = color; break;
             }
             schemaView()->updateView();
         });
@@ -103,7 +124,8 @@ void StyleWidget::on_save_clicked()
         "BackgroundColor",
         "FineGridColor",
         "CoarseGridColor",
-        "TextColor"
+        "TextColor",
+        "TextColorTitle",
     };
 
     QString path = QFileDialog::getSaveFileName(this, "", "", "Json files (*.json)");
@@ -114,7 +136,9 @@ void StyleWidget::on_save_clicked()
     QVariantHash values;
 
     for(int row=0;row<names.size();row++) {
-        values[names[row]] = "#" + mEdits[row]->text();
+        QString value = "#" + mEdits[row]->text();
+        value.replace("##", "#");
+        values[names[row]] = value;
     }
 
     QJsonDocument doc = QJsonDocument::fromVariant(values);

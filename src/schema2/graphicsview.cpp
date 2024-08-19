@@ -8,7 +8,7 @@ GraphicsView::GraphicsView(QWidget *parent)
     setBackgroundBrush(Style::current.BackgroundColor);
     setDragMode(QGraphicsView::ScrollHandDrag);
     setRenderHint(QPainter::Antialiasing);
-    setCacheMode(QGraphicsView::CacheBackground);
+    //setCacheMode(QGraphicsView::CacheBackground);
 }
 
 
