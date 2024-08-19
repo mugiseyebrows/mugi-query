@@ -30,6 +30,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="style">
+       <property name="text">
+        <string>Style</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer_3">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -123,7 +130,7 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QGraphicsView" name="view"/>
+     <widget class="GraphicsView" name="view"/>
      <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
@@ -229,6 +236,11 @@
    <extends>QWidget</extends>
    <header>src/widget/relatetoolwidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>src/schema2/graphicsview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

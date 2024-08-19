@@ -123,6 +123,8 @@ public:
 
     QStringList relationNames() const;
 
+    QStringList relationsChildColumns() const;
+
     QStringList indexNames() const;
 
     Schema2ParentRelationsModel *parentRelations() const;

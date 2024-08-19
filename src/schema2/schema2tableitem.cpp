@@ -4,12 +4,16 @@
 #include "schema2relationitem2.h"
 #include <QPainter>
 #include <QDebug>
+#include "style.h"
+#include "schema2indexesmodel.h"
 
+#define LINE_HEIGHT 25
 
 Schema2TableItem::Schema2TableItem(Schema2TableModel *model, QGraphicsItem *parent)
     : mModel(model), QGraphicsItem(parent), mChecked(true)
 {
     setFlag(QGraphicsItem::ItemIsMovable, true);
+    setFlag(QGraphicsItem::ItemIsSelectable, true);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
 }
 
@@ -30,15 +34,48 @@ QString Schema2TableItem::tableName() const
 QRectF Schema2TableItem::boundingRect() const
 {
     int w = 200;
-    int s = 25;
+    int s = LINE_HEIGHT;
     return QRectF(0, 0, w, s * (mModel->rowCount() + 1));
+}
+
+static void drawRect(QPainter *painter, const QRectF& boundary, bool isSelected) {
+
+    double HoveredPenWidth = 1.5;
+    double PenWidth = 1.0;
+
+    auto color = isSelected ? Style::current.SelectedBoundaryColor : Style::current.NormalBoundaryColor;
+
+    bool isHovered = false;
+
+    if (isHovered) {
+        QPen p(color, HoveredPenWidth);
+        painter->setPen(p);
+    } else {
+        QPen p(color, PenWidth);
+        painter->setPen(p);
+    }
+
+    QSizeF size = boundary.size();
+
+    QLinearGradient gradient(QPointF(0.0, 0.0), QPointF(0.0, size.height()));
+
+    gradient.setColorAt(0.0, Style::current.GradientColor0);
+    gradient.setColorAt(0.10, Style::current.GradientColor1);
+    gradient.setColorAt(0.90, Style::current.GradientColor2);
+    gradient.setColorAt(1.0, Style::current.GradientColor3);
+
+    painter->setBrush(gradient);
+
+    double const radius = 4.0;
+
+    painter->drawRoundedRect(boundary, radius, radius);
 }
 
 
 void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     int w = 200;
-    int s = 25;
+    int s = LINE_HEIGHT;
 
     bool unchecked = !mChecked;
 
@@ -48,7 +85,7 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
     painter->setFont(QFont("Liberation Sans", 11));
 
-    painter->setPen(unchecked ? QColor("#888888") : QColor("#000000"));
+
 
     {
         QRectF rect = boundingRect();
@@ -56,22 +93,31 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
         painter->save();
 
-        QBrush bodyBrush = unchecked ? QColor("#ffffff") : QColor("#FFFBAC");
+        //QBrush bodyBrush = unchecked ? QColor("#ffffff") : QColor("#FFFBAC");
 
-        painter->setBrush(bodyBrush);
-        painter->drawRect(rect);
-        //painter->drawLine(0,s,w,s);
+        //painter->setBrush(bodyBrush);
+        //painter->drawRect(rect);
 
-        rect = QRectF(0,0,w,s);
-
-        QBrush titleBrush = unchecked ? QColor("#ffffff") : QColor("#FFD495");
-
-        painter->setBrush(titleBrush);
-        //painter->setPen(Qt::NoPen);
-        painter->drawRect(rect);
-        painter->restore();
+        if (mChecked) {
+            drawRect(painter, rect, isSelected());
+        } else {
+            double const radius = 4.0;
+            painter->drawRoundedRect(rect, radius, radius);
+        }
 
     }
+
+    double radius = 4.0;
+    QRectF titleRect = QRectF(0,0,w,s);
+    QBrush titleBrush = mChecked ? Style::current.TitleColor : QColor("#FFD495");
+
+    painter->setPen(Qt::NoPen);
+    if (mChecked) {
+        painter->setBrush(titleBrush);
+        painter->drawRoundedRect(titleRect, radius, radius);
+    }
+
+    painter->restore();
 
     /*{
         QRectF rect(0,0,s,s);
@@ -81,22 +127,45 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     QRectF rect(0,0,w,s);
 
 
+    painter->setPen(mChecked ? Style::current.TextColorTitle : Style::current.TextColorFaded);
+
     QTextOption opt(Qt::AlignCenter);
     painter->drawText(rect, mModel->tableName(), opt);
+
+    painter->setPen(mChecked ? Style::current.TextColor : Style::current.TextColorFaded);
+
+    auto primaryKey = mModel->indexes()->primaryKey();
+    auto relationsChildColumns = mModel->relationsChildColumns();
+
     for(int row=0;row<mModel->rowCount();row++) {
         QRectF rect(0,(row + 1)*s,w,s);
         QString name = mModel->name(row);
+
         QTextOption opt(Qt::AlignCenter);
         painter->drawText(rect, name, opt);
+
+        if (primaryKey.contains(name)) {
+            QTextOption opt(Qt::AlignLeft);
+            QRectF rect(s, (row + 1) * s, w, s);
+            painter->drawText(rect, "🔑", opt);
+        }
+
+        if (relationsChildColumns.contains(name)) {
+            QTextOption opt(Qt::AlignRight);
+            QRectF rect(0, (row + 1) * s, w - 20, s);
+            painter->drawText(rect, "👉", opt);
+        }
+
         /*if (mModel->isIndexColumn(name)) {
             QTextOption opt(Qt::AlignRight | Qt::AlignVCenter);
             rect.setWidth(rect.width() - 10);
             painter->drawText(rect, "I", opt);
         }*/
+
     }
 
 
-    painter->setPen(Qt::white);
+    //painter->setPen(Qt::white);
 
     /*rect = insertRect();
     painter->drawText(rect, "i", opt);

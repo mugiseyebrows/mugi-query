@@ -40,6 +40,8 @@ public:
 
     Schema2TablesModel* tables() const;
 
+    void updateView();
+
 public slots:
     void onTableClicked(QString tableName, QPointF scenePos);
 
@@ -74,6 +76,8 @@ private slots:
     void on_grayed_clicked();
 
     void on_invisible_clicked();
+
+    void on_style_clicked();
 
 private:
     Ui::Schema2View *ui;

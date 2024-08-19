@@ -12,3 +12,5 @@ column as hex menu
 join helper в окне редактирования
 rework xy plot
 rework hist plot
+background: honeycomb, checkers, leaves, рассыпаный чай, паркет
+schemaview types (gray)

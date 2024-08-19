@@ -38,6 +38,8 @@ public:
         return mIndexes;
     }
 
+    QStringList foreignKeys() const;
+
 protected:
     QList<Schema2Index*> mIndexes;
 

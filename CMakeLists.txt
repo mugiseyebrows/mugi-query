@@ -266,6 +266,9 @@ if (BUILD_APP)
         src/model/hexitemdelegate.h src/model/hexitemdelegate.cpp
         src/widget/actionrunstepswidget.h src/widget/actionrunstepswidget.cpp src/widget/actionrunstepswidget.ui
         src/schema2/codewidget.h src/schema2/codewidget.cpp src/schema2/codewidget.ui
+        src/schema2/graphicsview.cpp src/schema2/graphicsview.h
+        src/schema2/style.h src/schema2/style.cpp
+        src/schema2/stylewidget.h src/schema2/stylewidget.cpp src/schema2/stylewidget.ui
     )
     target_include_directories(mugi-query PUBLIC
         src

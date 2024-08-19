@@ -40,6 +40,16 @@ void automate(QWidget *widget)
     automation->start();
 #endif
 
+#if 1
+
+    Automation* automation = Automation::instance(widget);
+    QString database = "dvdrental";
+    automation->connectToDatabaseFromHistory(database);
+    automation->schemaEdit();
+    automation->start();
+
+#endif
+
 #if 0
     Automation* automation = Automation::instance(widget);
     QString database = "sample";

@@ -41,4 +41,3 @@ void RelateToolWidget::on_clearChild_clicked()
 {
     ui->childTable->clear();
 }
-

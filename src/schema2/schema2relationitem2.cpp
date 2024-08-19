@@ -47,7 +47,10 @@ static QPointF intersection(const QLineF& line1, const QRectF& rect, bool* ok) {
     return QPointF();
 }
 
-static void drawArrow(QPainter *painter, const QLineF& line, double size, double angle) {
+static void drawArrow(QPainter *painter, const QLineF& line,
+                      double size, double angle,
+                      const QColor& color,
+                      double lineWidth = 3.0) {
 
     QPointF p = line.p2() - line.p1();
     double angle0 = atan2(p.y(), p.x());
@@ -64,11 +67,19 @@ static void drawArrow(QPainter *painter, const QLineF& line, double size, double
 
     //painter->setBrush(Qt::black);
 
+
+
+    painter->setPen(QPen(color));
+    painter->setBrush(QBrush(color));
+
     painter->drawPolygon(QVector<QPointF> {line.p2(), p3, p4});
 
+    painter->setPen(QPen(color, lineWidth));
     painter->drawLine(line);
 
 }
+
+#include "style.h"
 
 void Schema2RelationItem2::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                                  QWidget *widget)
@@ -101,18 +112,23 @@ void Schema2RelationItem2::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
 
 
-    painter->setPen(unchecked ? QColor("#888888") : QColor("#000000"));
-    painter->setBrush(unchecked ? QColor("#888888") : QColor("#000000"));
+    /*painter->setPen(checked ? QColor("#888888") : QColor("#000000"));
+    painter->setBrush(checked ? QColor("#888888") : QColor("#000000"));*/
 
     QPointF p1 = intersection(line, rect1, &ok1);
     QPointF p2 = intersection(line, rect2, &ok2);
 
+    //QColor normalColor("darkcyan");
+    double lineWidth = 2.0;
+
+    QColor arrowColor = checked ? Style::current.ArrowColor : Style::current.ArrowColorFaded;
+
     if (ok1 && ok2) {
         //painter->drawLine(p1, p2);
-        drawArrow(painter, QLineF(p2, p1), 15, M_PI / 5);
+        drawArrow(painter, QLineF(p2, p1), 15, M_PI / 5, arrowColor, lineWidth);
     } else {
         //painter->drawLine(c1, c2);
-        drawArrow(painter, QLineF(c2, c1), 15, M_PI / 5);
+        drawArrow(painter, QLineF(c2, c1), 15, M_PI / 5, arrowColor, lineWidth);
     }
 
 }

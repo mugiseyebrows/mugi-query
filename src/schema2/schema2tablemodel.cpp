@@ -532,6 +532,16 @@ QStringList Schema2TableModel::relationNames() const
     return res;
 }
 
+QStringList Schema2TableModel::relationsChildColumns() const
+{
+    QStringList res;
+    auto relations = mRelations->values();
+    for(auto* relation: relations) {
+        res.append(relation->childColumns());
+    }
+    return res;
+}
+
 QStringList Schema2TableModel::indexNames() const
 {
     QStringList res;
@@ -686,4 +696,5 @@ bool Schema2TableModel::removeRows(int row, int count, const QModelIndex &parent
         mColumnsPrev.removeAt(row);
     }
     endRemoveRows();
+    return true;
 }

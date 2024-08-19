@@ -93,6 +93,14 @@ QStringList Schema2IndexesModel::primaryKey() const
     return QStringList();
 }
 
+QStringList Schema2IndexesModel::foreignKeys() const
+{
+    for(int i=0;i<mIndexes.size();i++) {
+        auto* index = mIndexes[i];
+
+    }
+}
+
 void Schema2IndexesModel::debugStatus() {
     for(int i=0;i<mIndexes.size();i++) {
         auto* index = mIndexes[i];

@@ -17,6 +17,7 @@
 #include "exportdialog.h"
 #include "schema2tablemodel.h"
 #include "schema2relationsmodel.h"
+#include "style.h"
 
 Schema2View::Schema2View(QWidget *parent) :
     mData(0),
@@ -247,6 +248,12 @@ Schema2TablesModel *Schema2View::tables() const
     return mData->tables();
 }
 
+void Schema2View::updateView()
+{
+    ui->view->viewport()->update();
+    ui->view->setBackgroundBrush(Style::current.BackgroundColor);
+}
+
 void Schema2View::onCreate()
 {
     QString tableName = QInputDialog::getText(this, "Table Name", "Name");
@@ -331,4 +338,11 @@ void Schema2View::onSave()
     Automation::instance()->afterDialog(&dialog);
 }
 
+#include "stylewidget.h"
+
+void Schema2View::on_style_clicked()
+{
+    StyleWidget* widget = new StyleWidget();
+    widget->show();
+}
 
