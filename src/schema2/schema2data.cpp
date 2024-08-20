@@ -55,6 +55,7 @@
 #include "ones.h"
 #include <QSqlQueryModel>
 #include <QFileInfo>
+#include "sdata.h"
 
 /*static*/ bool Schema2Data::mDontAskOnDropTable = false;
 
@@ -192,7 +193,7 @@ void Schema2Data::pullTablesMysql() {
 
     QStringList tables = db.tables();
 
-    QList<STable> state = mTables->state();
+    QList<STable> state = mTables->tablesState();
     QList<STable> newState;
 
     for(const QString& table: std::as_const(tables)) {
@@ -226,7 +227,7 @@ void Schema2Data::pullTablesMysql() {
 
     }
 
-    SDiff diff = getDiff(state, newState);
+    STablesDiff diff = getDiff(state, newState);
     mTables->merge(diff);
 
 }
@@ -249,7 +250,7 @@ void Schema2Data::pullTablesOdbc() {
     QAxObject engine("DAO.DBEngine.120");
     QAxObject* database = engine.querySubObject("OpenDatabase(QString, bool)", filePath, false);
 
-    QList<STable> state = mTables->state();
+    QList<STable> state = mTables->tablesState();
     QList<STable> newState;
 
     for(const QString& tableName: tables) {
@@ -300,7 +301,7 @@ void Schema2Data::pullTablesOdbc() {
 
     }
 
-    SDiff diff = getDiff(state, newState);
+    STablesDiff diff = getDiff(state, newState);
     mTables->merge(diff);
 
 #else
@@ -315,7 +316,7 @@ void Schema2Data::pullTablesOther() {
 
     QStringList tables = db.tables();
 
-    QList<STable> state = mTables->state();
+    QList<STable> state = mTables->tablesState();
     QList<STable> newState;
 
     for(const QString& table: std::as_const(tables)) {
@@ -342,7 +343,7 @@ void Schema2Data::pullTablesOther() {
 
     }
 
-    SDiff diff = getDiff(state, newState);
+    STablesDiff diff = getDiff(state, newState);
     mTables->merge(diff);
 
 
@@ -386,6 +387,18 @@ static int indexOf(const QList<RelationItem>& relations, const QString& childTab
     return -1;
 }
 
+static int indexOf(const QList<SRelation>& relations, const QString& name, const QString& childTable, const QString& parentTable) {
+    for(int i=0;i<relations.size();i++) {
+        if (relations[i].name == name
+            && relations[i].childTable == childTable
+            && relations[i].parentTable == parentTable) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
 void Schema2Data::pullRelationsMysql() {
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
@@ -401,7 +414,10 @@ void Schema2Data::pullRelationsMysql() {
     q.addBindValue(db.databaseName());
     q.exec();
 
-    QList<RelationItem> relations;
+    //QList<RelationItem> relations;
+
+    QList<SRelation> state = mTables->relationsState();
+    QList<SRelation> newState;
 
     while(q.next()) {
         QString childTable = q.value(0).toString();
@@ -423,6 +439,15 @@ void Schema2Data::pullRelationsMysql() {
             continue;
         }
 
+        int index_ = indexOf(newState, constraintName, childTable, parentTable);
+        if (index_ > -1) {
+            newState[index_].childColumns.append(childColumn);
+            newState[index_].parentColumns.append(parentColumn);
+        } else {
+            newState.append(SRelation(constraintName, childTable, {childColumn}, parentTable, {parentColumn}));
+        }
+
+#if 0
         int index = indexOf(relations, childTable, constraintName);
         if (index < 0) {
             RelationItem relation;
@@ -436,22 +461,23 @@ void Schema2Data::pullRelationsMysql() {
             relations[index].childColumns.append(childColumn);
             relations[index].parentColumns.append(parentColumn);
         }
+#endif
 
     }
 
+    SRelationsDiff diff = getDiff(state, newState);
+    mTables->merge(diff);
+
+#if 0
     for(const RelationItem& relation: std::as_const(relations)) {
         mTables->relationCreated(relation.constraintName, relation.childTable,
                                 relation.childColumns, relation.parentTable,
                                 relation.parentColumns, true, StatusExisting);
         //qDebug() << relation;
     }
-
+#endif
 
 }
-
-
-
-
 
 #if 0
 template <class T>

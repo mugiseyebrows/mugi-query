@@ -131,6 +131,8 @@ public:
 
     QStringList names() const;
 
+    SColumn at(int row) const;
+
 signals:
     void tableClicked(QString, QPointF);
 

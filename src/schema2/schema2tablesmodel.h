@@ -80,9 +80,12 @@ public:
 
     Schema2TreeProxyModel* treeProxy() const;
 
-    QList<STable> state() const;
+    QList<STable> tablesState() const;
 
-    void merge(const SDiff& diff);
+    QList<SRelation> relationsState() const;
+
+    void merge(const STablesDiff& diff);
+    void merge(const SRelationsDiff &diff);
 
     Schema2TableModel *tableCreated(const QString &table, Status status);
 
@@ -141,6 +144,8 @@ public:
     //void updateColumns(const QString &tableName);
     QStringList checked(bool value) const;
 
+    void relationCreated(const SRelation &relation, bool constrained, Status status = StatusExisting);
+    void relationDropped(const SRelation &relation);
 };
 
 #endif // SCHEMA2TABLESMODEL_H

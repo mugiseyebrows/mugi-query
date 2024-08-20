@@ -30,9 +30,19 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="style">
+      <widget class="QLabel" name="label">
        <property name="text">
         <string>Style</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="style"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="editStyle">
+       <property name="text">
+        <string>Edit</string>
        </property>
       </widget>
      </item>

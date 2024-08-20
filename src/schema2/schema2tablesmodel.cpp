@@ -78,21 +78,37 @@ Schema2TreeProxyModel *Schema2TablesModel::treeProxy() const
     return mTreeProxyModel;
 }
 
-QList<STable> Schema2TablesModel::state() const
+QList<STable> Schema2TablesModel::tablesState() const
 {
     QList<STable> res;
     for(auto* table: mTableModels) {
         QList<SColumn> columns;
         QString tableName = table->tableName();
         for(int row=0;row<table->rowCount();row++) {
+#if 0
             QString name = table->name(row);
             QString type = table->type(row);
             bool notNull = table->notNull(row);
             QString default_ = table->default_(row);
             auto autoincrement = table->autoincrement(row);
             columns.append(SColumn(name, type, notNull, default_, autoincrement));
+#endif
+            columns.append(table->at(row));
         }
         res.append(STable(tableName, columns));
+    }
+    return res;
+}
+
+QList<SRelation> Schema2TablesModel::relationsState() const
+{
+    QList<SRelation> res;
+    for(auto* model: mTableModels) {
+        auto* relationsModel = model->relations();
+        for(int row=0;row<relationsModel->rowCount();row++) {
+            SRelation relation = relationsModel->at(row)->asRelation();
+            res.append(relation);
+        }
     }
     return res;
 }
@@ -181,7 +197,7 @@ void Schema2TablesModel::tableAltered(const STable& table) {
     mTreeModel->tableAltered(model);
 }
 
-void Schema2TablesModel::merge(const SDiff &diff)
+void Schema2TablesModel::merge(const STablesDiff &diff)
 {
     QList<STable> created = diff.created;
     QStringList dropped = diff.dropped;
@@ -201,6 +217,17 @@ void Schema2TablesModel::merge(const SDiff &diff)
     }
     for(const auto& table: altered) {
         tableAltered(table);
+    }
+
+}
+
+void Schema2TablesModel::merge(const SRelationsDiff &diff) {
+
+    for(const auto& item: diff.dropped) {
+        relationDropped(item);
+    }
+    for(const auto& item: diff.created) {
+        relationCreated(item, true, StatusExisting);
     }
 
 }
@@ -365,8 +392,6 @@ Schema2TableItem *Schema2TablesModel::findItem(Schema2TableModel *model)
     return 0;
 }
 
-
-
 Schema2RelationItem2* Schema2TablesModel::findItem(Schema2Relation* relation,
                                                    Schema2TableItem* childTable,
                                                    Schema2TableItem* parentTable) {
@@ -512,6 +537,52 @@ void Schema2TablesModel::relationCreated(const QString& constraintName, const QS
     parentModel->updateParentRelations(this);
 }
 
+void Schema2TablesModel::relationCreated(const SRelation& relation, bool constrained, Status status) {
+    Schema2TableItem* childItem = tableItem(relation.childTable);
+    Schema2TableItem* parentItem = tableItem(relation.parentTable);
+
+    Schema2TableModel* childModel = table(relation.childTable);
+    Schema2TableModel* parentModel = table(relation.parentTable);
+
+    if (!childItem || !parentItem || !childModel || !parentModel) {
+        qDebug() << "Schema2TablesModel::relationCreated error"
+                 << relation.childTable << childModel << childItem
+                 << relation.parentTable << parentModel << parentItem << __FILE__ << __LINE__;
+        return;
+    }
+
+    Schema2Relation* relation_ = childModel->insertRelation(relation.name, relation.childColumns, relation.parentTable, relation.parentColumns, constrained, status);
+    if (relation_) {
+        Schema2RelationItem2* relationItem =
+            new Schema2RelationItem2(childItem, parentItem);
+
+        mRelationItems.append(relationItem);
+        parentItem->addRelation(relationItem);
+        childItem->addRelation(relationItem);
+
+        mScene->addItem(relationItem);
+    }
+
+    parentModel->updateParentRelations(this);
+}
+
+void Schema2TablesModel::relationDropped(const SRelation& relation) {
+    auto* childTable = table(relation.childTable);
+    auto* parentTable = table(relation.parentTable);
+    if (!childTable || !parentTable) {
+        qDebug() << "Schema2TablesModel::relationDropped error" << __FILE__ << __LINE__;
+        return;
+    }
+    Schema2Relation* relation_ = childTable->removeRelation(relation.name);
+    Schema2TableItem * childTableItem = findItem(childTable);
+    Schema2TableItem * parentTableItem = findItem(parentTable);
+    Schema2RelationItem2* relationItem = findItem(relation_, childTableItem, parentTableItem);
+    childTableItem->removeRelation(relationItem);
+    parentTableItem->removeRelation(relationItem);
+    mScene->removeItem(relationItem);
+    delete relationItem;
+}
+
 void Schema2TablesModel::relationRemoved(Schema2Relation* relation) {
 
     auto* childTable = findChildTable(relation);
@@ -524,7 +595,6 @@ void Schema2TablesModel::relationRemoved(Schema2Relation* relation) {
 
     Schema2TableItem * childTableItem = findItem(childTable);
     Schema2TableItem * parentTableItem = findItem(parentTable);
-
     Schema2RelationItem2* relationItem = findItem(relation, childTableItem, parentTableItem);
 
     childTableItem->removeRelation(relationItem);

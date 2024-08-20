@@ -13,7 +13,7 @@ Schema2TableItem::Schema2TableItem(Schema2TableModel *model, QGraphicsItem *pare
     : mModel(model), QGraphicsItem(parent), mChecked(true)
 {
     setFlag(QGraphicsItem::ItemIsMovable, true);
-    setFlag(QGraphicsItem::ItemIsSelectable, true);
+    //setFlag(QGraphicsItem::ItemIsSelectable, true);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
 }
 
@@ -72,6 +72,72 @@ static void drawRect(QPainter *painter, const QRectF& boundary, bool isSelected)
 }
 
 
+/* 1 2
+ * 4 3
+ */
+static QPainterPath borderRadius(const QRectF& rect, double tl, double tr, double br, double bl) {
+
+    QPointF topLeft = rect.topLeft();
+    QPointF bottomRight = rect.bottomRight();
+
+    double x1 = topLeft.x();
+    double x2 = bottomRight.x();
+    double y1 = topLeft.y();
+    double y2 = bottomRight.y();
+    double r;
+
+    auto rectAround = [=](double x, double y, double r){
+        QRectF rect(QPointF(0,0),QSizeF(r*2,r*2));
+        rect.moveCenter(QPointF(x, y));
+        return rect;
+    };
+
+    QPainterPath path;
+    double sweep = 90;
+
+    // arc3
+    r = br;
+    if (r > 0) {
+        path.moveTo(x2 - r, y2);
+        path.arcTo(rectAround(x2-r, y2-r, r), -90, sweep);
+    } else {
+        path.moveTo(x2, y2);
+    }
+    // arc2
+    r = tr;
+    if (r > 0) {
+        path.lineTo(x2, y1+r);
+        path.arcTo(rectAround(x2-r, y1+r, r), 0, sweep);
+    } else {
+        path.lineTo(x2, y1);
+    }
+    // arc1
+    r = tl;
+    if (r > 0) {
+        path.lineTo(x1+r, y1);
+        path.arcTo(rectAround(x1+r, y1+r, r), 90, sweep);
+    } else {
+        path.lineTo(x1, y1);
+    }
+    // arc4
+    r = bl;
+    if (r > 0) {
+        path.lineTo(x1, y2-r);
+        path.arcTo(rectAround(x1+r, y2-r, r), 180, sweep);
+    } else {
+        path.lineTo(x1, y2);
+    }
+    // close path
+    r = br;
+    if (r > 0) {
+        path.lineTo(x2-r, y2);
+    } else {
+        path.lineTo(x2, y2);
+    }
+
+    return path;
+}
+
 void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     int w = 200;
@@ -114,7 +180,9 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     painter->setPen(Qt::NoPen);
     if (mChecked) {
         painter->setBrush(titleBrush);
-        painter->drawRoundedRect(titleRect, radius, radius);
+        auto path = borderRadius(titleRect, radius, radius, 0, 0);
+        painter->drawPath(path);
+        //painter->drawRoundedRect(titleRect, radius, radius);
     }
 
     painter->restore();

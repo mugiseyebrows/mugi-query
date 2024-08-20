@@ -42,7 +42,6 @@ add_test(NAME tst_sdata COMMAND tst_sdata)
 target_link_libraries(tst_sdata PRIVATE Qt::Test)
 target_include_directories(tst_sdata PRIVATE src src/schema2)
 
-# Resources:
 set(icons_resource_files
     "src/icons/9022095_arrows_out_cardinal_duotone_icon.png"
     "src/icons/9022100_browser_duotone_icon.png"
@@ -282,8 +281,6 @@ if (BUILD_APP)
         FILES ${icons_resource_files}
     )
     target_link_libraries(mugi-query PUBLIC
-        Qt::Core
-        Qt::Gui
         Qt::Widgets
         Qt::Sql
         Qt::Svg

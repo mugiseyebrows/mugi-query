@@ -5,6 +5,10 @@
 #include <math.h>
 #include <QPainter>
 
+int Schema2RelationItem2::type() const {
+    return Type;
+}
+
 Schema2RelationItem2::Schema2RelationItem2(Schema2TableItem *childTable,
                                            Schema2TableItem *parentTable,
                                            QGraphicsItem *parent)

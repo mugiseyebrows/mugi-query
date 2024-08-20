@@ -76,6 +76,11 @@ QVariant Schema2Relation::headerData(int section, int orientation, int role) {
     return QVariant();
 }
 
+SRelation Schema2Relation::asRelation() const
+{
+    return SRelation(mName, mChildTableModel->tableName(), mChildColumns, mParentTable, mParentColumns);
+}
+
 QVariant Schema2Relation::data(int column, int role) const {
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         switch(column) {

@@ -34,7 +34,7 @@ void Schema2TableModel::tableAltered(const STable& table) {
         int index = newState.indexOf(name);
         if (index < 0) {
             index = state.indexOf(name);
-            qDebug() << "remove" << name;
+            //qDebug() << "remove" << name;
             beginRemoveRows(QModelIndex(), index, index);
             mColumns.removeAt(index);
             mColumnsPrev.removeAt(index);
@@ -50,7 +50,7 @@ void Schema2TableModel::tableAltered(const STable& table) {
             // todo keep user changes
             mColumns[index] = column;
             mColumnsPrev[index] = column;
-            qDebug() << "replace" << column.name << index;
+            //qDebug() << "replace" << column.name << index;
         } else {
             int index = mColumns.size();
             if (i > 0) {
@@ -59,7 +59,7 @@ void Schema2TableModel::tableAltered(const STable& table) {
                     index = indexPrev + 1;
                 }
             }
-            qDebug() << "insert" << column.name << index;
+            //qDebug() << "insert" << column.name << index;
             beginInsertRows(QModelIndex(), index, index);
             mColumns.insert(index, column);
             mColumnsPrev.insert(index, column);
@@ -563,6 +563,11 @@ QStringList Schema2TableModel::names() const
         res.append(mColumns[row].name);
     }
     return res;
+}
+
+SColumn Schema2TableModel::at(int row) const
+{
+    return mColumns[row];
 }
 
 int Schema2TableModel::rowCount(const QModelIndex &parent) const

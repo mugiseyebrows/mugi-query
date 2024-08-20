@@ -77,7 +77,9 @@ private slots:
 
     void on_invisible_clicked();
 
-    void on_style_clicked();
+    void on_editStyle_clicked();
+
+    void on_style_currentTextChanged(const QString &arg1);
 
 private:
     Ui::Schema2View *ui;

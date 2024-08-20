@@ -36,7 +36,7 @@ void tst_SData::testDiffBasic()
                              mockTable("moo", {"a", "b", "d"}),
                              };
 
-    SDiff diff = getDiff(tables1, tables2);
+    STablesDiff diff = getDiff(tables1, tables2);
 
     auto created = diff.created;
     auto dropped = diff.dropped;
@@ -66,7 +66,7 @@ void tst_SData::testDiffEmpty()
                              mockTable("moo", {"a", "b", "d"}),
                              };
 
-    SDiff diff = getDiff(tables1, tables2);
+    STablesDiff diff = getDiff(tables1, tables2);
 
     auto created = diff.created;
     auto dropped = diff.dropped;

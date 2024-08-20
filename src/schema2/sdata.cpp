@@ -59,7 +59,7 @@ int findSimilar(const STable& table, const QList<STable>& tables) {
     return index;
 }
 
-SDiff getDiff(const QList<STable> &tables1, const QList<STable> &tables2) {
+STablesDiff getDiff(const QList<STable> &tables1, const QList<STable> &tables2) {
 
     QSet<QString> names1 = toSet(getNames(tables1));
     QSet<QString> names2 = toSet(getNames(tables2));
@@ -91,7 +91,7 @@ SDiff getDiff(const QList<STable> &tables1, const QList<STable> &tables2) {
         }
     }
 
-    return SDiff(created, getNames(dropped), altered, renamed);
+    return STablesDiff(created, getNames(dropped), altered, renamed);
 }
 
 QStringList getNames(const QList<STable> &tables)
@@ -168,4 +168,43 @@ bool operator == (const QList<SColumn>& column1, const QList<SColumn>& column2) 
 
 bool operator != (const QList<SColumn>& column1, const QList<SColumn>& column2) {
     return !(column1 == column2);
+}
+
+bool operator ==(const SRelation &relation1, const SRelation &relation2) {
+    return relation1.name == relation2.name
+           && relation1.childTable == relation2.childTable
+           && relation1.childColumns == relation2.childColumns
+           && relation1.parentTable == relation2.parentTable
+           && relation1.parentColumns == relation2.parentColumns;
+}
+
+bool operator !=(const SRelation &relation1, const SRelation &relation2) {
+    return !(relation1 == relation2);
+}
+
+SRelationsDiff getDiff(const QList<SRelation> &relations1, const QList<SRelation> &relations2)
+{
+    QList<SRelation> dropped;
+    QList<SRelation> created;
+
+    for(const auto& relation: relations1) {
+        if (relations2.indexOf(relation) < 0) {
+            dropped.append(relation);
+        }
+    }
+    for(const auto& relation: relations2) {
+        if (relations1.indexOf(relation) < 0) {
+            created.append(relation);
+        }
+    }
+
+    qDebug() << "dropped" << dropped.size() << dropped;
+    qDebug() << "created" << created.size() << created;
+
+    return SRelationsDiff(dropped, created);
+}
+
+QDebug operator <<(QDebug &dbg, const SRelation &relation) {
+    dbg.nospace() << QString("SRelation(%1 -> %2)").arg(relation.childTable).arg(relation.parentTable);
+    return dbg;
 }

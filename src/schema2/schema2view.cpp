@@ -18,6 +18,7 @@
 #include "schema2tablemodel.h"
 #include "schema2relationsmodel.h"
 #include "style.h"
+#include "stylewidget.h"
 
 Schema2View::Schema2View(QWidget *parent) :
     mData(0),
@@ -90,6 +91,8 @@ Schema2View::Schema2View(QWidget *parent) :
         }
         mData->tables()->setChecked(related, true);
     });
+
+    ui->style->addItems({"pumpkin", "bubblegum"});
 }
 
 
@@ -338,11 +341,19 @@ void Schema2View::onSave()
     Automation::instance()->afterDialog(&dialog);
 }
 
-#include "stylewidget.h"
-
-void Schema2View::on_style_clicked()
+void Schema2View::on_editStyle_clicked()
 {
     StyleWidget* widget = new StyleWidget();
     widget->show();
+}
+
+void Schema2View::on_style_currentTextChanged(const QString &value)
+{
+    if (value == "pumpkin") {
+        Style::current = Style::pumpkin();
+    } else if (value == "bubblegum") {
+        Style::current = Style::bubblegum();
+    }
+    updateView();
 }
 

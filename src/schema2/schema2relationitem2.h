@@ -8,6 +8,10 @@ class Schema2TableItem;
 class Schema2RelationItem2: public QGraphicsItem
 {
 public:
+    enum { Type = UserType + 2 };
+
+    int type() const override;
+
     Schema2RelationItem2(Schema2TableItem* childTable,
                          Schema2TableItem* parentTable,
                          QGraphicsItem *parent = nullptr);

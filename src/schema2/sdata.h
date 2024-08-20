@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QStringList>
+#include <QDebug>
 
 class SColumn {
 public:
@@ -43,9 +44,34 @@ public:
     QStringList columnNames() const;
 };
 
+class SRelation {
+public:
+    SRelation() {
+
+    }
+    SRelation(QString name, QString childTable,
+              QStringList childColumns,
+              QString parentTable, QStringList parentColumns) :
+        name(name), childTable(childTable), childColumns(childColumns),
+        parentTable(parentTable), parentColumns(parentColumns)
+    {
+
+    }
+
+    QString name;
+    QString childTable;
+    QStringList childColumns;
+    QString parentTable;
+    QStringList parentColumns;
+};
+
 bool operator == (const STable& table1, const STable& table2);
 
 bool operator != (const STable& table1, const STable& table2);
+
+bool operator == (const SRelation& relation1, const SRelation& relation2);
+
+bool operator != (const SRelation& relation1, const SRelation& relation2);
 
 class SRenamed {
 public:
@@ -62,12 +88,12 @@ public:
     QString newName;
 };
 
-class SDiff {
+class STablesDiff {
 public:
-    SDiff() {
+    STablesDiff() {
 
     }
-    SDiff(const QList<STable>& created, const QStringList& dropped, const QList<STable>& altered,
+    STablesDiff(const QList<STable>& created, const QStringList& dropped, const QList<STable>& altered,
           const QList<SRenamed>& renamed)
         : created(created), dropped(dropped), altered(altered), renamed(renamed) {
 
@@ -85,6 +111,19 @@ QList<STable> withName(const QList<STable>& tables, const QStringList& names);
 
 STable withName(const QList<STable>& tables, const QString& name);
 
-SDiff getDiff(const QList<STable>& tables1, const QList<STable>& tables2);
+STablesDiff getDiff(const QList<STable>& tables1, const QList<STable>& tables2);
+
+class SRelationsDiff {
+public:
+    SRelationsDiff(const QList<SRelation>& dropped, const QList<SRelation>& created) : dropped(dropped), created(created) {
+
+    }
+    QList<SRelation> dropped;
+    QList<SRelation> created;
+};
+
+SRelationsDiff getDiff(const QList<SRelation>& relations1, const QList<SRelation>& relations2);
+
+QDebug operator << (QDebug& dbg, const SRelation& relation);
 
 #endif // SDATA_H

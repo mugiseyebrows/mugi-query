@@ -4,6 +4,7 @@
 #include <QStringList>
 #include "schema2status.h"
 #include <QVariant>
+#include "sdata.h"
 class Schema2TableModel;
 class QSqlDriver;
 
@@ -58,6 +59,9 @@ public:
     QVariant data(int column, int role) const;
 
     static QVariant headerData(int section, int orientation, int role);
+
+    SRelation asRelation() const;
+
 protected:
 
     Schema2TableModel* mChildTableModel;

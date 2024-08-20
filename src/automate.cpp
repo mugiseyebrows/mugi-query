@@ -40,7 +40,7 @@ void automate(QWidget *widget)
     automation->start();
 #endif
 
-#if 1
+#if 0
 
     Automation* automation = Automation::instance(widget);
     QString database = "dvdrental";
