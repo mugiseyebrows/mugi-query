@@ -59,7 +59,7 @@ public:
         res.BackgroundColor = QColor("#F6ECDF");
         res.FineGridColor = QColor("#EDD4C4");
         res.CoarseGridColor = QColor("#EFC9AE");
-        res.TextColor = QColor("#000000");
+        res.TextColor = QColor("#F2EAE3");
         res.TextColorTitle = QColor("#000000");
         res.TextColorFaded = QColor(Qt::lightGray);
         return res;
