@@ -22,6 +22,7 @@ class Schema2Relation;
 class Schema2TablesModel;
 class QSqlDriver;
 class DataImportWidget2;
+class OdbcUri;
 
 #include "schema2join.h"
 #include "hash.h"
@@ -141,15 +142,15 @@ protected:
     void pullIndexes();
     void pullRelations();
 
-    void pullTablesOdbc();
+    void pullTablesOdbcAccess(const OdbcUri &uri);
     void pullTablesMysql();
     void pullTablesOther();
 
-    void pullIndexesOdbc();
+    void pullIndexesOdbcAccess(const OdbcUri &uri);
     void pullIndexesMysql();
 
     void pullRelationsMysql();
-    void pullRelationsOdbc();
+    void pullRelationsOdbcAccess(const OdbcUri &uri);
 
     //void unoverlapTables();
 

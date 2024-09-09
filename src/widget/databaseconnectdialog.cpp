@@ -177,12 +177,47 @@ void DatabaseConnectDialog::on_pick_clicked()
         ui->database->setText(QDir::toNativeSeparators(path));
         ui->connectionName->setText(QFileInfo(path).baseName());
     } else if (ui->driver->currentText() == DRIVER_ODBC) {
-        QString path = QFileDialog::getOpenFileName(this, QString(), QString(), "mdb files (*.mdb)");
+
+        QString xls = "*.xls *.xlsx *.xlsm *.xlsb";
+        QString csv = "*.txt *.csv";
+        QString mdb = "*.mdb *.accdb";
+        QString filter1 = QString("Data files (%1 %2 %3)").arg(mdb).arg(csv).arg(xls);
+        QString filter2 = QString("Access Databases (%1)").arg(mdb);
+        QString filter3 = QString("Csv Tables (%1)").arg(csv);
+        QString filter4 = QString("Excel files (%1)").arg(xls);
+
+        QStringList filter = {filter1, filter2, filter3, filter4};
+
+        QString path = QFileDialog::getOpenFileName(this, QString(), QString(), filter.join(";;"));
         if (path.isEmpty()) {
             return;
         }
-        ui->database->setText(accessUri(path));
-        ui->connectionName->setText(QFileInfo(path).baseName());
+        QFileInfo info(path);
+        QString suffix = info.suffix().toLower();
+
+        QString uri;
+        QString connectionName;
+
+        if (suffix == "mdb" || suffix == "accdb") {
+            uri = accessUri(path);
+            connectionName = info.baseName();
+        } else if (suffix.startsWith("xls")) {
+            uri = excelUri(path);
+            connectionName = info.baseName();
+        } else if (suffix == "csv" || suffix == "txt") {
+            uri = csvUri(path);
+            connectionName = info.dir().dirName();
+        } else {
+            qDebug() << "on_pick_clicked error" << __FILE__ << __LINE__;
+            return;
+        }
+
+        ui->database->setText(uri);
+
+        if (ui->connectionName->text() == "untitled" || ui->connectionName->text() == "") {
+            ui->connectionName->setText(connectionName);
+        }
+
     }
 }
 

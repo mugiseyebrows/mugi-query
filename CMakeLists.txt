@@ -268,6 +268,7 @@ if (BUILD_APP)
         src/schema2/graphicsview.cpp src/schema2/graphicsview.h
         src/schema2/style.h src/schema2/style.cpp
         src/schema2/stylewidget.h src/schema2/stylewidget.cpp src/schema2/stylewidget.ui
+        src/schema2/odbcuri.h src/schema2/odbcuri.cpp
     )
     target_include_directories(mugi-query PUBLIC
         src

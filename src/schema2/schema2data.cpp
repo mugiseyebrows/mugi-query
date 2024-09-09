@@ -43,6 +43,7 @@
 #include "schema2relationguesser.h"
 #include "confirmationdialog.h"
 #include "schema2export.h"
+#include "odbcuri.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -122,6 +123,7 @@ Schema2Data *Schema2Data::instance(const QString &connectionName, QObject *paren
     return mData[connectionName];
 }
 
+
 static QString unquoted(const QString& path) {
     if (path.startsWith("\"") && path.endsWith("\"")) {
         return path.mid(1, path.size()-2);
@@ -129,6 +131,19 @@ static QString unquoted(const QString& path) {
     return path;
 }
 
+static QString unbraced(const QString& path) {
+    if (path.startsWith("{") && path.endsWith("}")) {
+        return path.mid(1, path.size()-2);
+    }
+    return path;
+}
+
+static bool isAccessDriver(const QString& driver) {
+    return driver.contains("Microsoft Access Driver", Qt::CaseInsensitive);
+}
+
+#if 0
+// todo write actual parser
 static QString accessFilePath(QSqlDatabase db) {
     QString databaseName = db.databaseName();
     QStringList props = databaseName.split(";");
@@ -142,6 +157,7 @@ static QString accessFilePath(QSqlDatabase db) {
     }
     return filePath;
 }
+#endif
 
 #if 0
 void Schema2Data::unoverlapTables() {
@@ -196,6 +212,8 @@ void Schema2Data::pullTablesMysql() {
     QList<STable> state = mTables->tablesState();
     QList<STable> newState;
 
+
+
     for(const QString& table: std::as_const(tables)) {
         //mTables->updateTable(table, StatusExisting);
         // todo character_maximum_length, numeric_precision
@@ -233,16 +251,16 @@ void Schema2Data::pullTablesMysql() {
 }
 
 
-void Schema2Data::pullTablesOdbc() {
+void Schema2Data::pullTablesOdbcAccess(const OdbcUri& uri) {
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
     QStringList tables = db.tables();
 
-    QString filePath = accessFilePath(db);
+    QString filePath = unquoted(uri.dbq());
 
-    // todo pullRelationsOdbc for sql server
     if (filePath.isEmpty()) {
+        qDebug() << "pullTablesOdbc filePath.isEmpty() error" << db.databaseName();
         return;
     }
 #ifdef Q_OS_WIN
@@ -351,15 +369,14 @@ void Schema2Data::pullTablesOther() {
 
 void Schema2Data::pullTables() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
-
+    OdbcUri uri(db.databaseName());
     if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_MARIADB) {
         pullTablesMysql();
-    } else if (db.driverName() == DRIVER_ODBC) {
-        pullTablesOdbc();
+    } else if (db.driverName() == DRIVER_ODBC && isAccessDriver(uri.driver())) {
+        pullTablesOdbcAccess(uri);
     } else {
         pullTablesOther();
     }
-
 }
 
 class RelationItem {
@@ -506,14 +523,14 @@ void Schema2Data::indexPulled(const QString indexName, const QString& tableName,
 }
 #endif
 
-void Schema2Data::pullIndexesOdbc() {
+void Schema2Data::pullIndexesOdbcAccess(const OdbcUri& uri) {
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
-    QString filePath = accessFilePath(db);
+    QString filePath = unquoted(uri.dbq());
 
-    // todo pullIndexesOdbc for sql server
     if (filePath.isEmpty()) {
+        qDebug() << "pullIndexesOdbc filePath.isEmpty() error" << db.databaseName();
         return;
     }
 
@@ -596,13 +613,12 @@ void Schema2Data::relationPulled(const QString& constraintName, const QString& c
 }
 #endif
 
-void Schema2Data::pullRelationsOdbc() {
+void Schema2Data::pullRelationsOdbcAccess(const OdbcUri& uri) {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
-    QString filePath = accessFilePath(db);
-
-    // todo pullRelationsOdbc for sql server
+    QString filePath = unquoted(uri.dbq());
     if (filePath.isEmpty()) {
+        qDebug() << "pullRelationsOdbc filePath.isEmpty() error" << db.databaseName();
         return;
     }
 
@@ -646,12 +662,13 @@ void Schema2Data::pullRelationsOdbc() {
 
 void Schema2Data::pullRelations() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    OdbcUri uri(db.databaseName());
     if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_MARIADB) {
         pullRelationsMysql();
-    } else if (db.driverName() == DRIVER_ODBC) {
-        pullRelationsOdbc();
+    } else if (db.driverName() == DRIVER_ODBC && isAccessDriver(uri.driver())) {
+        pullRelationsOdbcAccess(uri);
     } else {
-        // todo implement pullRelations for QSQLITE QODBC QPSQL
+        // todo implement pullRelations for QSQLITE QPSQL
     }
 
 }
@@ -727,10 +744,11 @@ void Schema2Data::pullIndexesMysql() {
 
 void Schema2Data::pullIndexes() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    OdbcUri uri(db.databaseName());
     if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_MARIADB) {
         pullIndexesMysql();
-    } else if (db.driverName() == DRIVER_ODBC) {
-        pullIndexesOdbc();
+    } else if (db.driverName() == DRIVER_ODBC && isAccessDriver(uri.driver())) {
+        pullIndexesOdbcAccess(uri);
     } else {
         // todo implement pullRelations for QSQLITE QODBC QPSQL
     }
