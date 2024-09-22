@@ -12,15 +12,43 @@ Schema2RelationGuesser::Schema2RelationGuesser(Schema2TableModel* childTable,
 
 }
 
+static bool isAllUpper(const QString& text) {
+    for(int i=0;i<text.size();i++) {
+        if (text[i].isLetter()) {
+            if (!text[i].isUpper()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+static bool isAllLower(const QString& text) {
+    for(int i=0;i<text.size();i++) {
+        if (text[i].isLetter()) {
+            if (!text[i].isLower()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 QString Schema2RelationGuesser::relationName()
 {
     //return QString("fk_%1_%2").arg(mParentTable->tableName()).arg(mChildTable->tableName());
 
     auto childColumns = this->childColumns(this->parentColumns());
 
-    return QString("%1_%2_fkey")
-        .arg(mChildTable->tableName())
-        .arg(childColumns.join("_"));
+    QString suffix = "fkey";
+    if (isAllUpper(mChildTable->tableName()) && isAllUpper(childColumns[0])) {
+        suffix = "FKEY";
+    }
+
+    return QString("%1_%2_%3")
+            .arg(mChildTable->tableName())
+            .arg(childColumns.join("_"))
+            .arg(suffix);
 }
 
 QStringList Schema2RelationGuesser::parentColumns()

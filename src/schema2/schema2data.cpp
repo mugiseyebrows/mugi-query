@@ -1212,7 +1212,7 @@ static QStringList mysqlTypes() {
     // https://dev.mysql.com/doc/refman/8.0/en/data-types.html
 
     // numeric
-    QStringList exact = {"INTEGER", "SMALLINT", "DECIMAL"};
+    QStringList exact = {"INTEGER", "SMALLINT", "DECIMAL", "BIGINT"};
     QStringList approx = {"FLOAT", "DOUBLE"};
     QStringList bit = {"BIT"};
     // other

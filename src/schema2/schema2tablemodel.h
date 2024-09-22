@@ -173,7 +173,7 @@ public:
 
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
-    QString columnDefinition(const QString &driverName, QSqlDriver *driver, int row, bool skipAutoIncrement, const QStringList &primaryKey) const;
+    QString columnDefinition(const QString &driverName, QSqlDriver *driver, int row, bool skipAutoIncrement, const QStringList &primaryKey, const QString &insertAfter) const;
 
     // QAbstractItemModel interface
 public:
