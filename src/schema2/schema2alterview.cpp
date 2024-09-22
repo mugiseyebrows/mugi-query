@@ -60,7 +60,7 @@ void Schema2AlterView::initColumns() {
     buttons->button(button_remove).inside().text("-").size(40, 40).offset(40, 0);
     buttons->button(button_insert).between().text("+").size(40, 40);
 
-    bool canInsert = false;
+    bool canInsert = mData->driverName() != DRIVER_SQLITE;
 
     buttons->setView(ui->columns);
     connect(buttons, &TableButtons::clicked, [=](int id, int index){
