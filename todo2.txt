@@ -5,12 +5,16 @@ rm mugisql
 History::insert
 column as hex menu
 починить relate
-починить дёрганье когда режим не перемещения
 починить join helper
 окна для кодогенерации
-контекстнозависимый autocomplete
 join helper в окне редактирования
 rework xy plot
 rework hist plot
 background: honeycomb, checkers, leaves, рассыпаный чай, паркет
 schemaview types (gray)
+relate autocomplete table names
+push schema progress dialog
+save data убрать опцию output показывать окно с кнопками скопировать в буфер и сохранить в файл
+импорт таблиц из другой базы
+починить insert (вставлены новые столбцы)
+интерфейс mysqltool (всегда несколько файлов)
