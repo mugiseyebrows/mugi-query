@@ -70,6 +70,8 @@
     ["rjo", "rj"], "right join # on #",
     ["ijo", "ij"], "inner join # on #",
     ["jo", "j"], "join # on #",
+    ["sct"], "show create table #",
+    ["scv"], "show create view #",
     "-- union",
     ["u"], "union",
     ["usf"], "union select # from #",
