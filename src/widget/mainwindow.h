@@ -11,7 +11,7 @@ class QueryHistoryWidget;
 class QCompleter;
 class Highlighter;
 class JoinHelperWidgets;
-class SchemaModel;
+//class SchemaModel;
 class DataImportWidgets;
 class RelationsModel;
 class QSqlQueryModel;
@@ -68,8 +68,9 @@ protected:
     void updateSchemaModel();
     QStringList schemaTreeSelectedTables();
 
-    SchemaModel* mSchemaModel;
+    //SchemaModel* mSchemaModel;
 
+    void updateSchemaTreeModel();
 protected slots:
 
     void on_databaseConnect_triggered();

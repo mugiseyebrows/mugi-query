@@ -104,7 +104,7 @@ MainWindow::MainWindow(QWidget *parent) :
     SessionModel* sessionModel = new SessionModel(ui->sessionTree);
     ui->sessionTree->setModel(sessionModel);
 
-    mSchemaModel = new SchemaModel(this);
+    //mSchemaModel = new SchemaModel(this);
 
 #if 0
     ui->schemaTree->setModel(new SchemaModel(ui->schemaTree));
@@ -251,7 +251,7 @@ SessionTab *MainWindow::currentTab()
 }
 
 void MainWindow::updateSchemaModel() {
-    mSchemaModel->update(mTokens);
+    //mSchemaModel->update(mTokens);
 }
 
 void MainWindow::updateTokens(const QString &connectionName)
@@ -297,11 +297,30 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
         ui->schemaTree->setRootIndex(rootIndex);
     }*/
 
-    ui->tableName->setText("");
-    Schema2Data* data = Schema2Data::instance(connectionName, this);
-    auto* tree = data->tables()->treeProxy();
-    tree->setFilterRegularExpression(QRegularExpression(""));
-    ui->schemaTree->setModel(tree);
+
+    updateSchemaTreeModel();
+
+}
+
+void MainWindow::updateSchemaTreeModel() {
+
+    int index = ui->sessionTabs->currentIndex();
+
+    Schema2TreeProxyModel* treeProxy;
+
+    if (index < 0) {
+        treeProxy = nullptr;
+    } else {
+        QString connectionName = tab(index)->connectionName();
+        Schema2Data* data = Schema2Data::instance(connectionName, this);
+        treeProxy = data->tables()->treeProxy();
+    }
+
+    if (ui->schemaTree->model() != treeProxy) {
+        qDebug() << "ui->schemaTree->model() != tree";
+        ui->schemaTree->setModel(treeProxy);
+        ui->tableName->setText("");
+    }
 
 }
 
@@ -571,6 +590,8 @@ void MainWindow::on_databaseDisconnect_triggered()
 
     mTokens.remove(connectionName);
     updateSchemaModel();
+
+    updateSchemaTreeModel();
 }
 
 QString MainWindow::connectionName() const {
@@ -707,16 +728,19 @@ void MainWindow::on_dataCompare_triggered()
 void MainWindow::on_toolsMysql_triggered()
 {
     QSqlDatabase db = database();
-    if (!db.isValid() || db.driverName() != DRIVER_MYSQL) {
+    QString connectionName = this->connectionName();
+    if (!db.isValid() || !db.isOpen() || db.driverName() != DRIVER_MYSQL) {
         return;
     }
     Tools::mysql(db, this);
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    data->pull();
 }
 
 void MainWindow::on_toolsMysqldump_triggered()
 {
     QSqlDatabase db = database();
-    if (!db.isValid() || db.driverName() != DRIVER_MYSQL) {
+    if (!db.isValid() || !db.isOpen() || db.driverName() != DRIVER_MYSQL) {
         return;
     }
     Tools::mysqldump(db, this);
@@ -1270,6 +1294,9 @@ void MainWindow::on_settingsDirectory_triggered()
 void MainWindow::on_tableName_textChanged(const QString &text)
 {
     auto* model = ui->schemaTree->model();
+    if (!model) {
+        return;
+    }
     auto* proxyModel = qobject_cast<Schema2TreeProxyModel*>(model);
     if (!proxyModel) {
         qDebug() << "!proxyModel" << __FILE__ << __LINE__;
