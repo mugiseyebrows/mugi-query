@@ -13,6 +13,15 @@
 #include "schema2data.h"
 #include <QSqlDriver>
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QSqlError>
+#include <QProgressDialog>
+#include <QSqlRecord>
+#include <QSqlField>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+
 
 DataImportWidget2::DataImportWidget2(QWidget *parent) :
     mTable(nullptr),
@@ -146,7 +155,6 @@ void DataImportWidget2::onDataCopy() {
     ClipboardUtil::copyTsv(ui->table);
 }
 
-#include <QFileDialog>
 
 static int countChar(const QString& s, QChar ch) {
     int count = 0;
@@ -234,10 +242,6 @@ void DataImportWidget2::on_alterTable_clicked()
 
 }
 
-#include <QSqlRecord>
-#include <QSqlField>
-#include <QSqlDatabase>
-#include <QSqlQuery>
 
 QSqlRecord DataImportWidget2::record(QSqlDatabase db, const QString& tableName, int row, bool* ok) {
     QSqlRecord record = db.record(tableName);
@@ -253,9 +257,7 @@ QSqlRecord DataImportWidget2::record(QSqlDatabase db, const QString& tableName, 
     return record;
 }
 
-#include <QMessageBox>
-#include <QSqlError>
-#include <QProgressDialog>
+
 
 void DataImportWidget2::on_execute_clicked()
 {
@@ -330,7 +332,7 @@ void DataImportWidget2::onDataPaste() {
     QModelIndex topLeft = currentOrFirstIndex(ui->table);
 
     mAppender->setActive(false);
-    QModelIndex bottomRight = Clipboard::pasteTsv(mModel,topLeft,true,true);
+    QModelIndex bottomRight = Clipboard::pasteTsv(mModel,topLeft,true,false);
     mAppender->setActive(true);
 
     //createHeaderViewWidgets();
