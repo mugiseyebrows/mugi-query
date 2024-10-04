@@ -57,8 +57,9 @@
 #include "tolower.h"
 #include "schema2data.h"
 #include "schema2view.h"
-//#include "schema2treemodel.h"
+#include "schema2treemodel.h"
 #include "schema2treeproxymodel.h"
+
 #include <sqlparse.h>
 
 using namespace DataUtils;
@@ -128,7 +129,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QTimer::singleShot(0,this,SLOT(onAdjustSplitter()));
 
-    if (qApp->applicationDirPath().endsWith("debug")) {
+    if (qApp->applicationDirPath().toLower().endsWith("debug")) {
         automate(this);
     }
 }
@@ -882,6 +883,8 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     QAction* result = menu.exec(QCursor::pos());
 
+    qDebug() << "result" << result;
+
 #if 0
     if (result == alter) {
 
@@ -961,12 +964,50 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         if (tables.isEmpty()) {
             return;
         }
+#if 0
         QStringList queries;
         foreach(const QString& table, tables) {
             QString query = QString("DROP TABLE %1").arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
             queries << query;
         }
         onAppendQuery(connectionName,queries.join(";\n"));
+#endif
+
+        //Schema2TreeModel* schemaTreeModel = this->schemaTreeModel();
+        QString question = QString("Are you sure you want to drop %1").arg(tables.size() == 1 ? QString(tables[0]) : tables.join(" and "));
+        auto answer = QMessageBox::question(this, QString(), question, QMessageBox::Yes | QMessageBox::No);
+        if (answer != QMessageBox::Yes) {
+            return;
+        }
+
+        STablesDiff diff;
+
+        QStringList errors;
+        QStringList failed;
+        for(const QString& table: tables) {
+            QString query = QString("DROP TABLE %1").arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
+            QSqlQuery q(db);
+            if (q.exec(query)) {
+                diff.dropped.append(table);
+            } else {
+                QMessageBox::critical(this, QString(), q.lastError().text());
+                failed.append(table);
+                errors.append(q.lastError().text());
+                break;
+            }
+        }
+
+        if (!diff.isEmpty()) {
+            Schema2Data* data = Schema2Data::instance(connectionName, this);
+            data->tables()->merge(diff);
+        }
+
+        if (errors.size() > 0) {
+            QString message = QString("Failed to drop %1\nerror(s):\n%2")
+                    .arg(failed.size() == 1 ? QString(failed[0]) : failed.join(" and "))
+                    .arg(errors.join("\n"));
+            QMessageBox::critical(this, QString(), message);
+        }
     }
 
     if (result == update || result == insert) {
@@ -1028,8 +1069,8 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     if (result == refresh) {
         QString connectionName = this->connectionName();
-        updateTokens(connectionName);
-        pushTokens(connectionName);
+        Schema2Data* data = Schema2Data::instance(connectionName, this);
+        data->pull();
     }
 
     if (result == edit) {
@@ -1051,10 +1092,40 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 }
 
 
+Schema2TreeProxyModel* MainWindow::schemaTreeProxyModel() const {
+    auto* model = ui->schemaTree->model();
+    if (!model) {
+        return nullptr;
+    }
+    return qobject_cast<Schema2TreeProxyModel*>(model);
+}
+
+Schema2TreeModel* MainWindow::schemaTreeModel() const {
+    Schema2TreeProxyModel* treeProxyModel = schemaTreeProxyModel();
+    if (!treeProxyModel) {
+        qDebug() << "!proxyModel" << __FILE__ << __LINE__;
+        return nullptr;
+    }
+    return qobject_cast<Schema2TreeModel*>(treeProxyModel->sourceModel());
+}
 
 QStringList MainWindow::schemaTreeSelectedTables() {
 
     QStringList tables;
+
+    Schema2TreeProxyModel* proxyModel = this->schemaTreeProxyModel();
+    Schema2TreeModel* model = this->schemaTreeModel();
+
+    auto indexes = ui->schemaTree->selectionModel()->selectedIndexes();
+    for(const QModelIndex& index: indexes) {
+        QModelIndex sourceIndex = proxyModel->mapToSource(index);
+        if (model->isTable(sourceIndex)) {
+            tables.append(model->tableName(sourceIndex));
+        } else {
+            qDebug() << "not a table" << sourceIndex;
+        }
+    }
+
 #if 0
     QModelIndexList indexes = ui->schemaTree->selectionModel()->selectedIndexes();
     if (indexes.isEmpty()) {

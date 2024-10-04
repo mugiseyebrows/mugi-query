@@ -178,7 +178,7 @@ void Schema2View::onTableClicked(QString tableName_, QPointF scenePos)
     //qDebug() << "onTableClicked" << tableName << mMode;
 
 
-    auto tables = tablesAt(scenePos);
+    QList<Schema2TableItem*> tables = tablesAt(scenePos);
     /*for(auto* table: tables) {
         qDebug() << "table at pos" << scenePos << table->tableName() << table;
     }
@@ -186,10 +186,14 @@ void Schema2View::onTableClicked(QString tableName_, QPointF scenePos)
     // todo figure out, file bug report
     QString tableName;
     if (tables.size() == 1) {
-        tableName = tables[0]->tableName();
+        Schema2TableItem* table = tables[0];
+        tableName = table->tableNamePrev();
     } else {
+        qDebug() << __FILE__ << __LINE__;
         tableName = tableName_;
     }
+
+    qDebug() << "onTableClicked" << tableName;
 
     Schema2Toolbar::Mode mode = ui->toolbar->mode();
 

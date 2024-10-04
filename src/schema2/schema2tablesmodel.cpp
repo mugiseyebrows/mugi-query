@@ -136,6 +136,7 @@ Schema2TableModel* Schema2TablesModel::tableCreated(const QString& table, Status
     endInsertRows();
     mScene->addItem(item);
     mTreeModel->tableCreated(model);
+    mTreeProxyModel->sort(0);
     return model;
 }
 
@@ -218,7 +219,7 @@ void Schema2TablesModel::merge(const STablesDiff &diff)
     for(const auto& table: altered) {
         tableAltered(table);
     }
-
+    mTreeProxyModel->sort(0);
 }
 
 void Schema2TablesModel::merge(const SRelationsDiff &diff) {

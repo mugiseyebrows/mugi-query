@@ -18,6 +18,8 @@ public:
 
     QString tableName() const;
 
+    QString tableNamePrev() const;
+
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 

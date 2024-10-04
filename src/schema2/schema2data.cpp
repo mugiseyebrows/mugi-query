@@ -783,9 +783,20 @@ void Schema2Data::push(QWidget* widget)
             });
             break;
         case StatusModified:
+        {
+            QString tableName = table->tableName();
+            QString tableNamePrev = table->tableNamePrev();
+            QStringList renameQueries = table->renameQueries(driverName, driver);
+            if (!renameQueries.isEmpty()) {
+                changeSet->append(renameQueries, [=](){
+                    table->setTableNamePrev(tableName);
+                    tableRenamed(tableName, tableNamePrev);
+                });
+            }
             changeSet->append(table->alterQueries(driverName, driver), [=](){
                 table->pushed(false);
             });
+        }
             break;
         case StatusExisting:
             break;
@@ -1029,6 +1040,7 @@ void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
     mTables->tableRemoved(tableName);
     mDropTableQueue.append(table);
 
+    // todo renamed and removed
     Schema2AlterView* view = mAlterViews.get(tableName);
     if (view) {
         mAlterViews.remove(tableName);
@@ -1181,6 +1193,18 @@ void Schema2Data::saveAs(bool clipboard, const QString &path,
 {
     Schema2Export exp(mView);
     exp.saveAs(clipboard, path, rect, onlySelected, format, widget);
+}
+
+void Schema2Data::tableRenamed(const QString &tableName, const QString &tableNamePrev)
+{
+    if (mAlterViews.contains(tableNamePrev)) {
+        mAlterViews.set(tableName, mAlterViews.get(tableNamePrev));
+        mAlterViews.remove(tableNamePrev);
+    }
+    if (mDataImportWidgets.contains(tableNamePrev)) {
+        mDataImportWidgets.set(tableName, mDataImportWidgets.get(tableNamePrev));
+        mDataImportWidgets.remove(tableNamePrev);
+    }
 }
 
 #include "highlighter.h"
@@ -1354,7 +1378,12 @@ void Schema2Data::createRelationDialog(Schema2TableModel* childTable,
 
 void Schema2Data::showAlterView(const QString &tableName)
 {
+    qDebug() << "showAlterView" << tableName;
+
     if (!mAlterViews.contains(tableName)) {
+
+        qDebug() << "create new view for" << tableName;
+
         Schema2AlterView* view = new Schema2AlterView();
         Schema2TableModel* table = mTables->table(tableName);
 
@@ -1365,6 +1394,8 @@ void Schema2Data::showAlterView(const QString &tableName)
 
         view->init(this, mTables, table, dataTypes());
         mAlterViews.set(tableName, view);
+    } else {
+        qDebug() << "show existing view for" << tableName;
     }
     auto* view = mAlterViews.get(tableName);
     showAndRaise(view);

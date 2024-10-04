@@ -21,6 +21,7 @@ public:
         }
         return QStandardItem::data(role);
     }
+
 protected:
     Schema2TableModel* mModel;
 };
@@ -68,6 +69,39 @@ void Schema2TreeModel::tableCreated(Schema2TableModel *table)
     auto* item = new TableItem(table);
     item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     appendRow(item);
+}
+
+#if 0
+static TableItem* toTableItem(const QModelIndex &index) {
+    void* internalPointer = index.internalPointer();
+    if (!internalPointer) {
+        return nullptr;
+    }
+    BaseItem* item = static_cast<BaseItem*>(internalPointer);
+    if (item->type() == BaseItem::TypeTable) {
+        TableItem* tableItem = static_cast<TableItem*>(item);
+        return tableItem;
+    }
+    return nullptr;
+}
+#endif
+
+bool Schema2TreeModel::isTable(const QModelIndex &index) const
+{
+    if (index.column() != 0) {
+        return false;
+    }
+    return index.isValid() && !index.parent().isValid();
+}
+
+QString Schema2TreeModel::tableName(const QModelIndex &index) const
+{
+    if (!isTable(index)) {
+        return QString();
+    }
+
+    TableItem* item = static_cast<TableItem*>(invisibleRootItem()->child(index.row()));
+    return item->tableName();
 }
 
 #if 0

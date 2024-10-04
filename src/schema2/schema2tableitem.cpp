@@ -31,6 +31,11 @@ QString Schema2TableItem::tableName() const
     return mModel->tableName();
 }
 
+QString Schema2TableItem::tableNamePrev() const
+{
+    return mModel->tableNamePrev();
+}
+
 QRectF Schema2TableItem::boundingRect() const
 {
     int w = 200;
@@ -302,7 +307,8 @@ void Schema2TableItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     /*qDebug() << "mousePressEvent" << mModel->tableName()
              << "pos" << event->pos()
              << "scenePos" << event->scenePos();*/
-    emit mModel->tableClicked(mModel->tableName(), event->scenePos());
+    qDebug() << "emit tableClicked" << mModel->tableNamePrev();
+    emit mModel->tableClicked(mModel->tableNamePrev(), event->scenePos());
 }
 
 int Schema2TableItem::type() const

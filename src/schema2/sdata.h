@@ -99,6 +99,10 @@ public:
 
     }
 
+    bool isEmpty() const {
+        return created.isEmpty() && dropped.isEmpty() && altered.isEmpty() && renamed.isEmpty();
+    }
+
     QList<STable> created;
     QStringList dropped;
     QList<STable> altered;

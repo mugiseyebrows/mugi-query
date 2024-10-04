@@ -110,6 +110,8 @@ public:
 
     void saveAs(bool clipboard, const QString& path, const QRectF &rect, bool onlySelected, Schema2Export::ExportFormat format, QWidget *widget);
 
+    void tableRenamed(const QString& tableName, const QString& tableNamePrev);
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 

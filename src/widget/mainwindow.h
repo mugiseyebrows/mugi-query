@@ -15,6 +15,8 @@ class JoinHelperWidgets;
 class DataImportWidgets;
 class RelationsModel;
 class QSqlQueryModel;
+class Schema2TreeProxyModel;
+class Schema2TreeModel;
 
 #include "tokens.h"
 
@@ -50,6 +52,9 @@ public:
     QMenu* selectionMenu() const;
 
     void expandSchemaTree();
+
+    Schema2TreeProxyModel *schemaTreeProxyModel() const;
+    Schema2TreeModel *schemaTreeModel() const;
 protected:
     void closeEvent(QCloseEvent *event);
     QueryHistoryWidget* mQueryHistory;
