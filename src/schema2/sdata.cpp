@@ -198,8 +198,8 @@ SRelationsDiff getDiff(const QList<SRelation> &relations1, const QList<SRelation
         }
     }
 
-    qDebug() << "dropped" << dropped.size() << dropped;
-    qDebug() << "created" << created.size() << created;
+    //qDebug() << "dropped" << dropped.size() << dropped;
+    //qDebug() << "created" << created.size() << created;
 
     return SRelationsDiff(dropped, created);
 }
