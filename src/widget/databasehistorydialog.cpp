@@ -4,10 +4,11 @@
 #include <QSqlQueryModel>
 #include <QVariant>
 #include <QSqlQuery>
+#include <QDate>
 
 #include "richheaderview/richheaderview.h"
-#include "datetimerangewidget.h"
-#include "datetimerangewidgetmanager.h"
+
+#include "daterangewidget.h"
 #include <QComboBox>
 #include "intlineedit.h"
 #include "query_exec.h"
@@ -38,7 +39,7 @@ DatabaseHistoryDialog::DatabaseHistoryDialog(QWidget *parent) :
     data.stretchFixed(false);
 
     QWidget* viewport = view->viewport();
-    mDateEdit = new DateTimeRangeWidget(viewport);
+    mDateEdit = new DateRangeWidget(viewport);
     mConnectionNameEdit = new QLineEdit(viewport);
     mDriverEdit = new QComboBox(viewport);
     mHostEdit = new QLineEdit(viewport);
@@ -50,11 +51,8 @@ DatabaseHistoryDialog::DatabaseHistoryDialog(QWidget *parent) :
     mDriverEdit->addItems(availableSqlDrivers());
     mDriverEdit->setCurrentIndex(0);
 
-    DateTimeRangeWidgetManager* manager = new DateTimeRangeWidgetManager(this);
-    manager->init(mDateEdit);
-    manager->set365days();
+    connect(mDateEdit,SIGNAL(changed(int, int, QDate, QDate)),this,SLOT(onUpdateQuery()));
 
-    connect(mDateEdit,SIGNAL(dateTimesChanged(QDateTime,QDateTime)),this,SLOT(onUpdateQuery()));
     QList<QLineEdit*> lineEdits = {mConnectionNameEdit, mHostEdit, mUserEdit, mDatabaseEdit, mPortEdit};
     foreach (QLineEdit* edit, lineEdits) {
         connect(edit,SIGNAL(textChanged(QString)),this,SLOT(onUpdateQuery()));
@@ -98,8 +96,6 @@ void DatabaseHistoryDialog::onUpdateQuery() {
 
     QSqlDatabase db = QSqlDatabase::database("_history");
 
-    QDateTime date1 = mDateEdit->dateTime1();
-    QDateTime date2 = mDateEdit->dateTime2();
     QString connectionName = like(mConnectionNameEdit->text());
     QString driver = mDriverEdit->currentText();
     QString host = like(mHostEdit->text());
@@ -110,9 +106,23 @@ void DatabaseHistoryDialog::onUpdateQuery() {
 
     QStringList conditions;
     QVariantList values;
-    conditions.append("date between ? and ?");
-    values.append(date1);
-    values.append(date2);
+
+    auto mode = mDateEdit->mode();
+    if (mode == DateRangeWidget::All) {
+        // do nothing
+        //qDebug() << "All";
+    } else if (mode == DateRangeWidget::NDays) {
+        QDate date = QDate::currentDate().addDays(-mDateEdit->days());
+        conditions.append("date(date) > ?");
+        values.append(date);
+        //qDebug() << "NDays" << date;
+    } else if (mode == DateRangeWidget::Range) {
+        conditions.append("date(date) between ? and ?");
+        values.append(mDateEdit->date1());
+        values.append(mDateEdit->date2());
+        //qDebug() << "Range" << mDateEdit->date1() << mDateEdit->date2();
+    }
+
     if (driver != "any") {
         conditions.append("driver=?");
         values.append(driver);
@@ -147,6 +157,7 @@ void DatabaseHistoryDialog::onUpdateQuery() {
     }
     model->setQuery(std::move(q));
     ui->tableView->setColumnWidth(0, 160);
+    ui->tableView->hideColumn(col_password);
 }
 
 void DatabaseHistoryDialog::select(const QString &connectionName)

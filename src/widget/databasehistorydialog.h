@@ -7,7 +7,7 @@ namespace Ui {
 class DatabaseHistoryDialog;
 }
 
-class DateTimeRangeWidget;
+class DateRangeWidget;
 class QLineEdit;
 class QComboBox;
 class IntLineEdit;
@@ -53,7 +53,7 @@ private slots:
 
 protected:
     Ui::DatabaseHistoryDialog *ui;
-    DateTimeRangeWidget* mDateEdit;
+    DateRangeWidget* mDateEdit;
     QLineEdit* mConnectionNameEdit;
     QComboBox* mDriverEdit;
     QLineEdit* mHostEdit;
