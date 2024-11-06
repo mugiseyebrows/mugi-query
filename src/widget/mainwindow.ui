@@ -84,7 +84,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatabase">
@@ -157,8 +157,15 @@
     <property name="title">
      <string>&amp;Code</string>
     </property>
-    <addaction name="codePython"/>
-    <addaction name="codePandas"/>
+    <widget class="QMenu" name="menu_Python">
+     <property name="title">
+      <string>&amp;Python</string>
+     </property>
+     <addaction name="codeMysqlConnector"/>
+     <addaction name="codePandas"/>
+     <addaction name="codeSqlAlchemy"/>
+    </widget>
+    <addaction name="menu_Python"/>
     <addaction name="codeCopyOrder"/>
     <addaction name="codeRelations"/>
     <addaction name="codePrimaryKeys"/>
@@ -358,16 +365,6 @@
     <string>Mysql&amp;dump</string>
    </property>
   </action>
-  <action name="codePython">
-   <property name="text">
-    <string>&amp;Python</string>
-   </property>
-  </action>
-  <action name="codePandas">
-   <property name="text">
-    <string>P&amp;andas</string>
-   </property>
-  </action>
   <action name="schemaEdit">
    <property name="text">
     <string>&amp;Edit</string>
@@ -431,6 +428,21 @@
   <action name="selectionViewAsString">
    <property name="text">
     <string>View as string</string>
+   </property>
+  </action>
+  <action name="codeMysqlConnector">
+   <property name="text">
+    <string>mysql.connector</string>
+   </property>
+  </action>
+  <action name="codePandas">
+   <property name="text">
+    <string>pandas</string>
+   </property>
+  </action>
+  <action name="codeSqlAlchemy">
+   <property name="text">
+    <string>sqlalchemy</string>
    </property>
   </action>
  </widget>
