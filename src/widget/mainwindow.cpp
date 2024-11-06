@@ -1288,7 +1288,8 @@ void MainWindow::on_dataTruncate_triggered()
 
 void MainWindow::on_settingsDirectory_triggered()
 {
-
+    SettingsDirectoryDialog dialog;
+    dialog.exec();
 }
 
 void MainWindow::on_tableName_textChanged(const QString &text)
