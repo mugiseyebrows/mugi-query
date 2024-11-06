@@ -119,6 +119,17 @@ QStringList SqlParse::splitQueries(const QString &queries)
     return res;
 }
 
+bool SqlParse::isSimpleSelect(const QString &query, QString &tableName)
+{
+    QRegularExpression rx("^select\\s*[*]\\s*from\\s*([^ ]*)\\s*$");
+    auto match = rx.match(query);
+    if (match.hasMatch()) {
+        tableName = match.captured(1);
+        return true;
+    }
+    return false;
+}
+
 QueryEffect::QueryEffect() : type(None) {
 
 }

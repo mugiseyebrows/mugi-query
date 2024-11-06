@@ -41,6 +41,8 @@ public:
     static QList<int> colorQueries(const QString &queries);
 
     static QStringList splitQueries(const QString &queries);
+
+    static bool isSimpleSelect(const QString& query, QString& tableName);
 };
 
 #endif // SQLPARSE_H
