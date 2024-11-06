@@ -57,8 +57,10 @@
 #include "tolower.h"
 #include "schema2data.h"
 #include "schema2view.h"
-//#include "schema2treemodel.h"
+#include "schema2treemodel.h"
 #include "schema2treeproxymodel.h"
+#include "codewidget.h"
+#include "settingsdirectorydialog.h"
 #include <sqlparse.h>
 
 using namespace DataUtils;
@@ -128,7 +130,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QTimer::singleShot(0,this,SLOT(onAdjustSplitter()));
 
-    if (qApp->applicationDirPath().endsWith("debug")) {
+    if (qApp->applicationDirPath().toLower().endsWith("debug")) {
         automate(this);
     }
 }
@@ -389,7 +391,7 @@ QStringList filterBlank(const QStringList items) {
     QStringList res;
     foreach(QString item,items) {
         if (!item.trimmed().isEmpty()) {
-            res << item;
+            res.append(item);
         }
     }
     return res;
@@ -747,10 +749,11 @@ void MainWindow::on_toolsMysqldump_triggered()
 }
 
 #include <QClipboard>
-
+#if 0
 void MainWindow::on_codePython_triggered()
 {
     // todo parse and transpile queries
+
 
     QSqlDatabase db = database();
 
@@ -776,11 +779,7 @@ void MainWindow::on_codePython_triggered()
     }
 
 }
-
-void MainWindow::on_codePandas_triggered()
-{
-
-}
+#endif
 
 void MainWindow::on_queryJoin_triggered()
 {
@@ -882,6 +881,8 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     QAction* result = menu.exec(QCursor::pos());
 
+    qDebug() << "result" << result;
+
 #if 0
     if (result == alter) {
 
@@ -961,12 +962,50 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         if (tables.isEmpty()) {
             return;
         }
+#if 0
         QStringList queries;
         foreach(const QString& table, tables) {
             QString query = QString("DROP TABLE %1").arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
             queries << query;
         }
         onAppendQuery(connectionName,queries.join(";\n"));
+#endif
+
+        //Schema2TreeModel* schemaTreeModel = this->schemaTreeModel();
+        QString question = QString("Are you sure you want to drop %1").arg(tables.size() == 1 ? QString(tables[0]) : tables.join(" and "));
+        auto answer = QMessageBox::question(this, QString(), question, QMessageBox::Yes | QMessageBox::No);
+        if (answer != QMessageBox::Yes) {
+            return;
+        }
+
+        STablesDiff diff;
+
+        QStringList errors;
+        QStringList failed;
+        for(const QString& table: tables) {
+            QString query = QString("DROP TABLE %1").arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
+            QSqlQuery q(db);
+            if (q.exec(query)) {
+                diff.dropped.append(table);
+            } else {
+                QMessageBox::critical(this, QString(), q.lastError().text());
+                failed.append(table);
+                errors.append(q.lastError().text());
+                break;
+            }
+        }
+
+        if (!diff.isEmpty()) {
+            Schema2Data* data = Schema2Data::instance(connectionName, this);
+            data->tables()->merge(diff);
+        }
+
+        if (errors.size() > 0) {
+            QString message = QString("Failed to drop %1\nerror(s):\n%2")
+                    .arg(failed.size() == 1 ? QString(failed[0]) : failed.join(" and "))
+                    .arg(errors.join("\n"));
+            QMessageBox::critical(this, QString(), message);
+        }
     }
 
     if (result == update || result == insert) {
@@ -1028,8 +1067,8 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     if (result == refresh) {
         QString connectionName = this->connectionName();
-        updateTokens(connectionName);
-        pushTokens(connectionName);
+        Schema2Data* data = Schema2Data::instance(connectionName, this);
+        data->pull();
     }
 
     if (result == edit) {
@@ -1051,10 +1090,40 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 }
 
 
+Schema2TreeProxyModel* MainWindow::schemaTreeProxyModel() const {
+    auto* model = ui->schemaTree->model();
+    if (!model) {
+        return nullptr;
+    }
+    return qobject_cast<Schema2TreeProxyModel*>(model);
+}
+
+Schema2TreeModel* MainWindow::schemaTreeModel() const {
+    Schema2TreeProxyModel* treeProxyModel = schemaTreeProxyModel();
+    if (!treeProxyModel) {
+        qDebug() << "!proxyModel" << __FILE__ << __LINE__;
+        return nullptr;
+    }
+    return qobject_cast<Schema2TreeModel*>(treeProxyModel->sourceModel());
+}
 
 QStringList MainWindow::schemaTreeSelectedTables() {
 
     QStringList tables;
+
+    Schema2TreeProxyModel* proxyModel = this->schemaTreeProxyModel();
+    Schema2TreeModel* model = this->schemaTreeModel();
+
+    auto indexes = ui->schemaTree->selectionModel()->selectedIndexes();
+    for(const QModelIndex& index: indexes) {
+        QModelIndex sourceIndex = proxyModel->mapToSource(index);
+        if (model->isTable(sourceIndex)) {
+            tables.append(model->tableName(sourceIndex));
+        } else {
+            qDebug() << "not a table" << sourceIndex;
+        }
+    }
+
 #if 0
     QModelIndexList indexes = ui->schemaTree->selectionModel()->selectedIndexes();
     if (indexes.isEmpty()) {
@@ -1286,6 +1355,8 @@ void MainWindow::on_dataTruncate_triggered()
 
 }
 
+
+
 void MainWindow::on_settingsDirectory_triggered()
 {
     SettingsDirectoryDialog dialog;
@@ -1320,5 +1391,146 @@ void MainWindow::on_selectionViewAsString_triggered()
 {
     SessionTab* tab = currentTab();
     tab->viewAsString();
+}
+
+void MainWindow::on_codeMysqlConnector_triggered()
+{
+    QSqlDatabase db = database();
+
+    QString databaseName = db.databaseName();
+    QString userName = db.userName();
+    QString password = db.password();
+    QString hostName = db.hostName();
+
+    QString connectionName = this->connectionName();
+
+    if (db.driverName() == DRIVER_MYSQL) {
+        QString code = QString("# pip install mysql-connector-python\n"
+                               "\n"
+                               "import mysqlconnector\n"
+                               "%1 = mysql.connector.connect(host=\"%2\",user=\"%3\",password=\"%4\",database=\"%5\")")
+                .arg(connectionName)
+                .arg(hostName)
+                .arg(userName)
+                .arg(password)
+                .arg(databaseName);
+        qApp->clipboard()->setText(code);
+
+        CodeWidget* widget = new CodeWidget();
+        widget->setText(code + "\n");
+        widget->show();
+
+    } else {
+        QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
+    }
+}
+
+static QString replace(const QString& s, const QString& a, const QString& b) {
+    QString s_ = s;
+    s_.replace(a, b);
+    return s_;
+}
+
+static QString replace(const QString& s, const QRegularExpression& a, const QString& b) {
+    QString s_ = s;
+    s_.replace(a, b);
+    return s_;
+}
+
+static QString pyvar(const QString& name) {
+    // todo remove spaces and translit
+    QString v = replace(name, QRegularExpression("[.-]"), "_");
+    if (v.size() > 0 && v[0].isDigit()) {
+        v = "db" + v;
+    }
+    return v;
+}
+
+
+static QString pipInstall(const QStringList& items) {
+    return "# pip install " + items.join(" ") + "\n\n";
+}
+
+static QString sqlAlchemyCreateEngine(const QSqlDatabase& db, const QString& engineName) {
+
+    QString code = QString("%5 = create_engine(\"mysql+mysql.connector://%1:%2@%3:3306/%4\", echo=True)\n")
+            .arg(db.userName())
+            .arg(db.password())
+            .arg(db.hostName())
+            .arg(db.databaseName())
+            .arg(engineName);
+    return code;
+}
+
+void MainWindow::on_codeSqlAlchemy_triggered()
+{
+    QSqlDatabase db = database();
+
+    if (db.driverName() == DRIVER_MYSQL) {
+
+        QString engineName = pyvar(connectionName());
+
+        QString code = pipInstall({"mysql-connector-python", "SQLAlchemy"})
+                + "from sqlalchemy import create_engine\n"
+                + sqlAlchemyCreateEngine(database(), engineName);
+
+        CodeWidget* widget = new CodeWidget();
+        widget->setText(code + "\n");
+        widget->show();
+
+    } else {
+        QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
+    }
+
+}
+
+void MainWindow::on_codePandas_triggered()
+{
+    QSqlDatabase db = database();
+
+    if (db.driverName() == DRIVER_MYSQL) {
+
+        QStringList queries;
+        auto* tab = currentTab();
+        if (tab) {
+            queries = filterBlank(SqlParse::splitQueries(tab->query()));
+        }
+
+        QString engineName = pyvar(connectionName());
+
+        QStringList frames;
+
+        for(const QString& query: queries) {
+            QString tableName;
+            QString expr;
+            if (SqlParse::isSimpleSelect(query, tableName)) {
+                expr = "'" + tableName + "'";
+            } else {
+                expr = query.trimmed();
+                if (expr.indexOf("\n") > -1) {
+                    expr = "\"\"\"" + expr + "\"\"\"\n";
+                } else {
+                    expr = "'" + expr + "'";
+                }
+            }
+            frames.append(QString("df%1 = pd.read_sql(%2, %3)").arg(frames.size() + 1).arg(expr).arg(engineName));
+        }
+
+        QString code = pipInstall({"mysql-connector-python", "SQLAlchemy", "pandas"})
+                + "import pandas as pd\n"
+                + "from sqlalchemy import create_engine\n"
+                + sqlAlchemyCreateEngine(database(), engineName)
+                + frames.join("\n\n");
+
+        CodeWidget* widget = new CodeWidget();
+        widget->setText(code + "\n");
+        widget->show();
+
+    } else {
+        QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
+    }
+
+
+
 }
 

@@ -15,6 +15,8 @@ class JoinHelperWidgets;
 class DataImportWidgets;
 class RelationsModel;
 class QSqlQueryModel;
+class Schema2TreeProxyModel;
+class Schema2TreeModel;
 
 #include "tokens.h"
 
@@ -50,6 +52,9 @@ public:
     QMenu* selectionMenu() const;
 
     void expandSchemaTree();
+
+    Schema2TreeProxyModel *schemaTreeProxyModel() const;
+    Schema2TreeModel *schemaTreeModel() const;
 protected:
     void closeEvent(QCloseEvent *event);
     QueryHistoryWidget* mQueryHistory;
@@ -120,7 +125,7 @@ protected slots:
     void on_toolsMysql_triggered();
     void on_toolsMysqldump_triggered();
 
-    void on_codePython_triggered();
+    //void on_codePython_triggered();
     void on_codePandas_triggered();
 
     void on_schemaEdit_triggered();
@@ -151,6 +156,10 @@ private slots:
     void on_selectionViewAsHex_triggered();
 
     void on_selectionViewAsString_triggered();
+
+    void on_codeMysqlConnector_triggered();
+
+    void on_codeSqlAlchemy_triggered();
 
 private:
     Ui::MainWindow *ui;
