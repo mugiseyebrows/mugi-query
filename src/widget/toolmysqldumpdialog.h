@@ -11,6 +11,26 @@ class ToolMysqldumpDialog;
 class QSortFilterProxyModel;
 class CheckableModel;
 
+class MysqldumpSettings {
+public:
+    enum Path {
+        DatabaseName,
+        DatabaseDatetimeName
+    };
+    enum Format {
+        OneFile,
+        MultipleFiles
+    };
+    QString output;
+    QStringList tables;
+    Format format;
+    Path path;
+    bool schema;
+    bool data;
+    bool ssl;
+    bool tab;
+};
+
 class ToolMysqldumpDialog : public QDialog
 {
     Q_OBJECT
@@ -19,6 +39,9 @@ public:
     explicit ToolMysqldumpDialog(QSqlDatabase db, QWidget *parent = nullptr);
     ~ToolMysqldumpDialog();
 
+    MysqldumpSettings settings() const;
+
+#if 0
     QString output() const;
 
     bool data() const;
@@ -32,10 +55,11 @@ public:
     bool tab() const;
 
     bool ssl() const;
+
 private slots:
     void on_multipleFiles_clicked(bool checked);
 
-#if 0
+
     void on_checkAll_clicked();
 
     void on_uncheckAll_clicked();
@@ -49,6 +73,10 @@ protected:
     QSortFilterProxyModel* mProxyModel;
     CheckableModel* mModel;
 #endif
+
+    // QDialog interface
+public slots:
+    void accept();
 };
 
 #endif // TOOLMYSQLDUMPDIALOG_H

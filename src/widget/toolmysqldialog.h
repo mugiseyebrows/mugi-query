@@ -13,21 +13,17 @@ class ToolMysqlDialog : public QDialog
     Q_OBJECT
 
 public:
-    enum Mode {
-        OneFile,
-        MultipleFiles,
-    };
 
-    explicit ToolMysqlDialog(Mode mode, QWidget *parent = nullptr);
+    explicit ToolMysqlDialog(QWidget *parent = nullptr);
     ~ToolMysqlDialog();
 
-    QStringList inputs() const;
-
-    void setMode(Mode mode);
+    QStringList files() const;
+    bool ssl() const;
 
 protected:
-    QStringListModel* mModel;
-    Mode mMode;
+    QStringListModel* mFiles;
+
+    QString mDir;
 
 private slots:
     void on_addFile_clicked();

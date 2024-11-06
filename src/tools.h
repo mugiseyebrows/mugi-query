@@ -4,10 +4,11 @@
 #include <QSqlDatabase>
 class QWidget;
 
-namespace Tools
+class Tools
 {
-    void mysql(QSqlDatabase db, QWidget* widget);
-    void mysqldump(QSqlDatabase db, QWidget* widget);
-}
+public:
+    static void mysql(QSqlDatabase db, QWidget* widget);
+    static void mysqldump(QSqlDatabase db, QWidget* widget);
+};
 
 #endif // TOOLS_H

@@ -28,10 +28,30 @@ void dump(const QString& path, const QStringList& lines) {
     qDebug() << "text writen to" << path;
 }
 
+static QString pathJoin(const QStringList& args) {
+    QStringList res;
+    for(const QString& arg: args) {
+        if (res.isEmpty()) {
+            res.append(arg);
+            continue;
+        }
+        if (res[res.size()-1].endsWith("/")
+                || res[res.size()-1].endsWith("\\")
+                || arg.startsWith("/")
+                || arg.startsWith("\\")) {
+            res.append(arg);
+        } else {
+            res.append(QDir::separator());
+            res.append(arg);
+        }
+    }
+    return res.join("");
+}
+
 #define MYSQL_TIMEOUT 600000
 #define MYSQLDUMP_TIMEOUT 600000
 
-static QStringList mysql_args(QSqlDatabase db) {
+static QStringList mysql_args(QSqlDatabase db, bool ssl) {
     QString databaseName = db.databaseName();
     QString userName = db.userName();
     QString password = db.password();
@@ -52,6 +72,26 @@ static QStringList mysql_args(QSqlDatabase db) {
     }
     if (!databaseName.isEmpty()) {
         args.append(databaseName);
+    }
+    if (!ssl) {
+        args.append("--ssl=FALSE");
+    }
+    return args;
+}
+
+static QStringList mysqldump_args(QSqlDatabase db, bool ssl, bool schema, bool data,
+                                  const QStringList& tables, const QString& resultFile) {
+    QStringList args = mysql_args(db, ssl);
+    if (!schema) {
+        args.append("--no-create-info");
+    }
+    if (!data) {
+        args.append("--no-data");
+    }
+    args.append("--result-file");
+    args.append(resultFile);
+    for(const QString& table: tables) {
+        args.append(table);
     }
     return args;
 }
@@ -82,10 +122,36 @@ static bool find_mysql(QWidget* widget, bool mysql) {
     return true;
 }
 
+static void execute(const QString& program, const QStringList& args, const QString& inputFile, int timeout, QWidget *widget) {
+
+    QProcess process;
+    process.setProgram(program);
+    process.setArguments(args);
+
+    if (!inputFile.isEmpty()) {
+        process.setStandardInputFile(inputFile);
+    }
+
+    process.start(QIODevice::ReadOnly);
+    if (!process.waitForStarted()) {
+        QMessageBox::critical(widget, QString(), QString("WaitForStarted error %1").arg(process.errorString()));
+        return;
+    }
+    if (!process.waitForFinished(timeout)) {
+        QMessageBox::critical(widget, QString(), QString("WaitForFinished error %1").arg(process.errorString()));
+    }
+    QByteArray stderrData = process.readAllStandardError();
+    if (!stderrData.isEmpty()) {
+        QMessageBox::critical(widget, QString(), QString::fromUtf8(stderrData));
+    }
+
+}
+
+
 void Tools::mysql(QSqlDatabase db, QWidget *widget)
 {
 
-    ToolMysqlDialog dialog(ToolMysqlDialog::OneFile, widget);
+    ToolMysqlDialog dialog(widget);
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
@@ -96,26 +162,28 @@ void Tools::mysql(QSqlDatabase db, QWidget *widget)
 
     QString mysql = Settings::instance()->mysqlPath();
 
-    QStringList inputs = dialog.inputs();
+    QStringList files = dialog.files();
 
-    if (inputs.isEmpty()) {
+    if (files.isEmpty()) {
         return;
     }
 
     QProgressDialog progress(widget);
     progress.show();
-    progress.setMaximum(inputs.size());
+    progress.setMaximum(files.size());
     qApp->processEvents();
 
-    QStringList args = mysql_args(db);
+    QStringList args = mysql_args(db, dialog.ssl());
 
     int complete = 0;
-    for(const QString& input: std::as_const(inputs)) {
+    for(const QString& path: std::as_const(files)) {
+        execute(mysql, args, path, MYSQL_TIMEOUT, widget);
+#if 0
         QProcess process;
         process.setProgram(mysql);
         process.setArguments(args);
 
-        process.setStandardInputFile(input);
+        process.setStandardInputFile(path);
 
         process.start();
 
@@ -135,6 +203,7 @@ void Tools::mysql(QSqlDatabase db, QWidget *widget)
         if (!stderrData.isEmpty()) {
             QMessageBox::critical(widget, "Error", QString::fromUtf8(stderrData));
         }
+#endif
         progress.setValue(complete);
         qApp->processEvents();
     }
@@ -142,19 +211,92 @@ void Tools::mysql(QSqlDatabase db, QWidget *widget)
     progress.close();
 }
 
+
+
+
 void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
 {
-    ToolMysqldumpDialog dialog(db);
-    if (dialog.exec() != QDialog::Accepted) {
+    if (!find_mysql(widget, false)) {
         return;
     }
 
-    if (!find_mysql(widget, false)) {
+    ToolMysqldumpDialog dialog(db, widget);
+    if (dialog.exec() != QDialog::Accepted) {
         return;
     }
 
     QString mysqldump = Settings::instance()->mysqldumpPath();
 
+    MysqldumpSettings settings = dialog.settings();
+    QString connectionName = db.connectionName();
+    QStringList tables = settings.tables;
+    QString dateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd_hhmmss");
+
+    QString resultDir;
+    switch(settings.path) {
+    case MysqldumpSettings::DatabaseName:
+        resultDir = pathJoin({settings.output, connectionName});
+        break;
+    case MysqldumpSettings::DatabaseDatetimeName:
+        resultDir = pathJoin({settings.output, connectionName, dateTime});
+        break;
+    default:
+        qDebug() << "not implemented" << settings.path << __FILE__ << __LINE__;
+        break;
+    }
+
+    QDir dir(resultDir);
+    if (!dir.exists()) {
+        dir.mkpath(resultDir);
+    }
+
+    if (settings.format == MysqldumpSettings::OneFile) {
+
+        QString name;
+        if (settings.data && settings.schema) {
+            name = "dump";
+        } else if (settings.data) {
+            name = "data";
+        } else if (settings.schema) {
+            name = "schema";
+        }
+
+        QString resultFile = pathJoin({resultDir, name + ".sql"});
+
+        QProgressDialog progress;
+        progress.setMaximum(0);
+        progress.show();
+
+        QStringList args = mysqldump_args(db, settings.ssl, settings.schema, settings.data, tables, resultFile);
+        execute(mysqldump, args, QString(), MYSQLDUMP_TIMEOUT, widget);
+
+    } else if (settings.format == MysqldumpSettings::MultipleFiles) {
+
+        QStringList resultFiles;
+
+        for(const QString& table: tables) {
+            QString path = pathJoin({resultDir, table + ".sql"});
+            resultFiles.append(path);
+        }
+
+        QProgressDialog progress;
+        progress.setMaximum(tables.size());
+        progress.show();
+        qApp->processEvents();
+        for(int i=0;i<tables.size();i++) {
+            QStringList args = mysqldump_args(db, settings.ssl, settings.schema, settings.data, tables.mid(i, 1), resultFiles[i]);
+            execute(mysqldump, args, QString(), MYSQLDUMP_TIMEOUT, widget);
+            progress.setValue(i);
+            progress.setLabelText(tables[i]);
+            qApp->processEvents();
+        }
+        progress.close();
+    } else {
+        qDebug() << "not implemented" << settings.format << __FILE__ << __LINE__;
+    }
+
+
+#if 0
     QStringList tables = dialog.tables();
     bool schema = dialog.schema();
     bool data = dialog.data();
@@ -324,6 +466,6 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
         QUrl url = QUrl::fromLocalFile(output);
         QDesktopServices::openUrl(url);
     }
-
+#endif
 
 }

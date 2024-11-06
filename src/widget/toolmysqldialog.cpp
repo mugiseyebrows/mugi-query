@@ -5,23 +5,17 @@
 #include <QDirIterator>
 #include <QDebug>
 #include <QTimer>
+#include "settings.h"
 
-ToolMysqlDialog::ToolMysqlDialog(Mode mode, QWidget *parent) :
+ToolMysqlDialog::ToolMysqlDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ToolMysqlDialog)
 {
     ui->setupUi(this);
-    mModel = new QStringListModel();
-    ui->inputs->setModel(mModel);
+    mFiles = new QStringListModel();
+    ui->files->setModel(mFiles);
 
-    connect(ui->oneFile, &QPushButton::clicked, [=](bool checked){
-        setMode(checked ? OneFile : MultipleFiles);
-    });
-
-    connect(ui->multipleFiles, &QPushButton::clicked, [=](bool checked){
-        setMode(checked ? MultipleFiles : OneFile);
-    });
-    setMode(mode);
+    mDir = Settings::instance()->homePath();
 }
 
 ToolMysqlDialog::~ToolMysqlDialog()
@@ -29,30 +23,14 @@ ToolMysqlDialog::~ToolMysqlDialog()
     delete ui;
 }
 
-QStringList ToolMysqlDialog::inputs() const
+QStringList ToolMysqlDialog::files() const
 {
-    if (mMode == OneFile) {
-        QString path = ui->input->text();
-        if (path.isEmpty()) {
-            return {};
-        }
-        return {path};
-    }
-    return mModel->stringList();
+    return mFiles->stringList();
 }
 
-void ToolMysqlDialog::setMode(Mode mode)
+bool ToolMysqlDialog::ssl() const
 {
-    mMode = mode;
-    ui->oneFile->setChecked(mode == OneFile);
-    ui->multipleFiles->setChecked(mode == MultipleFiles);
-    ui->groupOneFile->setVisible(mode == OneFile);
-    ui->groupMultipleFiles->setVisible(mode == MultipleFiles);
-    QTimer::singleShot(0, [=](){
-        QRect rect = geometry();
-        rect.setSize(QSize(600, mode == OneFile ? 200 : 400));
-        setGeometry(rect);
-    });
+    return ui->ssl->isChecked();
 }
 
 static QStringList toNativeSeparators(const QStringList& names) {
@@ -66,9 +44,10 @@ static QStringList toNativeSeparators(const QStringList& names) {
 void ToolMysqlDialog::on_addFile_clicked()
 {
     QString filter = "Sql files (*.sql);;All files (*.*)";
-    auto names = QFileDialog::getOpenFileNames(this, QString(), QString(), filter);
+    auto names = QFileDialog::getOpenFileNames(this, QString(), mDir, filter);
     if (!names.isEmpty()) {
-        mModel->setStringList(mModel->stringList() + toNativeSeparators(names));
+        mFiles->setStringList(mFiles->stringList() + toNativeSeparators(names));
+        mDir = QFileInfo(names[0]).dir().absolutePath();
     }
 }
 
@@ -79,6 +58,7 @@ void ToolMysqlDialog::on_addDirectory_clicked()
         return;
     }
     QDirIterator it(path, QDirIterator::Subdirectories);
+    mDir = path;
     QStringList names;
     while (it.hasNext()) {
         QString item = it.next();
@@ -91,6 +71,6 @@ void ToolMysqlDialog::on_addDirectory_clicked()
     if (names.isEmpty()) {
         return;
     }
-    mModel->setStringList(mModel->stringList() + toNativeSeparators(names));
+    mFiles->setStringList(mFiles->stringList() + toNativeSeparators(names));
 }
 
