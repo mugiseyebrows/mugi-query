@@ -223,11 +223,11 @@ void QueryHistoryWidget::onUpdateQuery() {
         //qDebug() << "All";
     } else if (mode == DateRangeWidget::NDays) {
         QDate date = QDate::currentDate().addDays(-dateEdit->days());
-        conditions.append("date > ?");
+        conditions.append("date(date) > ?");
         values.append(date);
         //qDebug() << "NDays" << date;
     } else if (mode == DateRangeWidget::Range) {
-        conditions.append("date between ? and ?");
+        conditions.append("date(date) between ? and ?");
         values.append(dateEdit->date1());
         values.append(dateEdit->date2());
         //qDebug() << "Range" << dateEdit->date1() << dateEdit->date2();
