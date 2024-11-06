@@ -2,7 +2,9 @@
 
 Schema2TreeProxyModel::Schema2TreeProxyModel(QObject *parent)
     : QSortFilterProxyModel{parent}
-{}
+{
+
+}
 
 bool Schema2TreeProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {

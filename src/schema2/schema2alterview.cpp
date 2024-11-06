@@ -22,6 +22,8 @@
 #include "schema2relatedtableswidget.h"
 #include "ones.h"
 #include <algorithm>
+#include "codewidget.h"
+#include "highlighter.h"
 
 // todo push / pull schema for one table
 
@@ -78,10 +80,11 @@ void Schema2AlterView::initColumns() {
     auto* delegate = new ItemDelegateWithCompleter(mTypes, ui->columns);
     ui->columns->setItemDelegateForColumn(Schema2TableModel::col_type, delegate);
 
+    ui->tableName->setText(mModel->tableName());
 
-    ui->childTable->setText(model->tableName());
+    //ui->childTable->setText(model->tableName());
 
-    setCompleter(ui->parentTable, mTables->tableNames());
+    //setCompleter(ui->parentTable, mTables->tableNames());
 
     CopyEventFilter::copyTsv(ui->columns);
 
@@ -238,6 +241,7 @@ QStringList Schema2AlterView::selectedFields() const {
     return res;
 }
 
+#if 0
 void Schema2AlterView::on_createRelation_clicked()
 {
     QString parentTable = ui->parentTable->text();
@@ -250,6 +254,7 @@ void Schema2AlterView::on_createRelation_clicked()
     //emit createRelation(childTable, childColumns, parentTable);
     mData->createRelationDialog(mModel, childColumns, parentTable);
 }
+#endif
 
 void Schema2AlterView::createIndex(bool primary, bool unique) {
     QStringList columns = selectedFields();
@@ -339,6 +344,37 @@ void Schema2AlterView::on_listRelatedTables_clicked()
     CopyEventFilter::copyTsv(view);
 
 #endif
+
+}
+
+
+void Schema2AlterView::on_tableName_textChanged(const QString &value)
+{
+    mModel->setTableName(value);
+    //qDebug() << "table renamed" << mModel->tableNamePrev() << mModel->tableName();
+}
+
+
+
+void Schema2AlterView::on_script_clicked()
+{
+    QStringList exprs;
+    auto* driver = mData->driver();
+    QString driverName = mData->driverName();
+    int rowCount = mModel->rowCount();
+    for(int row=0;row<rowCount;row++) {
+        exprs.append(mModel->alterTableAddColumnsQuery(row, driverName, driver));
+    }
+
+    QString connectionName = mData->connectionName();
+
+    auto tokens = Tokens(QSqlDatabase::database(connectionName));
+    auto* highligher = new Highlighter(tokens, 0);
+
+    CodeWidget* widget = new CodeWidget();
+    widget->setText(exprs.join(";\n") + "\n");
+    widget->setHighlighter(highligher);
+    widget->show();
 
 }
 

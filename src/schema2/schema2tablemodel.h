@@ -43,7 +43,11 @@ public:
 
     QString tableName() const;
 
+    QString tableNamePrev() const;
+
     void setTableName(const QString& name);
+
+    void setTableNamePrev(const QString& value);
 
     QString namePrev(int row) const;
 
@@ -113,6 +117,8 @@ public:
 
     QStringList autoincrementQueries(const QString &driverName, QSqlDriver *driver) const;
 
+    QString alterTableAddColumnsQuery(int row, const QString &driverName, QSqlDriver *driver) const;
+
     void setStatus(Status status);
 
     Schema2IndexesModel* indexes() const;
@@ -145,6 +151,7 @@ protected:
 
 
     QString mTableName;
+    QString mTableNamePrev;
 
     //StringHash<Schema2Index*> mIndexes;
 
@@ -182,6 +189,8 @@ public:
 
     int indexOf(const QString &name);
     void tableAltered(const STable &table);
+
+    QStringList renameQueries(const QString &driverName, QSqlDriver *driver) const;
 
 };
 

@@ -14,7 +14,7 @@
 // todo table renames
 
 Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject *parent)
-    : mTableName(name), mStatus(status), mRelations(new Schema2RelationsModel(this, this)),
+    : mTableName(name), mTableNamePrev(name), mStatus(status), mRelations(new Schema2RelationsModel(this, this)),
       mParentRelations(new Schema2ParentRelationsModel(this)),
       mIndexes(new Schema2IndexesModel(this)), QAbstractTableModel{parent}
 {
@@ -118,9 +118,19 @@ QString Schema2TableModel::tableName() const
     return mTableName;
 }
 
-void Schema2TableModel::setTableName(const QString &name)
+QString Schema2TableModel::tableNamePrev() const
 {
-    mTableName = name;
+    return mTableNamePrev;
+}
+
+void Schema2TableModel::setTableName(const QString &value)
+{
+    mTableName = value;
+}
+
+void Schema2TableModel::setTableNamePrev(const QString &value)
+{
+    mTableNamePrev = value;
 }
 
 QString Schema2TableModel::namePrev(int row) const
@@ -282,11 +292,6 @@ QList<Schema2Relation*> Schema2TableModel::relationsTo(const QString &tableName)
 void Schema2TableModel::pushed(bool created) {
     mStatus = StatusExisting;
     for(int row=0;row<rowCount();row++) {
-
-        if (created) {
-
-        }
-
         mColumnsPrev[row] = mColumns[row];
     }
     mDropColumnsQueue.clear();
@@ -298,6 +303,9 @@ Status Schema2TableModel::status() const {
     }
     if (mStatus == StatusExisting) {
         if (!mDropColumnsQueue.isEmpty()) {
+            return StatusModified;
+        }
+        if (mTableName != mTableNamePrev) {
             return StatusModified;
         }
         for(int row=0;row<rowCount();row++) {
@@ -342,6 +350,27 @@ QStringList Schema2TableModel::createQueries(const QString &driverName, QSqlDriv
     return {expr};
 }
 
+QStringList Schema2TableModel::renameQueries(const QString &driverName, QSqlDriver *driver) const {
+    QStringList res;
+    SqlEscaper es(driver);
+    if (mTableName != mTableNamePrev) {
+        QString expr = QString("RENAME TABLE %1 TO %2").arg(es.table(mTableNamePrev)).arg(es.table(mTableName));
+        res.append(expr);
+    }
+    return res;
+}
+
+QString Schema2TableModel::alterTableAddColumnsQuery(int row, const QString &driverName, QSqlDriver *driver) const {
+
+    QStringList primaryKey = indexes()->primaryKey();
+    SqlEscaper es(driver);
+    QString after = row > 0 ? this->name(row-1) : QString();
+    QString column_definition = columnDefinition(driverName, driver, row, false, primaryKey, after);
+    QString expr = QStringList{"ALTER TABLE", es.table(mTableName),
+                                "ADD COLUMN", column_definition}.join(" ");
+    return expr;
+}
+
 QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDriver *driver) const {
 
     QStringList res;
@@ -381,13 +410,15 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
         } else {
             if (namePrev.isEmpty()) {
 
+#if 0
                 QString after = row > 0 ? this->name(row-1) : QString();
 
                 QString column_definition = columnDefinition(driverName, driver, row, false, primaryKey, after);
 
                 QString expr = QStringList{"ALTER TABLE", es.table(mTableName),
                                             "ADD COLUMN", column_definition}.join(" ");
-
+#endif
+                QString expr = alterTableAddColumnsQuery(row, driverName, driver);
                 res.append(expr);
 
             } else if (nameChanged || typeChanged || notNullChanged || autoincrementChanged || defaultChanged) {

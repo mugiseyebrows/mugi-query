@@ -30,6 +30,10 @@ public:
 
     void tableCreated(Schema2TableModel* table);
 
+    bool isTable(const QModelIndex& index) const;
+
+    QString tableName(const QModelIndex& index) const;
+
 signals:
 
 
