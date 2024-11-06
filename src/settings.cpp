@@ -13,13 +13,7 @@ Settings* Settings::mInstance = 0;
 
 Settings::Settings()
 {
-
-#if QT_VERSION >= 0x050000
     QString appData = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-#else
-    QString appData = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
-#endif
-
     QString name = qApp->applicationName();
     QDir d(appData);
     if (!d.exists()) {
@@ -97,7 +91,8 @@ void Settings::load()
     mRealUseLocale = false;
     mRealOverrideForCopy = false;
     mRealOverrideForCsv = false;
-    mHomePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+
+    mHomePath = QDir(QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).filePath("mugi-query");
 
     bool ok;
     QJsonDocument doc = loadJson(settingsPath(),&ok);
@@ -119,7 +114,7 @@ void Settings::load()
     loadValue(obj,"MysqlPath",&mMysqlPath);
     loadValue(obj,"MysqldumpPath",&mMysqldumpPath);
     loadValue(obj,"HomePath", &mHomePath);
-
+    mHomePath = QDir::toNativeSeparators(mHomePath);
 }
 
 /************************* GETTERS **************************/
@@ -213,7 +208,7 @@ static QString existing(const QStringList& bases, const QString& path) {
             continue;
         }
         QString path_ = pathJoin({base, path});
-        if (QFile::exists(path_)) {
+        if (QFileInfo(path_).exists()) {
             return QDir::toNativeSeparators(path_);
         }
     }
