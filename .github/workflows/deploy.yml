@@ -12,7 +12,7 @@ jobs:
         msystem: ucrt64
         release: false
         install: mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-qt6-base mingw-w64-ucrt-x86_64-qt6-activeqt
-          mingw-w64-ucrt-x86_64-qt6-svg mingw-w64-ucrt-x86_64-qwt-qt6
+          mingw-w64-ucrt-x86_64-qt6-svg mingw-w64-ucrt-x86_64-firebird mingw-w64-ucrt-x86_64-qwt-qt6
     - name: main
       shell: cmd
       run: |

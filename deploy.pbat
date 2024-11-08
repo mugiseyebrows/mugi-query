@@ -1,5 +1,5 @@
 github_checkout()
-github_setup_msys2(mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-qt6-base mingw-w64-ucrt-x86_64-qt6-activeqt mingw-w64-ucrt-x86_64-qt6-svg mingw-w64-ucrt-x86_64-qwt-qt6, :m=ucrt64)
+github_setup_msys2(mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-qt6-base mingw-w64-ucrt-x86_64-qt6-activeqt mingw-w64-ucrt-x86_64-qt6-svg mingw-w64-ucrt-x86_64-firebird mingw-w64-ucrt-x86_64-qwt-qt6, :m=ucrt64)
 include(env-msys2)
 use(python, 3.11)
 use(conda)
