@@ -20,7 +20,7 @@ jobs:
         where mugideploy > NUL 2>&1 || pip install mugideploy
         where ninja > NUL 2>&1 || pip install ninja
         call build-msys2
-        mugideploy collect --bin Release-msys2\mugi-query.exe --plugins sqldrivers --zip
+        mugideploy collect --bin Release-msys2\mugi-query.exe --data emmet.json --plugins sqldrivers --zip
     - name: upload
       uses: actions/upload-artifact@v4
       with:

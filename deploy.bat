@@ -4,4 +4,4 @@ set PATH=C:\msys64\ucrt64\bin;C:\Program Files\CMake\bin;%LOCALAPPDATA%\Programs
 where mugideploy > NUL 2>&1 || pip install mugideploy
 where ninja > NUL 2>&1 || pip install ninja
 call build-msys2
-mugideploy collect --bin Release-msys2\mugi-query.exe --plugins sqldrivers --zip
+mugideploy collect --bin Release-msys2\mugi-query.exe --data emmet.json --plugins sqldrivers --zip
