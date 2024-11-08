@@ -1,6 +1,6 @@
 #include <windows.h>
 
-IDI_ICON1	ICON	"D:\\dev\\mugi-query\\mugi-query.ico"
+IDI_ICON1	ICON	"mugi-query.ico"
 
 VS_VERSION_INFO VERSIONINFO
 	FILEVERSION 0,0,0,0
