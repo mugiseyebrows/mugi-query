@@ -61,6 +61,7 @@
 #include "schema2treeproxymodel.h"
 #include "codewidget.h"
 #include "settingsdirectorydialog.h"
+
 #include <sqlparse.h>
 #include "version.h"
 
