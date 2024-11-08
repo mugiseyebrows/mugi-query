@@ -1,12 +1,24 @@
-# Generated from mugi-query.pro.
-
 cmake_minimum_required(VERSION 3.16)
-project(mugi-query VERSION 1.0 LANGUAGES CXX)
+project(mugi-query VERSION 0.0.1 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 option(BUILD_APP "" ON)
+
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+configure_file(version.h.in "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
+
+# todo rc.in
+# message("PROJECT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR}")
+# message("PROJECT_VERSION_MINOR ${PROJECT_VERSION_MINOR}")
+# message("PROJECT_VERSION_PATCH ${PROJECT_VERSION_PATCH}")
+# message("PROJECT_VERSION_TWEAK ${PROJECT_VERSION_TWEAK}")
 
 if (WIN32)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql Svg Widgets Test AxContainer)
@@ -215,7 +227,7 @@ if (BUILD_APP)
         src/tokens.cpp src/tokens.h
         src/tolower.cpp src/tolower.h
         src/tools.cpp src/tools.h
-        src/version.h
+        version.h
         src/widget/checkableview.cpp src/widget/checkableview.h src/widget/checkableview.ui
         src/widget/clipboardutil.cpp src/widget/clipboardutil.h
         src/widget/comparetableitemwidget.cpp src/widget/comparetableitemwidget.h src/widget/comparetableitemwidget.ui

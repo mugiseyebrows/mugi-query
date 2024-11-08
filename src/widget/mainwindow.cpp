@@ -62,6 +62,7 @@
 #include "codewidget.h"
 #include "settingsdirectorydialog.h"
 #include <sqlparse.h>
+#include "version.h"
 
 using namespace DataUtils;
 
@@ -97,7 +98,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //qDebug() << "MainWindow::MainWindow" << QThread::currentThreadId();
 
-    setWindowTitle(QString("%1 %2").arg(qApp->applicationName()).arg(qApp->applicationVersion()));
+    setWindowTitle(QString("%1 %2").arg("mugi-query").arg(VERSION));
 
     while (ui->sessionTabs->count() > 0) {
         ui->sessionTabs->removeTab(0);
