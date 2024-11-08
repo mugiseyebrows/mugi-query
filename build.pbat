@@ -1,14 +1,12 @@
 def main
     include(env)
+    set BUILD_TYPE=Release
+    if /I "%1"=="debug" set BUILD_TYPE=Debug
+    echo BUILD_TYPE %BUILD_TYPE%
     pushd_cd()
-        mkdir(debug)
-        mkdir(release)
-        pushd debug
-            cmake -G Ninja -D CMAKE_BUILD_TYPE=Debug -D CMAKE_PREFIX_PATH=C:/Qt/6.7.1/mingw1120_64;C:/qwt/6.3.0/mingw1120_64 ..
-            cmake --build .
-        popd
-        pushd release
-            cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_PREFIX_PATH=C:/Qt/6.7.1/mingw1120_64;C:/qwt/6.3.0/mingw1120_64 ..
+        mkdir(%BUILD_TYPE%)
+        pushd %BUILD_TYPE%
+            cmake -G Ninja -D CMAKE_BUILD_TYPE=%BUILD_TYPE% -D CMAKE_PREFIX_PATH=C:/Qt/6.7.1/mingw1120_64;C:/qwt/6.3.0/mingw1120_64 ..
             cmake --build .
         popd
     popd

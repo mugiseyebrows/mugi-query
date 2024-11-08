@@ -1,0 +1,2 @@
+#define VERSION "0.0.1"
+#define GIT_COMMIT_HASH "f9abf0fe66f88431f34a0137715b3348d0e7a3e8"

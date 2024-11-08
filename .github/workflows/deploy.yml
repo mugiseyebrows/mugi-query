@@ -1,0 +1,27 @@
+name: main
+on: push
+jobs:
+  main:
+    runs-on: windows-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: setup-msys2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ucrt64
+        release: false
+        install: mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-qt6-base mingw-w64-ucrt-x86_64-qwt-qt6
+    - name: main
+      shell: cmd
+      run: |
+        set PATH=C:\msys64\ucrt64\bin;%LOCALAPPDATA%\Programs\Python\Python311;%LOCALAPPDATA%\Programs\Python\Python311\Scripts;C:\Python311;C:\Python311\Scripts;C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja;C:\Program Files (x86)\Android\android-sdk\cmake\3.22.1\bin;C:\Miniconda;C:\Miniconda\Scripts;%PATH%
+        where mugideploy > NUL 2>&1 || pip install mugideploy
+        where ninja > NUL 2>&1 || pip install ninja
+        call build-msys2
+        mugideploy collect --bin Release-msys2\mugi-query.exe --plugins sqldrivers --zip
+    - name: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: test
+        path: mugi-query-*-win64.zip
