@@ -1,5 +1,5 @@
 
-find_library(QWT_LIBRARY NAMES Qwt)
+find_library(QWT_LIBRARY NAMES Qwt qwt-qt6)
 
 find_path(QWT_INCLUDE_DIR NAMES qwt.h)
 
