@@ -30,3 +30,8 @@ jobs:
       with:
         name: mugi-query
         path: mugi-query-*-win64.zip
+    - name: release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: mugi-query-*-win64.zip

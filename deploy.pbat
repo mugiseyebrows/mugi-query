@@ -8,5 +8,6 @@ install(ninja)
 call build-msys2
 mugideploy collect --bin Release-msys2\mugi-query.exe --data emmet.json --plugins sqldrivers --zip
 github_upload(mugi-query-*-win64.zip, :n=mugi-query)
+github_release(mugi-query-*-win64.zip)
 github-workflow 1
 github-on release
