@@ -6,7 +6,7 @@ def main
     pushd_cd()
         mkdir(%BUILD_TYPE%)
         pushd %BUILD_TYPE%
-            cmake -G Ninja -D CMAKE_BUILD_TYPE=%BUILD_TYPE% -D CMAKE_PREFIX_PATH=C:/Qt/6.7.1/mingw1120_64;C:/qwt-6.3.0 ..
+            cmake -G Ninja -D CMAKE_BUILD_TYPE=%BUILD_TYPE% -D CMAKE_PREFIX_PATH=C:/Qwt-6.3.0-dev ..
             cmake --build .
         popd
     popd
