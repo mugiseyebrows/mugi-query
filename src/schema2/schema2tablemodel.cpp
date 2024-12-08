@@ -10,6 +10,7 @@
 #include "drivernames.h"
 #include "schema2parentrelationsmodel.h"
 #include "sdata.h"
+#include "columnposition.h"
 
 // todo table renames
 
@@ -337,8 +338,8 @@ QStringList Schema2TableModel::createQueries(const QString &driverName, QSqlDriv
         if (name.isEmpty() || type.isEmpty()) {
             continue;
         }
-        QString column_definition = columnDefinition(driverName, driver, row, false, primaryKey, QString());
-        columns.append(column_definition);
+        QString columnDefinition = getColumnDefinition(driverName, driver, row, false, primaryKey, {});
+        columns.append(columnDefinition);
     }
     if (primaryKey.size() > 1) {
         columns.append(QString("CONSTRAINT PK_%1 PRIMARY KEY (%2)").arg(mTableName).arg(primaryKey.join(", ")));
@@ -364,10 +365,17 @@ QString Schema2TableModel::alterTableAddColumnsQuery(int row, const QString &dri
 
     QStringList primaryKey = indexes()->primaryKey();
     SqlEscaper es(driver);
-    QString after = row > 0 ? this->name(row-1) : QString();
-    QString column_definition = columnDefinition(driverName, driver, row, false, primaryKey, after);
+
+    ColumnPosition position;
+    if (row == 0) {
+        position = ColumnPosition(ColumnPosition::First);
+    } else {
+        position = ColumnPosition(ColumnPosition::After, this->name(row-1));
+    }
+
+    QString columnDefinition = getColumnDefinition(driverName, driver, row, false, primaryKey, position);
     QString expr = QStringList{"ALTER TABLE", es.table(mTableName),
-                                "ADD COLUMN", column_definition}.join(" ");
+                                "ADD COLUMN", columnDefinition}.join(" ");
     return expr;
 }
 
@@ -441,10 +449,10 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
 
                 } else if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
 
-                    QString column_definition = columnDefinition(driverName, driver, row, false, primaryKey, QString());
+                    QString columnDefinition = getColumnDefinition(driverName, driver, row, false, primaryKey, {});
 
                     QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
-                                                "CHANGE COLUMN", es.field(namePrev), column_definition}).join(" ");
+                                                "CHANGE COLUMN", es.field(namePrev), columnDefinition}).join(" ");
 
                     res.append(expr);
                 } else {
@@ -472,9 +480,9 @@ QStringList Schema2TableModel::autoincrementQueries(const QString &driverName, Q
         QString type = this->type(row);
         bool autoincrement = this->autoincrement(row);
         if (namePrev.isEmpty() && !name.isEmpty() && !type.isEmpty() && autoincrement) {
-            QString column_definition = columnDefinition(driverName, driver, row, false, primaryKey, QString());
+            QString columnDefinition = getColumnDefinition(driverName, driver, row, false, primaryKey, {});
             QString expr = QStringList {"ALTER TABLE", es.table(mTableName),
-                                        "MODIFY COLUMN", column_definition}.join(" ");
+                                        "MODIFY COLUMN", columnDefinition}.join(" ");
             res.append(expr);
         }
     }
@@ -485,9 +493,9 @@ static bool is_text_type(const QString& driverName, const QString& type) {
     return type.toLower().startsWith("varchar") || type.toLower() == "text";
 }
 
-QString Schema2TableModel::columnDefinition(const QString &driverName, QSqlDriver *driver, int row,
-                                            bool skipAutoIncrement, const QStringList& primaryKey,
-                                            const QString& after) const {
+QString Schema2TableModel::getColumnDefinition(const QString &driverName, QSqlDriver *driver, int row,
+                                               bool skipAutoIncrement, const QStringList& primaryKey,
+                                               const ColumnPosition &position) const {
 
     //Q_ASSERT(driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB);
 
@@ -500,7 +508,7 @@ QString Schema2TableModel::columnDefinition(const QString &driverName, QSqlDrive
     bool autoincrement = this->autoincrement(row);
 
     QString defaultExpr;
-    QString afterExpr;
+
     if (!default_.isEmpty()) {
         if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
             QString value = default_;
@@ -520,8 +528,9 @@ QString Schema2TableModel::columnDefinition(const QString &driverName, QSqlDrive
             defaultExpr = QString("DEFAULT %1").arg(default_);
         }
     }
+    QString afterExpr;
     if (driverName != DRIVER_SQLITE) {
-        afterExpr = after.isEmpty() ? "FIRST" : "AFTER " + after;
+        afterExpr = position.toString(es);
     }
 
     QString notNullExpr = notNull ? "NOT NULL" : "";

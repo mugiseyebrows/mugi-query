@@ -14,7 +14,7 @@ class Schema2RelationsModel;
 class QSqlDriver;
 class Schema2ParentRelationsModel;
 class Schema2TablesModel;
-
+class ColumnPosition;
 
 class Schema2TableModel : public QAbstractTableModel
 {
@@ -180,7 +180,9 @@ public:
 
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
-    QString columnDefinition(const QString &driverName, QSqlDriver *driver, int row, bool skipAutoIncrement, const QStringList &primaryKey, const QString &insertAfter) const;
+    QString getColumnDefinition(const QString &driverName, QSqlDriver *driver, int row,
+                                bool skipAutoIncrement, const QStringList &primaryKey,
+                                const ColumnPosition& position) const;
 
     // QAbstractItemModel interface
 public:

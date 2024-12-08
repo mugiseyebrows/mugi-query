@@ -282,6 +282,7 @@ if (BUILD_APP)
         src/schema2/stylewidget.h src/schema2/stylewidget.cpp src/schema2/stylewidget.ui
         src/schema2/odbcuri.h src/schema2/odbcuri.cpp
         src/widget/settingsdirectorydialog.h src/widget/settingsdirectorydialog.cpp src/widget/settingsdirectorydialog.ui
+        src/schema2/columnposition.h src/schema2/columnposition.cpp
     )
     target_include_directories(mugi-query PUBLIC
         src
