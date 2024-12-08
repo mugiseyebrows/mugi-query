@@ -5,6 +5,7 @@
 #include "schema2status.h"
 class Schema2Index;
 class QSqlDriver;
+class Schema2TableModel;
 
 class Schema2IndexesModel : public QAbstractTableModel
 {
@@ -28,7 +29,7 @@ public:
 
     Schema2Index* get(const QString& name) const;
 
-    QStringList queries(const QString &tableName, const QString &driverName, QSqlDriver *driver) const;
+    QStringList queries(Schema2TableModel* table, const QString &driverName, QSqlDriver *driver) const;
 
     void pushed();
 
@@ -58,6 +59,7 @@ public:
     // QAbstractItemModel interface
 public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    void primaryKeysCreated();
 };
 
 #endif // SCHEMA2INDEXESMODEL_H

@@ -779,7 +779,8 @@ void Schema2Data::push(QWidget* widget)
         switch(table->status()) {
         case StatusNew:
             changeSet->append(table->createQueries(driverName, driver), [=](){
-                table->pushed(true);
+                table->columnsCreated(true);
+                table->primaryKeysCreated();
             });
             break;
         case StatusModified:
@@ -794,7 +795,7 @@ void Schema2Data::push(QWidget* widget)
                 });
             }
             changeSet->append(table->alterQueries(driverName, driver), [=](){
-                table->pushed(false);
+                table->columnsCreated(false);
             });
         }
             break;
@@ -806,12 +807,14 @@ void Schema2Data::push(QWidget* widget)
     // create and alter indexes
     for(Schema2TableModel* table: tables) {
         Schema2IndexesModel* indexes = table->indexes();
-        changeSet->append(indexes->queries(table->tableName(), driverName, driver), [=](){
+
+        changeSet->append(indexes->queries(table, driverName, driver), [=](){
             indexes->pushed();
         });
     }
 
     // update autoincrement
+#if 0
     for(Schema2TableModel* table: tables) {
         if (table->status() == StatusNew) {
             changeSet->append(table->autoincrementQueries(driverName, driver), [=](){
@@ -819,6 +822,7 @@ void Schema2Data::push(QWidget* widget)
             });
         }
     }
+#endif
 
     // create and alter relations
     for(Schema2TableModel* table: tables) {

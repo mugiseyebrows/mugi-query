@@ -105,7 +105,7 @@ public:
 
     QList<Schema2Relation*> relationsTo(const QString& tableName) const;
 
-    void pushed(bool created);
+    void columnsCreated(bool created);
 
     Status status() const;
 
@@ -115,7 +115,7 @@ public:
 
     QStringList dropQueries(const QString &driverName, QSqlDriver *driver) const;
 
-    QStringList autoincrementQueries(const QString &driverName, QSqlDriver *driver) const;
+    //QStringList autoincrementQueries(const QString &driverName, QSqlDriver *driver) const;
 
     QString alterTableAddColumnsQuery(int row, const QString &driverName, QSqlDriver *driver) const;
 
@@ -194,6 +194,7 @@ public:
 
     QStringList renameQueries(const QString &driverName, QSqlDriver *driver) const;
 
+    void primaryKeysCreated();
 };
 
 #endif // SCHEMA2TABLEMODEL_H

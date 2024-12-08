@@ -2,6 +2,7 @@
 #include "schema2index.h"
 
 #include <QDebug>
+#include "schema2/schema2tablemodel.h"
 
 Schema2IndexesModel::Schema2IndexesModel(QObject *parent)
     : QAbstractTableModel{parent}
@@ -57,12 +58,27 @@ Schema2Index *Schema2IndexesModel::get(const QString &name) const {
     return 0;
 }
 
-QStringList Schema2IndexesModel::queries(const QString& tableName, const QString& driverName, QSqlDriver* driver) const
+void Schema2IndexesModel::primaryKeysCreated() {
+    for(int i=0;i<mIndexes.size();i++) {
+        Schema2Index* index = mIndexes[i];
+        if (index->primary()) {
+            index->setStatus(StatusExisting);
+        }
+    }
+}
+
+QStringList Schema2IndexesModel::queries(Schema2TableModel* table, const QString& driverName, QSqlDriver* driver) const
 {
     QStringList res;
+
+    QString tableName = table->tableName();
+
     for(int i=0;i<mIndexes.size();i++) {
-        auto* index = mIndexes[i];
+        Schema2Index* index = mIndexes[i];
         if (index->status() != StatusExisting) {
+            if (index->primary() && table->status() == StatusNew) {
+                continue;
+            }
             res.append(index->createQuery(tableName, driverName, driver));
         }
     }

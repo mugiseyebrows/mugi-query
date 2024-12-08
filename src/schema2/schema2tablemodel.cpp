@@ -290,12 +290,16 @@ QList<Schema2Relation*> Schema2TableModel::relationsTo(const QString &tableName)
     return mRelations->getRelationsTo(tableName);
 }
 
-void Schema2TableModel::pushed(bool created) {
+void Schema2TableModel::columnsCreated(bool created) {
     mStatus = StatusExisting;
     for(int row=0;row<rowCount();row++) {
         mColumnsPrev[row] = mColumns[row];
     }
     mDropColumnsQueue.clear();
+}
+
+void Schema2TableModel::primaryKeysCreated() {
+    mIndexes->primaryKeysCreated();
 }
 
 Status Schema2TableModel::status() const {
@@ -449,7 +453,7 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
 
                 } else if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
 
-                    QString columnDefinition = getColumnDefinition(driverName, driver, row, false, primaryKey, {});
+                    QString columnDefinition = getColumnDefinition(driverName, driver, row, false, {}, {});
 
                     QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
                                                 "CHANGE COLUMN", es.field(namePrev), columnDefinition}).join(" ");
@@ -470,6 +474,7 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
     return res;
 }
 
+#if 0
 QStringList Schema2TableModel::autoincrementQueries(const QString &driverName, QSqlDriver *driver) const {
     SqlEscaper es(driver);
     QStringList res;
@@ -488,6 +493,7 @@ QStringList Schema2TableModel::autoincrementQueries(const QString &driverName, Q
     }
     return res;
 }
+#endif
 
 static bool is_text_type(const QString& driverName, const QString& type) {
     return type.toLower().startsWith("varchar") || type.toLower() == "text";
