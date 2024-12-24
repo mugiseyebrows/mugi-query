@@ -1,5 +1,6 @@
 #include "hexitemdelegate.h"
 #include <QPainter>
+#include <QRectF>
 
 HexItemDelegate::HexItemDelegate(QObject *parent)
     : QStyledItemDelegate{parent}
@@ -48,7 +49,7 @@ void HexItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     double lineHeight = fm.lineSpacing();
 
     painter->setFont(font);
-    QRectF rect = option.rect.toRectF();
+    QRectF rect = QRectF(option.rect);
     rect.adjust(2,2,-2,-2);
 
     int lineCount = rect.height() / lineHeight;

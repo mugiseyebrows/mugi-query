@@ -19,6 +19,7 @@
 #include "schema2relationsmodel.h"
 #include "style.h"
 #include "stylewidget.h"
+#include <QAction>
 
 Schema2View::Schema2View(QWidget *parent) :
     mData(0),
