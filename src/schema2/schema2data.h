@@ -23,11 +23,13 @@ class Schema2TablesModel;
 class QSqlDriver;
 class DataImportWidget2;
 class OdbcUri;
+class QSqlDatabase;
 
 #include "schema2join.h"
 #include "hash.h"
 #include "schema2status.h"
 #include "schema2export.h"
+#include "sdata.h"
 
 class Schema2Data : public QObject
 {
@@ -59,9 +61,9 @@ public:
 
     QGraphicsScene* scene() const;
 
-    void showAlterView(const QString& tableName);
+    void showAlterView(const SName &tableName);
 
-    void showDataImportWidget(const QString &tableName);
+    void showDataImportWidget(const SName &tableName);
 
     void arrange(bool all);
 
@@ -69,11 +71,11 @@ public:
 
     QSortFilterProxyModel* selectProxyModel();
 
-    void selectOrDeselect(const QString& table);
+    void selectOrDeselect(const SName &table);
 
     //void showRelationsListDialog(QWidget *widget);
 
-    Schema2TableModel* createTable(const QString& name);
+    Schema2TableModel* createTable(const SName &name);
 
     Schema2TableItem* tableItem(const QString& name) const;
 
@@ -82,16 +84,18 @@ public:
     //void indexPulled(const QString indexName, const QString &tableName, const QStringList &columns, bool primary, bool unique, Status status);
 
     void createRelationDialog(Schema2TableModel* childTable, QStringList childColumns, QString parentTable);
-    void createRelationDialog(const QString &childTable, const QString &parentTable, QWidget* widget);
+    void createRelationDialog(const SName &childTable, const SName &parentTable, QWidget* widget);
     void editRelationDialog(Schema2Relation *relation, QWidget *widget);
     void dropRelationDialog(Schema2Relation *relation, QWidget *widget);
-    void dropRelationDialog(const QString& childTable, const QString& parentTable, QWidget *widget);
-    void dropTableDialog(const QString &table, QWidget *widget);
+    void dropRelationDialog(const SName &childTable, const SName &parentTable, QWidget *widget);
+    void dropTableDialog(const SName &table, QWidget *widget);
     void dropIndexDialog(QWidget *widget);
 
     QString connectionName() const {
         return mConnectionName;
     }
+
+    QSqlDatabase database() const;
 
     QString driverName() const;
 
@@ -110,7 +114,7 @@ public:
 
     void saveAs(bool clipboard, const QString& path, const QRectF &rect, bool onlySelected, Schema2Export::ExportFormat format, QWidget *widget);
 
-    void tableRenamed(const QString& tableName, const QString& tableNamePrev);
+    void tableRenamed(const SName &tableName, const SName &tableNamePrev);
 
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
@@ -127,9 +131,9 @@ protected:
 
     //QHash<QString, Schema2TableView*> mViews;
 
-    StringHash<Schema2AlterView*> mAlterViews;
+    QHash<SName, Schema2AlterView*> mAlterViews;
 
-    StringHash<DataImportWidget2*> mDataImportWidgets;
+    QHash<SName, DataImportWidget2*> mDataImportWidgets;
 
     //QList<QPair<QString, Schema2Relation*>> mDropRelationsQueue;
 

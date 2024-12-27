@@ -14,12 +14,12 @@ Schema2ParentRelationsModel::Schema2ParentRelationsModel(Schema2TableModel *tabl
 void Schema2ParentRelationsModel::update(Schema2TablesModel *tablesModel)
 {
     auto tables = tablesModel->tables();
-    QString tableName = mTable->tableName().toLower();
+    SName tableName = mTable->tableName();
     QList<Schema2Relation*> res;
     for(auto* table: tables) {
         auto relations = table->relations()->values();
         for(auto* relation: relations) {
-            if (relation->parentTable().toLower() == tableName) {
+            if (relation->parentTable() == tableName) {
                 res.append(relation);
             }
         }

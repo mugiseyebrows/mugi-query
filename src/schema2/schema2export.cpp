@@ -40,20 +40,20 @@ static QString dotTable(Schema2TableItem * table, double posk) {
                     "</table>\n"
                     "</td></tr>\n"
                     "</table>>")
-            .arg(dotTableRow(table->tableName(), true))
+            .arg(dotTableRow(table->tableName().name, true))
             .arg(columns.join("\n"));
 
     QPointF pos = table->centerPos() * posk;
 
-    return QString("%1 [label=%2\npos=\"%3,%4!\"]\n").arg(dotQuoted(table->tableName())).arg(label).arg(pos.x()).arg(-pos.y());
+    return QString("%1 [label=%2\npos=\"%3,%4!\"]\n").arg(dotQuoted(table->tableName().name)).arg(label).arg(pos.x()).arg(-pos.y());
 }
 
 static QString dotRelation(Schema2Relation* relation) {
     auto childTable = relation->childTable();
     auto parentTable = relation->parentTable();
     return QString("%1 -> %2\n")
-            .arg(dotQuoted(childTable))
-            .arg(dotQuoted(parentTable));
+            .arg(dotQuoted(childTable.name))
+            .arg(dotQuoted(parentTable.name));
 }
 
 #include <QApplication>
@@ -204,9 +204,9 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, const QRectF& re
                     continue;
                 }
                 QString item = QString("ref {\n    %1.%2 > %3.%4\n}")
-                        .arg(relation->childTable())
+                        .arg(relation->childTable().name)
                         .arg(relation->childColumns().join(""))
-                        .arg(relation->parentTable())
+                        .arg(relation->parentTable().name)
                         .arg(relation->parentColumns().join(""));
                 relationsText.append(item);
             }
@@ -223,7 +223,7 @@ void Schema2Export::saveAs(bool clipboard, const QString &path, const QRectF& re
                 fields.append(field);
             }
             QString item = QString("table %1\n{\n%2\n}")
-                    .arg(table->tableName())
+                    .arg(table->tableName().name)
                     .arg(fields.join("\n"));
             tablesText.append(item);
         }

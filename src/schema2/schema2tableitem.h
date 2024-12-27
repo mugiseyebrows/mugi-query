@@ -6,6 +6,7 @@
 class Schema2TableModel;
 class Schema2RelationItem2;
 #include "uncheckedmode.h"
+#include "sdata.h"
 
 class Schema2TableItem : public QGraphicsItem
 {
@@ -16,9 +17,9 @@ public:
 
     void addRelation(Schema2RelationItem2 *relation);
 
-    QString tableName() const;
+    SName tableName() const;
 
-    QString tableNamePrev() const;
+    SName tableNamePrev() const;
 
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;

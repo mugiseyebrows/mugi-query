@@ -20,11 +20,11 @@ public:
     Schema2Join() {
 
     }
-    Schema2Join(const QString& childTable) : childTable(childTable) {
+    Schema2Join(const SName& childTable) : childTable(childTable) {
 
     }
-    Schema2Join(const QString& childTable, const QStringList& childColumn,
-         const QString& parentTable, const QStringList& parentColumn)
+    Schema2Join(const SName& childTable, const QStringList& childColumn,
+         const SName& parentTable, const QStringList& parentColumn)
         : childTable(childTable), childColumns(childColumn),
           parentTable(parentTable), parentColumns(parentColumn) {
 
@@ -34,18 +34,18 @@ public:
         QStringList res;
         for(int i=0;i<childColumns.size();i++) {
             QString item = QString("%1.%2 = %3.%4")
-                    .arg(childTable)
+                    .arg(childTable.name)
                     .arg(childColumns[i])
-                    .arg(parentTable)
+                    .arg(parentTable.name)
                     .arg(parentColumns[i]);
             res.append(item);
         }
         return res.join(" and ");
     }
 
-    QString childTable;
+    SName childTable;
     QStringList childColumns;
-    QString parentTable;
+    SName parentTable;
     QStringList parentColumns;
 };
 

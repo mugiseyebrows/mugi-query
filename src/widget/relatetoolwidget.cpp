@@ -19,7 +19,7 @@ void RelateToolWidget::clear()
     ui->parentTable->setText(QString());
 }
 
-void RelateToolWidget::push(QString table)
+void RelateToolWidget::push(const QString& table)
 {
     QString childTable = ui->childTable->text();
     if (childTable.isEmpty()) {

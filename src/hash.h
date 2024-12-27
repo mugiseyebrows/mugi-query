@@ -3,6 +3,7 @@
 
 #include <QHash>
 #include <QStringList>
+#include "sdata.h"
 
 template<typename T>
 class StringHash
@@ -51,7 +52,6 @@ public:
     QHash<QString, T> mData;
     QHash<QString, QString> mCase;
 };
-
 
 template<typename T>
 class StringListHash {

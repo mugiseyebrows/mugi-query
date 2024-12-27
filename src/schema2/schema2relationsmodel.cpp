@@ -10,7 +10,7 @@ Schema2RelationsModel::Schema2RelationsModel(Schema2TableModel *table, QObject *
 }
 
 Schema2Relation* Schema2RelationsModel::insert(const QString &name, const QStringList &childColumns,
-                                                   const QString &parentTable, const QStringList &parentColumns,
+                                                   const SName &parentTable, const QStringList &parentColumns,
                                                        bool constrained, Status status) {
 
     if (contains(name)) {
@@ -77,11 +77,11 @@ Schema2Relation *Schema2RelationsModel::remove(Schema2Relation * relation) {
     return removeAt(index);
 }
 
-QList<Schema2Relation*> Schema2RelationsModel::getRelationsTo(const QString &tableName) const
+QList<Schema2Relation*> Schema2RelationsModel::getRelationsTo(const SName &tableName) const
 {
     QList<Schema2Relation*> res;
     for(Schema2Relation* relation: mRelations) {
-        if (relation->parentTable().toLower() == tableName.toLower()) {
+        if (relation->parentTable() == tableName) {
             res.append(relation);
         }
     }

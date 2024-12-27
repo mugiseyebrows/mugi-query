@@ -2,6 +2,7 @@
 #define RELATETOOLWIDGET_H
 
 #include <QWidget>
+#include "sdata.h"
 
 namespace Ui {
 class RelateToolWidget;
@@ -20,7 +21,7 @@ signals:
 
 public slots:
     void clear();
-    void push(QString);
+    void push(const QString &);
 
 private slots:
     void on_clearParent_clicked();

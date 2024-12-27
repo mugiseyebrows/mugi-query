@@ -438,7 +438,7 @@ void Automation::onStart() {
         QList<QStringList> columns = toListOfStringLists(mAction.arg(1));
 
         auto* view = schemaView();
-        auto* table = view->createTable(name);
+        auto* table = view->createTable(SName(name));
 
         if (!table) {
             next();

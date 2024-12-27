@@ -7,6 +7,7 @@
 #include "schema2status.h"
 #include "schema2tablecolumn.h"
 #include "sdata.h"
+#include "enums.h"
 
 class Schema2Index;
 class Schema2IndexesModel;
@@ -35,19 +36,21 @@ public:
         cols_count
     };
 
-    explicit Schema2TableModel(const QString& name, Status status, QObject *parent = nullptr);
+    Schema2TableModel(const SName& name, Status status, TableType type = TableType::Table, QObject *parent = nullptr);
 
     bool updateColumn(const SColumn &column, const QString &prev);
 
     bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex());
 
-    QString tableName() const;
+    SName tableName() const;
 
-    QString tableNamePrev() const;
+    SName tableNamePrev() const;
 
-    void setTableName(const QString& name);
+    void setTableName(const SName &name);
 
-    void setTableNamePrev(const QString& value);
+    void setTableNamePrev(const SName &value);
+
+    TableType type() const;
 
     QString namePrev(int row) const;
 
@@ -92,8 +95,8 @@ public:
     bool containsRelation(const QString& name) const;
 
     Schema2Relation* insertRelation(const QString& name, const QStringList& childColumns,
-                        const QString& parentTable, const QStringList& parentColumns,
-                        bool constrained, Status status);
+                                    const SName &parentTable, const QStringList& parentColumns,
+                                    bool constrained, Status status);
 
     Schema2Relation* removeRelation(const QString& name);
 
@@ -103,7 +106,7 @@ public:
 
     Schema2RelationsModel* relations() const;
 
-    QList<Schema2Relation*> relationsTo(const QString& tableName) const;
+    QList<Schema2Relation*> relationsTo(const SName &tableName) const;
 
     void columnsCreated(bool created);
 
@@ -125,7 +128,7 @@ public:
 
     bool contains(Schema2Relation* relation);
 
-    QStringList relatedTables() const;
+    SNames relatedTables() const;
 
     QStringList relationNames() const;
 
@@ -140,7 +143,7 @@ public:
     SColumn at(int row) const;
 
 signals:
-    void tableClicked(QString, QPointF);
+    void tableClicked(SName, QPointF);
 
 
 protected:
@@ -149,9 +152,9 @@ protected:
     QList<SColumn> mColumns;
     QList<SColumn> mColumnsPrev;
 
+    SName mTableName;
 
-    QString mTableName;
-    QString mTableNamePrev;
+    SName mTableNamePrev;
 
     //StringHash<Schema2Index*> mIndexes;
 
@@ -166,6 +169,8 @@ protected:
     Schema2IndexesModel* mIndexes;
 
     Status mStatus;
+
+    TableType mType;
 
 signals:
 
@@ -195,6 +200,7 @@ public:
     QStringList renameQueries(const QString &driverName, QSqlDriver *driver) const;
 
     void primaryKeysCreated();
+
 };
 
 #endif // SCHEMA2TABLEMODEL_H

@@ -3,11 +3,13 @@
 
 class QSqlDriver;
 #include <QStringList>
+#include "sdata.h"
 
 class SqlEscaper {
 public:
     SqlEscaper(QSqlDriver* driver);
-    QString table(const QString& table) const;
+    QString table(const QString &table) const;
+    QString table(const SName &table) const;
     QString field(const QString& field) const;
     QStringList columns(const QStringList& columns) const;
 protected:

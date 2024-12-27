@@ -77,7 +77,7 @@ void DataImportWidget2::init(Schema2Data* data, Schema2TableModel *table)
 {
     mData = data;
     mTable = table;
-    setWindowTitle(table->tableName());
+    setWindowTitle(table->tableName().name);
     initImportModel();
     initAppender();
     initCopyFilter();
@@ -279,9 +279,9 @@ void DataImportWidget2::on_execute_clicked()
 
     bool ok;
     for(int row=0;row<mModel->rowCount();row++) {
-        QSqlRecord record = this->record(db, tableName, row, &ok);
+        QSqlRecord record = this->record(db, tableName.name, row, &ok);
         if (ok) {
-            QString query = driver->sqlStatement(QSqlDriver::InsertStatement, tableName, record, false);
+            QString query = driver->sqlStatement(QSqlDriver::InsertStatement, tableName.name, record, false);
             if (q.exec(query)) {
                 count += 1;
             } else {

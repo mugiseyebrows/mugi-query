@@ -2,13 +2,31 @@
 
 #include "sdata.h"
 
+STable mockTable(const QString& schema, TableType type, const QString &name, const QStringList &columnNames)
+{
+    QList<SColumn> columns;
+    for(const QString& name: columnNames) {
+        columns.append(SColumn(name, "int"));
+    }
+    return STable(SName(schema, name), columns);
+}
+
 STable mockTable(const QString &name, const QStringList &columnNames)
 {
     QList<SColumn> columns;
     for(const QString& name: columnNames) {
         columns.append(SColumn(name, "int"));
     }
-    return STable(name, columns);
+    return STable(SName(name), columns);
+}
+
+STable mockTable(const QString& schema, const QString &name, const QStringList &columnNames)
+{
+    QList<SColumn> columns;
+    for(const QString& name: columnNames) {
+        columns.append(SColumn(name, "int"));
+    }
+    return STable(SName(schema, name), columns);
 }
 
 class tst_SData : public QObject {
@@ -18,6 +36,7 @@ public:
 private slots:
     void testDiffBasic();
     void testDiffEmpty();
+    void testDiffSchema();
 };
 
 
@@ -45,14 +64,14 @@ void tst_SData::testDiffBasic()
 
 
     QCOMPARE(created.size(), 1);
-    QCOMPARE(created[0].name, "qix");
+    QCOMPARE(created[0].name.name, "qix");
     QCOMPARE(dropped.size(), 1);
-    QCOMPARE(dropped[0], "baz");
+    QCOMPARE(dropped[0].fullname(), "baz");
     QCOMPARE(renamed.size(), 1);
-    QCOMPARE(renamed[0].oldName, "bar");
-    QCOMPARE(renamed[0].newName, "bar1");
+    QCOMPARE(renamed[0].oldName.name, "bar");
+    QCOMPARE(renamed[0].newName.name, "bar1");
     QCOMPARE(altered.size(), 1);
-    QCOMPARE(altered[0].name, "moo");
+    QCOMPARE(altered[0].name.name, "moo");
 
 }
 
@@ -78,6 +97,32 @@ void tst_SData::testDiffEmpty()
     QCOMPARE(renamed.size(), 0);
     QCOMPARE(altered.size(), 0);
 
+
+}
+
+void tst_SData::testDiffSchema() {
+
+    QList<STable> tables1 = {
+                             mockTable("a", "foo", {"a", "b", "c"}),
+                             mockTable("a", "bar", {"d", "e", "f"}),
+                             };
+
+    QList<STable> tables2 = {
+                             mockTable("a", "foo", {"a", "b", "c"}),
+                             mockTable("b", "bar", {"d", "e", "f"}),
+                             };
+
+    STablesDiff diff = getDiff(tables1, tables2);
+
+    auto created = diff.created;
+    auto dropped = diff.dropped;
+    auto renamed = diff.renamed;
+    auto altered = diff.altered;
+
+    QCOMPARE(created.size(), 0);
+    QCOMPARE(dropped.size(), 0);
+    QCOMPARE(renamed.size(), 1);
+    QCOMPARE(altered.size(), 0);
 
 }
 

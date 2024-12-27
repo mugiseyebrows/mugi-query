@@ -23,7 +23,7 @@ public:
 
     void setType(int column, QMetaType::Type type);
 
-    QSqlRecord record(int row, bool* ok);
+    //QSqlRecord record(int row, bool* ok);
 
 protected:
 

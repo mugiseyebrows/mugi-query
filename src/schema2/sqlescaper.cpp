@@ -6,6 +6,10 @@ SqlEscaper::SqlEscaper(QSqlDriver *driver) : mDriver(driver) {
 
 }
 
+QString SqlEscaper::table(const SName &table) const {
+    return mDriver->escapeIdentifier(table.name, QSqlDriver::TableName);
+}
+
 QString SqlEscaper::table(const QString &table) const {
     return mDriver->escapeIdentifier(table, QSqlDriver::TableName);
 }

@@ -26,12 +26,12 @@ void Schema2TableItem::removeRelation(Schema2RelationItem2 *relation) {
     mRelations.removeOne(relation);
 }
 
-QString Schema2TableItem::tableName() const
+SName Schema2TableItem::tableName() const
 {
     return mModel->tableName();
 }
 
-QString Schema2TableItem::tableNamePrev() const
+SName Schema2TableItem::tableNamePrev() const
 {
     return mModel->tableNamePrev();
 }
@@ -203,7 +203,7 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     painter->setPen(mChecked ? Style::current.TextColorTitle : Style::current.TextColorFaded);
 
     QTextOption opt(Qt::AlignCenter);
-    painter->drawText(rect, mModel->tableName(), opt);
+    painter->drawText(rect, mModel->tableName().name, opt);
 
     painter->setPen(mChecked ? Style::current.TextColor : Style::current.TextColorFaded);
 

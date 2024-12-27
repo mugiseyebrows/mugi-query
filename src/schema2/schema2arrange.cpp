@@ -11,11 +11,11 @@
 
 class Node {
 public:
-    Node(const QString& name) : name(name) {
+    Node(const SName& name) : name(name) {
 
     }
-    QString name;
-    QStringList connections;
+    SName name;
+    SNames connections;
     QPointF pos;
 };
 
@@ -152,23 +152,23 @@ static void buildNodes(Schema2TablesModel* tablesModel, bool all, QList<Node>& n
 
     auto tables = tablesModel->tableNames();
 
-    QStringList skip;
+    SNames skip;
     if (!all) {
         auto items = tablesModel->tableItems();
         for(auto* item: items) {
             if (!item->checked()) {
-                skip.append(item->tableName().toLower());
+                skip.append(item->tableName());
             }
         }
     }
 
-    QList<QStringList> relationsList;
+    QList<SNames> relationsList;
 
-    for(const QString& table: tables) {
+    for(const SName& table: tables.names) {
         auto relations = tablesModel->table(table)->relations()->values();
         for(auto* relation: relations) {
-            auto childTable = table.toLower();
-            auto parentTable = relation->parentTable().toLower();
+            auto childTable = table;
+            auto parentTable = relation->parentTable();
             if (skip.contains(childTable) || skip.contains(parentTable)) {
                 continue;
             }
@@ -178,17 +178,17 @@ static void buildNodes(Schema2TablesModel* tablesModel, bool all, QList<Node>& n
         }
     }
 
-    for(const QString& table: tables) {
+    for(const SName& table: tables.names) {
         Node node(table);
-        if (skip.contains(table.toLower())) {
+        if (skip.contains(table)) {
             unchecked.append(node);
             continue;
         }
 
-        for(const QStringList item: relationsList) {
-            if (table.toLower() == item[0]) {
+        for(const SNames& item: relationsList) {
+            if (table == item[0]) {
                 node.connections.append(item[1]);
-            } else if (table.toLower() == item[1]) {
+            } else if (table == item[1]) {
                 node.connections.append(item[0]);
             }
         }

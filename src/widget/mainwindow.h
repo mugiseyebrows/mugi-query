@@ -22,6 +22,7 @@ class Schema2TreeModel;
 
 #include <QSqlDatabase>
 #include <enums.h>
+#include "sdata.h"
 
 namespace Ui {
 class MainWindow;
@@ -71,7 +72,7 @@ protected:
     int lastTabIndex(const QString &connectionName);
     void selectDatabase(const QString &connectionName);
     void updateSchemaModel();
-    QStringList schemaTreeSelectedTables();
+    SNames schemaTreeSelectedTables();
 
     //SchemaModel* mSchemaModel;
 

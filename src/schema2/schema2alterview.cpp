@@ -80,7 +80,7 @@ void Schema2AlterView::initColumns() {
     auto* delegate = new ItemDelegateWithCompleter(mTypes, ui->columns);
     ui->columns->setItemDelegateForColumn(Schema2TableModel::col_type, delegate);
 
-    ui->tableName->setText(mModel->tableName());
+    ui->tableName->setText(mModel->tableName().name);
 
     //ui->childTable->setText(model->tableName());
 
@@ -200,7 +200,7 @@ void Schema2AlterView::init(Schema2Data *data, Schema2TablesModel* tableModels,
     initRelations();
     initParentRelations();
     initIndexes();
-    setWindowTitle(mModel->tableName());
+    setWindowTitle(mModel->tableName().name);
 }
 
 /*
@@ -264,7 +264,7 @@ void Schema2AlterView::createIndex(bool primary, bool unique) {
     }
     QString indexName;
     if (primary) {
-        indexName = QString("PK_%1").arg(mModel->tableName()).toLower();
+        indexName = QString("PK_%1").arg(mModel->tableName().name).toLower();
     } else {
         indexName = QString("IX_%1").arg(columns.join("_")).toLower();
     }

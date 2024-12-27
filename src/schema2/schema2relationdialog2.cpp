@@ -31,9 +31,9 @@ void Schema2RelationDialog2::init(Schema2TableModel *childTable,
     mChildTable = childTable;
     mParentTable = parentTable;
 
-    ui->childTable->setText(childTable->tableName());
+    ui->childTable->setText(childTable->tableName().name);
 
-    ui->parentTable->setText(parentTable->tableName());
+    ui->parentTable->setText(parentTable->tableName().name);
 
     ui->constraintName->setText(relationName);
 

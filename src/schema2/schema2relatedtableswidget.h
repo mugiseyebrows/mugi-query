@@ -2,6 +2,7 @@
 #define SCHEMA2RELATEDTABLESWIDGET_H
 
 #include <QWidget>
+#include "sdata.h"
 
 namespace Ui {
 class Schema2RelatedTablesWidget;
@@ -15,7 +16,7 @@ class Schema2RelatedTablesWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit Schema2RelatedTablesWidget(Schema2TablesModel* tables, const QString& table, QWidget *parent = nullptr);
+    explicit Schema2RelatedTablesWidget(Schema2TablesModel* tables, const SName& table, QWidget *parent = nullptr);
     ~Schema2RelatedTablesWidget();
 
 protected:

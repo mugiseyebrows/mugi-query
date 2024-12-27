@@ -4,6 +4,7 @@
 #include <QObject>
 
 #include <QStandardItemModel>
+#include "sdata.h"
 
 class Schema2TableModel;
 class TableItem;
@@ -22,7 +23,7 @@ public:
 
     //void updateColumns(const QString& tableName);
 
-    void tableDropped(const QString &name);
+    void tableDropped(const SName &name);
 
     void tableRenamed(const SRenamed &table);
 
@@ -32,14 +33,14 @@ public:
 
     bool isTable(const QModelIndex& index) const;
 
-    QString tableName(const QModelIndex& index) const;
+    SName tableName(const QModelIndex& index) const;
 
 signals:
 
 
 
 protected:
-    int indexOf(const QString &name) const;
+    int indexOf(const SName &name) const;
     TableItem *findTable(const QString &name) const;
     void emitRowChanged(int row);
     QStringList tableNames() const;

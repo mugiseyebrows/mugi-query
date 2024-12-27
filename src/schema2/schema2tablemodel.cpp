@@ -14,13 +14,14 @@
 
 // todo table renames
 
-Schema2TableModel::Schema2TableModel(const QString &name, Status status, QObject *parent)
-    : mTableName(name), mTableNamePrev(name), mStatus(status), mRelations(new Schema2RelationsModel(this, this)),
+Schema2TableModel::Schema2TableModel(const SName& name, Status status, TableType type, QObject *parent)
+    : mType(type), mTableName(name), mTableNamePrev(name), mStatus(status), mRelations(new Schema2RelationsModel(this, this)),
       mParentRelations(new Schema2ParentRelationsModel(this)),
       mIndexes(new Schema2IndexesModel(this)), QAbstractTableModel{parent}
 {
 
 }
+
 
 void Schema2TableModel::tableAltered(const STable& table) {
 
@@ -114,24 +115,28 @@ bool Schema2TableModel::insertRows(int row, int count, const QModelIndex &parent
     return true;
 }
 
-QString Schema2TableModel::tableName() const
+SName Schema2TableModel::tableName() const
 {
     return mTableName;
 }
 
-QString Schema2TableModel::tableNamePrev() const
+SName Schema2TableModel::tableNamePrev() const
 {
     return mTableNamePrev;
 }
 
-void Schema2TableModel::setTableName(const QString &value)
+void Schema2TableModel::setTableName(const SName &value)
 {
     mTableName = value;
 }
 
-void Schema2TableModel::setTableNamePrev(const QString &value)
+void Schema2TableModel::setTableNamePrev(const SName &value)
 {
     mTableNamePrev = value;
+}
+
+TableType Schema2TableModel::type() const {
+    return mType;
 }
 
 QString Schema2TableModel::namePrev(int row) const
@@ -254,7 +259,7 @@ bool Schema2TableModel::containsRelation(const QString &name) const
 }
 
 Schema2Relation* Schema2TableModel::insertRelation(const QString &name, const QStringList &childColumns,
-                                                   const QString &parentTable, const QStringList &parentColumns,
+                                                   const SName &parentTable, const QStringList &parentColumns,
                                                    bool constrained, Status status)
 {
     return mRelations->insert(name, childColumns, parentTable, parentColumns, constrained, status);
@@ -285,7 +290,7 @@ Schema2RelationsModel *Schema2TableModel::relations() const
     return mRelations;
 }
 
-QList<Schema2Relation*> Schema2TableModel::relationsTo(const QString &tableName) const
+QList<Schema2Relation*> Schema2TableModel::relationsTo(const SName &tableName) const
 {
     return mRelations->getRelationsTo(tableName);
 }
@@ -346,7 +351,7 @@ QStringList Schema2TableModel::createQueries(const QString &driverName, QSqlDriv
         columns.append(columnDefinition);
     }
     if (primaryKey.size() > 1) {
-        columns.append(QString("CONSTRAINT PK_%1 PRIMARY KEY (%2)").arg(mTableName).arg(primaryKey.join(", ")));
+        columns.append(QString("CONSTRAINT PK_%1 PRIMARY KEY (%2)").arg(mTableName.name).arg(primaryKey.join(", ")));
     }
 
     QString expr = QString("CREATE TABLE %1 (%2)")
@@ -439,7 +444,7 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
 
                     if (name == namePrev) {
 
-                        QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
+                        QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName.name),
                                                     "ALTER COLUMN",
                                                     es.field(name), type, notNull ? "NOT NULL" : ""}).join(" ");
 
@@ -455,7 +460,7 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
 
                     QString columnDefinition = getColumnDefinition(driverName, driver, row, false, {}, {});
 
-                    QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
+                    QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName.name),
                                                 "CHANGE COLUMN", es.field(namePrev), columnDefinition}).join(" ");
 
                     res.append(expr);
@@ -572,9 +577,9 @@ bool Schema2TableModel::contains(Schema2Relation *relation)
     return mRelations->values().contains(relation);
 }
 
-QStringList Schema2TableModel::relatedTables() const
+SNames Schema2TableModel::relatedTables() const
 {
-    QStringList res;
+    SNames res;
     auto relations = mRelations->values();
     for(auto* relation: relations) {
         res.append(relation->parentTable());
@@ -653,7 +658,7 @@ static int bool_to_checked(bool value) {
 QVariant Schema2TableModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid()) {
-        return QVariant();
+        return {};
     }
 
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
@@ -677,7 +682,7 @@ QVariant Schema2TableModel::data(const QModelIndex &index, int role) const
         }
     }
 
-    return QVariant();
+    return {};
 }
 
 Qt::ItemFlags Schema2TableModel::flags(const QModelIndex &index) const

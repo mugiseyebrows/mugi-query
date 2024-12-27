@@ -850,6 +850,7 @@ void MainWindow::on_queryExecute_triggered()
 }
 
 #include "widget/selectcolumnsdialog.h"
+#include "sqlescaper.h"
 
 void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 {
@@ -885,6 +886,11 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     qDebug() << "result" << result;
 
+    QString connectionName = this->connectionName();
+    QSqlDatabase db = QSqlDatabase::database(connectionName);
+    QSqlDriver* driver = db.driver();
+    SqlEscaper es(driver);
+
 #if 0
     if (result == alter) {
 
@@ -912,13 +918,14 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         QSqlDriver* driver = db.driver();
         bool mssql = db.driverName() == DRIVER_ODBC;
 
-        QStringList tables = schemaTreeSelectedTables();
+        SNames tables = schemaTreeSelectedTables();
         if (tables.isEmpty()) {
             return;
         }
         QStringList queries;
-        foreach(const QString& table, tables) {
-            QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100").arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
+        foreach(const SName& table, tables.names) {
+            QString query = QString(mssql ? "SELECT TOP 100 * FROM %1" : "SELECT * FROM %1 LIMIT 100")
+                                .arg(es.table(table));
             queries << query;
         }
         onAppendQuery(connectionName,queries.join(";\n"));
@@ -926,7 +933,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     if (result == join) {
 
-        QStringList tables = schemaTreeSelectedTables();
+        SNames tables = schemaTreeSelectedTables();
         if (tables.isEmpty()) {
             return;
         }
@@ -936,7 +943,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         bool mssql = db.driverName() == DRIVER_ODBC;
 
         if (tables.size() == 1) {
-            QString query = QString("SELECT * FROM %1").arg(tables[0]);
+            QString query = QString("SELECT * FROM %1").arg(tables[0].name);
             onAppendQuery(connectionName, query);
             return;
         }
@@ -946,7 +953,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         RelationsModel* relationsModel = new RelationsModel(this);
         relationsModel->load(RelationsModel::path(connectionName));
         Relations relations(relationsModel);
-        Relations::PathList path = relations.findPath(tables);
+        Relations::PathList path = relations.findPath(tables.getNames());
         if (path.isEmpty()) {
             QString error = "No path found";
             Error::show(this,error);
@@ -958,9 +965,9 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     if (result == drop) {
         QString connectionName = this->connectionName();
-        QStringList tables = schemaTreeSelectedTables();
+        SNames tables = schemaTreeSelectedTables();
         QSqlDatabase db = QSqlDatabase::database(connectionName);
-        QSqlDriver* driver = db.driver();
+
         if (tables.isEmpty()) {
             return;
         }
@@ -974,7 +981,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 #endif
 
         //Schema2TreeModel* schemaTreeModel = this->schemaTreeModel();
-        QString question = QString("Are you sure you want to drop %1").arg(tables.size() == 1 ? QString(tables[0]) : tables.join(" and "));
+        QString question = QString("Are you sure you want to drop %1").arg(tables.size() == 1 ? QString(tables[0].name) : tables.join(" and "));
         auto answer = QMessageBox::question(this, QString(), question, QMessageBox::Yes | QMessageBox::No);
         if (answer != QMessageBox::Yes) {
             return;
@@ -983,9 +990,9 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         STablesDiff diff;
 
         QStringList errors;
-        QStringList failed;
-        for(const QString& table: tables) {
-            QString query = QString("DROP TABLE %1").arg(driver->escapeIdentifier(table,QSqlDriver::TableName));
+        SNames failed;
+        for(const SName& table: tables.names) {
+            QString query = QString("DROP TABLE %1").arg(es.table(table));
             QSqlQuery q(db);
             if (q.exec(query)) {
                 diff.dropped.append(table);
@@ -1004,7 +1011,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
         if (errors.size() > 0) {
             QString message = QString("Failed to drop %1\nerror(s):\n%2")
-                    .arg(failed.size() == 1 ? QString(failed[0]) : failed.join(" and "))
+                    .arg(failed.size() == 1 ? QString(failed[0].name) : failed.join(" and "))
                     .arg(errors.join("\n"));
             QMessageBox::critical(this, QString(), message);
         }
@@ -1012,23 +1019,23 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     if (result == update || result == insert) {
         QString connectionName = this->connectionName();
-        QStringList tables = schemaTreeSelectedTables();
+        SNames tables = schemaTreeSelectedTables();
         QSqlDatabase db = QSqlDatabase::database(connectionName);
-        QSqlDriver* driver = db.driver();
+
         if (tables.isEmpty()) {
             return;
         }
-        QString table = tables.first();
-        QSqlRecord record = db.record(table);
+        SName table = tables[0];
+        QSqlRecord record = db.record(table.name);
         QStringList names;
         QList<QMetaType::Type> types;
         recordToNamesTypes(record,names,types);
         SelectColumnsDialog dialog;
 
         if (result == update) {
-            dialog.initUpdate(table, names, types);
+            dialog.initUpdate(table.name, names, types);
         } else if (result == insert) {
-            dialog.initInsert(table, names, types);
+            dialog.initInsert(table.name, names, types);
         }
 
         if (dialog.exec() != QDialog::Accepted) {
@@ -1046,7 +1053,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
             }
 
             query = QString("UPDATE %1 SET %2 WHERE %3")
-                    .arg(driver->escapeIdentifier(table,QSqlDriver::TableName))
+                    .arg(es.table(table))
                     .arg(dataChecked.join(" = , ") + " = ")
                     .arg(keysChecked.join(" "));
 
@@ -1059,7 +1066,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
             }
 
             query = QString("INSERT INTO %1(%2) VALUES (%3)")
-                    .arg(driver->escapeIdentifier(table,QSqlDriver::TableName))
+                    .arg(es.table(table))
                     .arg(checked.join(", "))
                     .arg(repeat("", checked.size()).join(", "));
 
@@ -1075,14 +1082,14 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     if (result == edit) {
         QString connectionName = this->connectionName();
-        QStringList tables = schemaTreeSelectedTables();
+        SNames tables = schemaTreeSelectedTables();
         QSqlDatabase db = QSqlDatabase::database(connectionName);
-        for(const QString& table: std::as_const(tables)) {
+        for(const SName& table: std::as_const(tables.names)) {
             QTableView* view = new QTableView();
             view->setAttribute(Qt::WA_DeleteOnClose);
             QSqlTableModel* model = new QSqlTableModel(view, db);
             model->setEditStrategy(QSqlTableModel::OnFieldChange);
-            model->setTable(table);
+            model->setTable(table.name);
             model->select();
             view->setModel(model);
             view->show();
@@ -1109,9 +1116,9 @@ Schema2TreeModel* MainWindow::schemaTreeModel() const {
     return qobject_cast<Schema2TreeModel*>(treeProxyModel->sourceModel());
 }
 
-QStringList MainWindow::schemaTreeSelectedTables() {
+SNames MainWindow::schemaTreeSelectedTables() {
 
-    QStringList tables;
+    SNames tables;
 
     Schema2TreeProxyModel* proxyModel = this->schemaTreeProxyModel();
     Schema2TreeModel* model = this->schemaTreeModel();
@@ -1196,12 +1203,12 @@ void MainWindow::on_toolsJoin_triggered()
 
 
 
-static bool containsAll(const QStringList& ordered, const QStringList& related, const QString& name) {
-    for(const QString& item: related) {
-        if (item.toLower() == name.toLower()) {
+static bool containsAll(const SNames& ordered, const SNames& related, const SName& name) {
+    for(const SName& item: related.names) {
+        if (item == name) {
             continue;
         }
-        if (!toLower(ordered).contains(item.toLower())) {
+        if (!ordered.contains(item)) {
             return false;
         }
     }
@@ -1217,12 +1224,12 @@ void MainWindow::on_codeCopyOrder_triggered()
     // todo case correctness
     Schema2Data* data = Schema2Data::instance(connectionName, this);
     auto* tables = data->tables();
-    QStringList names = tables->tableNames();
-    QHash<QString, QStringList> relations;
-    for(const QString& name: names) {
+    SNames names = tables->tableNames();
+    QHash<SName, SNames> relations;
+    for(const SName& name: names.names) {
         relations[name] = tables->table(name)->relatedTables();
     }
-    QStringList ordered;
+    SNames ordered;
 
     int i = 0;
     while(i < names.size()) {

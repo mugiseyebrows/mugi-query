@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QModelIndex>
+#include "sdata.h"
 
 class QGraphicsScene;
 class QPushButton;
@@ -32,7 +33,7 @@ public:
 
     Schema2Data* data() const;
 
-    Schema2TableModel* createTable(const QString &tableName);
+    Schema2TableModel* createTable(const SName &tableName);
 
     QRectF sceneRect() const;
 
@@ -43,7 +44,7 @@ public:
     void updateView();
 
 public slots:
-    void onTableClicked(QString tableName, QPointF scenePos);
+    void onTableClicked(SName tableName, QPointF scenePos);
 
 protected:
     void uncheckAllExcept(QPushButton *checked);

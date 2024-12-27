@@ -10,7 +10,7 @@ Schema2Relation::Schema2Relation()
 }
 
 Schema2Relation::Schema2Relation(Schema2TableModel *childTable, const QString &name, const QStringList &childColumns,
-                                 const QString &parentTable, const QStringList &parentColumns,
+                                 const SName &parentTable, const QStringList &parentColumns,
                                  bool constrained, Status status)
     : mChildTableModel(childTable), mName(name), mChildColumns(childColumns),
       mParentTable(parentTable), mParentColumns(parentColumns),
@@ -21,7 +21,7 @@ Schema2Relation::Schema2Relation(Schema2TableModel *childTable, const QString &n
     }
 }
 
-QString Schema2Relation::childTable() const {
+SName Schema2Relation::childTable() const {
     return mChildTableModel->tableName();
 }
 
@@ -37,7 +37,7 @@ QStringList Schema2Relation::childColumns() const {
     return mChildColumns;
 }
 
-QString Schema2Relation::parentTable() const {
+SName Schema2Relation::parentTable() const {
     return mParentTable;
 }
 
@@ -85,8 +85,8 @@ QVariant Schema2Relation::data(int column, int role) const {
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         switch(column) {
         case col_name: return mName;
-        case col_child_table: return mChildTableModel->tableName();
-        case col_parent_table: return mParentTable;
+        case col_child_table: return mChildTableModel->tableName().name;
+        case col_parent_table: return mParentTable.name;
         case col_child_columns: return mChildColumns.join(", ");
         case col_parent_columns: return mParentColumns.join(", ");
         }
@@ -130,20 +130,20 @@ static QStringList escaped(const QStringList& items, QSqlDriver* driver) {
 }
 #endif
 
-QStringList Schema2Relation::createQueries(const QString &childTable, const QString& driverName, QSqlDriver* driver) const {
+QStringList Schema2Relation::createQueries(const SName &childTable, const QString& driverName, QSqlDriver* driver) const {
     // ms access does not support ON UPDATE X ON DELETE X
     SqlEscaper es(driver);
     QString expr = QString("ALTER TABLE %1 ADD CONSTRAINT %2 FOREIGN KEY (%3) REFERENCES %4(%5)")
-            .arg(es.table(childTable))
+            .arg(es.table(childTable.name))
             .arg(es.field(mName))
             .arg(es.columns(mChildColumns).join(", "))
-            .arg(es.table(mParentTable))
+            .arg(es.table(mParentTable.name))
             .arg(es.columns(mParentColumns).join(", "));
     return {expr};
 }
 
-QStringList Schema2Relation::dropQueries(const QString &childTable, const QString& driverName, QSqlDriver* driver) const {
-    QString expr = QString("ALTER TABLE %1 DROP CONSTRAINT %2").arg(childTable).arg(mOldName);
+QStringList Schema2Relation::dropQueries(const SName &childTable, const QString& driverName, QSqlDriver* driver) const {
+    QString expr = QString("ALTER TABLE %1 DROP CONSTRAINT %2").arg(childTable.name).arg(mOldName);
     return {expr};
 }
 
@@ -156,6 +156,6 @@ void Schema2Relation::pushed() {
     mOldName = mName;
 }
 
-QStringList Schema2Relation::modifyQueries(const QString &childTable, const QString &driverName, QSqlDriver *driver) const {
+QStringList Schema2Relation::modifyQueries(const SName &childTable, const QString &driverName, QSqlDriver *driver) const {
     return dropQueries(childTable, driverName, driver) + createQueries(childTable, driverName, driver);
 }

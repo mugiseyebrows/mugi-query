@@ -14,6 +14,7 @@
 #include "schema2index.h"
 #include "schema2treemodel.h"
 #include "schema2treeproxymodel.h"
+#include "sdata.h"
 
 Schema2TablesModel::Schema2TablesModel(const QString& connectionName, QGraphicsScene *scene, QObject *parent)
     : mConnectionName(connectionName), mScene(scene), mTreeModel(new Schema2TreeModel(this)), mTreeProxyModel(new Schema2TreeProxyModel(this)), QAbstractTableModel{parent}
@@ -22,16 +23,26 @@ Schema2TablesModel::Schema2TablesModel(const QString& connectionName, QGraphicsS
 }
 
 int Schema2TablesModel::indexOf(const QString& name) const {
-
     for(int i=0;i<mTableModels.size();i++) {
-        if (mTableModels[i]->tableName().toLower() == name.toLower()) {
+        if (mTableModels[i]->tableName().name.toLower() == name.toLower()) {
             return i;
         }
     }
     return -1;
 }
 
-Schema2TableModel *Schema2TablesModel::table(const QString &name) {
+int Schema2TablesModel::indexOf(const SName& name) const {
+
+
+    for(int i=0;i<mTableModels.size();i++) {
+        if (mTableModels[i]->tableName() == name) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+Schema2TableModel *Schema2TablesModel::table(const QString& name) {
     int index = indexOf(name);
     if (index < 0) {
         return 0;
@@ -39,8 +50,20 @@ Schema2TableModel *Schema2TablesModel::table(const QString &name) {
     return mTableModels[index];
 }
 
-bool Schema2TablesModel::contains(const QString &table) {
-    return indexOf(table) > -1;
+Schema2TableModel *Schema2TablesModel::table(const SName& name) {
+    int index = indexOf(name);
+    if (index < 0) {
+        return 0;
+    }
+    return mTableModels[index];
+}
+
+bool Schema2TablesModel::contains(const QString& name) {
+    return indexOf(name) > -1;
+}
+
+bool Schema2TablesModel::contains(const SName& name) {
+    return indexOf(name) > -1;
 }
 
 
@@ -83,7 +106,7 @@ QList<STable> Schema2TablesModel::tablesState() const
     QList<STable> res;
     for(auto* table: mTableModels) {
         QList<SColumn> columns;
-        QString tableName = table->tableName();
+        SName tableName = table->tableName();
         for(int row=0;row<table->rowCount();row++) {
 #if 0
             QString name = table->name(row);
@@ -113,7 +136,7 @@ QList<SRelation> Schema2TablesModel::relationsState() const
     return res;
 }
 
-Schema2TableModel* Schema2TablesModel::tableCreated(const QString& table, Status status) {
+Schema2TableModel* Schema2TablesModel::tableCreated(const SName& table, Status status) {
 
     if (contains(table)) {
         return 0;
@@ -122,10 +145,10 @@ Schema2TableModel* Schema2TablesModel::tableCreated(const QString& table, Status
 
     Schema2TableModel* model = new Schema2TableModel(table, status);
 
-    connect(model, SIGNAL(tableClicked(QString, QPointF)), this, SIGNAL(tableClicked(QString, QPointF)));
+    connect(model, SIGNAL(tableClicked(SName, QPointF)), this, SIGNAL(tableClicked(SName, QPointF)));
     Schema2TableItem* item = new Schema2TableItem(model);
     if (mTablePos.contains(table)) {
-        item->setPos(mTablePos.get(table));
+        item->setPos(mTablePos[table]);
     } else {
         mSetPosQueue.append(item);
     }
@@ -140,7 +163,7 @@ Schema2TableModel* Schema2TablesModel::tableCreated(const QString& table, Status
     return model;
 }
 
-void Schema2TablesModel::tableDropped(const QString& name) {
+void Schema2TablesModel::tableDropped(const SName& name) {
     /*auto* table = this->table(name);
     auto* tableItem = this->tableItem(name);
 */
@@ -201,7 +224,7 @@ void Schema2TablesModel::tableAltered(const STable& table) {
 void Schema2TablesModel::merge(const STablesDiff &diff)
 {
     QList<STable> created = diff.created;
-    QStringList dropped = diff.dropped;
+    SNames dropped = diff.dropped;
     QList<SRenamed> renamed = diff.renamed;
     QList<STable> altered = diff.altered;
 
@@ -209,7 +232,7 @@ void Schema2TablesModel::merge(const STablesDiff &diff)
         tableCreated(table.name, StatusExisting);
         tableAltered(table);
     }
-    for(const auto& table: dropped) {
+    for(const auto& table: dropped.names) {
         tableDropped(table);
     }
     for(const auto& item: renamed) {
@@ -233,7 +256,7 @@ void Schema2TablesModel::merge(const SRelationsDiff &diff) {
 
 }
 
-Schema2TableModel* Schema2TablesModel::tableRemoved(const QString &tableName)
+Schema2TableModel* Schema2TablesModel::tableRemoved(const SName &tableName)
 {
     int index = indexOf(tableName);
     if (index < 0) {
@@ -255,7 +278,7 @@ QList<Schema2TableItem *> Schema2TablesModel::tableItems() const
     return mTableItems;
 }
 
-Schema2TableItem *Schema2TablesModel::tableItem(const QString &name) const {
+Schema2TableItem *Schema2TablesModel::tableItem(const SName &name) const {
     int index = indexOf(name);
     if (index < 0) {
         return 0;
@@ -284,7 +307,7 @@ QStringList Schema2TablesModel::checked(bool value) const {
     QStringList res;
     for(auto* item: mTableItems) {
         if (item->checked() == value) {
-            res.append(item->tableName());
+            res.append(item->tableName().name);
         }
     }
     return res;
@@ -304,7 +327,7 @@ void Schema2TablesModel::loadPos() {
 
 void Schema2TablesModel::savePos()
 {
-    QHash<QString, QPointF> pos;
+    QHash<SName, QPointF> pos;
     for(Schema2TableItem* item: std::as_const(mTableItems)) {
         pos[item->tableName()] = item->pos();
     }
@@ -340,16 +363,16 @@ QList<Schema2TableModel *> Schema2TablesModel::tables() const
     return mTableModels;
 }
 
-QStringList Schema2TablesModel::tableNames() const
+SNames Schema2TablesModel::tableNames() const
 {
-    QStringList res;
+    SNames res;
     for(Schema2TableModel* model: std::as_const(mTableModels)) {
         res.append(model->tableName());
     }
     return res;
 }
 
-QList<Schema2Relation *> Schema2TablesModel::relationsFrom(const QString &tableName)
+QList<Schema2Relation *> Schema2TablesModel::relationsFrom(const SName &tableName)
 {
     Schema2TableModel* table = this->table(tableName);
     return table->relations()->values();
@@ -357,7 +380,7 @@ QList<Schema2Relation *> Schema2TablesModel::relationsFrom(const QString &tableN
 
 
 
-QList<Schema2Relation *> Schema2TablesModel::relationsTo(const QString &tableName)
+QList<Schema2Relation *> Schema2TablesModel::relationsTo(const SName &tableName)
 {
 #if 0
     QList<Schema2Relation *> res;
@@ -473,7 +496,7 @@ QVariant Schema2TablesModel::data(const QModelIndex &index, int role) const
     }
     if (role == Qt::EditRole || role == Qt::DisplayRole) {
         if (index.column() == 0) {
-            return mTableModels[index.row()]->tableName();
+            return mTableModels[index.row()]->tableName().name;
         }
     }
     if (role == Qt::CheckStateRole) {
@@ -507,9 +530,9 @@ bool Schema2TablesModel::setData(const QModelIndex &index, const QVariant &value
     return false;
 }
 
-void Schema2TablesModel::relationCreated(const QString& constraintName, const QString& childTable, const QStringList& childColumns,
-               const QString& parentTable, const QStringList& parentColumns,
-               bool constrained, Status status) {
+void Schema2TablesModel::relationCreated(const QString& constraintName, const SName &childTable, const QStringList& childColumns,
+                                         const SName &parentTable, const QStringList& parentColumns,
+                                         bool constrained, Status status) {
 
     Schema2TableItem* childItem = tableItem(childTable);
     Schema2TableItem* parentItem = tableItem(parentTable);

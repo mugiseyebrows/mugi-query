@@ -20,6 +20,8 @@
 #include "style.h"
 #include "stylewidget.h"
 #include <QAction>
+#include "drivernames.h"
+#include <QSqlDatabase>
 
 Schema2View::Schema2View(QWidget *parent) :
     mData(0),
@@ -82,11 +84,11 @@ Schema2View::Schema2View(QWidget *parent) :
                 Schema2Relation* relation = relationsModel->at(row);
                 auto parent = relation->parentTable();
                 auto child = relation->childTable();
-                if (checked.contains(parent)) {
-                    related.append(child);
+                if (checked.contains(parent.name)) {
+                    related.append(child.name);
                 }
-                if (checked.contains(child)) {
-                    related.append(parent);
+                if (checked.contains(child.name)) {
+                    related.append(parent.name);
                 }
             }
         }
@@ -116,7 +118,7 @@ void Schema2View::setData(Schema2Data *data)
 {
     mData = data;
 
-    connect(mData,SIGNAL(tableClicked(QString, QPointF)),this,SLOT(onTableClicked(QString, QPointF)));
+    connect(mData,SIGNAL(tableClicked(SName, QPointF)),this,SLOT(onTableClicked(SName, QPointF)));
 
     ui->view->setScene(mData->scene());
 
@@ -173,7 +175,7 @@ QList<Schema2TableItem*> Schema2View::tablesAt(const QPointF& pos) const {
     return res;
 }
 
-void Schema2View::onTableClicked(QString tableName_, QPointF scenePos)
+void Schema2View::onTableClicked(SName tableName_, QPointF scenePos)
 {
 
     //qDebug() << "onTableClicked" << tableName << mMode;
@@ -185,7 +187,7 @@ void Schema2View::onTableClicked(QString tableName_, QPointF scenePos)
     }
     qDebug() << "--";*/
     // todo figure out, file bug report
-    QString tableName;
+    SName tableName;
     if (tables.size() == 1) {
         Schema2TableItem* table = tables[0];
         tableName = table->tableNamePrev();
@@ -212,7 +214,7 @@ void Schema2View::onTableClicked(QString tableName_, QPointF scenePos)
             //}
             mTableStack.clear();
         }*/
-        ui->relate->push(tableName);
+        ui->relate->push(tableName.name);
         break;
     case Schema2Toolbar::ModeUnrelate:
         /*mTableStack.append(tableName);
@@ -224,7 +226,7 @@ void Schema2View::onTableClicked(QString tableName_, QPointF scenePos)
             //}
             mTableStack.clear();
         }*/
-        ui->relate->push(tableName);
+        ui->relate->push(tableName.name);
         break;
     case Schema2Toolbar::ModeDrop:
         mData->dropTableDialog(tableName, this);
@@ -235,9 +237,15 @@ void Schema2View::onTableClicked(QString tableName_, QPointF scenePos)
 }
 
 
-Schema2TableModel* Schema2View::createTable(const QString& tableName) {
-    Schema2TableModel* table = mData->createTable(tableName);
-    mData->showAlterView(tableName);
+Schema2TableModel* Schema2View::createTable(const SName& name) {
+
+    QString schema;
+    if (mData->driverName() == DRIVER_MYSQL) {
+        schema = mData->database().databaseName();
+    }
+
+    Schema2TableModel* table = mData->createTable(name);
+    mData->showAlterView(name);
     return table;
 }
 

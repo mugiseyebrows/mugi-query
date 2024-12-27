@@ -59,6 +59,23 @@ int findSimilar(const STable& table, const QList<STable>& tables) {
     return index;
 }
 
+static SNames getSNames(const QList<STable>& tables) {
+    SNames res;
+    for(const STable& table: tables) {
+        res.append(table.name);
+    }
+    return res;
+}
+
+QStringList getNames(const QList<STable> &tables)
+{
+    QStringList res;
+    for(const STable& table: tables) {
+        res.append(table.fullname());
+    }
+    return res;
+}
+
 STablesDiff getDiff(const QList<STable> &tables1, const QList<STable> &tables2) {
 
     QSet<QString> names1 = toSet(getNames(tables1));
@@ -91,17 +108,9 @@ STablesDiff getDiff(const QList<STable> &tables1, const QList<STable> &tables2) 
         }
     }
 
-    return STablesDiff(created, getNames(dropped), altered, renamed);
+    return STablesDiff(created, getSNames(dropped), altered, renamed);
 }
 
-QStringList getNames(const QList<STable> &tables)
-{
-    QStringList res;
-    for(const STable& table: tables) {
-        res.append(table.name);
-    }
-    return res;
-}
 
 QList<STable> withName(const QList<STable> &tables, const QStringList &names)
 {
@@ -118,7 +127,7 @@ QList<STable> withName(const QList<STable> &tables, const QStringList &names)
 STable withName(const QList<STable> &tables, const QString &name)
 {
     for(int i=0;i<tables.size();i++) {
-        if (tables[i].name == name) {
+        if (tables[i].fullname() == name) {
             return tables[i];
         }
     }
@@ -135,7 +144,8 @@ QStringList STable::columnNames() const
 }
 
 bool operator ==(const STable &table1, const STable &table2) {
-    return table1.name == table2.name && table1.columns == table2.columns;
+    return table1.type == table2.type
+            && table1.name == table2.name && table1.columns == table2.columns;
 }
 
 bool operator !=(const STable &table1, const STable &table2) {
@@ -182,6 +192,24 @@ bool operator !=(const SRelation &relation1, const SRelation &relation2) {
     return !(relation1 == relation2);
 }
 
+bool operator == (const SName& name1, const SName& name2) {
+    return (name1.schema == name2.schema && name1.name == name2.name)
+           || (name1.schema.toLower() == name2.schema.toLower() && name1.name.toLower() == name2.name.toLower());
+}
+
+uint qHash(const SName &key) {
+    return qHash(key.fullname().toLower());
+}
+
+bool operator != (const SName& name1, const SName& name2) {
+    return !(name1 == name2);
+}
+
+QDebug operator << (QDebug dbg, const SName& name) {
+    dbg << name.fullname();
+    return dbg;
+}
+
 SRelationsDiff getDiff(const QList<SRelation> &relations1, const QList<SRelation> &relations2)
 {
     QList<SRelation> dropped;
@@ -205,6 +233,6 @@ SRelationsDiff getDiff(const QList<SRelation> &relations1, const QList<SRelation
 }
 
 QDebug operator <<(QDebug &dbg, const SRelation &relation) {
-    dbg.nospace() << QString("SRelation(%1 -> %2)").arg(relation.childTable).arg(relation.parentTable);
+    dbg.nospace() << QString("SRelation(%1 -> %2)").arg(relation.childTable.name).arg(relation.parentTable.name);
     return dbg;
 }

@@ -9,6 +9,7 @@
 #include <QSqlRecord>
 #include <QPointF>
 #include "sqlutil.h"
+#include "sdata.h"
 
 static QStringList filterEmpty(const QStringList& values) {
     QStringList res;
@@ -37,16 +38,17 @@ Schema2Store *Schema2Store::instance(QObject *parent)
     return mInstance;
 }
 
-QHash<QString, QPointF> Schema2Store::loadPos(const QString &connectionName)
+QHash<SName, QPointF> Schema2Store::loadPos(const QString &connectionName)
 {
     QSqlDatabase db = QSqlDatabase::database("_history");
-    QList<QVariantList> rows = sql::select_where(db, "schema2_pos", {"name", "x", "y"}, "db = ?", {connectionKey(connectionName)});
-    QHash<QString, QPointF> res;
+    QList<QVariantList> rows = sql::select_where(db, "schema2_pos", {"schema", "name", "x", "y"}, "db = ?", {connectionKey(connectionName)});
+    QHash<SName, QPointF> res;
     for(const QVariantList& row: rows) {
-        QString name = row[0].toString();
+        QString schema = row[0].toString();
+        QString name = row[1].toString();
         double x = row[1].toDouble();
         double y = row[2].toDouble();
-        res[name] = QPointF(x, y);
+        res[SName(schema, name)] = QPointF(x, y);
     }
     return res;
 }
@@ -55,15 +57,15 @@ QHash<QString, QPointF> Schema2Store::loadPos(const QString &connectionName)
 
 
 
-void Schema2Store::savePos(const QString &connectionName, const QHash<QString, QPointF> &pos)
+void Schema2Store::savePos(const QString &connectionName, const QHash<SName, QPointF> &pos)
 {
     QSqlDatabase db = QSqlDatabase::database("_history");
     QString key = connectionKey(connectionName);
     sql::delete_where(db, "schema2_pos", "db = ?", {key});
-    QStringList names = pos.keys();
-    for(const QString name: names) {
+    QList<SName> names = pos.keys();
+    for(const SName name: names) {
         QPointF v = pos[name];
-        sql::insert(db, "schema2_pos", {"db", "name", "x", "y"}, {key, name, v.x(), v.y()});
+        sql::insert(db, "schema2_pos", {"db", "schema", "name", "x", "y"}, {key, name.schema, name.name, v.x(), v.y()});
     }
 }
 
@@ -74,6 +76,6 @@ Schema2Store::Schema2Store(QObject *parent)
     : QObject{parent}
 {
     QSqlDatabase db = QSqlDatabase::database("_history");
-    sql::create_or_alter(db, "schema2_pos", {"db", "name", "x", "y"});
+    sql::create_or_alter(db, "schema2_pos", {"db", "schema", "name", "x", "y"});
 }
 

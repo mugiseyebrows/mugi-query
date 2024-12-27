@@ -8,4 +8,10 @@ enum class CopyFormat {
     Names,
 };
 
+enum class TableType {
+    Undefined,
+    Table,
+    View,
+};
+
 #endif // ENUMS_H

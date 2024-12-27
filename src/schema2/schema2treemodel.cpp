@@ -6,18 +6,18 @@
 
 class TableItem : public QStandardItem {
 public:
-    TableItem(Schema2TableModel* model) : mModel(model), QStandardItem(model->tableName()) {
+    TableItem(Schema2TableModel* model) : mModel(model), QStandardItem(model->tableName().name) {
 
     }
     Schema2TableModel* model() const {
         return mModel;
     }
-    QString tableName() const {
+    SName tableName() const {
         return mModel->tableName();
     }
     QVariant data(int role) const override {
         if (role == Qt::DisplayRole || role == Qt::EditRole) {
-            return tableName();
+            return tableName().name;
         }
         return QStandardItem::data(role);
     }
@@ -94,7 +94,7 @@ bool Schema2TreeModel::isTable(const QModelIndex &index) const
     return index.isValid() && !index.parent().isValid();
 }
 
-QString Schema2TreeModel::tableName(const QModelIndex &index) const
+SName Schema2TreeModel::tableName(const QModelIndex &index) const
 {
     if (!isTable(index)) {
         return QString();
@@ -126,7 +126,7 @@ void Schema2TreeModel::updateColumns(const QString &tableName)
 }
 #endif
 
-void Schema2TreeModel::tableDropped(const QString &name)
+void Schema2TreeModel::tableDropped(const SName &name)
 {
     int index = indexOf(name);
     if (index > -1) {
@@ -180,7 +180,7 @@ void Schema2TreeModel::tableAltered(Schema2TableModel* tableModel)
     }
 }
 
-int Schema2TreeModel::indexOf(const QString& name) const {
+int Schema2TreeModel::indexOf(const SName& name) const {
     auto* root = invisibleRootItem();
     for(int row=0;row<rowCount();row++) {
         TableItem* item = static_cast<TableItem*>(root->child(row));
@@ -207,7 +207,7 @@ QStringList Schema2TreeModel::tableNames() const {
     QStringList res;
     for(int row=0;row<rowCount();row++) {
         TableItem* item = static_cast<TableItem*>(root->child(row));
-        res.append(item->tableName());
+        res.append(item->tableName().name);
     }
     return res;
 }

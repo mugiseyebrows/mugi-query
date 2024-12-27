@@ -8,4 +8,5 @@ QString ColumnPosition::toString(const SqlEscaper &es) const {
     case After: return QString("AFTER %1").arg(es.field(mName));
     case First: return "FIRST";
     }
+    return {};
 }

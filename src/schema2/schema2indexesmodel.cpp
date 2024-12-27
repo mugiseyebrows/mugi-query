@@ -71,7 +71,7 @@ QStringList Schema2IndexesModel::queries(Schema2TableModel* table, const QString
 {
     QStringList res;
 
-    QString tableName = table->tableName();
+    SName tableName = table->tableName();
 
     for(int i=0;i<mIndexes.size();i++) {
         Schema2Index* index = mIndexes[i];
@@ -109,6 +109,7 @@ QStringList Schema2IndexesModel::primaryKey() const
     return QStringList();
 }
 
+#if 0
 QStringList Schema2IndexesModel::foreignKeys() const
 {
     for(int i=0;i<mIndexes.size();i++) {
@@ -116,6 +117,7 @@ QStringList Schema2IndexesModel::foreignKeys() const
 
     }
 }
+#endif
 
 void Schema2IndexesModel::debugStatus() {
     for(int i=0;i<mIndexes.size();i++) {

@@ -114,7 +114,7 @@ QVariant SqlDataTypes::tryConvert(const QVariant& v, QMetaType::Type t,
         return v.toString();
     }
 
-    if (v.metaType().id() != QMetaType::QString) {
+    if (v.typeId() != QMetaType::QString) {
         qDebug() << "t != QMetaType::QString" << __FILE__ << __LINE__;
         return v;
     }

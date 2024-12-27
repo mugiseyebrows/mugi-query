@@ -207,6 +207,68 @@ void Schema2Data::pullTablesMysql() {
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
+    QList<STable> state = mTables->tablesState();
+    QList<STable> newState;
+
+    QList<STable> tables;
+
+    QSqlQuery q(db);
+    q.prepare("select table_schema, table_name, table_type from information_schema.tables "
+              "where table_type in ('BASE TABLE', 'VIEW') and table_schema not in ('mysql','performance_schema','sys')");
+    q.exec();
+    while (q.next()) {
+        QString table_schema = q.value(0).toString();
+        QString table_name = q.value(1).toString();
+        QString table_type = q.value(2).toString();
+
+        TableType type = TableType::Undefined;
+        if (table_type == "BASE TABLE") {
+            type = TableType::Table;
+        } else if (table_type == "VIEW") {
+            type = TableType::View;
+        }
+        tables.append(STable(SName(table_schema, table_name), {}, type));
+    }
+
+    for(const STable& table: std::as_const(tables)) {
+
+        QList<SColumn> columns;
+
+        QSqlQuery q(db);
+        q.prepare("select column_name, column_type, is_nullable, column_default, extra from information_schema.columns where table_schema=? and table_name=?");
+        q.addBindValue(table.name.schema);
+        q.addBindValue(table.name.name);
+        q.exec();
+        QString prev;
+        while(q.next()) {
+            QString name = q.value(0).toString();
+            QString type = q.value(1).toString();
+            bool notNull = q.value(2).toString() == "NO";
+            QString default_ = q.value(3).toString();
+            bool autoincrement = q.value(4).toString() == "auto_increment";
+            if (default_ == "NULL") {
+                default_ = QString();
+            }
+            columns.append(SColumn(name, type, notNull, default_, autoincrement));
+            //mTables->updateColumn(table, name, type, notNull, default_, autoincrement, prev);
+            prev = name;
+        }
+
+        STable table_ = table;
+        table_.columns = columns;
+        newState.append(table_);
+    }
+
+    STablesDiff diff = getDiff(state, newState);
+    mTables->merge(diff);
+
+}
+
+#if 0
+void Schema2Data::pullTablesMysql_() {
+
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
     QStringList tables = db.tables();
 
     QList<STable> state = mTables->tablesState();
@@ -249,11 +311,11 @@ void Schema2Data::pullTablesMysql() {
     mTables->merge(diff);
 
 }
-
+#endif
 
 void Schema2Data::pullTablesOdbcAccess(const OdbcUri& uri) {
 
-    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    QSqlDatabase db = this->database();
 
     QStringList tables = db.tables();
 
@@ -785,8 +847,8 @@ void Schema2Data::push(QWidget* widget)
             break;
         case StatusModified:
         {
-            QString tableName = table->tableName();
-            QString tableNamePrev = table->tableNamePrev();
+            SName tableName = table->tableName();
+            SName tableNamePrev = table->tableNamePrev();
             QStringList renameQueries = table->renameQueries(driverName, driver);
             if (!renameQueries.isEmpty()) {
                 changeSet->append(renameQueries, [=](){
@@ -845,12 +907,12 @@ void Schema2Data::push(QWidget* widget)
         }
     }
 
-    auto queue = mTables->dropRelationQueue();
+    QList<QPair<SName, Schema2Relation*>> queue = mTables->dropRelationQueue();
 
     // drop relations
     for(auto item: queue) {
-        QString name = item.first;
-        auto* relation = item.second;
+        SName name = item.first;
+        Schema2Relation* relation = item.second;
         changeSet->append(relation->dropQueries(name, driverName, driver),[=](){
             //mDropRelationsQueue.removeOne(item);
             mTables->relationDropped(name, relation);
@@ -922,7 +984,7 @@ QGraphicsScene *Schema2Data::scene() const
     return mScene;
 }
 
-void Schema2Data::selectOrDeselect(const QString& tableName) {
+void Schema2Data::selectOrDeselect(const SName& tableName) {
 
     //mSelectModel->toggleChecked(tableName);
 
@@ -930,7 +992,7 @@ void Schema2Data::selectOrDeselect(const QString& tableName) {
 
 
 
-void Schema2Data::createRelationDialog(const QString &childTable, const QString& parentTable, QWidget *widget)
+void Schema2Data::createRelationDialog(const SName &childTable, const SName& parentTable, QWidget *widget)
 {
 
     auto* childTableModel = mTables->table(childTable);
@@ -995,7 +1057,7 @@ void Schema2Data::dropRelationDialog(Schema2Relation *relation, QWidget *widget)
     tables()->relationRemoved(relation);
 }
 
-void Schema2Data::dropRelationDialog(const QString &childTable, const QString &parentTable, QWidget *widget)
+void Schema2Data::dropRelationDialog(const SName &childTable, const SName &parentTable, QWidget *widget)
 {
     auto* table1 = mTables->table(childTable);
     auto* table2 = mTables->table(parentTable);
@@ -1018,9 +1080,9 @@ static QSet<T> toSet(const QList<T>& qlist)
     return QSet<T> (qlist.constBegin(), qlist.constEnd());
 }
 
-void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
+void Schema2Data::dropTableDialog(const SName &tableName, QWidget *widget) {
 
-    QString message = QString("Are you sure to drop table %1?").arg(tableName);
+    QString message = QString("Are you sure to drop table %1?").arg(tableName.name);
 
     if (!ConfirmationDialog::question(widget, message, &mDontAskOnDropTable)) {
         return;
@@ -1045,7 +1107,7 @@ void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
     mDropTableQueue.append(table);
 
     // todo renamed and removed
-    Schema2AlterView* view = mAlterViews.get(tableName);
+    Schema2AlterView* view = mAlterViews.value(tableName);
     if (view) {
         mAlterViews.remove(tableName);
         view->hide();
@@ -1054,12 +1116,16 @@ void Schema2Data::dropTableDialog(const QString &tableName, QWidget *widget) {
 
 }
 
+QSqlDatabase Schema2Data::database() const {
+    return QSqlDatabase::database(mConnectionName);
+}
+
 QString Schema2Data::driverName() const {
-    return QSqlDatabase::database(mConnectionName).driverName();
+    return database().driverName();
 }
 
 Schema2AlterView *Schema2Data::alterView(const QString &table) {
-    return mAlterViews.get(table);
+    return mAlterViews.value(table);
 }
 
 Schema2TablesModel *Schema2Data::tables() const {
@@ -1068,7 +1134,7 @@ Schema2TablesModel *Schema2Data::tables() const {
 
 
 QSqlDriver* Schema2Data::driver() const {
-    return QSqlDatabase::database(mConnectionName).driver();
+    return database().driver();
 }
 
 
@@ -1168,8 +1234,8 @@ void Schema2Data::copyRelationsToClipboard(QWidget *widget) {
         auto relations = table->relations()->values();
         for(auto* relation: relations) {
             QString item = QString("(%1, %2, %3, %4)")
-                    .arg(toPythonStr(relation->childTable()))
-                    .arg(toPythonStr(relation->parentTable()))
+                    .arg(toPythonStr(relation->childTable().name))
+                    .arg(toPythonStr(relation->parentTable().name))
                     .arg(toPythonList(relation->childColumns()))
                     .arg(toPythonList(relation->parentColumns()));
             items.append(item);
@@ -1184,7 +1250,7 @@ void Schema2Data::copyPrimaryKeysToClipboard(QWidget *widget) {
     QHash<QString, QStringList> items;
     auto tables = mTables->tables();
     for(auto* table: tables) {
-        items[table->tableName()] = table->indexes()->primaryKey();
+        items[table->tableName().name] = table->indexes()->primaryKey();
     }
     QString text = toPythonDict(items);
     qApp->clipboard()->setText(text);
@@ -1199,14 +1265,14 @@ void Schema2Data::saveAs(bool clipboard, const QString &path,
     exp.saveAs(clipboard, path, rect, onlySelected, format, widget);
 }
 
-void Schema2Data::tableRenamed(const QString &tableName, const QString &tableNamePrev)
+void Schema2Data::tableRenamed(const SName &tableName, const SName &tableNamePrev)
 {
     if (mAlterViews.contains(tableNamePrev)) {
-        mAlterViews.set(tableName, mAlterViews.get(tableNamePrev));
+        mAlterViews[tableName] = mAlterViews[tableNamePrev];
         mAlterViews.remove(tableNamePrev);
     }
     if (mDataImportWidgets.contains(tableNamePrev)) {
-        mDataImportWidgets.set(tableName, mDataImportWidgets.get(tableNamePrev));
+        mDataImportWidgets[tableName] = mDataImportWidgets[tableNamePrev];
         mDataImportWidgets.remove(tableNamePrev);
     }
 }
@@ -1380,13 +1446,13 @@ void Schema2Data::createRelationDialog(Schema2TableModel* childTable,
 
 }
 
-void Schema2Data::showAlterView(const QString &tableName)
+void Schema2Data::showAlterView(const SName &tableName)
 {
-    qDebug() << "showAlterView" << tableName;
+    qDebug() << "showAlterView" << tableName.fullname();
 
     if (!mAlterViews.contains(tableName)) {
 
-        qDebug() << "create new view for" << tableName;
+        qDebug() << "create new view for" << tableName.fullname();
 
         Schema2AlterView* view = new Schema2AlterView();
         Schema2TableModel* table = mTables->table(tableName);
@@ -1397,24 +1463,24 @@ void Schema2Data::showAlterView(const QString &tableName)
         }
 
         view->init(this, mTables, table, dataTypes());
-        mAlterViews.set(tableName, view);
+        mAlterViews[tableName] = view;
     } else {
-        qDebug() << "show existing view for" << tableName;
+        qDebug() << "show existing view for" << tableName.fullname();
     }
-    auto* view = mAlterViews.get(tableName);
+    auto* view = mAlterViews[tableName];
     showAndRaise(view);
 }
 
 #include "dataimportwidget2.h"
 
-void Schema2Data::showDataImportWidget(const QString &tableName)
+void Schema2Data::showDataImportWidget(const SName &tableName)
 {
     if (!mDataImportWidgets.contains(tableName)) {
         DataImportWidget2* widget = new DataImportWidget2();
         widget->init(this, mTables->table(tableName));
-        mDataImportWidgets.set(tableName, widget);
+        mDataImportWidgets[tableName] = widget;
     }
-    auto* widget = mDataImportWidgets.get(tableName);
+    auto* widget = mDataImportWidgets[tableName];
     showAndRaise(widget);
 }
 
@@ -1433,7 +1499,7 @@ QSortFilterProxyModel *Schema2Data::selectProxyModel() {
     return mSelectProxyModel;
 }
 
-Schema2TableModel* Schema2Data::createTable(const QString &name)
+Schema2TableModel* Schema2Data::createTable(const SName& name)
 {
     return mTables->tableCreated(name, StatusNew);
 }

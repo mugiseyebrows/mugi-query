@@ -4,6 +4,7 @@
 #include <QObject>
 
 #include <QHash>
+#include "sdata.h"
 
 class Schema2Store : public QObject
 {
@@ -14,9 +15,9 @@ public:
 
     static Schema2Store* mInstance;
 
-    QHash<QString, QPointF> loadPos(const QString& connectionName);
+    QHash<SName, QPointF> loadPos(const QString& connectionName);
 
-    void savePos(const QString& connectionName, const QHash<QString, QPointF>& pos);
+    void savePos(const QString& connectionName, const QHash<SName, QPointF> &pos);
 
 protected:
     Schema2Store(QObject *parent = nullptr);

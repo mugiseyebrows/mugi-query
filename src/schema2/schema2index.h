@@ -3,6 +3,7 @@
 
 #include <QStringList>
 #include "schema2status.h"
+#include "sdata.h"
 class QSqlDriver;
 
 class Schema2Index
@@ -12,9 +13,9 @@ public:
 
     Schema2Index(const QString& name, const QStringList& columns, bool primary, bool unique, Status status);
 
-    QString createQuery(const QString& tableName, const QString &driverName, QSqlDriver *driver) const;
+    QString createQuery(const SName& tableName, const QString &driverName, QSqlDriver *driver) const;
 
-    QString dropQuery(const QString& tableName, const QString &driverName, QSqlDriver *driver) const;
+    QString dropQuery(const SName& tableName, const QString &driverName, QSqlDriver *driver) const;
 
     QString name() const;
 

@@ -4,6 +4,7 @@
 #include "drivernames.h"
 #include "sqlescaper.h"
 
+
 Schema2Index::Schema2Index()
 {
 
@@ -15,7 +16,7 @@ Schema2Index::Schema2Index(const QString &name, const QStringList &columns, bool
 
 }
 
-QString Schema2Index::createQuery(const QString &tableName, const QString& driverName, QSqlDriver *driver) const
+QString Schema2Index::createQuery(const SName &tableName, const QString& driverName, QSqlDriver *driver) const
 {
 
     SqlEscaper es(driver);
@@ -26,7 +27,7 @@ QString Schema2Index::createQuery(const QString &tableName, const QString& drive
         QString expr = filterEmpty({"CREATE",
                                     (mUnique && !mPrimary) ? "UNIQUE" : "",
                                     "INDEX", es.field(mName),
-                                    "ON", es.table(tableName),
+                                    "ON", es.table(tableName.name),
                                     "(" + es.columns(mColumns).join(", ") + ")",
                                     mPrimary ? "WITH PRIMARY" : ""
                                    }).join(" ");
@@ -35,7 +36,7 @@ QString Schema2Index::createQuery(const QString &tableName, const QString& drive
 
     } else if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
 
-        QString expr = filterEmpty({"ALTER TABLE", tableName, "ADD",
+        QString expr = filterEmpty({"ALTER TABLE", tableName.name, "ADD",
                                     (mUnique && !mPrimary) ? "UNIQUE" : "",
                                     mPrimary ? "PRIMARY": "",
                                     mPrimary ? "KEY" : "INDEX",
@@ -50,13 +51,13 @@ QString Schema2Index::createQuery(const QString &tableName, const QString& drive
     return QString();
 }
 
-QString Schema2Index::dropQuery(const QString &tableName, const QString& driverName, QSqlDriver *driver) const
+QString Schema2Index::dropQuery(const SName &tableName, const QString& driverName, QSqlDriver *driver) const
 {
     if (driverName == DRIVER_ODBC) {
-        QString expr = QString("DROP INDEX %1 on %2").arg(mName).arg(tableName);
+        QString expr = QString("DROP INDEX %1 on %2").arg(mName).arg(tableName.name);
         return expr;
     } else if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
-        QString expr = QString("DROP INDEX %1 on %2").arg(mPrimary ? "`PRIMARY`" : mName).arg(tableName);
+        QString expr = QString("DROP INDEX %1 on %2").arg(mPrimary ? "`PRIMARY`" : mName).arg(tableName.name);
         return expr;
     }
     return QString();

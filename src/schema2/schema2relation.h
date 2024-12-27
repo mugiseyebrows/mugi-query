@@ -23,10 +23,10 @@ public:
 
     Schema2Relation();
     Schema2Relation(Schema2TableModel* childTable, const QString& name, const QStringList& childColumns,
-                    const QString& parentTable, const QStringList& parentColumns,
+                    const SName &parentTable, const QStringList& parentColumns,
                     bool constrained, Status status);
 
-    QString childTable() const;
+    SName childTable() const;
 
     Schema2TableModel* childTableModel() const;
 
@@ -34,7 +34,7 @@ public:
 
     QStringList childColumns() const;
 
-    QString parentTable() const;
+    SName parentTable() const;
 
     QStringList parentColumns() const;
 
@@ -42,15 +42,15 @@ public:
 
     void setParentColumns(const QStringList& value);
 
-    QStringList createQueries(const QString& childTable, const QString &driverName, QSqlDriver *driver) const;
+    QStringList createQueries(const SName &childTable, const QString &driverName, QSqlDriver *driver) const;
 
-    QStringList dropQueries(const QString& childTable, const QString &driverName, QSqlDriver *driver) const;
+    QStringList dropQueries(const SName &childTable, const QString &driverName, QSqlDriver *driver) const;
 
     Status status() const;
 
     void pushed();
 
-    QStringList modifyQueries(const QString& childTable, const QString &driverName, QSqlDriver *driver) const;
+    QStringList modifyQueries(const SName &childTable, const QString &driverName, QSqlDriver *driver) const;
 
     void setName(const QString &name);
 
@@ -68,7 +68,7 @@ protected:
 
     QString mName;
     QStringList mChildColumns;
-    QString mParentTable;
+    SName mParentTable;
     QStringList mParentColumns;
     bool mConstrained;
     Status mStatus;

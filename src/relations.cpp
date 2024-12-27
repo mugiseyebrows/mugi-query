@@ -108,7 +108,6 @@ int Relations::indexOfShortest(const PathList& paths) {
     return index;
 }
 
-
 Relations::PathList Relations::findPath(const QStringList &tables)
 {
     QList<int> indexes = tablesToIndexes(tables);

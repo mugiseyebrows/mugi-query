@@ -39,7 +39,7 @@ public:
         return mIndexes;
     }
 
-    QStringList foreignKeys() const;
+    //QStringList foreignKeys() const;
 
 protected:
     QList<Schema2Index*> mIndexes;

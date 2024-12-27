@@ -213,7 +213,9 @@ void DataImportModel::setType(int column, QMetaType::Type type)
 
 #include <QSqlRecord>
 
+#if 0
 QSqlRecord DataImportModel::record(int row, bool *ok)
 {
 
 }
+#endif

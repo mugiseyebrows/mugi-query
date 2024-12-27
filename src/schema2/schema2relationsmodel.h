@@ -7,6 +7,7 @@
 class Schema2Relation;
 class Schema2TableModel;
 #include "schema2status.h"
+#include "sdata.h"
 
 class Schema2RelationsModel : public QAbstractTableModel
 {
@@ -24,8 +25,8 @@ public:
 
     explicit Schema2RelationsModel(Schema2TableModel* table, QObject *parent = nullptr);
 
-    Schema2Relation *insert(const QString &name, const QStringList &childColumns, const QString &parentTable,
-                                    const QStringList &parentColumns, bool constrained, Status status);
+    Schema2Relation *insert(const QString &name, const QStringList &childColumns, const SName &parentTable,
+                            const QStringList &parentColumns, bool constrained, Status status);
     Schema2Relation *relation(const QString &name) const;
 
     bool contains(const QString &name) const;
@@ -34,7 +35,7 @@ public:
 
     Schema2Relation *remove(Schema2Relation *relation);
 
-    QList<Schema2Relation*> getRelationsTo(const QString &tableName) const;
+    QList<Schema2Relation*> getRelationsTo(const SName &tableName) const;
 
     QList<Schema2Relation*> values() const;
 

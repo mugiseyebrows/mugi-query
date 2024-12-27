@@ -11,7 +11,8 @@
 #include "modelappender.h"
 #include "copyeventfilter.h"
 
-Schema2RelatedTablesWidget::Schema2RelatedTablesWidget(Schema2TablesModel *tables, const QString &table, QWidget *parent) :
+
+Schema2RelatedTablesWidget::Schema2RelatedTablesWidget(Schema2TablesModel *tables, const SName &table, QWidget *parent) :
     QWidget(parent), mTables(tables),
     ui(new Ui::Schema2RelatedTablesWidget)
 {
@@ -20,8 +21,8 @@ Schema2RelatedTablesWidget::Schema2RelatedTablesWidget(Schema2TablesModel *table
     QStringListModel* input = new QStringListModel();
     QStringListModel* output = new QStringListModel();
 
-    QStringList names = toLower(mTables->tableNames());
-    auto* delegate = new ItemDelegateWithCompleter(names, ui->input);
+    SNames names = mTables->tableNames();
+    auto* delegate = new ItemDelegateWithCompleter(names.getNames(), ui->input);
     ui->input->setItemDelegate(delegate);
 
     connect(input, &QAbstractItemModel::dataChanged, [=](){
@@ -33,7 +34,7 @@ Schema2RelatedTablesWidget::Schema2RelatedTablesWidget(Schema2TablesModel *table
 
     ModelAppender::attach(input);
 
-    input->setStringList({table, ""});
+    input->setStringList({table.name, ""});
     listRelated(input, output);
 
     CopyEventFilter::copyTsv(ui->input);
@@ -52,7 +53,7 @@ void Schema2RelatedTablesWidget::listRelated(QStringListModel* input, QStringLis
 
     for(const QString& table: inputTables) {
         if (mTables->contains(table)) {
-            queue.append(mTables->table(table)->tableName());
+            queue.append(mTables->table(table)->tableName().name);
         }
     }
 
@@ -70,12 +71,12 @@ void Schema2RelatedTablesWidget::listRelated(QStringListModel* input, QStringLis
         }
         auto relations = mTables->table(item)->relations()->values();
         for(auto* relation: relations) {
-            QString parentTable = relation->parentTable();
+            SName parentTable = relation->parentTable();
             if (!res.contains(parentTable)) {
-                res.append(parentTable);
+                res.append(parentTable.name);
             }
             if (!done.contains(parentTable)) {
-                queue.append(parentTable);
+                queue.append(parentTable.name);
             }
         }
         if (!res.contains(item)) {

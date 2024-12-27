@@ -24,17 +24,15 @@ class Schema2TablesModel : public QAbstractTableModel
 public:
     explicit Schema2TablesModel(const QString &connectionName, QGraphicsScene* scene, QObject *parent = nullptr);
 
-    Schema2TableModel* table(const QString &name);
-
-    bool contains(const QString& table);
+    Schema2TableModel* table(const SName &name);
 
 
 
-    Schema2TableModel *tableRemoved(const QString &tableName);
+    Schema2TableModel *tableRemoved(const SName &tableName);
 
     QList<Schema2TableItem*> tableItems() const;
 
-    Schema2TableItem* tableItem(const QString& name) const;
+    Schema2TableItem* tableItem(const SName &name) const;
 
     void setChecked(const QStringList& names, bool value);
 
@@ -50,11 +48,11 @@ public:
 
     QList<Schema2TableModel*> tables() const;
 
-    QStringList tableNames() const;
+    SNames tableNames() const;
 
-    QList<Schema2Relation*> relationsFrom(const QString& tableName);
+    QList<Schema2Relation*> relationsFrom(const SName &tableName);
 
-    QList<Schema2Relation*> relationsTo(const QString& tableName);
+    QList<Schema2Relation*> relationsTo(const SName& tableName);
 
     Schema2TableModel* findChildTable(Schema2Relation* relation);
 
@@ -64,11 +62,11 @@ public:
 
     void dropRelation();
 
-    QList<QPair<QString, Schema2Relation*>> dropRelationQueue() {
+    QList<QPair<SName, Schema2Relation*>> dropRelationQueue() {
         return mDropRelationsQueue;
     }
 
-    void relationDropped(QString name, Schema2Relation* relation) {
+    void relationDropped(const SName& name, Schema2Relation* relation) {
         mDropRelationsQueue.removeOne({name, relation});
     }
 
@@ -87,7 +85,12 @@ public:
     void merge(const STablesDiff& diff);
     void merge(const SRelationsDiff &diff);
 
-    Schema2TableModel *tableCreated(const QString &table, Status status);
+    Schema2TableModel *tableCreated(const SName &name, Status status);
+
+    int indexOf(const SName &name) const;
+    int indexOf(const QString &name) const;
+    bool contains(const SName &name);
+    bool contains(const QString &name);
 
 protected:
 
@@ -95,7 +98,7 @@ protected:
 
     Schema2TreeProxyModel* mTreeProxyModel;
 
-    QList<QPair<QString, Schema2Relation*>> mDropRelationsQueue;
+    QList<QPair<SName, Schema2Relation*>> mDropRelationsQueue;
 
     QList<Schema2TableItem*> mTableItems;
 
@@ -105,21 +108,19 @@ protected:
 
     QList<Schema2TableItem*> mSetPosQueue;
 
-    StringHash<QPointF> mTablePos;
+    QHash<SName, QPointF> mTablePos;
 
     QGraphicsScene* mScene;
 
     QString mConnectionName;
 
-    int indexOf(const QString &name) const;
-
-    void tableDropped(const QString &name);
+    void tableDropped(const SName &name);
     void tableRenamed(const SRenamed &table);
     void tableAltered(const STable &table);
 
 signals:
 
-    void tableClicked(QString, QPointF);
+    void tableClicked(SName, QPointF);
 
     // QAbstractItemModel interface
 public:
@@ -134,7 +135,8 @@ public:
     // QAbstractItemModel interface
 public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
-    void relationCreated(const QString &constraintName, const QString &childTable, const QStringList &childColumns, const QString &parentTable, const QStringList &parentColumns, bool constrained, Status status);
+    void relationCreated(const QString &constraintName, const SName &childTable, const QStringList &childColumns,
+                         const SName &parentTable, const QStringList &parentColumns, bool constrained, Status status);
     void relationRemoved(Schema2Relation *relation);
 
 
@@ -146,6 +148,8 @@ public:
 
     void relationCreated(const SRelation &relation, bool constrained, Status status = StatusExisting);
     void relationDropped(const SRelation &relation);
+    Schema2TableModel *table(const QString &name);
+
 };
 
 #endif // SCHEMA2TABLESMODEL_H

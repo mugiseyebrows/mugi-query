@@ -41,12 +41,12 @@ QString Schema2RelationGuesser::relationName()
     auto childColumns = this->childColumns(this->parentColumns());
 
     QString suffix = "fkey";
-    if (isAllUpper(mChildTable->tableName()) && isAllUpper(childColumns[0])) {
+    if (isAllUpper(mChildTable->tableName().name) && isAllUpper(childColumns[0])) {
         suffix = "FKEY";
     }
 
     return QString("%1_%2_%3")
-            .arg(mChildTable->tableName())
+            .arg(mChildTable->tableName().name)
             .arg(childColumns.join("_"))
             .arg(suffix);
 }
@@ -57,7 +57,7 @@ QStringList Schema2RelationGuesser::parentColumns()
     if (!primaryKey.isEmpty()) {
         return primaryKey;
     }
-    QString tableName = mParentTable->tableName().toLower();
+    QString tableName = mParentTable->tableName().name.toLower();
     QStringList columnNames = toLower(mParentTable->columnNames());
     if (columnNames.isEmpty()) {
         return {};
@@ -90,7 +90,7 @@ QStringList Schema2RelationGuesser::childColumns(const QStringList &parentColumn
         return parentColumns;
     }
     if (parentColumns.size() == 1) {
-        QString parentTable = mParentTable->tableName().toLower();
+        QString parentTable = mParentTable->tableName().name.toLower();
         for(const QString& column: columns) {
             if (column.contains(parentTable)) {
                 return {column};
