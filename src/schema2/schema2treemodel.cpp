@@ -4,6 +4,18 @@
 #include "schema2tablemodel.h"
 #include "sdata.h"
 
+class SchemaModelItem : public QStandardItem {
+public:
+    SchemaModelItem(const QString& name) : mName(name), QStandardItem(name) {
+
+    }
+    QString name() const {
+        return mName;
+    }
+protected:
+    QString mName;
+};
+
 class TableItem : public QStandardItem {
 public:
     TableItem(Schema2TableModel* model) : mModel(model), QStandardItem(model->tableName().name) {
@@ -66,32 +78,49 @@ Schema2TreeModel::Schema2TreeModel(QObject *parent)
 
 void Schema2TreeModel::tableCreated(Schema2TableModel *table)
 {
-    auto* item = new TableItem(table);
+    /*auto* item = new TableItem(table);
     item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    appendRow(item);
+    appendRow(item);*/
+
+    QModelIndex schemaIndex = indexOfSchema(table->tableName().schema);
+
+    auto* root = invisibleRootItem();
+
+    SchemaModelItem* schemaItem;
+    if (schemaIndex.isValid()) {
+        schemaItem = static_cast<SchemaModelItem*>(root->child(schemaIndex.row()));
+    } else {
+        schemaItem = new SchemaModelItem(table->tableName().schema);
+        appendRow(schemaItem);
+    }
+
+    TableItem* tableItem = new TableItem(table);
+    schemaItem->appendRow(tableItem);
 }
 
-#if 0
-static TableItem* toTableItem(const QModelIndex &index) {
-    void* internalPointer = index.internalPointer();
-    if (!internalPointer) {
-        return nullptr;
+static int countParents(const QModelIndex &index) {
+    int count = 0;
+    QModelIndex index_ = index;
+    while (index_.parent().isValid()) {
+        count += 1;
+        index_ = index_.parent();
     }
-    BaseItem* item = static_cast<BaseItem*>(internalPointer);
-    if (item->type() == BaseItem::TypeTable) {
-        TableItem* tableItem = static_cast<TableItem*>(item);
-        return tableItem;
-    }
-    return nullptr;
+    return count;
 }
-#endif
 
 bool Schema2TreeModel::isTable(const QModelIndex &index) const
 {
-    if (index.column() != 0) {
-        return false;
-    }
-    return index.isValid() && !index.parent().isValid();
+    return countParents(index) == 1;
+}
+
+bool Schema2TreeModel::isSchema(const QModelIndex &index) const
+{
+    return countParents(index) == 0;
+}
+
+bool Schema2TreeModel::isColumn(const QModelIndex &index) const
+{
+    return countParents(index) == 2;
 }
 
 SName Schema2TreeModel::tableName(const QModelIndex &index) const
@@ -100,38 +129,21 @@ SName Schema2TreeModel::tableName(const QModelIndex &index) const
         return QString();
     }
 
-    TableItem* item = static_cast<TableItem*>(invisibleRootItem()->child(index.row()));
+    QModelIndex schemaIndex = index.parent();
+    auto* root = invisibleRootItem();
+    SchemaModelItem* schema = static_cast<SchemaModelItem*>(root->child(schemaIndex.row()));
+    TableItem* item = static_cast<TableItem*>(schema->child(index.row()));
     return item->tableName();
 }
 
-#if 0
-void Schema2TreeModel::updateColumns(const QString &tableName)
-{
-    TableItem* table = indexOf(tableName);
-    auto* model = table->model();
-    int rowCount = table->rowCount();
-    for(int row=0; row<rowCount; row++) {
-        QStandardItem* col0 = table->child(row, 0);
-        QStandardItem* col1 = table->child(row, 1);
-        col0->setText(model->name(row));
-        col1->setText(model->type(row));
-    }
-    for(int row=rowCount;row<model->rowCount();row++) {
-        QStandardItem* col0 = new QStandardItem(model->name(row));
-        QStandardItem* col1 = new QStandardItem(model->type(row));
-        col0->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-        col1->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-        table->appendRow({col0, col1});
-    }
-}
-#endif
-
 void Schema2TreeModel::tableDropped(const SName &name)
 {
-    int index = indexOf(name);
-    if (index > -1) {
-        removeRow(index, QModelIndex());
+    QModelIndex tableIndex = indexOfTable(name);
+    if (!tableIndex.isValid()) {
+        qDebug() << "!tableIndex.isValid()" << __FILE__ << __LINE__;
+        return;
     }
+    removeRow(tableIndex.row(), tableIndex.parent());
 }
 
 void Schema2TreeModel::emitRowChanged(int row) {
@@ -140,36 +152,29 @@ void Schema2TreeModel::emitRowChanged(int row) {
 
 void Schema2TreeModel::tableRenamed(const SRenamed &table)
 {
-    int index = indexOf(table.newName);
-    if (index > -1) {
-        emitRowChanged(index);
+    QModelIndex tableIndex = indexOfTable(table.newName);
+    if (tableIndex.isValid()) {
+        emitRowChanged(tableIndex);
     } else {
-        qDebug() << "Schema2TreeModel::tableRenamed error indexOf(table.oldName) < 0"
-                 << table.newName << tableNames();
+        qDebug() << "!tableIndex.isValid()" << __FILE__ << __LINE__;
     }
 }
 
 void Schema2TreeModel::tableAltered(Schema2TableModel* tableModel)
 {
-    //auto* tableItem = findTable(table.name);
-    int index = indexOf(tableModel->tableName());
-    if (index < 0) {
-        qDebug() << "Schema2TreeModel::tableAltered error index < 0"
-                 << tableModel->tableName() << tableNames();
-        return;
-    }
+    QModelIndex tableIndex = indexOfTable(tableModel->tableName());
+    QModelIndex schemaIndex = tableIndex.parent();
 
-    auto* tableItem = static_cast<TableItem*>(invisibleRootItem()->child(index));
-    auto modelIndex = this->index(index, 0);
-
-    Q_ASSERT(tableItem->model() == tableModel);
+    auto* root = invisibleRootItem();
+    SchemaModelItem* schemaItem = static_cast<SchemaModelItem*>(root->child(schemaIndex.row()));
+    TableItem* tableItem = static_cast<TableItem*>(schemaItem->child(tableIndex.row()));
 
     int size = tableItem->rowCount();
     int newSize = tableModel->rowCount();
     if (size > newSize) {
         int row = newSize;
         int count = size - newSize;
-        removeRows(row, count, modelIndex);
+        removeRows(row, count, tableIndex);
     }
     if (size < newSize) {
         for(int row=size;row<newSize;row++) {
@@ -178,51 +183,50 @@ void Schema2TreeModel::tableAltered(Schema2TableModel* tableModel)
             tableItem->appendRow({nameItem, typeItem});
         }
     }
+
+
 }
 
-int Schema2TreeModel::indexOf(const SName& name) const {
+QModelIndex Schema2TreeModel::indexOfSchema(const QString &name) const
+{
     auto* root = invisibleRootItem();
     for(int row=0;row<rowCount();row++) {
-        TableItem* item = static_cast<TableItem*>(root->child(row));
-        if (item->tableName() == name) {
-            return row;
+        SchemaModelItem* item = static_cast<SchemaModelItem*>(root->child(row));
+        if (item->name() == name) {
+            return this->index(row, 0);
         }
     }
-    return -1;
+    return {};
 }
 
-TableItem* Schema2TreeModel::findTable(const QString& name) const {
+QModelIndex Schema2TreeModel::indexOfTable(const SName& name) const {
+    QModelIndex schemaIndex = indexOfSchema(name.schema);
     auto* root = invisibleRootItem();
-    for(int row=0;row<rowCount();row++) {
-        TableItem* item = static_cast<TableItem*>(root->child(row));
+    if (!schemaIndex.isValid()) {
+        qDebug() << "!schemaIndex.isValid()" << __FILE__ << __LINE__;
+        return {};
+    }
+    SchemaModelItem* schema = static_cast<SchemaModelItem*>(root->child(schemaIndex.row()));
+    for(int row=0;row<rowCount(schemaIndex);row++) {
+        TableItem* item = static_cast<TableItem*>(schema->child(row));
         if (item->tableName() == name) {
-            return item;
+            return this->index(row, 0, schemaIndex);
         }
     }
-    return nullptr;
+    return {};
 }
 
-QStringList Schema2TreeModel::tableNames() const {
+SNames Schema2TreeModel::tableNames() const {
+    SNames res;
     auto* root = invisibleRootItem();
-    QStringList res;
     for(int row=0;row<rowCount();row++) {
-        TableItem* item = static_cast<TableItem*>(root->child(row));
-        res.append(item->tableName().name);
+        QModelIndex schemaIndex = this->index(row, 0);
+        SchemaModelItem* schema = static_cast<SchemaModelItem*>(root->child(row));
+        //res.append(item->tableName().name);
+        for(int row2=0;row2<rowCount(schemaIndex);row2++) {
+            TableItem* item = static_cast<TableItem*>(schema->child(row));
+            res.append(item->tableName());
+        }
     }
     return res;
 }
-
-#if 0
-void Schema2TreeModel::updateColumn(const QString &tableName, const QString &name)
-{
-    TableItem* table = findTable(tableName);
-    if (!table) {
-        qDebug() << "table is null" << __FILE__ << __LINE__;
-        return;
-    }
-    ColumnItem* item = findColumn(table, name);
-    if (!item) {
-        item = new ColumnItem();
-    }
-}
-#endif

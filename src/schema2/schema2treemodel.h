@@ -33,17 +33,24 @@ public:
 
     bool isTable(const QModelIndex& index) const;
 
+    bool isSchema(const QModelIndex& index) const;
+
+    bool isColumn(const QModelIndex& index) const;
+
     SName tableName(const QModelIndex& index) const;
 
+    //SchemaItem *findSchema(const QString &name) const;
 signals:
 
 
-
 protected:
-    int indexOf(const SName &name) const;
-    TableItem *findTable(const QString &name) const;
+    QModelIndex indexOfTable(const SName& sname) const;
+
+    QModelIndex indexOfSchema(const QString &name) const;
+
+    //TableItem *findTable(const SName &name) const;
     void emitRowChanged(int row);
-    QStringList tableNames() const;
+    SNames tableNames() const;
 };
 
 #endif // SCHEMA2TREEMODEL_H
