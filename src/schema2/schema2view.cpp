@@ -146,13 +146,13 @@ Schema2Data *Schema2View::data() const {
 }
 
 void Schema2View::onFiterViewCurrentChanged(QModelIndex index,QModelIndex) {
-
-    if (!index.isValid()) {
+    QSortFilterProxyModel* proxyModel = mData->selectProxyModel();
+    Schema2TablesModel* tablesModel = mData->tables();
+    QModelIndex sourceIndex = proxyModel->mapToSource(index);
+    if (!sourceIndex.isValid()) {
         return;
     }
-
-    QString name = index.data().toString();
-    //qDebug() << "onFiterViewCurrentChanged" << name;
+    SName name = tablesModel->tableNameAt(sourceIndex);
     Schema2TableItem* item = mData->tableItem(name);
     if (!item) {
         qDebug() << "!item" << name << __FILE__ << __LINE__;
@@ -160,8 +160,6 @@ void Schema2View::onFiterViewCurrentChanged(QModelIndex index,QModelIndex) {
     }
     ui->view->centerOn(item->sceneBoundingRect().center());
 }
-
-
 
 QList<Schema2TableItem*> Schema2View::tablesAt(const QPointF& pos) const {
     QList<QGraphicsItem*> items = scene()->items(pos);

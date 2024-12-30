@@ -492,7 +492,7 @@ int Schema2TablesModel::columnCount(const QModelIndex &parent) const
 QVariant Schema2TablesModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid()) {
-        return QVariant();
+        return {};
     }
     if (role == Qt::EditRole || role == Qt::DisplayRole) {
         if (index.column() == 0) {
@@ -504,9 +504,18 @@ QVariant Schema2TablesModel::data(const QModelIndex &index, int role) const
             return mTableItems[index.row()]->checked() ? Qt::Checked : Qt::Unchecked;
         }
     }
-    return QVariant();
+    if (role == SchemaRole) {
+        if (index.column() == 0) {
+            return mTableModels[index.row()]->tableName().schema;
+        }
+    }
+
+    return {};
 }
 
+SName Schema2TablesModel::tableNameAt(const QModelIndex& index) {
+    return mTableItems[index.row()]->tableName();
+}
 
 bool Schema2TablesModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {

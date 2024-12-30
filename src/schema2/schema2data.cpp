@@ -998,8 +998,6 @@ void Schema2Data::createRelationDialog(const SName &childTable, const SName& par
     auto* childTableModel = mTables->table(childTable);
     auto* parentTableModel = mTables->table(parentTable);
 
-    auto relations = childTableModel->relationsTo(parentTable);
-
     if (!childTableModel) {
         qDebug() << "!childTableModel" << __FILE__ << __LINE__;
         return;
@@ -1008,6 +1006,8 @@ void Schema2Data::createRelationDialog(const SName &childTable, const SName& par
         qDebug() << "!parentTableModel" << __FILE__ << __LINE__;
         return;
     }
+
+    auto relations = childTableModel->relationsTo(parentTable);
 
     // todo implement multiple relations between same pair of tables
     if (relations.size() > 0) {
@@ -1508,6 +1508,10 @@ Schema2TableItem *Schema2Data::tableItem(const QString &name) const {
     return mTables->tableItem(name);
 }
 
+Schema2TableItem *Schema2Data::tableItem(const SName &name) const {
+    return mTables->tableItem(name);
+}
+
 
 void Schema2Data::onSelectModelChanged(QModelIndex, QModelIndex) {
     /*QList<QPair<QString,bool>> data = mSelectModel->dataAsTupleList();
@@ -1523,7 +1527,6 @@ Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)
       mSelectProxyModel(new QSortFilterProxyModel(this)), mTables(new Schema2TablesModel(connectionName, mScene, this)),
       QObject{parent}
 {
-
 
     mSelectProxyModel->setSourceModel(mTables);
     mSelectProxyModel->sort(0);

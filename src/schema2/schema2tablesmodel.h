@@ -22,6 +22,10 @@ class Schema2TablesModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
+    enum Roles {
+        SchemaRole = Qt::UserRole
+    };
+
     explicit Schema2TablesModel(const QString &connectionName, QGraphicsScene* scene, QObject *parent = nullptr);
 
     Schema2TableModel* table(const SName &name);
@@ -150,6 +154,7 @@ public:
     void relationDropped(const SRelation &relation);
     Schema2TableModel *table(const QString &name);
 
+    SName tableNameAt(const QModelIndex &index);
 };
 
 #endif // SCHEMA2TABLESMODEL_H

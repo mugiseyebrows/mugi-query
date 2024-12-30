@@ -77,7 +77,9 @@ public:
 
     Schema2TableModel* createTable(const SName &name);
 
-    Schema2TableItem* tableItem(const QString& name) const;
+    Schema2TableItem* tableItem(const SName &name) const;
+
+    Schema2TableItem* tableItem(const QString &name) const;
 
     QStringList dataTypes() const;
 

@@ -3,6 +3,7 @@
 #include <QStandardItem>
 #include "schema2tablemodel.h"
 #include "sdata.h"
+#include "treedepth.h"
 
 class SchemaModelItem : public QStandardItem {
 public:
@@ -98,29 +99,21 @@ void Schema2TreeModel::tableCreated(Schema2TableModel *table)
     schemaItem->appendRow(tableItem);
 }
 
-static int countParents(const QModelIndex &index) {
-    int count = 0;
-    QModelIndex index_ = index;
-    while (index_.parent().isValid()) {
-        count += 1;
-        index_ = index_.parent();
-    }
-    return count;
+
+
+bool Schema2TreeModel::isSchema(const QModelIndex &index) const
+{
+    return treeDepth(index) == 0;
 }
 
 bool Schema2TreeModel::isTable(const QModelIndex &index) const
 {
-    return countParents(index) == 1;
-}
-
-bool Schema2TreeModel::isSchema(const QModelIndex &index) const
-{
-    return countParents(index) == 0;
+    return treeDepth(index) == 1;
 }
 
 bool Schema2TreeModel::isColumn(const QModelIndex &index) const
 {
-    return countParents(index) == 2;
+    return treeDepth(index) == 2;
 }
 
 SName Schema2TreeModel::tableName(const QModelIndex &index) const
@@ -154,7 +147,7 @@ void Schema2TreeModel::tableRenamed(const SRenamed &table)
 {
     QModelIndex tableIndex = indexOfTable(table.newName);
     if (tableIndex.isValid()) {
-        emitRowChanged(tableIndex);
+        emitRowChanged(tableIndex.row());
     } else {
         qDebug() << "!tableIndex.isValid()" << __FILE__ << __LINE__;
     }
