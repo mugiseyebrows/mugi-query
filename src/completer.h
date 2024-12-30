@@ -30,5 +30,6 @@ protected:
     CompleterData mData;
 };
 
+QDebug operator << (QDebug debug, Completer::Context ctx);
 
 #endif // COMPLETER_H

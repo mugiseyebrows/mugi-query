@@ -368,7 +368,10 @@ void Schema2AlterView::on_script_clicked()
 
     QString connectionName = mData->connectionName();
 
-    auto tokens = Tokens(QSqlDatabase::database(connectionName));
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    QSqlDatabase db = QSqlDatabase::database(connectionName);
+    Tokens tokens = Tokens(db, data->tables());
+
     auto* highligher = new Highlighter(tokens, 0);
 
     CodeWidget* widget = new CodeWidget();

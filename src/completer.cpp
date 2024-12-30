@@ -15,8 +15,9 @@ Completer::Completer(QObject *parent) : mContext(Undefined), QCompleter(parent) 
         setContext(Undefined);
     });
     connect(filter, &ShowHideFilter::shown, [=](){
-        qDebug() << "popup shown, set first item";
-        popup()->setCurrentIndex(popup()->model()->index(0, 0));
+        //qDebug() << "popup shown, set first item";
+        auto* model = popup()->model();
+        popup()->setCurrentIndex(model->index(0, 0));
     });
 }
 
@@ -60,6 +61,14 @@ static QStringList sortedFields(const QStringList fields) {
 
 void Completer::setContext(Context context)
 {
+    qDebug() << "Completer::setContext" << context;
+
+    if (mContext == context) {
+        qDebug() << "mContext == context";
+        return;
+    }
+    popup()->hide();
+
     static QSet<Context> fieldContexts = {Select, On, Where, Set, Column};
     static QSet<Context> tableContexts = {From, Join, Update, Table, To};
     mContext = context;
@@ -92,3 +101,9 @@ void Completer::setData(const CompleterData &data)
 }
 
 
+
+QDebug operator <<(QDebug debug, Completer::Context ctx) {
+    static QStringList names = {"Undefined", "Select", "From", "Join", "Where", "On", "Update", "Set", "Table", "To", "Column"};
+    debug << names.value(ctx);
+    return debug;
+}

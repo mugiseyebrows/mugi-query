@@ -6,13 +6,18 @@
 #include <QMap>
 #include <QMetaType>
 #include "completerdata.h"
+#include "sdata.h"
+
+class Schema2TablesModel;
 
 class Tokens
 {
 public:
     Tokens();
 
-    Tokens(QSqlDatabase db);
+    //Tokens(QSqlDatabase db);
+
+    Tokens(QSqlDatabase db, Schema2TablesModel* model);
 
     QStringList functions() const;
 
@@ -36,15 +41,15 @@ public:
 
     QStringList sizedTypes() const;
 protected:
-    struct Table {
+    /*struct Table {
         QString table;
         QStringList fields;
-    };
+    };*/
 
     QStringList commonKeywords() const;
     QStringList driverKeywords() const;
 
-    QList<Table> mTables;
+    QList<STable> mTables;
     QString mDriverName;
 
 };

@@ -60,7 +60,7 @@ TextEdit::~TextEdit()
 void TextEdit::setTokens(const Tokens& tokens) {
     //qDebug() << "setTokens";
     mTokens = tokens;
-    Highlighter* highlighter = new Highlighter(tokens,0);
+    Highlighter* highlighter = new Highlighter(tokens, 0);
     setHighlighter(highlighter);
     updateCompleter();
 }
@@ -121,17 +121,34 @@ void TextEdit::insertCompletion(const QString& completion)
     if (mCompleter->widget() != this)
         return;
     QTextCursor tc = textCursor();
+
+#if 0
     int extra = completion.length() - mCompleter->completionPrefix().length();
     tc.movePosition(QTextCursor::Left);
     tc.movePosition(QTextCursor::EndOfWord);
     tc.insertText(completion.right(extra));
+#endif
+
+    tc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, mCompleter->completionPrefix().length());
+    tc.insertText(completion);
+
     setTextCursor(tc);
 }
 
 QString TextEdit::textUnderCursor() const
 {
     QTextCursor tc = textCursor();
+    //QRegularExpression rx("^[a-zA-Z_.]");
+    while (tc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor)) {
+        //QString s = tc.selectedText().mid(0, 1);
+        QChar c = tc.selectedText()[0];
+        if (!(c.isLetter() || c.isDigit() || c == "_" || c == ".")) {
+            tc.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
+            break;
+        }
+    }
 
+#if 0
     // go to start of the word
     tc.movePosition(QTextCursor::StartOfWord);
     tc.movePosition(QTextCursor::PreviousCharacter);
@@ -149,6 +166,7 @@ QString TextEdit::textUnderCursor() const
         tc.movePosition(QTextCursor::EndOfWord);
         tc.movePosition(QTextCursor::StartOfWord,QTextCursor::KeepAnchor);
     }
+#endif
 
     return tc.selectedText();
 }
@@ -215,6 +233,10 @@ bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {
         case Qt::Key_Escape:
         case Qt::Key_Backtab:
         case Qt::Key_Tab:
+            //mCompleter->setContext(Completer::Undefined);
+
+            //mCompleter->setContext(determineContext(textCursor()));
+
             e->ignore();
             return true;
         default:
@@ -235,12 +257,14 @@ bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {
     if (!c || (ctrlOrShift && e->text().isEmpty()))
         return handled;
 
-    static QString eow("~!@#$%^&*()_+{}|:\"<>?,/;'[]\\-="); // end of word
+    static QString eow("~!@#$%^&*()+{}|:\"<>?,/;'[]\\-="); // end of word
     const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctrlOrShift;
     QString completionPrefix = textUnderCursor();
 
     if (!isShortcut && (hasModifier || e->text().isEmpty()|| completionPrefix.length() < 2
                         || eow.contains(e->text().right(1)))) {
+        qDebug() << "textUnderCursor" << textUnderCursor();
+        qDebug() << "c->popup()->hide()";
         c->popup()->hide();
         return handled;
     }
@@ -248,19 +272,14 @@ bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {
     if (!isVisible && e->key() == Qt::Key_Backspace) {
         return handled;
     }
+
     if (completionPrefix != c->completionPrefix()) {
-        qDebug() << "setCompletionPrefix" << completionPrefix;
+        //qDebug() << "setCompletionPrefix" << completionPrefix;
         c->setCompletionPrefix(completionPrefix);
         c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
     }
 
-    if (mCompleter->context() == Completer::Undefined) {
-        auto context = determineContext(textCursor());
-        if (context == Completer::On) {
-            // todo join hint
-        }
-        mCompleter->setContext(context);
-    }
+    mCompleter->setContext(determineContext(textCursor()));
 
     QRect cr = cursorRect();
     cr.setWidth(c->popup()->sizeHintForColumn(0)
@@ -329,10 +348,15 @@ int TextEdit::prevEditIndex() const {
 }
 
 void TextEdit::moveTextCursorToEdit(int index) {
+    //qDebug() << "moveTextCursorToEdit" << index;
     const auto& edit = m_edits[index];
     QTextCursor cursor = edit.second;
     cursor.movePosition(QTextCursor::PreviousCharacter);
     setTextCursor(cursor);
+
+    auto context = determineContext(cursor);
+    //qDebug() << "determineContext(cursor)" << context;
+    mCompleter->setContext(context);
 }
 
 bool TextEdit::cursorAtEndOfWord() const {

@@ -8,6 +8,7 @@
 #include <QDebug>
 #include "drivernames.h"
 #include <algorithm>
+#include "schema2/schema2tablesmodel.h"
 
 QStringList tableFields(QSqlDatabase db, const QString& table) {
     QSqlRecord record = db.record(table);
@@ -94,33 +95,11 @@ QString odbcType(const QSqlField& , QString& ) {
 
 #endif
 
-Tokens::Tokens(QSqlDatabase db)
+Tokens::Tokens(QSqlDatabase db, Schema2TablesModel *model)
 {
-    QStringList tableNames = db.tables();
-    foreach(const QString& tableName, tableNames) {
-        Table table;
-        table.table = tableName.toLower();
-        table.fields = tableFields(db, tableName);
-        mTables.append(table);
-    }
-
-#if 0
-    if (!tableNames.isEmpty()) {
-        QString table = tableNames[rand() % tableNames.size()];
-        QSqlRecord r = db.record(table);
-        qDebug() << table;
-        for(int i=0;i<r.count();i++) {
-            QString error;
-            QSqlField field = r.field(i);
-            qDebug() << field.name() << odbcType(field,error);
-            if (!error.isEmpty()) {
-                qDebug() << error;
-            }
-        }
-    }
-#endif
-
+    mTables = model->tablesState();
     mDriverName = db.driverName();
+    qDebug() << "Tokens::Tokens state" << mTables.size() << "tables";
 }
 
 QStringList Tokens::functions() const
@@ -317,12 +296,14 @@ QStringList Tokens::keywords() const
 
 QStringList Tokens::tablesAndFields(bool doted) const {
     QStringList res;
-    foreach(const Table& table, mTables) {
-        res << table.table;
-        foreach(const QString& field, table.fields) {
-            res << field;
+    foreach(const STable& table, mTables) {
+        res.append(table.name.name);
+        res.append(table.fullname());
+        foreach(const SColumn& field, table.columns) {
+            res.append(field.name);
             if (doted) {
-                res << (table.table + "." + field);
+                res.append(table.name.name + "." + field.name);
+                res.append(table.fullname() + "." + field.name);
             }
         }
     }
@@ -331,12 +312,12 @@ QStringList Tokens::tablesAndFields(bool doted) const {
 
 QStringList Tokens::fields(const QString& tableName, const QString& alias) const {
     QStringList res;
-    foreach(const Table& table, mTables) {
-        if (table.table != tableName) {
+    foreach(const STable& table, mTables) {
+        if (table.name.name != tableName) {
             continue;
         }
-        foreach(const QString& field, table.fields) {
-            res << (alias + "." + field);
+        for(const SColumn& field: table.columns) {
+            res.append(alias + "." + field.name);
         }
     }
     return res;
@@ -345,17 +326,17 @@ QStringList Tokens::fields(const QString& tableName, const QString& alias) const
 QStringList Tokens::fields(const QString &tableName, bool dotted) const
 {
     QStringList res;
-    foreach(const Table& table, mTables) {
-        if (table.table != tableName) {
+    for(const STable& table: mTables) {
+        if (table.name.name != tableName) {
             continue;
         }
         if (dotted) {
-            foreach(const QString& field, table.fields) {
-                res << (table.table + "." + field);
+            for(const SColumn& field: table.columns) {
+                res.append(table.name.name + "." + field.name);
             }
         } else {
-            foreach(const QString& field, table.fields) {
-                res << field;
+            for(const SColumn& field: table.columns) {
+                res.append(field.name);
             }
         }
     }
@@ -376,12 +357,12 @@ CompleterData Tokens::completerData() const
 QStringList Tokens::fields(bool doted) const
 {
     QStringList res;
-    foreach(const Table& table, mTables) {
-        foreach(const QString& field, table.fields) {
+    for(const STable& table: mTables) {
+        for(const SColumn& field: table.columns) {
             if (doted) {
-                res << (table.table + "." + field);
+                res.append(table.name.name + "." + field.name);
             } else {
-                res << field;
+                res.append(field.name);
             }
         }
     }
@@ -391,8 +372,9 @@ QStringList Tokens::fields(bool doted) const
 QStringList Tokens::tables() const
 {
     QStringList res;
-    foreach(const Table& table, mTables) {
-        res << table.table;
+    for(const STable& table: mTables) {
+        res.append(table.name.name);
+        res.append(table.fullname());
     }
     return res;
 }

@@ -1290,7 +1290,7 @@ void Schema2Data::scriptDialog(QWidget *parent)
             + mTables->createIndexesQueries(driverName, driver)
             + mTables->createRelationsQueries(driverName, driver);
 
-    auto tokens = Tokens(QSqlDatabase::database(mConnectionName));
+    Tokens tokens = Tokens(database(), tables());
     auto* highligher = new Highlighter(tokens, 0);
 
     CodeWidget* widget = new CodeWidget();

@@ -260,7 +260,9 @@ void MainWindow::updateSchemaModel() {
 
 void MainWindow::updateTokens(const QString &connectionName)
 {
-    mTokens[connectionName] = Tokens(QSqlDatabase::database(connectionName));
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    QSqlDatabase db = QSqlDatabase::database(connectionName);
+    mTokens[connectionName] = Tokens(db, data->tables());
     updateSchemaModel();
 }
 
