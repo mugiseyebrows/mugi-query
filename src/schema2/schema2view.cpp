@@ -39,7 +39,7 @@ Schema2View::Schema2View(QWidget *parent) :
         setTablesMovable(mode == Schema2Toolbar::ModeMove);
     });
 
-    connect(ui->relate, &RelateToolWidget::selected, [=](QString parentTable, QString childTable){
+    connect(ui->relate, &RelateToolWidget::selected, [=](SName parentTable, SName childTable){
         Schema2Toolbar::Mode mode = ui->toolbar->mode();
         if (mode == Schema2Toolbar::ModeRelate) {
             mData->createRelationDialog(childTable, parentTable, this);
@@ -214,7 +214,7 @@ void Schema2View::onTableClicked(SName tableName_, QPointF scenePos)
             //}
             mTableStack.clear();
         }*/
-        ui->relate->push(tableName.name);
+        ui->relate->push(tableName);
         break;
     case Schema2Toolbar::ModeUnrelate:
         /*mTableStack.append(tableName);
@@ -226,7 +226,7 @@ void Schema2View::onTableClicked(SName tableName_, QPointF scenePos)
             //}
             mTableStack.clear();
         }*/
-        ui->relate->push(tableName.name);
+        ui->relate->push(tableName);
         break;
     case Schema2Toolbar::ModeDrop:
         mData->dropTableDialog(tableName, this);

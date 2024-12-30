@@ -165,7 +165,7 @@ protected:
     void tablePulled(const QString &tableName, Status status);
     //QStringList guessParentColumns(QString childTable, QStringList childColumns, QString parentTable);
 signals:
-    void tableClicked(QString, QPointF);
+    void tableClicked(SName, QPointF);
 protected slots:
     void onSelectModelChanged(QModelIndex, QModelIndex);
 

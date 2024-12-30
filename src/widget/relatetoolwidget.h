@@ -17,11 +17,15 @@ public:
     ~RelateToolWidget();
 
 signals:
-    void selected(QString, QString);
+    void selected(SName, SName);
 
 public slots:
     void clear();
-    void push(const QString &);
+    void push(const SName &);
+
+protected:
+    SName mChildName;
+    SName mParentName;
 
 private slots:
     void on_clearParent_clicked();

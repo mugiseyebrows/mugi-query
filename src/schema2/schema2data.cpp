@@ -1529,7 +1529,7 @@ Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)
     mSelectProxyModel->sort(0);
     //mSelectProxyModel->setDynamicSortFilter(true);
 
-    connect(mTables,SIGNAL(tableClicked(QString, QPointF)),this,SIGNAL(tableClicked(QString, QPointF)));
+    connect(mTables,SIGNAL(tableClicked(SName, QPointF)),this,SIGNAL(tableClicked(SName, QPointF)));
 
     //connect(mSelectModel,SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(onSelectModelChanged(QModelIndex,QModelIndex)));
     load();

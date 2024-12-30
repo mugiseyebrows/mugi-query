@@ -17,18 +17,22 @@ void RelateToolWidget::clear()
 {
     ui->childTable->setText(QString());
     ui->parentTable->setText(QString());
+    mChildName = {};
+    mParentName = {};
 }
 
-void RelateToolWidget::push(const QString& table)
+void RelateToolWidget::push(const SName& table)
 {
-    QString childTable = ui->childTable->text();
-    if (childTable.isEmpty()) {
-        ui->childTable->setText(table);
+
+    if (mChildName.name.isEmpty()) {
+        ui->childTable->setText(table.name);
+        mChildName = table;
         return;
     }
-    QString parentTable = table;
-    ui->parentTable->setText(parentTable);
-    emit selected(parentTable, childTable);
+    //QString parentTable = table;
+    mParentName = table;
+    ui->parentTable->setText(mParentName.name);
+    emit selected(mParentName, mChildName);
 }
 
 void RelateToolWidget::on_clearParent_clicked()
