@@ -36,7 +36,7 @@ static QJsonDocument readJson(const QString& path, QString& error) {
 static QHash<QString, QString> loadEmmetDict(QString& error) {
     QHash<QString, QString> dict;
     QDir dir(qApp->applicationDirPath());
-    if (dir.dirName() == "debug" || dir.dirName() == "release" || dir.dirName() == "build") {
+    if (dir.dirName().toLower() == "debug" || dir.dirName().toLower() == "release" || dir.dirName().toLower() == "build") {
         dir.cdUp();
     }
     if (dir.dirName() == "bin") {
