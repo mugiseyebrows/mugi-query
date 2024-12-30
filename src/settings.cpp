@@ -215,10 +215,20 @@ static QString existing(const QStringList& bases, const QString& path) {
     return QString();
 }
 
+// todo read registry
+static QStringList mariaPaths() {
+    QStringList vs = {"10.10", "11.6"};
+    QStringList res;
+    for(const auto& v: vs) {
+        res.append(QString("C:\\Program Files\\MariaDB %1\\bin").arg(v));
+    }
+    return res;
+}
+
 void Settings::findTools()
 {
     if (mMysqlPath.isEmpty() || !QFile::exists(mMysqlPath)) {
-        QString path = existing({"C:\\Program Files\\MariaDB 10.10\\bin"}, "mysql.exe");
+        QString path = existing(mariaPaths(), "mysql.exe");
         if (path.isEmpty()) {
             mMysqlPath = QString();
             return;
@@ -226,7 +236,7 @@ void Settings::findTools()
         mMysqlPath = path;
     }
     if (mMysqldumpPath.isEmpty() || !QFile::exists(mMysqldumpPath)) {
-        QString path = existing({"C:\\Program Files\\MariaDB 10.10\\bin"}, "mysqldump.exe");
+        QString path = existing(mariaPaths(), "mysqldump.exe");
         if (path.isEmpty()) {
             mMysqldumpPath = QString();
             return;
