@@ -466,7 +466,7 @@ static int indexOf(const QList<RelationItem>& relations, const QString& childTab
     return -1;
 }
 
-static int indexOf(const QList<SRelation>& relations, const QString& name, const QString& childTable, const QString& parentTable) {
+static int indexOf(const QList<SRelation>& relations, const QString& name, const SName& childTable, const SName& parentTable) {
     for(int i=0;i<relations.size();i++) {
         if (relations[i].name == name
             && relations[i].childTable == childTable
@@ -487,11 +487,11 @@ void Schema2Data::pullRelationsMysql() {
     QStringList tablesLower = toLower(tables);
 
     QSqlQuery q(db);
-    q.prepare("SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME "
-              "FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
-              "WHERE CONSTRAINT_SCHEMA=?");
-    q.addBindValue(db.databaseName());
-    q.exec();
+    q.prepare("SELECT CONSTRAINT_SCHEMA, TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME "
+              "FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE ");
+    if (!q.exec()) {
+        qDebug() << "error" << __FILE__ << __LINE__;
+    }
 
     //QList<RelationItem> relations;
 
@@ -499,11 +499,13 @@ void Schema2Data::pullRelationsMysql() {
     QList<SRelation> newState;
 
     while(q.next()) {
-        QString childTable = q.value(0).toString();
-        QString childColumn = q.value(1).toString();
-        QString constraintName = q.value(2).toString();
-        QString parentTable = q.value(3).toString();
-        QString parentColumn = q.value(4).toString();
+
+        QString schema = q.value(0).toString();
+        QString childTable = q.value(1).toString();
+        QString childColumn = q.value(2).toString();
+        QString constraintName = q.value(3).toString();
+        QString parentTable = q.value(4).toString();
+        QString parentColumn = q.value(5).toString();
 
         if (parentTable.isEmpty()) {
             continue;
@@ -518,12 +520,15 @@ void Schema2Data::pullRelationsMysql() {
             continue;
         }
 
-        int index_ = indexOf(newState, constraintName, childTable, parentTable);
+        SName childTable_(schema, childTable);
+        SName parentTable_(schema, parentTable);
+
+        int index_ = indexOf(newState, constraintName, childTable_, parentTable_);
         if (index_ > -1) {
             newState[index_].childColumns.append(childColumn);
             newState[index_].parentColumns.append(parentColumn);
         } else {
-            newState.append(SRelation(constraintName, childTable, {childColumn}, parentTable, {parentColumn}));
+            newState.append(SRelation(constraintName, childTable_, {childColumn}, parentTable_, {parentColumn}));
         }
 
 #if 0
