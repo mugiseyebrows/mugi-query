@@ -8,6 +8,10 @@
 #include "schema2indexesmodel.h"
 
 #define LINE_HEIGHT 25
+#define PADDING 2
+
+/*static*/
+SchemaColor* SchemaColor::mInstance = nullptr;
 
 Schema2TableItem::Schema2TableItem(Schema2TableModel *model, QGraphicsItem *parent)
     : mModel(model), QGraphicsItem(parent), mChecked(true)
@@ -38,25 +42,46 @@ SName Schema2TableItem::tableNamePrev() const
 
 QRectF Schema2TableItem::boundingRect() const
 {
-    int w = 200;
-    int s = LINE_HEIGHT;
-    return QRectF(0, 0, w, s * (mModel->rowCount() + 1));
+    int w = 200 + PADDING * 2;
+    int h = LINE_HEIGHT * (mModel->rowCount() + 1) + PADDING * 2;
+    return QRectF(0, 0, w, h);
 }
 
-static void drawRect(QPainter *painter, const QRectF& boundary, bool isSelected) {
+QRectF Schema2TableItem::innerRect() {
+    QRectF rect = boundingRect();
+    rect.adjust(PADDING, PADDING, -PADDING, -PADDING);
+    return rect;
+}
+
+QRectF Schema2TableItem::titleRect() {
+    QRectF rect = innerRect();
+    rect.setHeight(LINE_HEIGHT);
+    return rect;
+}
+
+QRectF Schema2TableItem::fieldRect(int row) {
+    QRectF rect = titleRect();
+    return QRectF(rect.topLeft() + QPointF(0, (row + 1) * LINE_HEIGHT), rect.size());
+}
+
+static void drawRoundedGradientRect(QPainter *painter,
+                                    const QRectF& boundary,
+                                    const QColor& boundaryColor,
+                                    QList<QColor>& gradientColors) {
 
     double HoveredPenWidth = 1.5;
     double PenWidth = 1.0;
 
-    auto color = isSelected ? Style::current.SelectedBoundaryColor : Style::current.NormalBoundaryColor;
+    //auto color = isSelected ? Style::current.SelectedBoundaryColor : Style::current.NormalBoundaryColor;
+
 
     bool isHovered = false;
 
     if (isHovered) {
-        QPen p(color, HoveredPenWidth);
+        QPen p(boundaryColor, HoveredPenWidth);
         painter->setPen(p);
     } else {
-        QPen p(color, PenWidth);
+        QPen p(boundaryColor, PenWidth);
         painter->setPen(p);
     }
 
@@ -64,10 +89,28 @@ static void drawRect(QPainter *painter, const QRectF& boundary, bool isSelected)
 
     QLinearGradient gradient(QPointF(0.0, 0.0), QPointF(0.0, size.height()));
 
-    gradient.setColorAt(0.0, Style::current.GradientColor0);
-    gradient.setColorAt(0.10, Style::current.GradientColor1);
-    gradient.setColorAt(0.90, Style::current.GradientColor2);
-    gradient.setColorAt(1.0, Style::current.GradientColor3);
+    //double y1 = (double) LINE_HEIGHT / boundary.height();
+    double y1 = (double) (2 * LINE_HEIGHT) / boundary.height();
+    double y2 = (double) (boundary.height() - LINE_HEIGHT) / boundary.height();
+
+    qDebug() << "y1 y2" << y1 << y2;
+
+    if (gradientColors.size() == 4) {
+        /*gradient.setColorAt(0.0, Style::current.GradientColor0);
+        gradient.setColorAt(0.10, Style::current.GradientColor1);
+        gradient.setColorAt(0.90, Style::current.GradientColor2);
+        gradient.setColorAt(1.0, Style::current.GradientColor3);*/
+
+        gradient.setColorAt(0.0, gradientColors[0]);
+        gradient.setColorAt(y1, gradientColors[1]);
+        gradient.setColorAt(y2, gradientColors[2]);
+        gradient.setColorAt(1.0, gradientColors[3]);
+
+    } else {
+        qDebug() << "error" << __FILE__ << __LINE__;
+    }
+
+
 
     painter->setBrush(gradient);
 
@@ -143,6 +186,20 @@ static QPainterPath borderRadius(const QRectF& rect, double tl, double tr, doubl
     return path;
 }
 
+QColor setHue(const QColor& color, int h2) {
+    int h,s,v;
+    color.getHsv(&h,&s,&v);
+    h = h2;
+    return QColor::fromHsv(h, s, v);
+}
+
+QColor lighter(const QColor& color) {
+    int h,s,v;
+    color.getHsv(&h,&s,&v);
+    v += 30;
+    return QColor::fromHsv(h, s, v);
+}
+
 void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     int w = 200;
@@ -156,10 +213,22 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
     painter->setFont(QFont("Liberation Sans", 11));
 
-
-
+#if 0
+    // draw shadow
     {
-        QRectF rect = boundingRect();
+        QRectF rect = innerRect();
+        rect.moveTopLeft(rect.topLeft() + QPointF(PADDING, PADDING));
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(QColor("#E2E2E2"));
+        double const radius = 4.0;
+        painter->drawRoundedRect(rect, radius, radius);
+    }
+#endif
+
+    // draw box
+    {
+        QRectF rect = innerRect();
+
         //rect.moveTo(0,0);
 
         painter->save();
@@ -170,7 +239,30 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         //painter->drawRect(rect);
 
         if (mChecked) {
-            drawRect(painter, rect, isSelected());
+
+            //uint v = qHash(mModel->tableName().schema);
+
+            //qDebug() << "hash(schema)" << v << (v % 360);
+            QString schema = mModel->tableName().schema;
+
+            /*QColor color1 = SchemaColor::instance()->color(schema);
+            QColor color2 = color1.darker(100);
+            QColor color3 = color1.darker(200);*/
+
+            QColor color2 = SchemaColor::instance()->color(schema);
+            QColor color1 = color2.lighter(70);
+            QColor color3 = color2.darker(70);
+
+            //qDebug() << color1.toHsv() << color2.toHsv() << color3.toHsv();
+
+            auto boundaryColor = isSelected() ? Style::current.SelectedBoundaryColor : Style::current.NormalBoundaryColor;
+            QList<QColor> gradientColors = {
+                color1,
+                color2,
+                color2,
+                color3,
+            };
+            drawRoundedGradientRect(painter, rect, boundaryColor, gradientColors);
         } else {
             double const radius = 4.0;
             painter->drawRoundedRect(rect, radius, radius);
@@ -178,16 +270,17 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
     }
 
-    double radius = 4.0;
-    QRectF titleRect = QRectF(0,0,w,s);
-    QBrush titleBrush = mChecked ? Style::current.TitleColor : QColor("#FFD495");
+    {
+        double radius = 4.0;
+        QRectF rect = titleRect();
+        QBrush titleBrush = mChecked ? Style::current.TitleColor : QColor("#FFD495");
+        painter->setPen(Qt::NoPen);
+        if (mChecked) {
+            painter->setBrush(titleBrush);
+            auto path = borderRadius(rect, radius, radius, 0, 0);
+            painter->drawPath(path);
+        }
 
-    painter->setPen(Qt::NoPen);
-    if (mChecked) {
-        painter->setBrush(titleBrush);
-        auto path = borderRadius(titleRect, radius, radius, 0, 0);
-        painter->drawPath(path);
-        //painter->drawRoundedRect(titleRect, radius, radius);
     }
 
     painter->restore();
@@ -197,21 +290,21 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         painter->drawRect(rect);
     }*/
 
-    QRectF rect(0,0,w,s);
-
+    QRectF rect = titleRect();
 
     painter->setPen(mChecked ? Style::current.TextColorTitle : Style::current.TextColorFaded);
 
+    // draw name
     QTextOption opt(Qt::AlignCenter);
     painter->drawText(rect, mModel->tableName().name, opt);
 
     painter->setPen(mChecked ? Style::current.TextColor : Style::current.TextColorFaded);
-
     auto primaryKey = mModel->indexes()->primaryKey();
     auto relationsChildColumns = mModel->relationsChildColumns();
 
+    // draw fields and keys
     for(int row=0;row<mModel->rowCount();row++) {
-        QRectF rect(0,(row + 1)*s,w,s);
+        QRectF rect = fieldRect(row);
         QString name = mModel->name(row);
 
         QTextOption opt(Qt::AlignCenter);
@@ -220,22 +313,20 @@ void Schema2TableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         if (mChecked) {
             if (primaryKey.contains(name)) {
                 QTextOption opt(Qt::AlignLeft);
-                QRectF rect(s, (row + 1) * s, w, s);
+                //QRectF rect(s, (row + 1) * s, w, s);
+                QRectF rect = fieldRect(row);
+                rect.adjust(LINE_HEIGHT, 0, 0, 0);
                 painter->drawText(rect, "🔑", opt);
             }
 
             if (relationsChildColumns.contains(name)) {
                 QTextOption opt(Qt::AlignRight);
-                QRectF rect(0, (row + 1) * s, w - 20, s);
+                //QRectF rect(0, (row + 1) * s, w - 20, s);
+                QRectF rect = fieldRect(row);
+                rect.setWidth(rect.width() - 20);
                 painter->drawText(rect, "👉", opt);
             }
         }
-
-        /*if (mModel->isIndexColumn(name)) {
-            QTextOption opt(Qt::AlignRight | Qt::AlignVCenter);
-            rect.setWidth(rect.width() - 10);
-            painter->drawText(rect, "I", opt);
-        }*/
 
     }
 
@@ -314,4 +405,8 @@ void Schema2TableItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 int Schema2TableItem::type() const
 {
     return Type;
+}
+
+SchemaColor::SchemaColor() {
+    mPalette = {"#491704", "#1B4242", "#4D3C77", "#5D0E41"};
 }

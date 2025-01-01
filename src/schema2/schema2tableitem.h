@@ -8,6 +8,32 @@ class Schema2RelationItem2;
 #include "uncheckedmode.h"
 #include "sdata.h"
 
+class SchemaColor {
+public:
+
+    QColor color(const QString& schema) {
+        if (!mColors.contains(schema)) {
+            mColors[schema] = mIndex;
+            mIndex = (mIndex + 1) % mPalette.size();
+        }
+        return mPalette[mColors[schema]];
+    }
+
+    static SchemaColor* instance() {
+        if (!mInstance) {
+            mInstance = new SchemaColor();
+        }
+        return mInstance;
+    }
+protected:
+    SchemaColor();
+    static SchemaColor* mInstance;
+    QList<QColor> mPalette;
+    QHash<QString, int> mColors;
+    int mIndex = 0;
+};
+
+
 class Schema2TableItem : public QGraphicsItem
 {
 public:
@@ -64,6 +90,9 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 
     // QGraphicsItem interface
+    QRectF innerRect();
+    QRectF titleRect();
+    QRectF fieldRect(int row);
 public:
     int type() const override;
 };
