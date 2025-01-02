@@ -37,6 +37,7 @@ private slots:
     void testDiffBasic();
     void testDiffEmpty();
     void testDiffSchema();
+    void testHash();
 };
 
 
@@ -124,7 +125,21 @@ void tst_SData::testDiffSchema() {
     QCOMPARE(renamed.size(), 1);
     QCOMPARE(altered.size(), 0);
 
+
 }
+
+void tst_SData::testHash() {
+
+    QHash<SName, int> data;
+    data[SName("foo", "bar")] = 1;
+    data[SName("foo", "BAR")] = 2;
+
+    QCOMPARE(data.size(), 1);
+    QCOMPARE(data[SName("foo", "bar")], 2);
+    QCOMPARE(SName("foo", "bar"), SName("foo", "BAR"));
+}
+
+
 
 QTEST_MAIN(tst_SData)
 #include "tst_sdata.moc"
