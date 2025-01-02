@@ -629,6 +629,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
         mJoinHelpers->close();
     }
 
+    QStringList connectionNames = QSqlDatabase::connectionNames();
+    for(const QString& connectionName: connectionNames) {
+        if (connectionName == "_history") {
+            continue;
+        }
+        Schema2Data* data = Schema2Data::instance(connectionName, this);
+        data->tables()->savePos();
+    }
+
     Settings::instance()->save();
     event->accept();
     QMainWindow::closeEvent(event);
