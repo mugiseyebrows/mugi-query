@@ -46,8 +46,8 @@ QHash<SName, QPointF> Schema2Store::loadPos(const QString &connectionName)
     for(const QVariantList& row: rows) {
         QString schema = row[0].toString();
         QString name = row[1].toString();
-        double x = row[1].toDouble();
-        double y = row[2].toDouble();
+        double x = row[2].toDouble();
+        double y = row[3].toDouble();
         res[SName(schema, name)] = QPointF(x, y);
     }
     return res;
