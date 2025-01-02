@@ -511,6 +511,7 @@ void Schema2Data::pullRelationsMysql() {
             continue;
         }
 
+#if 0
         if (!tables.contains(childTable) && !tablesLower.contains(childTable.toLower())) {
             qDebug() << childTable << __FILE__ << __LINE__;
             continue;
@@ -519,6 +520,7 @@ void Schema2Data::pullRelationsMysql() {
             qDebug() << childTable << __FILE__ << __LINE__;
             continue;
         }
+#endif
 
         SName childTable_(schema, childTable);
         SName parentTable_(schema, parentTable);
@@ -835,8 +837,11 @@ void Schema2Data::push(QWidget* widget)
 {
     mTables->savePos();
 
-    QString driverName = QSqlDatabase::database(mConnectionName).driverName();
-    auto* driver = this->driver();
+    //QString driverName = QSqlDatabase::database(mConnectionName).driverName();
+    //auto* driver = this->driver();
+
+    QSqlDatabase db = database();
+
 
     Schema2ChangeSet* changeSet = new Schema2ChangeSet();
 
@@ -845,7 +850,7 @@ void Schema2Data::push(QWidget* widget)
     for(Schema2TableModel* table: tables) {
         switch(table->status()) {
         case StatusNew:
-            changeSet->append(table->createQueries(driverName, driver), [=](){
+            changeSet->append(table->createQueries(db), [=](){
                 table->columnsCreated(true);
                 table->primaryKeysCreated();
             });
@@ -854,14 +859,14 @@ void Schema2Data::push(QWidget* widget)
         {
             SName tableName = table->tableName();
             SName tableNamePrev = table->tableNamePrev();
-            QStringList renameQueries = table->renameQueries(driverName, driver);
+            QStringList renameQueries = table->renameQueries(db);
             if (!renameQueries.isEmpty()) {
                 changeSet->append(renameQueries, [=](){
                     table->setTableNamePrev(tableName);
                     tableRenamed(tableName, tableNamePrev);
                 });
             }
-            changeSet->append(table->alterQueries(driverName, driver), [=](){
+            changeSet->append(table->alterQueries(db), [=](){
                 table->columnsCreated(false);
             });
         }
@@ -875,7 +880,7 @@ void Schema2Data::push(QWidget* widget)
     for(Schema2TableModel* table: tables) {
         Schema2IndexesModel* indexes = table->indexes();
 
-        changeSet->append(indexes->queries(table, driverName, driver), [=](){
+        changeSet->append(indexes->queries(table, db), [=](){
             indexes->pushed();
         });
     }
@@ -899,12 +904,12 @@ void Schema2Data::push(QWidget* widget)
             case StatusExisting:
                 break;
             case StatusModified:
-                changeSet->append(relation->modifyQueries(table->tableName(), driverName, driver), [=](){
+                changeSet->append(relation->modifyQueries(table->tableName(), db), [=](){
                     relation->pushed();
                 });
                 break;
             case StatusNew:
-                changeSet->append(relation->createQueries(table->tableName(), driverName, driver), [=](){
+                changeSet->append(relation->createQueries(table->tableName(), db), [=](){
                     relation->pushed();
                 });
                 break;
@@ -918,7 +923,7 @@ void Schema2Data::push(QWidget* widget)
     for(auto item: queue) {
         SName name = item.first;
         Schema2Relation* relation = item.second;
-        changeSet->append(relation->dropQueries(name, driverName, driver),[=](){
+        changeSet->append(relation->dropQueries(name, db),[=](){
             //mDropRelationsQueue.removeOne(item);
             mTables->relationDropped(name, relation);
         });
@@ -926,7 +931,7 @@ void Schema2Data::push(QWidget* widget)
 
     // drop tables
     for(auto* item: mDropTableQueue) {
-        changeSet->append(item->dropQueries(driverName, driver),[=](){
+        changeSet->append(item->dropQueries(db),[=](){
             mDropTableQueue.removeOne(item);
         });
     }
@@ -1287,13 +1292,14 @@ void Schema2Data::tableRenamed(const SName &tableName, const SName &tableNamePre
 
 void Schema2Data::scriptDialog(QWidget *parent)
 {
-    auto driverName = this->driverName();
-    auto* driver = this->driver();
+    //auto driverName = this->driverName();
+    //auto* driver = this->driver();
+    auto db = database();
 
     QStringList queries =
-            mTables->createTablesQueries(driverName, driver)
-            + mTables->createIndexesQueries(driverName, driver)
-            + mTables->createRelationsQueries(driverName, driver);
+            mTables->createTablesQueries(db)
+            + mTables->createIndexesQueries(db)
+            + mTables->createRelationsQueries(db);
 
     Tokens tokens = Tokens(database(), tables());
     auto* highligher = new Highlighter(tokens, 0);

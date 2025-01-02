@@ -112,15 +112,15 @@ public:
 
     Status status() const;
 
-    QStringList createQueries(const QString &driverName, QSqlDriver *driver) const;
+    QStringList createQueries(const QSqlDatabase &db) const;
 
-    QStringList alterQueries(const QString &driverName, QSqlDriver *driver) const;
+    QStringList alterQueries(const QSqlDatabase &db) const;
 
-    QStringList dropQueries(const QString &driverName, QSqlDriver *driver) const;
+    QStringList dropQueries(const QSqlDatabase &db) const;
 
     //QStringList autoincrementQueries(const QString &driverName, QSqlDriver *driver) const;
 
-    QString alterTableAddColumnsQuery(int row, const QString &driverName, QSqlDriver *driver) const;
+    QString alterTableAddColumnsQuery(int row, const QSqlDatabase &db) const;
 
     void setStatus(Status status);
 
@@ -185,7 +185,7 @@ public:
 
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
-    QString getColumnDefinition(const QString &driverName, QSqlDriver *driver, int row,
+    QString getColumnDefinition(const QSqlDatabase &db, int row,
                                 bool skipAutoIncrement, const QStringList &primaryKey,
                                 const ColumnPosition& position) const;
 
@@ -197,7 +197,7 @@ public:
     int indexOf(const QString &name);
     void tableAltered(const STable &table);
 
-    QStringList renameQueries(const QString &driverName, QSqlDriver *driver) const;
+    QStringList renameQueries(const QSqlDatabase& db) const;
 
     void primaryKeysCreated();
 

@@ -1,12 +1,22 @@
 #include "sqlescaper.h"
 
 #include <QSqlDriver>
+#include "drivernames.h"
 
 SqlEscaper::SqlEscaper(QSqlDriver *driver) : mDriver(driver) {
 
 }
 
+SqlEscaper::SqlEscaper(const QSqlDatabase& db) : mDb(db), mDriver(db.driver()), mMysql(db.driverName() == DRIVER_MYSQL), mSchema(db.databaseName())
+{
+
+}
+
 QString SqlEscaper::table(const SName &table) const {
+
+    if (mMysql && table.schema != mSchema) {
+        return mDriver->escapeIdentifier(table.fullname(), QSqlDriver::TableName);
+    }
     return mDriver->escapeIdentifier(table.name, QSqlDriver::TableName);
 }
 
@@ -24,4 +34,9 @@ QStringList SqlEscaper::columns(const QStringList &columns) const {
         res.append(mDriver->escapeIdentifier(item, QSqlDriver::FieldName));
     }
     return res;
+}
+
+QString SqlEscaper::driverName() const
+{
+    return mDb.driverName();
 }

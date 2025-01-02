@@ -61,7 +61,8 @@ QRectF Schema2TableItem::titleRect() {
 
 QRectF Schema2TableItem::fieldRect(int row) {
     QRectF rect = titleRect();
-    return QRectF(rect.topLeft() + QPointF(0, (row + 1) * LINE_HEIGHT), rect.size());
+    rect.moveTop(rect.top() + (row + 1) * LINE_HEIGHT);
+    return rect;
 }
 
 static void drawRoundedGradientRect(QPainter *painter,
@@ -93,7 +94,7 @@ static void drawRoundedGradientRect(QPainter *painter,
     double y1 = (double) (2 * LINE_HEIGHT) / boundary.height();
     double y2 = (double) (boundary.height() - LINE_HEIGHT) / boundary.height();
 
-    qDebug() << "y1 y2" << y1 << y2;
+    //qDebug() << "y1 y2" << y1 << y2;
 
     if (gradientColors.size() == 4) {
         /*gradient.setColorAt(0.0, Style::current.GradientColor0);

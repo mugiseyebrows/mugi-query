@@ -32,8 +32,6 @@ int Schema2TablesModel::indexOf(const QString& name) const {
 }
 
 int Schema2TablesModel::indexOf(const SName& name) const {
-
-
     for(int i=0;i<mTableModels.size();i++) {
         if (mTableModels[i]->tableName() == name) {
             return i;
@@ -138,7 +136,10 @@ QList<SRelation> Schema2TablesModel::relationsState() const
 
 Schema2TableModel* Schema2TablesModel::tableCreated(const SName& table, Status status) {
 
+    qDebug() << "tableCreated" << table;
+
     if (contains(table)) {
+        qDebug() << "contains(table)" << table;;
         return 0;
     }
     int row = rowCount();
@@ -148,8 +149,10 @@ Schema2TableModel* Schema2TablesModel::tableCreated(const SName& table, Status s
     connect(model, SIGNAL(tableClicked(SName, QPointF)), this, SIGNAL(tableClicked(SName, QPointF)));
     Schema2TableItem* item = new Schema2TableItem(model);
     if (mTablePos.contains(table)) {
+        qDebug() << "mTablePos.contains" << table << mTablePos[table];
         item->setPos(mTablePos[table]);
     } else {
+        qDebug() << "mSetPosQueue.append" << table;
         mSetPosQueue.append(item);
     }
 
@@ -435,18 +438,18 @@ void Schema2TablesModel::setUncheckedMode(UncheckedMode mode)
     }
 }
 
-QStringList Schema2TablesModel::createTablesQueries(const QString& driverName, QSqlDriver *driver) const
+QStringList Schema2TablesModel::createTablesQueries(const QSqlDatabase& db) const
 {
     QStringList res;
     for(auto* model: mTableModels) {
-        res.append(model->createQueries(driverName, driver));
+        res.append(model->createQueries(db));
     }
     return res;
 }
 
 
 
-QStringList Schema2TablesModel::createIndexesQueries(const QString& driverName, QSqlDriver *driver) const {
+QStringList Schema2TablesModel::createIndexesQueries(const QSqlDatabase &db) const {
     QStringList res;
     for(auto* model: mTableModels) {
         auto relationNames = model->relationNames();
@@ -456,18 +459,18 @@ QStringList Schema2TablesModel::createIndexesQueries(const QString& driverName, 
                 continue;
             }
             auto* index = model->indexes()->get(name);
-            res.append(index->createQuery(model->tableName(), driverName, driver));
+            res.append(index->createQuery(model->tableName(), db));
         }
     }
     return res;
 }
 
-QStringList Schema2TablesModel::createRelationsQueries(const QString& driverName, QSqlDriver *driver) const {
+QStringList Schema2TablesModel::createRelationsQueries(const QSqlDatabase &db) const {
     QStringList res;
     for(auto* model: mTableModels) {
         auto relations = model->relations()->values();
         for(auto* relation: relations) {
-            res.append(relation->createQueries(model->tableName(), driverName, driver));
+            res.append(relation->createQueries(model->tableName(), db));
         }
     }
     return res;
@@ -578,9 +581,12 @@ void Schema2TablesModel::relationCreated(const SRelation& relation, bool constra
     Schema2TableModel* parentModel = table(relation.parentTable);
 
     if (!childItem || !parentItem || !childModel || !parentModel) {
-        qDebug() << "Schema2TablesModel::relationCreated error"
-                 << relation.childTable << childModel << childItem
-                 << relation.parentTable << parentModel << parentItem << __FILE__ << __LINE__;
+#if 0
+        qDebug() << "Schema2TablesModel::relationCreated error" << __FILE__ << __LINE__;
+        qDebug() << "childTable" << relation.childTable << "childModel" << childModel << "childItem" << childItem;
+        qDebug() << "parentTable" << relation.parentTable << "parentModel" << parentModel << "parentItem" << parentItem;
+        qDebug() << "";
+#endif
         return;
     }
 

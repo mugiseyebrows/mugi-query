@@ -335,9 +335,11 @@ Status Schema2TableModel::status() const {
     return mStatus;
 }
 
-QStringList Schema2TableModel::createQueries(const QString &driverName, QSqlDriver *driver) const {
-    SqlEscaper es(driver);
+QStringList Schema2TableModel::createQueries(const QSqlDatabase& db) const {
+    SqlEscaper es(db);
     QStringList columns;
+    //QString driverName = db.driverName();
+    //auto* driver = db.driver();
 
     QStringList primaryKey = this->indexes()->primaryKey();
 
@@ -347,7 +349,7 @@ QStringList Schema2TableModel::createQueries(const QString &driverName, QSqlDriv
         if (name.isEmpty() || type.isEmpty()) {
             continue;
         }
-        QString columnDefinition = getColumnDefinition(driverName, driver, row, false, primaryKey, {});
+        QString columnDefinition = getColumnDefinition(db, row, false, primaryKey, {});
         columns.append(columnDefinition);
     }
     if (primaryKey.size() > 1) {
@@ -360,9 +362,11 @@ QStringList Schema2TableModel::createQueries(const QString &driverName, QSqlDriv
     return {expr};
 }
 
-QStringList Schema2TableModel::renameQueries(const QString &driverName, QSqlDriver *driver) const {
+QStringList Schema2TableModel::renameQueries(const QSqlDatabase& db) const {
     QStringList res;
-    SqlEscaper es(driver);
+    //QString driverName = db.driverName();
+    //auto* driver = db.driver();
+    SqlEscaper es(db);
     if (mTableName != mTableNamePrev) {
         QString expr = QString("RENAME TABLE %1 TO %2").arg(es.table(mTableNamePrev)).arg(es.table(mTableName));
         res.append(expr);
@@ -370,10 +374,11 @@ QStringList Schema2TableModel::renameQueries(const QString &driverName, QSqlDriv
     return res;
 }
 
-QString Schema2TableModel::alterTableAddColumnsQuery(int row, const QString &driverName, QSqlDriver *driver) const {
+QString Schema2TableModel::alterTableAddColumnsQuery(int row, const QSqlDatabase& db) const {
 
     QStringList primaryKey = indexes()->primaryKey();
-    SqlEscaper es(driver);
+    SqlEscaper es(db);
+    //QString driverName = db.driverName();
 
     ColumnPosition position;
     if (row == 0) {
@@ -382,16 +387,17 @@ QString Schema2TableModel::alterTableAddColumnsQuery(int row, const QString &dri
         position = ColumnPosition(ColumnPosition::After, this->name(row-1));
     }
 
-    QString columnDefinition = getColumnDefinition(driverName, driver, row, false, primaryKey, position);
+    QString columnDefinition = getColumnDefinition(db, row, false, primaryKey, position);
     QString expr = QStringList{"ALTER TABLE", es.table(mTableName),
                                 "ADD COLUMN", columnDefinition}.join(" ");
     return expr;
 }
 
-QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDriver *driver) const {
+QStringList Schema2TableModel::alterQueries(const QSqlDatabase& db) const {
 
     QStringList res;
-    SqlEscaper es(driver);
+    SqlEscaper es(db);
+    QString driverName = db.driverName();
 
     for(const QString& colName: mDropColumnsQueue) {
         // todo check for removed and readded
@@ -401,7 +407,7 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
         res.append(expr);
     }
 
-    QStringList primaryKey = indexes()->primaryKey();
+    //QStringList primaryKey = indexes()->primaryKey();
 
     for(int row=0;row<rowCount();row++) {
 
@@ -435,7 +441,7 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
                 QString expr = QStringList{"ALTER TABLE", es.table(mTableName),
                                             "ADD COLUMN", column_definition}.join(" ");
 #endif
-                QString expr = alterTableAddColumnsQuery(row, driverName, driver);
+                QString expr = alterTableAddColumnsQuery(row, db);
                 res.append(expr);
 
             } else if (nameChanged || typeChanged || notNullChanged || autoincrementChanged || defaultChanged) {
@@ -444,7 +450,7 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
 
                     if (name == namePrev) {
 
-                        QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName.name),
+                        QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
                                                     "ALTER COLUMN",
                                                     es.field(name), type, notNull ? "NOT NULL" : ""}).join(" ");
 
@@ -458,9 +464,9 @@ QStringList Schema2TableModel::alterQueries(const QString &driverName, QSqlDrive
 
                 } else if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
 
-                    QString columnDefinition = getColumnDefinition(driverName, driver, row, false, {}, {});
+                    QString columnDefinition = getColumnDefinition(db, row, false, {}, {});
 
-                    QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName.name),
+                    QString expr = filterEmpty({"ALTER TABLE", es.table(mTableName),
                                                 "CHANGE COLUMN", es.field(namePrev), columnDefinition}).join(" ");
 
                     res.append(expr);
@@ -504,13 +510,14 @@ static bool is_text_type(const QString& driverName, const QString& type) {
     return type.toLower().startsWith("varchar") || type.toLower() == "text";
 }
 
-QString Schema2TableModel::getColumnDefinition(const QString &driverName, QSqlDriver *driver, int row,
+QString Schema2TableModel::getColumnDefinition(const QSqlDatabase& db, int row,
                                                bool skipAutoIncrement, const QStringList& primaryKey,
                                                const ColumnPosition &position) const {
 
     //Q_ASSERT(driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB);
 
-    SqlEscaper es(driver);
+    SqlEscaper es(db);
+    QString driverName = db.driverName();
 
     QString name = this->name(row);
     QString type = this->type(row);
@@ -558,8 +565,8 @@ QString Schema2TableModel::getColumnDefinition(const QString &driverName, QSqlDr
     return res;
 }
 
-QStringList Schema2TableModel::dropQueries(const QString &driverName, QSqlDriver *driver) const {
-    SqlEscaper es(driver);
+QStringList Schema2TableModel::dropQueries(const QSqlDatabase &db) const {
+    SqlEscaper es(db);
     QString expr = QString("DROP TABLE %1").arg(es.table(mTableName));
     return {expr};
 }

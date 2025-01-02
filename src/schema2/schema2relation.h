@@ -5,6 +5,7 @@
 #include "schema2status.h"
 #include <QVariant>
 #include "sdata.h"
+class QSqlDatabase;
 class Schema2TableModel;
 class QSqlDriver;
 
@@ -42,15 +43,15 @@ public:
 
     void setParentColumns(const QStringList& value);
 
-    QStringList createQueries(const SName &childTable, const QString &driverName, QSqlDriver *driver) const;
+    QStringList createQueries(const SName &childTable, const QSqlDatabase &db) const;
 
-    QStringList dropQueries(const SName &childTable, const QString &driverName, QSqlDriver *driver) const;
+    QStringList dropQueries(const SName &childTable, const QSqlDatabase &db) const;
 
     Status status() const;
 
     void pushed();
 
-    QStringList modifyQueries(const SName &childTable, const QString &driverName, QSqlDriver *driver) const;
+    QStringList modifyQueries(const SName &childTable, const QSqlDatabase &db) const;
 
     void setName(const QString &name);
 

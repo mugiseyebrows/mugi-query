@@ -16,18 +16,18 @@ Schema2Index::Schema2Index(const QString &name, const QStringList &columns, bool
 
 }
 
-QString Schema2Index::createQuery(const SName &tableName, const QString& driverName, QSqlDriver *driver) const
+QString Schema2Index::createQuery(const SName &tableName, const QSqlDatabase& db) const
 {
 
-    SqlEscaper es(driver);
-
+    SqlEscaper es(db);
+    QString driverName = es.driverName();
 
     if (driverName == DRIVER_ODBC) {
 
         QString expr = filterEmpty({"CREATE",
                                     (mUnique && !mPrimary) ? "UNIQUE" : "",
                                     "INDEX", es.field(mName),
-                                    "ON", es.table(tableName.name),
+                                    "ON", es.table(tableName),
                                     "(" + es.columns(mColumns).join(", ") + ")",
                                     mPrimary ? "WITH PRIMARY" : ""
                                    }).join(" ");
@@ -51,16 +51,16 @@ QString Schema2Index::createQuery(const SName &tableName, const QString& driverN
     return QString();
 }
 
-QString Schema2Index::dropQuery(const SName &tableName, const QString& driverName, QSqlDriver *driver) const
+QString Schema2Index::dropQuery(const SName &tableName, const QSqlDatabase& db) const
 {
-    if (driverName == DRIVER_ODBC) {
-        QString expr = QString("DROP INDEX %1 on %2").arg(mName).arg(tableName.name);
-        return expr;
-    } else if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
-        QString expr = QString("DROP INDEX %1 on %2").arg(mPrimary ? "`PRIMARY`" : mName).arg(tableName.name);
-        return expr;
+    SqlEscaper es(db);
+    QString driverName = db.driverName();
+    QString name = mName;
+    if (driverName == DRIVER_MYSQL || driverName == DRIVER_MARIADB) {
+        name = mPrimary ? "PRIMARY" : mName;
     }
-    return QString();
+    QString expr = QString("DROP INDEX %1 on %2").arg(es.field(name)).arg(es.table(tableName));
+    return expr;
 }
 
 QString Schema2Index::name() const

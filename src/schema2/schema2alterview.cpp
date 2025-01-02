@@ -350,26 +350,26 @@ void Schema2AlterView::on_listRelatedTables_clicked()
 
 void Schema2AlterView::on_tableName_textChanged(const QString &value)
 {
-    mModel->setTableName(value);
-    //qDebug() << "table renamed" << mModel->tableNamePrev() << mModel->tableName();
+    SName name = mModel->tableName();
+    mModel->setTableName(SName(name.schema, value));
 }
-
-
 
 void Schema2AlterView::on_script_clicked()
 {
     QStringList exprs;
-    auto* driver = mData->driver();
-    QString driverName = mData->driverName();
+    //auto* driver = mData->driver();
+    //QString driverName = mData->driverName();
+    auto db = mData->database();
+
     int rowCount = mModel->rowCount();
     for(int row=0;row<rowCount;row++) {
-        exprs.append(mModel->alterTableAddColumnsQuery(row, driverName, driver));
+        exprs.append(mModel->alterTableAddColumnsQuery(row, db));
     }
 
     QString connectionName = mData->connectionName();
 
     Schema2Data* data = Schema2Data::instance(connectionName, this);
-    QSqlDatabase db = QSqlDatabase::database(connectionName);
+    //QSqlDatabase db = QSqlDatabase::database(connectionName);
     Tokens tokens = Tokens(db, data->tables());
 
     auto* highligher = new Highlighter(tokens, 0);

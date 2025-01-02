@@ -67,7 +67,7 @@ void Schema2IndexesModel::primaryKeysCreated() {
     }
 }
 
-QStringList Schema2IndexesModel::queries(Schema2TableModel* table, const QString& driverName, QSqlDriver* driver) const
+QStringList Schema2IndexesModel::queries(Schema2TableModel* table, const QSqlDatabase& db) const
 {
     QStringList res;
 
@@ -79,12 +79,12 @@ QStringList Schema2IndexesModel::queries(Schema2TableModel* table, const QString
             if (index->primary() && table->status() == StatusNew) {
                 continue;
             }
-            res.append(index->createQuery(tableName, driverName, driver));
+            res.append(index->createQuery(tableName, db));
         }
     }
     for(int i=0;i<mRemoveQueue.size();i++) {
         auto* index = mRemoveQueue[i];
-        res.append(index->dropQuery(tableName, driverName, driver));
+        res.append(index->dropQuery(tableName, db));
     }
     return res;
 }

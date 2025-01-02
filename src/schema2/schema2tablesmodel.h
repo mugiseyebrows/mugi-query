@@ -11,6 +11,7 @@ class Schema2Relation;
 class QSqlDriver;
 class Schema2TreeModel;
 class Schema2TreeProxyModel;
+class QSqlDatabase;
 
 #include <QPointF>
 #include "hash.h"
@@ -144,9 +145,9 @@ public:
     void relationRemoved(Schema2Relation *relation);
 
 
-    QStringList createTablesQueries(const QString &driverName, QSqlDriver *driver) const;
-    QStringList createIndexesQueries(const QString &driverName, QSqlDriver *driver) const;
-    QStringList createRelationsQueries(const QString &driverName, QSqlDriver *driver) const;
+    QStringList createTablesQueries(const QSqlDatabase &db) const;
+    QStringList createIndexesQueries(const QSqlDatabase &db) const;
+    QStringList createRelationsQueries(const QSqlDatabase &db) const;
     //void updateColumns(const QString &tableName);
     QStringList checked(bool value) const;
 

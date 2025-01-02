@@ -6,6 +6,7 @@
 class Schema2Index;
 class QSqlDriver;
 class Schema2TableModel;
+class QSqlDatabase;
 
 class Schema2IndexesModel : public QAbstractTableModel
 {
@@ -29,7 +30,7 @@ public:
 
     Schema2Index* get(const QString& name) const;
 
-    QStringList queries(Schema2TableModel* table, const QString &driverName, QSqlDriver *driver) const;
+    QStringList queries(Schema2TableModel* table, const QSqlDatabase& db) const;
 
     void pushed();
 
