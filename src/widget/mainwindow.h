@@ -71,7 +71,7 @@ protected:
 
     int lastTabIndex(const QString &connectionName);
     void selectDatabase(const QString &connectionName);
-    void updateSchemaModel();
+
     SNames schemaTreeSelectedTables();
 
     //SchemaModel* mSchemaModel;

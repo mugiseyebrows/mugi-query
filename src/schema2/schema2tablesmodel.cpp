@@ -15,6 +15,9 @@
 #include "schema2treemodel.h"
 #include "schema2treeproxymodel.h"
 #include "sdata.h"
+#include <QSqlDatabase>
+#include "uniq.h"
+#include "drivernames.h"
 
 Schema2TablesModel::Schema2TablesModel(const QString& connectionName, QGraphicsScene *scene, QObject *parent)
     : mConnectionName(connectionName), mScene(scene), mTreeModel(new Schema2TreeModel(this)), mTreeProxyModel(new Schema2TreeProxyModel(this)), QAbstractTableModel{parent}
@@ -58,6 +61,27 @@ Schema2TableModel *Schema2TablesModel::table(const SName& name) {
 
 bool Schema2TablesModel::contains(const QString& name) {
     return indexOf(name) > -1;
+}
+
+
+
+QStringList Schema2TablesModel::schemaNames() const
+{
+    QStringList names;
+    auto db = database();
+    if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_MARIADB) {
+        names.append(db.databaseName());
+    }
+    for(auto* model: mTableModels) {
+        QString schema = model->tableName().schema;
+        names.append(schema);
+    }
+    return uniq(names);
+}
+
+QSqlDatabase Schema2TablesModel::database() const
+{
+    return QSqlDatabase::database(mConnectionName);
 }
 
 bool Schema2TablesModel::contains(const SName& name) {
@@ -134,17 +158,17 @@ QList<SRelation> Schema2TablesModel::relationsState() const
     return res;
 }
 
-Schema2TableModel* Schema2TablesModel::tableCreated(const SName& table, Status status) {
+Schema2TableModel* Schema2TablesModel::tableCreated(const SName& table, Status status, const QString& engine) {
 
     qDebug() << "tableCreated" << table;
 
     if (contains(table)) {
-        qDebug() << "contains(table)" << table;;
+        qDebug() << "contains(table)" << table;
         return 0;
     }
     int row = rowCount();
 
-    Schema2TableModel* model = new Schema2TableModel(table, status);
+    Schema2TableModel* model = new Schema2TableModel(table, status, engine);
 
     connect(model, SIGNAL(tableClicked(SName, QPointF)), this, SIGNAL(tableClicked(SName, QPointF)));
     Schema2TableItem* item = new Schema2TableItem(model);
@@ -232,7 +256,7 @@ void Schema2TablesModel::merge(const STablesDiff &diff)
     QList<STable> altered = diff.altered;
 
     for(const auto& table: created) {
-        tableCreated(table.name, StatusExisting);
+        tableCreated(table.name, StatusExisting, table.engine);
         tableAltered(table);
     }
     for(const auto& table: dropped.names) {

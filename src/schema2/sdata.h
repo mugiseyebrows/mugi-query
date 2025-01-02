@@ -138,8 +138,8 @@ public:
 
     }
 
-    STable(const SName& name, const QList<SColumn>& columns, TableType type = TableType::Table)
-        : type(type), name(name), columns(columns) {
+    STable(const SName& name, const QList<SColumn>& columns, const QString& engine = {}, TableType type = TableType::Table)
+        : type(type), name(name), columns(columns), engine(engine) {
 
     }
 
@@ -150,6 +150,7 @@ public:
     TableType type;
     SName name;
     QList<SColumn> columns;
+    QString engine;
     QStringList columnNames() const;
 };
 

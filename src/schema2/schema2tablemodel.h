@@ -36,7 +36,7 @@ public:
         cols_count
     };
 
-    Schema2TableModel(const SName& name, Status status, TableType type = TableType::Table, QObject *parent = nullptr);
+    Schema2TableModel(const SName& name, Status status, const QString &engine = {}, TableType type = TableType::Table, QObject *parent = nullptr);
 
     bool updateColumn(const SColumn &column, const QString &prev);
 
@@ -116,6 +116,8 @@ public:
 
     QStringList alterQueries(const QSqlDatabase &db) const;
 
+    QStringList alterEngineQueries(const QSqlDatabase &db) const;
+
     QStringList dropQueries(const QSqlDatabase &db) const;
 
     //QStringList autoincrementQueries(const QString &driverName, QSqlDriver *driver) const;
@@ -141,6 +143,10 @@ public:
     QStringList names() const;
 
     SColumn at(int row) const;
+
+    void setEngine(const QString& value);
+
+    void setEnginePrev(const QString& value);
 
 signals:
     void tableClicked(SName, QPointF);
@@ -172,6 +178,9 @@ protected:
 
     TableType mType;
 
+    QString mEngine;
+    QString mEnginePrev;
+
 signals:
 
 public:
@@ -201,6 +210,8 @@ public:
 
     void primaryKeysCreated();
 
+    void engineChanged();
+    QString engine() const;
 };
 
 #endif // SCHEMA2TABLEMODEL_H

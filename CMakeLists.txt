@@ -284,6 +284,8 @@ if (BUILD_APP)
         src/widget/settingsdirectorydialog.h src/widget/settingsdirectorydialog.cpp src/widget/settingsdirectorydialog.ui
         src/schema2/columnposition.h src/schema2/columnposition.cpp
         src/treedepth.h src/treedepth.cpp
+        src/schema2/uniq.h src/schema2/uniq.cpp
+        src/schema2/createtabledialog.h src/schema2/createtabledialog.cpp src/schema2/createtabledialog.ui
     )
     target_include_directories(mugi-query PUBLIC
         src

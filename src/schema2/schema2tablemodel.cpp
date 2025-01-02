@@ -14,8 +14,8 @@
 
 // todo table renames
 
-Schema2TableModel::Schema2TableModel(const SName& name, Status status, TableType type, QObject *parent)
-    : mType(type), mTableName(name), mTableNamePrev(name), mStatus(status), mRelations(new Schema2RelationsModel(this, this)),
+Schema2TableModel::Schema2TableModel(const SName& name, Status status, const QString& engine, TableType type, QObject *parent)
+    : mType(type), mTableName(name), mTableNamePrev(name), mEngine(engine), mEnginePrev(engine), mStatus(status), mRelations(new Schema2RelationsModel(this, this)),
       mParentRelations(new Schema2ParentRelationsModel(this)),
       mIndexes(new Schema2IndexesModel(this)), QAbstractTableModel{parent}
 {
@@ -68,6 +68,9 @@ void Schema2TableModel::tableAltered(const STable& table) {
             endInsertRows();
         }
     }
+
+
+
 
 }
 
@@ -318,6 +321,10 @@ Status Schema2TableModel::status() const {
         if (mTableName != mTableNamePrev) {
             return StatusModified;
         }
+        if (mEngine != mEnginePrev) {
+            return StatusModified;
+        }
+
         for(int row=0;row<rowCount();row++) {
             if (name(row).isEmpty()) {
                 continue;
@@ -485,6 +492,20 @@ QStringList Schema2TableModel::alterQueries(const QSqlDatabase& db) const {
     return res;
 }
 
+QStringList Schema2TableModel::alterEngineQueries(const QSqlDatabase &db) const {
+    QStringList res;
+    if (mEngine != mEnginePrev) {
+        SqlEscaper es(db);
+        QStringList query = {"ALTER TABLE", es.table(mTableName), "ENGINE", "=", mEngine};
+        res.append(query.join(" "));
+    }
+    return res;
+}
+
+void Schema2TableModel::engineChanged() {
+    mEnginePrev = mEngine;
+}
+
 #if 0
 QStringList Schema2TableModel::autoincrementQueries(const QString &driverName, QSqlDriver *driver) const {
     SqlEscaper es(driver);
@@ -640,6 +661,20 @@ QStringList Schema2TableModel::names() const
 SColumn Schema2TableModel::at(int row) const
 {
     return mColumns[row];
+}
+
+QString Schema2TableModel::engine() const {
+    return mEngine;
+}
+
+void Schema2TableModel::setEngine(const QString &value)
+{
+    mEngine = value;
+}
+
+void Schema2TableModel::setEnginePrev(const QString &value)
+{
+    mEnginePrev = value;
 }
 
 int Schema2TableModel::rowCount(const QModelIndex &parent) const

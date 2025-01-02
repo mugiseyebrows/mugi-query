@@ -18,18 +18,7 @@
 #include <algorithm>
 #include "query_exec.h"
 #include "daterangewidget.h"
-
-// todo: optimize
-template <typename T>
-static QList<T> uniq(const QList<T>& values) {
-    QList<T> res;
-    for(const T& value: values) {
-        if (!res.contains(value)) {
-            res.append(value);
-        }
-    }
-    return res;
-}
+#include "uniq.h"
 
 static QList<int> partialySelectedRows(QItemSelectionModel* selectionModel) {
     QModelIndexList indexes = selectionModel->selectedIndexes();

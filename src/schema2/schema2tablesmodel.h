@@ -90,12 +90,16 @@ public:
     void merge(const STablesDiff& diff);
     void merge(const SRelationsDiff &diff);
 
-    Schema2TableModel *tableCreated(const SName &name, Status status);
+    Schema2TableModel *tableCreated(const SName &name, Status status, const QString &engine = {});
 
     int indexOf(const SName &name) const;
     int indexOf(const QString &name) const;
     bool contains(const SName &name);
     bool contains(const QString &name);
+
+    QStringList schemaNames() const;
+
+    QSqlDatabase database() const;
 
 protected:
 

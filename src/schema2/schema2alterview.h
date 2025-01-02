@@ -24,17 +24,13 @@ public:
     //void setModel(Schema2TableModel* model);
 
     void init(Schema2Data* data,
-              Schema2TablesModel *tableModels,
               Schema2TableModel *model,
               const QStringList &types);
 
 
-
 protected:
-    Schema2Data* mData;
-
-    Schema2TableModel* mModel;
-    Schema2TablesModel* mTables;
+    Schema2Data* mData = nullptr;
+    Schema2TableModel* mModel = nullptr;
     QStringList mTypes;
 
     void initColumns();
@@ -43,6 +39,7 @@ protected:
     void initIndexes();
     QStringList selectedFields() const;
     void createIndex(bool primary, bool unique);
+    void initTableName();
 private slots:
     //void on_createRelation_clicked();
 
@@ -52,8 +49,6 @@ private slots:
     void on_createUniqueIndex_clicked();
 
     void on_listRelatedTables_clicked();
-
-    void on_tableName_textChanged(const QString &arg1);
 
     void on_script_clicked();
 

@@ -237,10 +237,10 @@ void Schema2View::onTableClicked(SName tableName_, QPointF scenePos)
 
 Schema2TableModel* Schema2View::createTable(const SName& name) {
 
-    QString schema;
+    /*QString schema;
     if (mData->driverName() == DRIVER_MYSQL) {
         schema = mData->database().databaseName();
-    }
+    }*/
 
     Schema2TableModel* table = mData->createTable(name);
     mData->showAlterView(name);
@@ -268,16 +268,25 @@ void Schema2View::updateView()
     ui->view->setBackgroundBrush(Style::current.BackgroundColor);
 }
 
+#include "createtabledialog.h"
+
 void Schema2View::onCreate()
 {
+#if 0
     QString tableName = QInputDialog::getText(this, "Table Name", "Name");
     if (tableName.isEmpty()) {
         return;
     }
     createTable(tableName);
+#endif
+
+    CreateTableDialog dialog(mData, this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    SName name = dialog.name();
+    createTable(name);
 }
-
-
 
 void Schema2View::onArrange()
 {

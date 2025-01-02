@@ -145,7 +145,9 @@ QStringList STable::columnNames() const
 
 bool operator ==(const STable &table1, const STable &table2) {
     return table1.type == table2.type
-            && table1.name == table2.name && table1.columns == table2.columns;
+            && table1.name == table2.name
+           && table1.columns == table2.columns
+        && table1.engine == table2.engine;
 }
 
 bool operator !=(const STable &table1, const STable &table2) {

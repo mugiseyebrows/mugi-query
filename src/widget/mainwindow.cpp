@@ -254,16 +254,11 @@ SessionTab *MainWindow::currentTab()
     return tab(index);
 }
 
-void MainWindow::updateSchemaModel() {
-    //mSchemaModel->update(mTokens);
-}
-
 void MainWindow::updateTokens(const QString &connectionName)
 {
     Schema2Data* data = Schema2Data::instance(connectionName, this);
     QSqlDatabase db = QSqlDatabase::database(connectionName);
     mTokens[connectionName] = Tokens(db, data->tables());
-    updateSchemaModel();
 }
 
 int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
@@ -281,6 +276,7 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
     //qDebug() << "onTabsCurrentChanged" << index;
 
     if (tabIndex < 0) {
+        updateSchemaTreeModel();
         setWindowTitle(QString("%1 %2").arg(qApp->applicationName()).arg(qApp->applicationVersion()));
         return;
     }
@@ -311,6 +307,11 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
 void MainWindow::updateSchemaTreeModel() {
 
     int index = ui->sessionTabs->currentIndex();
+
+    if (index < 0) {
+        ui->schemaTree->setModel(0);
+        return;
+    }
 
     Schema2TreeProxyModel* treeProxy;
 
@@ -595,7 +596,6 @@ void MainWindow::on_databaseDisconnect_triggered()
     }
 
     mTokens.remove(connectionName);
-    updateSchemaModel();
 
     updateSchemaTreeModel();
 }

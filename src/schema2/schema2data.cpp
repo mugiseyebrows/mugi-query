@@ -57,6 +57,7 @@
 #include <QSqlQueryModel>
 #include <QFileInfo>
 #include "sdata.h"
+#include "dataimportwidget2.h"
 
 /*static*/ bool Schema2Data::mDontAskOnDropTable = false;
 
@@ -213,13 +214,14 @@ void Schema2Data::pullTablesMysql() {
     QList<STable> tables;
 
     QSqlQuery q(db);
-    q.prepare("select table_schema, table_name, table_type from information_schema.tables "
+    q.prepare("select table_schema, table_name, table_type, engine from information_schema.tables "
               "where table_type in ('BASE TABLE', 'VIEW') and table_schema not in ('mysql','performance_schema','sys')");
     q.exec();
     while (q.next()) {
         QString table_schema = q.value(0).toString();
         QString table_name = q.value(1).toString();
         QString table_type = q.value(2).toString();
+        QString engine = q.value(3).toString();
 
         TableType type = TableType::Undefined;
         if (table_type == "BASE TABLE") {
@@ -227,7 +229,7 @@ void Schema2Data::pullTablesMysql() {
         } else if (table_type == "VIEW") {
             type = TableType::View;
         }
-        tables.append(STable(SName(table_schema, table_name), {}, type));
+        tables.append(STable(SName(table_schema, table_name), {}, engine, type));
     }
 
     for(const STable& table: std::as_const(tables)) {
@@ -869,6 +871,9 @@ void Schema2Data::push(QWidget* widget)
             changeSet->append(table->alterQueries(db), [=](){
                 table->columnsCreated(false);
             });
+            changeSet->append(table->alterEngineQueries(db), [=](){
+                table->engineChanged();
+            });
         }
             break;
         case StatusExisting:
@@ -1473,7 +1478,7 @@ void Schema2Data::showAlterView(const SName &tableName)
             return;
         }
 
-        view->init(this, mTables, table, dataTypes());
+        view->init(this, table, dataTypes());
         mAlterViews[tableName] = view;
     } else {
         qDebug() << "show existing view for" << tableName.fullname();
@@ -1482,7 +1487,7 @@ void Schema2Data::showAlterView(const SName &tableName)
     showAndRaise(view);
 }
 
-#include "dataimportwidget2.h"
+
 
 void Schema2Data::showDataImportWidget(const SName &tableName)
 {

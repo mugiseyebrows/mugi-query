@@ -190,17 +190,51 @@ void Schema2AlterView::initIndexes() {
     CopyEventFilter::copyTsv(ui->indexes);
 }
 
-void Schema2AlterView::init(Schema2Data *data, Schema2TablesModel* tableModels,
-                            Schema2TableModel *model, const QStringList& types) {
+void Schema2AlterView::init(Schema2Data *data, Schema2TableModel *model, const QStringList& types) {
     mData = data;
-    mTables = tableModels;
     mModel = model;
     mTypes = types;
+    initTableName();
     initColumns();
     initRelations();
     initParentRelations();
     initIndexes();
-    setWindowTitle(mModel->tableName().name);
+}
+
+void Schema2AlterView::initTableName() {
+
+    SName tableName = mModel->tableName();
+
+    auto* tables = mData->tables();
+    auto schemaNames = tables->schemaNames();
+
+    ui->tableName->setText(tableName.name);
+    ui->schema->addItems(schemaNames);
+    ui->schema->setCurrentText(tableName.schema);
+
+    setWindowTitle(tableName.name);
+
+    if (mData->driverName() == DRIVER_MYSQL || mData->driverName() == DRIVER_MARIADB) {
+        QStringList engines = {"InnoDB", "MyISAM", "MEMORY", ""};
+        ui->engine->addItems(engines);
+        ui->engine->setCurrentText(mModel->engine());
+        connect(ui->engine, &QComboBox::currentTextChanged, [=](const QString & engine){
+            mModel->setEngine(engine);
+        });
+    } else {
+        ui->engine->hide();
+    }
+
+    auto onTableNameChanged = [=](const QString &){
+        QString schema = ui->schema->currentText();
+        QString name = ui->tableName->text();
+        mModel->setTableName(SName(schema, name));
+    };
+
+    connect(ui->tableName, &QLineEdit::textChanged, onTableNameChanged);
+
+    connect(ui->schema, &QComboBox::currentTextChanged, onTableNameChanged);
+
 }
 
 /*
@@ -276,7 +310,9 @@ void Schema2AlterView::createIndex(bool primary, bool unique) {
         }
     }
 
-    mTables->table(mModel->tableName())->insertIndex(indexName, columns, primary, unique, StatusNew);
+    auto tables = mData->tables();
+
+    tables->table(mModel->tableName())->insertIndex(indexName, columns, primary, unique, StatusNew);
 }
 
 void Schema2AlterView::on_createIndex_clicked()
@@ -299,8 +335,8 @@ void Schema2AlterView::on_createPrimaryKey_clicked()
 
 void Schema2AlterView::on_listRelatedTables_clicked()
 {
-
-    Schema2RelatedTablesWidget* widget = new Schema2RelatedTablesWidget(mTables, mModel->tableName());
+    auto tables = mData->tables();
+    Schema2RelatedTablesWidget* widget = new Schema2RelatedTablesWidget(tables, mModel->tableName());
     showAndRaise(widget);
 
 
@@ -347,13 +383,6 @@ void Schema2AlterView::on_listRelatedTables_clicked()
 
 }
 
-
-void Schema2AlterView::on_tableName_textChanged(const QString &value)
-{
-    SName name = mModel->tableName();
-    mModel->setTableName(SName(name.schema, value));
-}
-
 void Schema2AlterView::on_script_clicked()
 {
     QStringList exprs;
@@ -377,7 +406,7 @@ void Schema2AlterView::on_script_clicked()
     CodeWidget* widget = new CodeWidget();
     widget->setText(exprs.join(";\n") + "\n");
     widget->setHighlighter(highligher);
-    widget->show();
+    showAndRaise(widget);
 
 }
 
