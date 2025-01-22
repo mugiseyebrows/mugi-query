@@ -141,7 +141,11 @@ QString TextEdit::textUnderCursor() const
     //QRegularExpression rx("^[a-zA-Z_.]");
     while (tc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor)) {
         //QString s = tc.selectedText().mid(0, 1);
-        QChar c = tc.selectedText()[0];
+        QString text = tc.selectedText();
+        if (text.isEmpty()) {
+            break;
+        }
+        QChar c = text[0];
         if (!(c.isLetter() || c.isDigit() || c == "_" || c == ".")) {
             tc.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
             break;
