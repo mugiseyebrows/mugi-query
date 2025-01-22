@@ -160,10 +160,10 @@ QList<SRelation> Schema2TablesModel::relationsState() const
 
 Schema2TableModel* Schema2TablesModel::tableCreated(const SName& table, Status status, const QString& engine) {
 
-    qDebug() << "tableCreated" << table;
+    //qDebug() << "tableCreated" << table;
 
     if (contains(table)) {
-        qDebug() << "contains(table)" << table;
+        //qDebug() << "contains(table)" << table;
         return 0;
     }
     int row = rowCount();
@@ -173,10 +173,10 @@ Schema2TableModel* Schema2TablesModel::tableCreated(const SName& table, Status s
     connect(model, SIGNAL(tableClicked(SName, QPointF)), this, SIGNAL(tableClicked(SName, QPointF)));
     Schema2TableItem* item = new Schema2TableItem(model);
     if (mTablePos.contains(table)) {
-        qDebug() << "mTablePos.contains" << table << mTablePos[table];
+        //qDebug() << "mTablePos.contains" << table << mTablePos[table];
         item->setPos(mTablePos[table]);
     } else {
-        qDebug() << "mSetPosQueue.append" << table;
+        //qDebug() << "mSetPosQueue.append" << table;
         mSetPosQueue.append(item);
     }
 
