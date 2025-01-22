@@ -25,7 +25,7 @@ class SaveDataDialog : public QDialog
 
 public:
 
-    explicit SaveDataDialog(const QSqlDatabase &database, QSqlQueryModel *model,
+    explicit SaveDataDialog(const QString& connectionName, QSqlQueryModel *model,
                             const Tokens& tokens, QWidget *parent = 0);
     ~SaveDataDialog();
 
@@ -67,9 +67,11 @@ private slots:
 
 private:
     Ui::SaveDataDialog *ui;
-    QSqlDatabase mDatabase;
+    QString mConnectionName;
     QSqlQueryModel* mModel;
     CallOnce* mUpdatePreview;
+    QString mTable;
+    bool mUserName;
 };
 
 #endif // SAVEDATADIALOG_H

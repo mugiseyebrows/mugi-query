@@ -24,7 +24,7 @@ namespace DataFormat
 
     Format value(QComboBox* comboBox);
 
-    QString extension(Format format);
+    QString suffix(Format format);
 
     QString extensionsRegExp();
 

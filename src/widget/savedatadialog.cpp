@@ -16,6 +16,7 @@
 #include "callonce.h"
 #include <QTimer>
 #include "splitterutil.h"
+#include "settings.h"
 
 /*static*/
 DataSaveDialogState SaveDataDialog::mState = DataSaveDialogState();
@@ -27,9 +28,9 @@ QString unescapeIdentifier(const QString identifier) {
     return identifier;
 }
 
-SaveDataDialog::SaveDataDialog(const QSqlDatabase& database, QSqlQueryModel* model, const Tokens &tokens, QWidget *parent) :
+SaveDataDialog::SaveDataDialog(const QString& connectionName, QSqlQueryModel* model, const Tokens &tokens, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::SaveDataDialog), mDatabase(database), mModel(model), mUpdatePreview(new CallOnce("onUpdatePreview",0,this))
+    ui(new Ui::SaveDataDialog), mConnectionName(connectionName), mModel(model), mUpdatePreview(new CallOnce("onUpdatePreview",0,this))
 {
     ui->setupUi(this);
 
@@ -43,6 +44,7 @@ SaveDataDialog::SaveDataDialog(const QSqlDatabase& database, QSqlQueryModel* mod
     if (table.isEmpty()) {
         table = "query";
     }
+    mTable = table;
 
     ui->columns->setFields(fields);
     ui->columns->data()->setAllChecked();
@@ -52,7 +54,7 @@ SaveDataDialog::SaveDataDialog(const QSqlDatabase& database, QSqlQueryModel* mod
     DataFormat::initComboBox(ui->format);
 
     ui->table->setText(table);
-    ui->outputName->setText(table + DataFormat::extension(format()));
+    // ui->outputName->setText(table + DataFormat::extension(format()));
     ui->preview->setTokens(tokens);
 
     connect(mUpdatePreview,SIGNAL(call()),this,SLOT(onUpdatePreview()));
@@ -61,6 +63,13 @@ SaveDataDialog::SaveDataDialog(const QSqlDatabase& database, QSqlQueryModel* mod
     QTimer::singleShot(0,[=](){
         SplitterUtil::setRatio(ui->horizontalSplitter,{1,2});
         SplitterUtil::setRatio(ui->verticalSplitter,{3,1});
+    });
+
+    on_format_currentIndexChanged(ui->format->currentIndex());
+
+    mUserName = false;
+    connect(ui->outputName, &QLineEdit::textEdited, [=](){
+        mUserName = true;
     });
 }
 
@@ -137,8 +146,8 @@ DataImportColumnModel* SaveDataDialog::keysModel() const {
 void SaveDataDialog::init()
 {
     if (!mState.isValid()) {
-        QString home = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
-        ui->outputDir->setText(home);
+        QString home = QDir(Settings::instance()->homePath()).filePath(mConnectionName);
+        ui->outputDir->setText(QDir::toNativeSeparators(home));
         mUpdatePreview->onPost();
         return;
     }
@@ -170,10 +179,23 @@ void SaveDataDialog::on_format_currentIndexChanged(int)
 {
     DataFormat::Format format = this->format();
     ui->columns->setFormat(format);
-    QRegularExpression rx(DataFormat::extensionsRegExp(), QRegularExpression::CaseInsensitiveOption);
-    QString text = ui->outputName->text();
-    text.replace(rx, DataFormat::extension(format));
-    ui->outputName->setText(text);
+
+    QString base;
+
+    if (mUserName) {
+        base = QFileInfo(ui->outputName->text()).completeBaseName();
+    } else {
+        if (format == DataFormat::SqlInsert) {
+            base = "insert." + mTable;
+        } else if (format == DataFormat::SqlUpdate) {
+            base = "update." + mTable;
+        } else {
+            base = mTable;
+        }
+    }
+
+    QString name = base + "." + DataFormat::suffix(format);
+    ui->outputName->setText(name);
     mUpdatePreview->onPost();
 }
 
@@ -196,6 +218,7 @@ void SaveDataDialog::on_selectPath_clicked()
     QString name = fileInfo.fileName();
     ui->outputDir->setText(dir);
     ui->outputName->setText(name);
+    mUserName = true;
 }
 
 
@@ -211,7 +234,10 @@ void SaveDataDialog::onUpdatePreview() {
     QTextStream stream(&text);
     QString error;
     bool hasMore;
-    DataStreamer::stream(mDatabase, stream, mModel, format(), table(),
+
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+
+    DataStreamer::stream(db, stream, mModel, format(), table(),
                          dataChecked(), keysChecked(),
                          DataFormat::ActionSave, true, &hasMore, locale(), error);
 

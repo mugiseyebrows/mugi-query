@@ -57,6 +57,10 @@ static QMetaType::Type toMetaType(const QString& type) {
     if (type_ == "timestamp") {
         return QMetaType::QDateTime;
     }
+    if (type == "double") {
+        return QMetaType::Double;
+    }
+
     qDebug() << "toMetaType unknown type" << type_ << __FILE__ << __LINE__;
     return QMetaType::UnknownType;
 }
@@ -244,6 +248,7 @@ void DataImportWidget2::on_alterTable_clicked()
 
 
 QSqlRecord DataImportWidget2::record(QSqlDatabase db, const QString& tableName, int row, bool* ok) {
+
     QSqlRecord record = db.record(tableName);
     *ok = false;
     for(int column=0;column<mModel->columnCount();column++) {
@@ -252,9 +257,13 @@ QSqlRecord DataImportWidget2::record(QSqlDatabase db, const QString& tableName, 
         if (!value.isNull()) {
             record.setValue(name, value);
             *ok = true;
+        } else {
+            record.setGenerated(name, false);
         }
     }
     return record;
+
+
 }
 
 
@@ -326,13 +335,12 @@ static QModelIndex currentOrFirstIndex(QTableView* view) {
     return index;
 }
 
-
 void DataImportWidget2::onDataPaste() {
 
     QModelIndex topLeft = currentOrFirstIndex(ui->table);
 
     mAppender->setActive(false);
-    QModelIndex bottomRight = Clipboard::pasteTsv(mModel,topLeft,true,false);
+    Clipboard::pasteTsv(mModel,topLeft,true,false);
     mAppender->setActive(true);
 
     //createHeaderViewWidgets();

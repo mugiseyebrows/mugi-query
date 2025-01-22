@@ -17,6 +17,7 @@
 #include <QStringListModel>
 #include <QCompleter>
 #include <QClipboard>
+#include <QTemporaryFile>
 #include "tokens.h"
 #include "highlighter.h"
 #include "querymodelview.h"
@@ -259,7 +260,7 @@ void SessionTab::saveData()
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
-    SaveDataDialog dialog(db,model,ui->query->tokens(),this);
+    SaveDataDialog dialog(mConnectionName,model,ui->query->tokens(),this);
     dialog.init();
     if (dialog.exec() != QDialog::Accepted) {
         return;
@@ -268,10 +269,45 @@ void SessionTab::saveData()
 
     //qDebug() << "dialog.output()" << dialog.output();
 
-    QSharedPointer<QFile> file;
-    QSharedPointer<QTextStream> stream;
-    QString output;
+    //QSharedPointer<QFile> file;
+    //QSharedPointer<QTextStream> stream;
+    //QString output;
 
+    QTemporaryFile tempFile(QDir(QDir::tempPath()).filePath("XXXXXX.tmp"));
+
+
+    QString filePath;
+    if (dialog.output() != OutputType::File) {
+        tempFile.open();
+        filePath = tempFile.fileName();
+        tempFile.close();
+    } else {
+        filePath = dialog.filePath();
+    }
+
+    QFileInfo info(filePath);
+    QDir dir = info.dir();
+    if (!dir.exists()) {
+        if (!dir.mkpath(dir.absolutePath())) {
+            QString msg = QString("Can not create directory %1").arg(QDir::toNativeSeparators(dir.absolutePath()));
+            QMessageBox::critical(this, "Error", msg);
+            return;
+        }
+    }
+
+
+    QFile file(filePath);
+
+    if (!file.open(QIODevice::WriteOnly)) {
+        QString msg = QString("Can not open file %1").arg(filePath);
+        QMessageBox::critical(this, "Error", msg);
+        return;
+    }
+
+    QTextStream stream(&file);
+    stream.setEncoding(QStringConverter::Utf8);
+
+#if 0
     if (dialog.output() == OutputType::File) {
 
         QString filePath = dialog.filePath();
@@ -292,17 +328,31 @@ void SessionTab::saveData()
     if (!stream.isNull()) {
         stream->setEncoding(QStringConverter::Utf8);
     }
+#endif
 
     QString error;
     bool hasMore;
 
-    DataStreamer::stream(db,*stream,model,dialog.format(),dialog.table(),
+    DataStreamer::stream(db,stream,model,dialog.format(),dialog.table(),
                          dialog.dataChecked(),dialog.keysChecked(),
                          DataFormat::ActionSave,false,&hasMore,locale(),error);
 
     if (!error.isEmpty()) {
         Error::show(this,error);
         return;
+    }
+
+    stream.flush();
+    file.close();
+
+    QString output;
+    if (dialog.output() != OutputType::File) {
+        if (!file.open(QIODevice::ReadOnly)) {
+            QString msg = QString("Can not open file %1").arg(filePath);
+            QMessageBox::critical(this, "Error", msg);
+            return;
+        }
+        output = QString::fromUtf8(file.readAll());
     }
 
     if (dialog.output() == OutputType::Session) {

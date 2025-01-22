@@ -18,13 +18,13 @@ DataFormat::Format DataFormat::value(QComboBox *comboBox)
     return static_cast<DataFormat::Format>(items.indexOf(text));
 }
 
-QString DataFormat::extension(DataFormat::Format format) {
+QString DataFormat::suffix(DataFormat::Format format) {
     static QMap<DataFormat::Format,QString> exts = {
-        {Csv, ".csv"},
-        {Tsv, ".txt"},
-        {Json, ".json"},
-        {SqlInsert, ".sql"},
-        {SqlUpdate, ".sql"},
+        {Csv, "csv"},
+        {Tsv, "txt"},
+        {Json, "json"},
+        {SqlInsert, "sql"},
+        {SqlUpdate, "sql"},
     };
     return exts[format];
 }

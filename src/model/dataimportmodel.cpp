@@ -15,7 +15,7 @@ static QVariant parseInt(const QVariant& value, bool* ok) {
     QString s = value.toString();
     if (s.isEmpty()) {
         *ok = false;
-        return QVariant();
+        return {};
     }
     if (s == "t") {
         *ok = true;
@@ -35,7 +35,7 @@ static QVariant parseDouble(const QVariant& value, bool* ok) {
     QString s = value.toString();
     if (s.isEmpty()) {
         *ok = false;
-        return QVariant();
+        return {};
     }
     return s.replace(",",".").toDouble(ok);
 }
@@ -88,7 +88,7 @@ static QVariant parseDate(const QVariant& value, bool* ok) {
         return QDate(year, month, day);
     }
     *ok = false;
-    return QVariant();
+    return {};
 }
 static QVariant parseDateTime(const QVariant& value, bool* ok) {
     QRegularExpression rx("^([0-9]+)-([0-9]+)-([0-9]+).([0-9:]+)([.][0-9]+)?$");
@@ -118,7 +118,7 @@ static QVariant parseDateTime(const QVariant& value, bool* ok) {
         return QDateTime(QDate(year, month, day), QTime(h, m, s, ms));
     }
     *ok = false;
-    return QVariant();
+    return {};
 }
 
 QVariant DataImportModel::parsed(int row, int column)
@@ -157,7 +157,7 @@ QVariant DataImportModel::data(const QModelIndex &index, int role) const
     if (role == Qt::ForegroundRole) {
         auto type = mTypes.value(index.column(), QMetaType::UnknownType);
         if (type == QMetaType::UnknownType || type == QMetaType::QString) {
-            return QVariant();
+            return {};
         }
         bool ok = true;
         QVariant value = data(index);
