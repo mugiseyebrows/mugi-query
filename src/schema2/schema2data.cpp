@@ -209,13 +209,15 @@ void Schema2Data::pullTablesMysql() {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 
     QList<STable> state = mTables->tablesState();
-    QList<STable> newState;
+    //QList<STable> newState;
 
-    QList<STable> tables;
+    QHash<SName, STable> newState;
+
+    //QList<STable> tables;
 
     QSqlQuery q(db);
     q.prepare("select table_schema, table_name, table_type, engine from information_schema.tables "
-              "where table_type in ('BASE TABLE', 'VIEW') and table_schema not in ('mysql','performance_schema','sys')");
+              "where table_type in ('BASE TABLE', 'VIEW') and table_schema not in ('mysql','performance_schema','sys','information_schema')");
     q.exec();
     while (q.next()) {
         QString table_schema = q.value(0).toString();
@@ -229,9 +231,13 @@ void Schema2Data::pullTablesMysql() {
         } else if (table_type == "VIEW") {
             type = TableType::View;
         }
-        tables.append(STable(SName(table_schema, table_name), {}, engine, type));
+
+        SName sname(table_schema, table_name);
+        newState[sname] = STable(sname, {}, engine, type);
     }
 
+
+#if 0
     for(const STable& table: std::as_const(tables)) {
 
         QList<SColumn> columns;
@@ -241,7 +247,7 @@ void Schema2Data::pullTablesMysql() {
         q.addBindValue(table.name.schema);
         q.addBindValue(table.name.name);
         q.exec();
-        QString prev;
+        //QString prev;
         while(q.next()) {
             QString name = q.value(0).toString();
             QString type = q.value(1).toString();
@@ -253,15 +259,42 @@ void Schema2Data::pullTablesMysql() {
             }
             columns.append(SColumn(name, type, notNull, default_, autoincrement));
             //mTables->updateColumn(table, name, type, notNull, default_, autoincrement, prev);
-            prev = name;
+            //prev = name;
         }
 
         STable table_ = table;
         table_.columns = columns;
         newState.append(table_);
     }
+#endif
 
-    STablesDiff diff = getDiff(state, newState);
+    q.prepare("select column_name, column_type, is_nullable, column_default, extra, table_schema, table_name "
+              "from information_schema.columns "
+              "where table_schema not in ('mysql','performance_schema','sys','information_schema')");
+    q.exec();
+    while(q.next()) {
+        QString name = q.value(0).toString();
+        QString type = q.value(1).toString();
+        bool notNull = q.value(2).toString() == "NO";
+        QString default_ = q.value(3).toString();
+        bool autoincrement = q.value(4).toString() == "auto_increment";
+        QString table_schema = q.value(5).toString();
+        QString table_name = q.value(6).toString();
+
+        if (default_ == "NULL") {
+            default_ = QString();
+        }
+        SColumn column(name, type, notNull, default_, autoincrement);
+
+        SName sname(table_schema, table_name);
+        if (newState.contains(sname)) {
+            newState[sname].columns.append(column);
+        } else {
+            qDebug() << "!newState.contains(sname)" << table_schema << table_name;
+        }
+    }
+
+    STablesDiff diff = getDiff(state, newState.values());
     mTables->merge(diff);
 
 }
@@ -827,9 +860,18 @@ void Schema2Data::pullIndexes() {
 
 void Schema2Data::pull()
 {
+    QElapsedTimer timer;
+    timer.start();
+
     pullTables();
+    qDebug() << "pullTables" << timer.restart();
+
     pullIndexes();
+    qDebug() << "pullIndexes" << timer.restart();
+
     pullRelations();
+    qDebug() << "pullRelations" << timer.restart();
+
     mTables->setTableItemsPos();
 }
 
