@@ -38,6 +38,25 @@ static QList<QStringList> findChildColumnsParentColumns(
     return {};
 }
 
+static int findTable(const SNames& tables, const QString& table) {
+
+    QString table_ = table.toLower();
+    if (table.contains(".")) {
+        for(int i=0;i<tables.size();i++) {
+            if (tables[i].fullname().toLower() == table_) {
+                return i;
+            }
+        }
+    } else {
+        for(int i=0;i<tables.size();i++) {
+            if (tables[i].name.toLower() == table_) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
 QList<Schema2Join> findJoinImpl(const QStringList &join_,
                  Schema2TablesModel* tableModels)
 {
@@ -69,7 +88,7 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
 
     QList<int> join;
     for(const QString& name: std::as_const(join_)) {
-        int index = tables.indexOf(name.toLower());
+        int index = findTable(tables, name);
         if (index < 0) {
             return {};
         }
