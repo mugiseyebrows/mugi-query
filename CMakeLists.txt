@@ -286,6 +286,7 @@ if (BUILD_APP)
         src/treedepth.h src/treedepth.cpp
         src/schema2/uniq.h src/schema2/uniq.cpp
         src/schema2/createtabledialog.h src/schema2/createtabledialog.cpp src/schema2/createtabledialog.ui
+        src/schema2/schemacolor.h src/schema2/schemacolor.cpp
     )
     target_include_directories(mugi-query PUBLIC
         src

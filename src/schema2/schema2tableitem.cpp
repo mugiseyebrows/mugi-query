@@ -6,12 +6,11 @@
 #include <QDebug>
 #include "style.h"
 #include "schema2indexesmodel.h"
+#include "schemacolor.h"
 
 #define LINE_HEIGHT 25
 #define PADDING 2
 
-/*static*/
-SchemaColor* SchemaColor::mInstance = nullptr;
 
 Schema2TableItem::Schema2TableItem(Schema2TableModel *model, QGraphicsItem *parent)
     : mModel(model), QGraphicsItem(parent), mChecked(true)
@@ -399,15 +398,11 @@ void Schema2TableItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     /*qDebug() << "mousePressEvent" << mModel->tableName()
              << "pos" << event->pos()
              << "scenePos" << event->scenePos();*/
-    qDebug() << "emit tableClicked" << mModel->tableNamePrev();
+    //qDebug() << "emit tableClicked" << mModel->tableNamePrev();
     emit mModel->tableClicked(mModel->tableNamePrev(), event->scenePos());
 }
 
 int Schema2TableItem::type() const
 {
     return Type;
-}
-
-SchemaColor::SchemaColor() {
-    mPalette = {"#491704", "#1B4242", "#4D3C77", "#5D0E41"};
 }
