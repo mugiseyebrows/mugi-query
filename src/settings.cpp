@@ -14,7 +14,7 @@ Settings* Settings::mInstance = 0;
 Settings::Settings()
 {
     QString appData = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    QString name = qApp->applicationName();
+    /*QString name = qApp->applicationName();
     QDir d(appData);
     if (!d.exists()) {
         d.cdUp();
@@ -23,8 +23,16 @@ Settings::Settings()
             QMessageBox::critical(qApp->activeWindow(),"Error",error);
         }
         d.cd(name);
+    }*/
+    //qDebug() << "appData" << appData;
+    QDir d(appData);
+    if (!d.exists()) {
+        if (!d.mkpath(d.absolutePath())) {
+            QString error = QString("Can not create directory %1").arg(QDir::toNativeSeparators(appData));
+            QMessageBox::critical(qApp->activeWindow(),"Error",error);
+        }
     }
-    mDir = appData;
+    mDir = d;
     load();
     findTools();
 }
@@ -37,14 +45,14 @@ Settings *Settings::instance()
     return mInstance;
 }
 
-QString Settings::dir() const
+QDir Settings::dir() const
 {
     return mDir;
 }
 
 QString Settings::settingsPath() const
 {
-    return QDir(mDir).filePath("settings.json");
+    return mDir.filePath("settings.json");
 }
 
 

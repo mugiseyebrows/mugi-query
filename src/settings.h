@@ -9,7 +9,7 @@ bool savePasswords; bool dateTimeOverrideForCsv; bool dateTimeOverrideForCopy; b
 */
 
 #include <QString>
-
+#include <QDir>
 
 class Settings
 {
@@ -17,7 +17,7 @@ public:
 
     static Settings* instance();
 
-    QString dir() const;
+    QDir dir() const;
 
     QString settingsPath() const;
 
@@ -75,7 +75,7 @@ private:
     QString mMysqldumpPath;
     QString mHomePath;
 
-    QString mDir;
+    QDir mDir;
 
 };
 
