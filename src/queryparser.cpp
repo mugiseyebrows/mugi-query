@@ -307,7 +307,7 @@ document.body.innerText = types.map( e => '"' + e + '"').join(' << ')
     return QStringList{};
 }
 
-QString QueryParser::tableNameFromSelectQuery(const QString &query, bool* many)
+QStringList QueryParser::tableNamesFromSelectQuery(const QString &query)
 {
     QRegularExpression rx("\\bfrom\\s*([^)(,\\s]+)(?:\\s*)(,)?(?:\\s*)([^)(,\\s]*)", QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
     QRegularExpressionMatchIterator it = rx.globalMatch(query);
@@ -318,16 +318,15 @@ QString QueryParser::tableNameFromSelectQuery(const QString &query, bool* many)
         QString second = m.captured(2);
         QString third = m.captured(3).toLower();
         if (!second.isEmpty() && !third.isEmpty()) {
-            tables << third;
+            tables.append(third);
         }
     }
-    *many = tables.size() > 1;
     rx = QRegularExpression("\\bjoin\\b", QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
     QRegularExpressionMatch m = rx.match(query);
     if (m.hasMatch()) {
-        *many = true;
+        // todo parse joined
     }
-    return (tables.size() == 1 && *many == false) ? tables.first() : QString();
+    return tables;
 }
 
 namespace {

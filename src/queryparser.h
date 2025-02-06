@@ -17,7 +17,7 @@ public:
     static QPair<QString,QStringList> parseCreateTable(const QString& query);
     static int closingBracket(const QString &s, int openBracketPos);
     static QStringList parseCreateTableCreateDefinition(const QString &definition, QString& error);
-    static QString tableNameFromSelectQuery(const QString& query, bool *many);
+    static QStringList tableNamesFromSelectQuery(const QString& query);
 };
 
 #endif // QUERYPARSER_H

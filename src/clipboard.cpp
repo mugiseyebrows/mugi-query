@@ -15,6 +15,7 @@
 #include <QSqlField>
 #include <QDebug>
 #include <algorithm>
+#include "queryparser.h"
 
 void Clipboard::streamHeader(QTextStream& stream, QSqlQueryModel *model, const QString &separator, const QString& end) {
     int columnCount = model->columnCount();
@@ -285,4 +286,47 @@ void Clipboard::copySelectedAsCondition(QSqlQueryModel *model,
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(exprs.join(" or "));
 }
+
+
+static QList<QList<QModelIndex> > groupByRow(const QModelIndexList& indexes) {
+    QHash<int, QList<QModelIndex>> res;
+    for(const QModelIndex& index: indexes) {
+        int row = index.row();
+        if (!res.contains(row)) {
+            res[row] = QList<QModelIndex>{};
+        }
+        res[row].append(index);
+    }
+    return res.values();
+}
+
+void Clipboard::copySelectedAsInsert(QSqlQueryModel *model,
+                          const QItemSelection &selection) {
+
+    auto indexes = selection.indexes();
+    const QSqlDriver* driver = model->query().driver();
+    QStringList tables = QueryParser::tableNamesFromSelectQuery(model->query().lastQuery());
+    QString table = tables.size() > 0 ? tables[0] : "tmp";
+    QList<QList<QModelIndex> > grouped = groupByRow(indexes);
+    QStringList exprs;
+    for(const QList<QModelIndex> ixs: grouped) {
+        int row = ixs[0].row();
+        const QSqlRecord& record = model->record(row);
+        QStringList names;
+        QStringList values;
+        for(auto& ix: ixs) {
+            int column = ix.column();
+            QString name = record.fieldName(column);
+            QSqlField field = record.field(column);
+            QString value = driver->formatValue(field);
+            names.append(name);
+            values.append(value);
+        }
+        exprs.append(QString("INSERT INTO %1(%2) VALUES(%3)").arg(table).arg(names.join(", ")).arg(values.join(", ")));
+    }
+    QString text = exprs.join(";\n");
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(text);
+}
+
 

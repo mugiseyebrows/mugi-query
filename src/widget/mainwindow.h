@@ -162,6 +162,8 @@ private slots:
 
     void on_codeSqlAlchemy_triggered();
 
+    void on_copyAsInsert_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

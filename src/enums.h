@@ -6,6 +6,7 @@ enum class CopyFormat {
     List,
     Condition,
     Names,
+    Insert
 };
 
 enum class TableType {

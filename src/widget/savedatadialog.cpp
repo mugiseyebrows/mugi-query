@@ -39,11 +39,10 @@ SaveDataDialog::SaveDataDialog(const QString& connectionName, QSqlQueryModel* mo
         fields << model->headerData(c,Qt::Horizontal).toString();
     }
 
-    bool many;
-    QString table = QueryParser::tableNameFromSelectQuery(model->query().lastQuery(), &many);
-    if (table.isEmpty()) {
-        table = "query";
-    }
+    QStringList tables = QueryParser::tableNamesFromSelectQuery(model->query().lastQuery());
+
+    QString table = tables.size() == 1 ? tables[0] : "query";
+
     mTable = table;
 
     ui->columns->setFields(fields);

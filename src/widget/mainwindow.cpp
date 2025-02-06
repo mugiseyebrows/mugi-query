@@ -696,6 +696,13 @@ void MainWindow::on_selectionCopyNames_triggered() {
     copySelected(CopyFormat::Names);
 }
 
+
+void MainWindow::on_copyAsInsert_triggered()
+{
+    copySelected(CopyFormat::Insert);
+}
+
+
 void MainWindow::copySelected(CopyFormat fmt)
 {
     SessionTab* tab = currentTab();
@@ -1427,7 +1434,7 @@ void MainWindow::on_codeMysqlConnector_triggered()
     if (db.driverName() == DRIVER_MYSQL) {
         QString code = QString("# pip install mysql-connector-python\n"
                                "\n"
-                               "import mysqlconnector\n"
+                               "import mysql.connector\n"
                                "%1 = mysql.connector.connect(host=\"%2\",user=\"%3\",password=\"%4\",database=\"%5\")")
                 .arg(connectionName)
                 .arg(hostName)
@@ -1553,4 +1560,5 @@ void MainWindow::on_codePandas_triggered()
 
 
 }
+
 

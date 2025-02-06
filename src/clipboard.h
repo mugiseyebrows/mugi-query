@@ -38,6 +38,7 @@ public:
     static QString selectedToString(QAbstractItemModel *model, const QItemSelection &selection, DataFormat::Format format, const QString &separator, bool header, const QLocale &locale, QString &error);
     static void copySelectedAsCondition(QSqlQueryModel *model, const QItemSelection &selection);
 
+    static void copySelectedAsInsert(QSqlQueryModel *model, const QItemSelection &selection);
 };
 
 #endif // CLIPBOARD_H
