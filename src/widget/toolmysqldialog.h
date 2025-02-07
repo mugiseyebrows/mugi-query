@@ -20,6 +20,8 @@ public:
     QStringList files() const;
     bool ssl() const;
 
+    bool force() const;
+
 protected:
     QStringListModel* mFiles;
 

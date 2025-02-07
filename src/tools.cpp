@@ -51,7 +51,7 @@ static QString pathJoin(const QStringList& args) {
 #define MYSQL_TIMEOUT 600000
 #define MYSQLDUMP_TIMEOUT 600000
 
-static QStringList mysql_args(QSqlDatabase db, bool ssl) {
+static QStringList mysql_args(QSqlDatabase db, bool ssl, bool force = false) {
     QString databaseName = db.databaseName();
     QString userName = db.userName();
     QString password = db.password();
@@ -75,6 +75,9 @@ static QStringList mysql_args(QSqlDatabase db, bool ssl) {
     }
     if (!ssl) {
         args.append("--ssl=FALSE");
+    }
+    if (force) {
+        args.append("--force");
     }
     return args;
 }
@@ -173,7 +176,7 @@ void Tools::mysql(QSqlDatabase db, QWidget *widget)
     progress.setMaximum(files.size());
     qApp->processEvents();
 
-    QStringList args = mysql_args(db, dialog.ssl());
+    QStringList args = mysql_args(db, dialog.ssl(), dialog.force());
 
     int complete = 0;
     for(const QString& path: std::as_const(files)) {

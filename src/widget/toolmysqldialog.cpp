@@ -33,6 +33,11 @@ bool ToolMysqlDialog::ssl() const
     return ui->ssl->isChecked();
 }
 
+bool ToolMysqlDialog::force() const
+{
+    return ui->force->isChecked();
+}
+
 static QStringList toNativeSeparators(const QStringList& names) {
     QStringList res;
     for(const QString& name: std::as_const(names)) {
