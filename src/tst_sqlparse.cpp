@@ -144,6 +144,15 @@ void tst_SqlParse::splitQueries_data()
 
     QTest::newRow("15") << "delimiter $$\nfoo;bar;baz$$delimiter ;" << QStringList{"foo;bar;baz"};
 
+    QString input = "DELIMITER $$ DROP PROCEDURE my_procedure$$ CREATE PROCEDURE my_procedure() BEGIN UPDATE foo SET a=1; SELECT a FROM foo; END$$ DELIMITER ;";
+    QStringList expectedOutput = QStringList{
+        "DROP PROCEDURE my_procedure",
+        "CREATE PROCEDURE my_procedure() BEGIN UPDATE foo SET a=1; SELECT a FROM foo; END"
+    };
+
+    QTest::newRow("16") << input << expectedOutput;
+
+
 }
 
 void tst_SqlParse::splitQueries()

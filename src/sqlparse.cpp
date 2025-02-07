@@ -68,32 +68,29 @@ QList<int> SqlParse::colorQueries(const QString &queries) {
             nextState = Undefined;
         }
         if (state == Query) {
-            if (delimiter.startsWith(c)) {
-                if (queries.mid(i, delimiter.size()) == delimiter) {
-                    state = Delimiter;
+            if (delimiter.startsWith(c) && queries.mid(i, delimiter.size()) == delimiter) {
+                state = Delimiter;
+                if (delimiter.size() == 1) {
+                    nextState = Query;
+                }
+            } else if (c == 'd' || c == 'D') {
+                if (queries.mid(i, DELIMITER.size()).toUpper() == DELIMITER) {
+                    state = DelimiterKeyword;
                 }
             } else {
                 switch(c.unicode()) {
                 case '/': if (queries.mid(i,2) == "/*") state = MultilineComment; break;
                 case '-': if (queries.mid(i,2) == "--") state = InlineComment; break;
                 case '\'': state = String; break;
-                case 'd':
-                case 'D':
-                    if (queries.mid(i, DELIMITER.size()).toUpper() == DELIMITER) {
-                        state = DelimiterKeyword;
-                    }
-                    break;
                 }
             }
         } else if (state == Delimiter) {
-
             if (queries.size() > i + 1) {
                 QChar cn = queries[i + 1];
                 if (!delimiter.contains(cn)) {
                     nextState = Query;
                 }
             }
-
         } else if (state == String) {
             if (c == '\'') {
                 if ((countSlashes(queries, i-1) % 2) == 0) {
