@@ -128,9 +128,9 @@ void tst_SqlParse::splitQueries_data()
     QTest::addColumn<QStringList>("expected");
 
     QTest::newRow("1") << "foo;bar;baz" << QStringList{"foo","bar","baz"};
-    QTest::newRow("2") << ";;" << QStringList{"","",""};
+    QTest::newRow("2") << ";;" << QStringList{};
     QTest::newRow("3") << "foo;bar--;baz" << QStringList{"foo","bar--;baz"};
-    QTest::newRow("4") << "foo;bar;--baz" << QStringList{"foo","bar","--baz"};
+    QTest::newRow("4") << "foo;bar;--baz" << QStringList{"foo","bar"};
     QTest::newRow("5") << "foo--\n;bar" << QStringList{"foo--\n","bar"};
     QTest::newRow("6") << "foo--;\nbar" << QStringList{"foo--;\nbar"};
     QTest::newRow("7") << "foo'bar';baz" << QStringList{"foo'bar'","baz"};
@@ -147,12 +147,10 @@ void tst_SqlParse::splitQueries_data()
     QString input = "DELIMITER $$ DROP PROCEDURE my_procedure$$ CREATE PROCEDURE my_procedure() BEGIN UPDATE foo SET a=1; SELECT a FROM foo; END$$ DELIMITER ;";
     QStringList expectedOutput = QStringList{
         "DROP PROCEDURE my_procedure",
-        "CREATE PROCEDURE my_procedure() BEGIN UPDATE foo SET a=1; SELECT a FROM foo; END"
+        " CREATE PROCEDURE my_procedure() BEGIN UPDATE foo SET a=1; SELECT a FROM foo; END"
     };
 
     QTest::newRow("16") << input << expectedOutput;
-
-
 }
 
 void tst_SqlParse::splitQueries()
