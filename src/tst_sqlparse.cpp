@@ -24,8 +24,8 @@ void tst_SqlParse::colorQueries1() {
     int p1 = q.indexOf(";");
     int p2 = q.indexOf(";", p1 + 1);
 
-    QCOMPARE(colors[p1], SqlParse::Separator);
-    QCOMPARE(colors[p2], SqlParse::Separator);
+    QCOMPARE(colors[p1], SqlParse::Delimiter);
+    QCOMPARE(colors[p2], SqlParse::Delimiter);
     QCOMPARE(colors[0], SqlParse::Query);
     QCOMPARE(colors[colors.size()-1], SqlParse::Query);
     QCOMPARE(colors.size(), q.size());
@@ -58,7 +58,7 @@ void tst_SqlParse::colorQueries2() {
     QCOMPARE(cs[mid(c1,c2)], SqlParse::MultilineComment);
     QCOMPARE(cs[c2+2], SqlParse::Query);
 
-    QCOMPARE(cs[s1], SqlParse::Separator);
+    QCOMPARE(cs[s1], SqlParse::Delimiter);
     QCOMPARE(cs[s2], SqlParse::MultilineComment);
 }
 
@@ -72,7 +72,7 @@ void tst_SqlParse::colorQueries3() {
     int n = q.indexOf("\n");
 
     QCOMPARE(cs[s1], SqlParse::InlineComment);
-    QCOMPARE(cs[s2], SqlParse::Separator);
+    QCOMPARE(cs[s2], SqlParse::Delimiter);
     QCOMPARE(cs[c], SqlParse::InlineComment);
     QCOMPARE(cs[mid(c, n)], SqlParse::InlineComment);
     QCOMPARE(cs[n-1], SqlParse::InlineComment);
@@ -115,8 +115,8 @@ void tst_SqlParse::colorQueries4() {
 void tst_SqlParse::colorQueries5() {
     QString q = ";;";
     QList<int> cs = SqlParse::colorQueries(q);
-    QCOMPARE(cs[0], SqlParse::Separator);
-    QCOMPARE(cs[1], SqlParse::Separator);
+    QCOMPARE(cs[0], SqlParse::Delimiter);
+    QCOMPARE(cs[1], SqlParse::Delimiter);
 }
 
 // src\tests.cpp
@@ -141,6 +141,9 @@ void tst_SqlParse::splitQueries_data()
     QTest::newRow("12") << "foo/*bar*/;baz" << QStringList{"foo/*bar*/","baz"};
     QTest::newRow("13") << "foo--/*bar\n;*/baz" << QStringList{"foo--/*bar\n","*/baz"};
     QTest::newRow("14") << "foo'/*bar';*/baz" << QStringList{"foo'/*bar'","*/baz"};
+
+    QTest::newRow("15") << "delimiter $$\nfoo;bar;baz$$delimiter ;" << QStringList{"foo;bar;baz"};
+
 }
 
 void tst_SqlParse::splitQueries()

@@ -55,6 +55,11 @@ static int countSlashes(const QString &queries, int p) {
 QList<int> SqlParse::colorQueries(const QString &queries) {
     int state = Query;
     QList<int> res;
+
+    QString DELIMITER = "DELIMITER";
+
+    QString delimiter = ";";
+
     int nextState = Undefined;
     for(int i=0;i<queries.size();i++) {
         QChar c = queries[i];
@@ -63,13 +68,31 @@ QList<int> SqlParse::colorQueries(const QString &queries) {
             nextState = Undefined;
         }
         if (state == Query) {
-            switch(c.unicode()) {
-            case '/': if (queries.mid(i,2) == "/*") state = MultilineComment; break;
-            case '-': if (queries.mid(i,2) == "--") state = InlineComment; break;
-            case '\'': state = String; break;
-            case ';': state = Separator; nextState = Query; break;
+            if (delimiter.startsWith(c)) {
+                if (queries.mid(i, delimiter.size()) == delimiter) {
+                    state = Delimiter;
+                }
+            } else {
+                switch(c.unicode()) {
+                case '/': if (queries.mid(i,2) == "/*") state = MultilineComment; break;
+                case '-': if (queries.mid(i,2) == "--") state = InlineComment; break;
+                case '\'': state = String; break;
+                case 'd':
+                case 'D':
+                    if (queries.mid(i, DELIMITER.size()).toUpper() == DELIMITER) {
+                        state = DelimiterKeyword;
+                    }
+                    break;
+                }
             }
-        //} else if (state == Separator) {
+        } else if (state == Delimiter) {
+
+            if (queries.size() > i + 1) {
+                QChar cn = queries[i + 1];
+                if (!delimiter.contains(cn)) {
+                    nextState = Query;
+                }
+            }
 
         } else if (state == String) {
             if (c == '\'') {
@@ -84,6 +107,17 @@ QList<int> SqlParse::colorQueries(const QString &queries) {
         } else if (state == MultilineComment) {
             if (c == '/' && i > 0 && queries[i-1] == '*') {
                 nextState = Query;
+            }
+        } else if (state == DelimiterKeyword) {
+            if (c == ' ' || c == '\t' || c == '\n') {
+                delimiter = "";
+                nextState = DelimiterValue;
+            }
+        } else if (state == DelimiterValue) {
+            if (c == ' ' || c == '\t' || c == '\n') {
+                nextState = Query;
+            } else {
+                delimiter.append(c);
             }
         }
         res.append(state);
@@ -103,18 +137,41 @@ static QList<int> indexOf(const QList<int>& cs, int c) {
     return res;
 }
 
+static bool containsQuery(const QList<int> colors, int p1, int p2) {
+    for(int p=p1;p<p2;p++) {
+        if (colors[p] == SqlParse::Query) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static int skipDelimiter(const QList<int> colors, int p1) {
+    for(int p=p1;p<colors.size();p++) {
+        if (colors[p] == SqlParse::DelimiterKeyword || colors[p] == SqlParse::DelimiterValue || colors[p] == SqlParse::Delimiter) {
+            continue;
+        }
+        return p;
+    }
+    return colors.size();
+}
+
 QStringList SqlParse::splitQueries(const QString &queries)
 {
     QList<int> colors = colorQueries(queries);
-    QList<int> ixs = indexOf(colors, SqlParse::Separator);
+    QList<int> ixs = indexOf(colors, SqlParse::Delimiter);
     ixs.prepend(-1);
     ixs.append(colors.size());
     QStringList res;
     for(int i=0;i<ixs.size()-1;i++) {
         int p1 = ixs[i]+1;
         int p2 = ixs[i+1];
+        p1 = skipDelimiter(colors, p1);
         int l = p2 - p1;
-        res.append(queries.mid(p1, l));
+        if (l > 0 && containsQuery(colors, p1, p2)) {
+            QString query = queries.mid(p1, l);
+            res.append(query);
+        }
     }
     return res;
 }

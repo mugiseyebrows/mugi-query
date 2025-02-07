@@ -28,10 +28,12 @@ public:
     enum CharColor {
         Undefined,
         Query,
-        Separator,
+        Delimiter,
         String,
         InlineComment,
-        MultilineComment
+        MultilineComment,
+        DelimiterKeyword,
+        DelimiterValue,
     };
 
     SqlParse();
