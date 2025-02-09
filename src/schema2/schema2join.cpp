@@ -71,7 +71,7 @@ QList<Schema2Join> findJoinImpl(const QStringList &join_,
 
     QList<int> join;
     for(const QString& name: std::as_const(join_)) {
-        int index = findTable(tables, name);
+        int index = indexOf(tables, name);
         if (index < 0) {
             return {};
         }

@@ -187,7 +187,6 @@ void SessionTab::setTokens(const Tokens &tokens)
     ui->query->setTokens(tokens);
 }
 
-
 void SessionTab::cleanTabs()
 {
     while(ui->resultTabs->count() > 0) {

@@ -207,7 +207,7 @@ static QStringList sortedInInsertOrder(Schema2Data *data, const QStringList& tab
     QStringList notFound;
     SNames tables_;
     for(const QString& table: tables) {
-        int index = findTable(tableNames, table);
+        int index = indexOf(tableNames, table);
         if (index > -1) {
             tables_.append(tableNames[index]);
         } else {

@@ -118,6 +118,8 @@ Highlighter *TextEdit::highlighter() const
 
 void TextEdit::insertCompletion(const QString& completion)
 {
+    qDebug() << "insertCompletion";
+
     if (mCompleter->widget() != this)
         return;
     QTextCursor tc = textCursor();
@@ -182,49 +184,6 @@ void TextEdit::focusInEvent(QFocusEvent *e)
     QPlainTextEdit::focusInEvent(e);
 }
 
-static Completer::Context determineContext(const QTextCursor& cur) {
-    QRegularExpression rxWord("([a-z]+)", QRegularExpression::CaseInsensitiveOption);
-
-    static QHash<QString, Completer::Context> contexts = {
-        {"from",Completer::From},
-        {"select",Completer::Select},
-        {"join",Completer::Join},
-        {"where",Completer::Where},
-        {"on",Completer::On},
-        {"update",Completer::Update},
-        {"set",Completer::Set},
-        {"table", Completer::Table},
-        {"to", Completer::To},
-        {"column", Completer::Column},
-        };
-
-    auto curCopy = cur;
-    while (true) {
-        if (!curCopy.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor)) {
-            return Completer::Undefined;
-        }
-        if (curCopy.selectedText().contains(";")) {
-            qDebug() << "went too far" << curCopy.selectedText();
-            return Completer::Undefined;
-        }
-
-        auto m = rxWord.match(curCopy.selectedText());
-        if (m.hasMatch()) {
-            QString word = m.captured(1).toLower();
-            if (contexts.contains(word)) {
-                qDebug() << "contexts.contains(word)" << word;
-                return contexts[word];
-            } else {
-                qDebug() << "!contexts.contains(word)" << word;
-            }
-        } else {
-            qDebug() << "!m.hasMatch()" << curCopy.selectedText();
-        }
-        qDebug() << curCopy.selectedText();
-    }
-    return Completer::Undefined;
-}
-
 bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {
 
     QCompleter* c = mCompleter;
@@ -234,13 +193,22 @@ bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {
         switch (e->key()) {
         case Qt::Key_Enter:
         case Qt::Key_Return:
+        case Qt::Key_Tab:
+        {
+            QString text = mCompleter->currentIndex().data().toString();
+            qDebug() << mCompleter->currentIndex() << mCompleter->currentIndex().data() << __FILE__ << __LINE__;
+            emit mCompleter->activated(text);
+            mCompleter->setContext({});
+
+            int index = nextEditIndex();
+            if (index > -1) {
+                moveTextCursorToEdit(index);
+            }
+
+            return true;
+        }
         case Qt::Key_Escape:
         case Qt::Key_Backtab:
-        case Qt::Key_Tab:
-            //mCompleter->setContext(Completer::Undefined);
-
-            //mCompleter->setContext(determineContext(textCursor()));
-
             e->ignore();
             return true;
         default:
@@ -265,10 +233,16 @@ bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {
     const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctrlOrShift;
     QString completionPrefix = textUnderCursor();
 
-    if (!isShortcut && (hasModifier || e->text().isEmpty()|| completionPrefix.length() < 2
-                        || eow.contains(e->text().right(1)))) {
+    bool endOfWord = !e->text().isEmpty() && eow.contains(e->text().right(1));
+
+    if (!isShortcut && (hasModifier || completionPrefix.length() < 2 || endOfWord)) {
+        /*qDebug() << "cond1" << !isShortcut;
+        qDebug() << "hasModifier" << hasModifier << "completionPrefix.length()" << completionPrefix.length()
+                 << "endOfWord" << endOfWord;
+        qDebug() << "e->modifiers()" << e->modifiers();
+        //qDebug() << "e->text()" << e->text();
         qDebug() << "textUnderCursor" << textUnderCursor();
-        qDebug() << "c->popup()->hide()";
+        qDebug() << "c->popup()->hide()";*/
         c->popup()->hide();
         return handled;
     }
@@ -283,7 +257,7 @@ bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {
         c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
     }
 
-    mCompleter->setContext(determineContext(textCursor()));
+    mCompleter->setContext(CursorContext::getContext(textCursor()));
 
     QRect cr = cursorRect();
     cr.setWidth(c->popup()->sizeHintForColumn(0)
@@ -292,23 +266,48 @@ bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {
     return handled;
 }
 
+// #define TRACE() if (trace) qDebug() << "keyPressEvent Qt::Key_Tab" << __LINE__;
+#define TRACE()
 
 void TextEdit::keyPressEvent(QKeyEvent *event)
 {
     auto* c = mCompleter;
+
+#if 0
+    bool trace = false;
+    if (event->key() == Qt::Key_Tab) {
+        trace = true;
+    }
+#endif
+
     if (c && c->popup()->isVisible()) {
+        TRACE();
         if (!keyPressEventCompleter(event)) {
+            TRACE();
             if (!keyPressEventEdits(event)) {
+                TRACE();
                 QPlainTextEdit::keyPressEvent(event);
+            } else {
+                TRACE();
             }
+        } else {
+            TRACE();
         }
     } else {
+        TRACE();
         if (!keyPressEventEdits(event)) {
+            TRACE();
             if (!keyPressEventCompleter(event)) {
+                TRACE();
                 QPlainTextEdit::keyPressEvent(event);
+            } else {
+                TRACE();
             }
+        } else {
+            TRACE();
         }
     }
+    TRACE();
     fixEdits();
 }
 
@@ -358,9 +357,7 @@ void TextEdit::moveTextCursorToEdit(int index) {
     cursor.movePosition(QTextCursor::PreviousCharacter);
     setTextCursor(cursor);
 
-    auto context = determineContext(cursor);
-    //qDebug() << "determineContext(cursor)" << context;
-    mCompleter->setContext(context);
+    mCompleter->setContext(CursorContext::getContext(cursor));
 }
 
 bool TextEdit::cursorAtEndOfWord() const {
@@ -510,7 +507,7 @@ bool TextEdit::keyPressEventEdits(QKeyEvent *event) {
             moveTextCursorToEdit((index + 1) % m_edits.size());
         } else {
             if (tryEmmet()) {
-                mCompleter->setContext(Completer::Undefined);
+                mCompleter->setContext({});
             } else {
                 index = nextEditIndex();
                 if (index > -1) {
@@ -552,7 +549,7 @@ void TextEdit::updateCompleter() {
     QStringListModel* stringListModel = new QStringListModel(items,completer);
     completer->setModel(stringListModel);
     setCompleter(completer);*/
-    mCompleter->setData(mTokens.completerData());
+    mCompleter->setData(mTokens.completerData(), mTokens.data());
 }
 
 void TextEdit::setText(const QString &text)

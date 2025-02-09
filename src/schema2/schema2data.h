@@ -24,6 +24,7 @@ class QSqlDriver;
 class DataImportWidget2;
 class OdbcUri;
 class QSqlDatabase;
+class Schema2StoredModel;
 
 #include "schema2join.h"
 #include "hash.h"
@@ -120,6 +121,8 @@ public:
 
     SNames sortedInInsertOrder(const SNames& tables);
 
+
+    Schema2StoredModel *stored() const;
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 
@@ -132,6 +135,8 @@ protected:
     Schema2View* mView;
 
     Schema2TablesModel* mTables;
+
+    Schema2StoredModel* mStored;
 
     //QHash<QString, Schema2TableView*> mViews;
 
@@ -151,6 +156,7 @@ protected:
     void pullTables();
     void pullIndexes();
     void pullRelations();
+    void pullStored();
 
     void pullTablesOdbcAccess(const OdbcUri &uri);
     void pullTablesMysql();
@@ -161,6 +167,8 @@ protected:
 
     void pullRelationsMysql();
     void pullRelationsOdbcAccess(const OdbcUri &uri);
+
+    void pullStoredMysql();
 
     //void unoverlapTables();
 

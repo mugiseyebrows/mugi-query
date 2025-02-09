@@ -287,6 +287,8 @@ if (BUILD_APP)
         src/schema2/uniq.h src/schema2/uniq.cpp
         src/schema2/createtabledialog.h src/schema2/createtabledialog.cpp src/schema2/createtabledialog.ui
         src/schema2/schemacolor.h src/schema2/schemacolor.cpp
+        src/schema2/schema2storedmodel.h src/schema2/schema2storedmodel.cpp
+        cursorcontext.h cursorcontext.cpp
     )
     target_include_directories(mugi-query PUBLIC
         src

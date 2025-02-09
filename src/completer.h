@@ -3,33 +3,26 @@
 
 #include <QCompleter>
 #include "completerdata.h"
+#include "cursorcontext.h"
+
+class Schema2Data;
 
 class Completer : public QCompleter
 {
     Q_OBJECT
 public:
-    enum Context {
-        Undefined,
-        Select,
-        From,
-        Join,
-        Where,
-        On,
-        Update,
-        Set,
-        Table,
-        To,
-        Column,
-    };
+
     Completer(QObject* parent = nullptr);
-    void setContext(Context ctx);
-    Context context() const;
-    void setData(const CompleterData& data);
+    void setContext(const CursorContext& context);
+    CursorContext context() const;
+    void setData(const CompleterData& completerData, Schema2Data *schemaData);
 protected:
-    Context mContext;
-    CompleterData mData;
+    CursorContext mContext;
+    CompleterData mCompleterData;
+    Schema2Data* mData;
+
 };
 
-QDebug operator << (QDebug debug, Completer::Context ctx);
+
 
 #endif // COMPLETER_H

@@ -8,6 +8,8 @@
 #include "completerdata.h"
 #include "sdata.h"
 
+class Schema2Data;
+
 class Schema2TablesModel;
 
 class Tokens
@@ -17,7 +19,7 @@ public:
 
     //Tokens(QSqlDatabase db);
 
-    Tokens(QSqlDatabase db, Schema2TablesModel* model);
+    Tokens(QSqlDatabase db, Schema2Data* data);
 
     QStringList functions() const;
 
@@ -40,6 +42,10 @@ public:
     CompleterData completerData() const;
 
     QStringList sizedTypes() const;
+    QStringList storedFunctions() const;
+    QStringList procedures() const;
+
+    Schema2Data* data() const;
 protected:
     /*struct Table {
         QString table;
@@ -50,7 +56,9 @@ protected:
     QStringList driverKeywords() const;
 
     QList<STable> mTables;
+    QList<SStored> mStored;
     QString mDriverName;
+    Schema2Data* mData;
 
 };
 

@@ -58,6 +58,7 @@
 #include <QFileInfo>
 #include "sdata.h"
 #include "dataimportwidget2.h"
+#include "schema2/schema2storedmodel.h"
 
 /*static*/ bool Schema2Data::mDontAskOnDropTable = false;
 
@@ -858,6 +859,37 @@ void Schema2Data::pullIndexes() {
     }
 }
 
+void Schema2Data::pullStored() {
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    if (db.driverName() == DRIVER_MYSQL || db.driverName() == DRIVER_MARIADB) {
+        pullStoredMysql();
+    }
+}
+
+void Schema2Data::pullStoredMysql() {
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    QSqlQuery q(db);
+    q.prepare("select ROUTINE_SCHEMA, ROUTINE_NAME, ROUTINE_TYPE from INFORMATION_SCHEMA.routines where ROUTINE_SCHEMA != 'sys'");
+    q.exec();
+
+    QList<SStored> state = mStored->state();
+    QList<SStored> newState;
+
+    while (q.next()) {
+        QString schema = q.value(0).toString();
+        QString name = q.value(1).toString();
+        QString type = q.value(2).toString();
+
+        SStored item;
+        item.name = SName(schema, name);
+        item.type = type == "PROCEDURE" ? SStored::Procedure : SStored::Function;
+        newState.append(item);
+    }
+
+    auto diff = getDiff(state, newState);
+    mStored->merge(diff);
+}
+
 void Schema2Data::pull()
 {
     QElapsedTimer timer;
@@ -871,6 +903,9 @@ void Schema2Data::pull()
 
     pullRelations();
     qDebug() << "pullRelations" << timer.restart();
+
+    pullStored();
+    qDebug() << "pullStored" << timer.restart();
 
     mTables->setTableItemsPos();
 }
@@ -1189,6 +1224,9 @@ Schema2TablesModel *Schema2Data::tables() const {
     return mTables;
 }
 
+Schema2StoredModel* Schema2Data::stored() const {
+    return mStored;
+}
 
 QSqlDriver* Schema2Data::driver() const {
     return database().driver();
@@ -1415,7 +1453,7 @@ void Schema2Data::scriptDialog(QWidget *parent)
             + mTables->createIndexesQueries(db)
             + mTables->createRelationsQueries(db);
 
-    Tokens tokens = Tokens(database(), tables());
+    Tokens tokens = Tokens(database(), this);
     auto* highligher = new Highlighter(tokens, 0);
 
     CodeWidget* widget = new CodeWidget();
@@ -1646,10 +1684,12 @@ void Schema2Data::onSelectModelChanged(QModelIndex, QModelIndex) {
     }*/
 }
 
+
 Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)
     : mConnectionName(connectionName), mScene(new QGraphicsScene),
       mView(nullptr), /*mSelectModel(new CheckableStringListModel({}, this)),*/
       mSelectProxyModel(new QSortFilterProxyModel(this)), mTables(new Schema2TablesModel(connectionName, mScene, this)),
+        mStored(new Schema2StoredModel(connectionName)),
       QObject{parent}
 {
 
@@ -1662,4 +1702,12 @@ Schema2Data::Schema2Data(const QString &connectionName, QObject *parent)
     //connect(mSelectModel,SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(onSelectModelChanged(QModelIndex,QModelIndex)));
     load();
     //mSelectModel->setAllChecked();
+
+
+#if 0
+        QTableView* view = new QTableView();
+        view->setModel(mStored);
+        view->show();
+#endif
+
 }

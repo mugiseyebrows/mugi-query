@@ -95,11 +95,42 @@ QString odbcType(const QSqlField& , QString& ) {
 
 #endif
 
-Tokens::Tokens(QSqlDatabase db, Schema2TablesModel *model)
+#include "schema2/schema2data.h"
+#include "schema2/schema2storedmodel.h"
+
+Tokens::Tokens(QSqlDatabase db, Schema2Data* data) : mData(data)
 {
-    mTables = model->tablesState();
+    mTables = data->tables()->tablesState();
+    mStored = data->stored()->state();
     mDriverName = db.driverName();
     qDebug() << "Tokens::Tokens state" << mTables.size() << "tables";
+}
+
+QStringList Tokens::storedFunctions() const {
+    QStringList res;
+    for(const SStored& item: mStored) {
+        if (item.type == SStored::Function) {
+            res.append(item.name.fullname());
+            res.append(item.name.name);
+        }
+    }
+    return res;
+}
+
+QStringList Tokens::procedures() const {
+    QStringList res;
+    for(const SStored& item: mStored) {
+        if (item.type == SStored::Procedure) {
+            res.append(item.name.fullname());
+            res.append(item.name.name);
+        }
+    }
+    return res;
+}
+
+Schema2Data *Tokens::data() const
+{
+    return mData;
 }
 
 QStringList Tokens::functions() const
@@ -288,10 +319,7 @@ document.body.innerText = tds.map( (e,i) => ` << "${e}"` + ((i % 7) == 6 ? "\n" 
 
 QStringList Tokens::keywords() const
 {
-    QStringList res;
-    res << commonKeywords();
-    res << driverKeywords();
-    return res;
+    return commonKeywords() + driverKeywords();
 }
 
 QStringList Tokens::tablesAndFields(bool doted) const {
@@ -348,9 +376,10 @@ CompleterData Tokens::completerData() const
     CompleterData data;
     data.tables = tables();
     data.keywords = keywords() + driverKeywords();
-    data.functions = functions();
+    data.functions = functions() + storedFunctions();
     data.types = types();
     data.fields = fields(true) + fields(false);
+    data.procedures = procedures();
     return data;
 }
 
@@ -603,7 +632,6 @@ QStringList Tokens::driverKeywords() const
              << "show relaylog events" << "show slave hosts" << "show slave status"
              << "show status" << "show table status" << "show tables"
              << "show triggers" << "show variables" << "show warnings"
-
              << "references";
     } else if (mDriverName == DRIVER_PSQL) {
 /*
@@ -768,12 +796,13 @@ document.body.innerText = keywords.map( (e,i) => ` << "${e}"` + ((i % 5) == 4 ? 
 }
 
 QStringList Tokens::commonKeywords() const{
-    QStringList res;
-    res << "select" << "from" << "join" << "left join" << "right join" << "inner join"
-          << "insert" << "into" << "values" << "delete" << "update" << "set" << "truncate"
-          << "union" << "create table" << "create view" << "create" << "where" << "having"
-          << "not" << "and" << "group by" << "order by" << "asc" << "desc" << "top"
-          << "limit" << "offset" << "on" << "like" << "or" << "case" << "else" << "in"
-          << "is" << "null";
+    QStringList res = {
+        "select", "from", "join", "left join", "right join", "inner join"
+        "insert", "into", "values", "delete", "update", "set", "truncate"
+        "union", "create table", "create view", "create", "where", "having"
+        "not", "and", "group by", "order by", "asc", "desc", "top"
+        "limit", "offset", "on", "like", "or", "case", "else", "in"
+        "is", "null", "call", "delimiter"
+    };
     return res;
 }

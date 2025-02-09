@@ -239,7 +239,7 @@ QDebug operator <<(QDebug &dbg, const SRelation &relation) {
     return dbg;
 }
 
-int findTable(const SNames &tables, const QString &table) {
+int indexOf(const SNames &tables, const QString &table) {
 
     QString table_ = table.toLower();
     if (table.contains(".")) {
@@ -256,4 +256,57 @@ int findTable(const SNames &tables, const QString &table) {
         }
     }
     return -1;
+}
+
+static SNames getNames(const QList<SStored>& stored) {
+    SNames res;
+    for(const SStored& item: stored) {
+        res.append(item.name);
+    }
+    return res;
+}
+
+SStoredDiff getDiff(const QList<SStored> &stored1, const QList<SStored> &stored2) {
+
+    SNames names1 = getNames(stored1);
+    SNames names2 = getNames(stored2);
+
+    QList<SStored> created;
+    SNames removed;
+
+    for(const SName& name: names1.names) {
+        if (names2.indexOf(name) < 0) {
+            removed.append(name);
+        }
+    }
+    for(const SName& name: names2.names) {
+        if (names1.indexOf(name) < 0)  {
+            int index = names2.indexOf(name);
+            created.append(stored2[index]);
+        }
+    }
+
+    SStoredDiff diff;
+    diff.created = created;
+    diff.removed = removed;
+    return diff;
+}
+
+int indexOf(const QList<SStored> &stored, const SName &name) {
+    for(int i=0;i<stored.size();i++) {
+        const SStored& item = stored[i];
+        if (item.name == name) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+QString SRelation::joinCondition(bool parentChild) const {
+    QStringList res;
+    QString pattern = parentChild ? "%1.%2=%3.%4" : "%3.%4=%1.%2";
+    for(int i=0;i<parentColumns.size();i++) {
+        res.append(pattern.arg(parentTable.name).arg(parentColumns[i]).arg(childTable.name).arg(childColumns[i]));
+    }
+    return res.join(" and ");
 }

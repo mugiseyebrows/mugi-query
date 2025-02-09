@@ -11,6 +11,7 @@ public:
     QStringList keywords;
     QStringList functions;
     QStringList types;
+    QStringList procedures;
 };
 
 #endif // COMPLETERDATA_H

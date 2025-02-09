@@ -3,8 +3,12 @@
 #include <QStringListModel>
 #include "showhidefilter.h"
 #include <QAbstractItemView>
+#include "cursorcontext.h"
+#include "schema2data.h"
+#include "schema2tablesmodel.h"
+#include "schema2relation.h"
 
-Completer::Completer(QObject *parent) : mContext(Undefined), QCompleter(parent) {
+Completer::Completer(QObject *parent): QCompleter(parent), mData(nullptr) {
     setModelSorting(QCompleter::CaseInsensitivelySortedModel);
     setCaseSensitivity(Qt::CaseInsensitive);
     setCompletionMode(QCompleter::PopupCompletion);
@@ -12,7 +16,7 @@ Completer::Completer(QObject *parent) : mContext(Undefined), QCompleter(parent) 
     popup()->installEventFilter(filter);
     connect(filter, &ShowHideFilter::hidden, [=](){
         qDebug() << "popup hidden, reset completer context";
-        setContext(Undefined);
+        setContext({});
     });
     connect(filter, &ShowHideFilter::shown, [=](){
         //qDebug() << "popup shown, set first item";
@@ -59,7 +63,7 @@ static QStringList sortedFields(const QStringList fields) {
     return sortedUnique(shortName) + sortedUnique(fullName);
 }
 
-void Completer::setContext(Context context)
+void Completer::setContext(const CursorContext& context)
 {
     qDebug() << "Completer::setContext" << context;
 
@@ -69,41 +73,58 @@ void Completer::setContext(Context context)
     }
     popup()->hide();
 
-    static QSet<Context> fieldContexts = {Select, On, Where, Set, Column};
-    static QSet<Context> tableContexts = {From, Join, Update, Table, To};
+    //static QSet<Context> fieldContexts = {Select, On, Where, Having, Set, Column};
+    //static QSet<Context> tableContexts = {From, Join, Update, Table, To};
     mContext = context;
     QStringListModel* model = nullptr;
     QCompleter::ModelSorting sorting = CaseSensitivelySortedModel;
-    if (fieldContexts.contains(context)) {
-        QStringList items = sortedFields(mData.fields) + sorted(mData.functions) + sorted(mData.keywords);
+    if (context.isFieldContext()) {
+
+        QStringList joinConditions;
+        if (context.context == CursorContext::On) {
+            if (!context.table.isEmpty()) {
+                SNames tables = mData->tables()->tableNames();
+                int index = indexOf(tables, context.table);
+                if (index > -1) {
+                    SName name = tables.names[index];
+                    QList<Schema2Relation *> relations = mData->tables()->relationsFrom(name) + mData->tables()->relationsTo(name);
+                    for(Schema2Relation * relation: relations) {
+                        joinConditions.append(relation->asRelation().joinCondition(true));
+                        joinConditions.append(relation->asRelation().joinCondition(false));
+                    }
+                }
+            }
+        }
+
+        QStringList items = sortedFields(joinConditions) + sortedFields(mCompleterData.fields) + sorted(mCompleterData.functions) + sorted(mCompleterData.keywords);
         model = new QStringListModel(items, this);
         sorting = UnsortedModel;
-    } else if (tableContexts.contains(context)) {
-        model = new QStringListModel(sortedUnique(mData.keywords + mData.tables), this);
+    } else if (context.isTableContext()) {
+        model = new QStringListModel(sortedUnique(mCompleterData.keywords + mCompleterData.tables), this);
+    } else if (context.context == CursorContext::Call) {
+        model = new QStringListModel(sortedUnique(mCompleterData.procedures), this);
+    } else if (context.context == CursorContext::Start) {
+        model = new QStringListModel(sortedUnique(mCompleterData.keywords), this);
     } else {
-        qDebug() << "not implemented for context" << context;
+        qDebug() << "unexpected context" << context << __FILE__ << __LINE__;
+        model = new QStringListModel(sortedUnique(mCompleterData.keywords), this);
     }
     if (model) {
-        qDebug() << QString("set completer model %1 rows").arg(model->rowCount());
+        //qDebug() << QString("set completer model %1 rows").arg(model->rowCount());
         setModel(model);
         setModelSorting(sorting);
     }
 }
 
-Completer::Context Completer::context() const
+CursorContext Completer::context() const
 {
     return mContext;
 }
 
-void Completer::setData(const CompleterData &data)
+void Completer::setData(const CompleterData& completerData, Schema2Data *schemaData)
 {
-    mData = data;
+    mCompleterData = completerData;
+    mData = schemaData;
 }
 
 
-
-QDebug operator <<(QDebug debug, Completer::Context ctx) {
-    static QStringList names = {"Undefined", "Select", "From", "Join", "Where", "On", "Update", "Set", "Table", "To", "Column"};
-    debug << names.value(ctx);
-    return debug;
-}

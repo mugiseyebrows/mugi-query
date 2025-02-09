@@ -399,7 +399,7 @@ void Schema2AlterView::on_script_clicked()
 
     Schema2Data* data = Schema2Data::instance(connectionName, this);
     //QSqlDatabase db = QSqlDatabase::database(connectionName);
-    Tokens tokens = Tokens(db, data->tables());
+    Tokens tokens = Tokens(db, data);
 
     auto* highligher = new Highlighter(tokens, 0);
 

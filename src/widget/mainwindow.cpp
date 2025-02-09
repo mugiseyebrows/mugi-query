@@ -258,7 +258,7 @@ void MainWindow::updateTokens(const QString &connectionName)
 {
     Schema2Data* data = Schema2Data::instance(connectionName, this);
     QSqlDatabase db = QSqlDatabase::database(connectionName);
-    mTokens[connectionName] = Tokens(db, data->tables());
+    mTokens[connectionName] = Tokens(db, data);
 }
 
 int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {

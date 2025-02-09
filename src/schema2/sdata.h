@@ -125,7 +125,7 @@ public:
     QList<SName> names;
 };
 
-int findTable(const SNames& tables, const QString& table);
+int indexOf(const SNames& tables, const QString& table);
 
 class STable {
 public:
@@ -168,6 +168,8 @@ public:
     {
 
     }
+
+    QString joinCondition(bool parentChild = true) const;
 
     QString name;
     SName childTable;
@@ -240,5 +242,29 @@ public:
 SRelationsDiff getDiff(const QList<SRelation>& relations1, const QList<SRelation>& relations2);
 
 QDebug operator << (QDebug& dbg, const SRelation& relation);
+
+
+class SStored {
+public:
+    enum Type {
+        Function,
+        Procedure
+    };
+    SName name;
+    Type type;
+};
+
+int indexOf(const QList<SStored>& stored, const SName& name);
+
+class SStoredDiff {
+public:
+    QList<SStored> created;
+    SNames removed;
+};
+
+
+
+SStoredDiff getDiff(const QList<SStored>& stored1, const QList<SStored>& stored2);
+
 
 #endif // SDATA_H
