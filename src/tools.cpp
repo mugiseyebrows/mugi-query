@@ -10,9 +10,10 @@
 #include <QDebug>
 #include "toolmysqldumpdialog.h"
 #include <QDesktopServices>
-
+#include "schema2data.h"
 #include <QFile>
 #include <QTextStream>
+#include "schema2tablesmodel.h"
 
 void dump(const QString& path, const QStringList& lines) {
     QFile f(path);
@@ -188,10 +189,37 @@ void Tools::mysql(QSqlDatabase db, QWidget *widget)
     progress.close();
 }
 
+QString nextPath(const QString& pattern) {
+    int i = 1;
+    QString path = pattern.arg(i, 3, 10, QChar('0'));
+    while (QFileInfo(path).exists()) {
+        i += 1;
+        path = pattern.arg(i, 3, 10, QChar('0'));
+    }
+    return path;
+}
 
+static QStringList sortedInInsertOrder(Schema2Data *data, const QStringList& tables) {
+    if (tables.size() < 2) {
+        return tables;
+    }
+    SNames tableNames = data->tables()->tableNames();
+    QStringList notFound;
+    SNames tables_;
+    for(const QString& table: tables) {
+        int index = findTable(tableNames, table);
+        if (index > -1) {
+            tables_.append(tableNames[index]);
+        } else {
+            qDebug() << "not found table" << table << __FILE__ << __LINE__;
+            notFound.append(table);
+        }
+    }
+    auto sorted = data->sortedInInsertOrder(tables_);
+    return notFound + sorted.getNames();
+}
 
-
-void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
+void Tools::mysqldump(Schema2Data *data, QSqlDatabase db, QWidget *widget)
 {
     if (!find_mysql(widget, false)) {
         return;
@@ -211,15 +239,31 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
 
     QString resultDir;
     switch(settings.path) {
-    case MysqldumpSettings::DatabaseName:
+    case MysqldumpSettings::Table:
+        resultDir = settings.output;
+        break;
+    case MysqldumpSettings::DatabaseTable:
         resultDir = pathJoin({settings.output, connectionName});
         break;
-    case MysqldumpSettings::DatabaseDatetimeName:
+    case MysqldumpSettings::DatabaseDatetimeTable:
         resultDir = pathJoin({settings.output, connectionName, dateTime});
         break;
     default:
         qDebug() << "not implemented" << settings.path << __FILE__ << __LINE__;
         break;
+    }
+
+    if (settings.format == MysqldumpSettings::MultipleFiles) {
+        QDir dir(resultDir);
+        QString homePath = Settings::instance()->homePath();
+        if (QFileInfo(homePath) != QFileInfo(resultDir)) {
+            if (dir.exists()) {
+                QString path = nextPath(resultDir + "-backup%1");
+                if (!dir.rename(resultDir, path)) {
+                    qDebug() << "cannot rename" << resultDir << "to" << path << __FILE__ << __LINE__;
+                }
+            }
+        }
     }
 
     QDir dir(resultDir);
@@ -229,7 +273,8 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
 
     if (settings.format == MysqldumpSettings::OneFile) {
 
-        QString name;
+        QString name = settings.oneFileName;
+#if 0
         if (settings.data && settings.schema) {
             name = "dump";
         } else if (settings.data) {
@@ -237,8 +282,18 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
         } else if (settings.schema) {
             name = "schema";
         }
+#endif
+        tables = sortedInInsertOrder(data, tables);
 
-        QString resultFile = pathJoin({resultDir, name + ".sql"});
+        QString resultFile = pathJoin({resultDir, name});
+
+        if (QFile(resultFile).exists()) {
+            QString pattern = pathJoin({resultDir, QFileInfo(name).baseName() + "-backup%1" + ".sql"});
+            QString newPath = nextPath(pattern);
+            if (!dir.rename(resultFile, newPath)) {
+                qDebug() << "cannot rename" << resultFile << "to" << newPath << __FILE__ << __LINE__;
+            }
+        }
 
         QProgressDialog progress;
         progress.setMaximum(0);
@@ -248,9 +303,7 @@ void Tools::mysqldump(QSqlDatabase db, QWidget *widget)
         execute(mysqldump, args, QString(), MYSQLDUMP_TIMEOUT, widget);
 
     } else if (settings.format == MysqldumpSettings::MultipleFiles) {
-
         QStringList resultFiles;
-
         for(const QString& table: tables) {
             QString path = pathJoin({resultDir, table + ".sql"});
             resultFiles.append(path);

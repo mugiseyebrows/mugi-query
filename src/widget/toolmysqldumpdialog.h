@@ -14,8 +14,9 @@ class CheckableModel;
 class MysqldumpSettings {
 public:
     enum Path {
-        DatabaseName,
-        DatabaseDatetimeName
+        Table,
+        DatabaseTable,
+        DatabaseDatetimeTable
     };
     enum Format {
         OneFile,
@@ -29,6 +30,7 @@ public:
     bool data;
     bool ssl;
     bool tab;
+    QString oneFileName;
 };
 
 class ToolMysqldumpDialog : public QDialog
@@ -77,6 +79,9 @@ protected:
     // QDialog interface
 public slots:
     void accept();
+private slots:
+    void on_multipleFiles_clicked();
+    void on_oneFile_clicked();
 };
 
 #endif // TOOLMYSQLDUMPDIALOG_H

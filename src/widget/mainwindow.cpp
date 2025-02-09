@@ -765,7 +765,9 @@ void MainWindow::on_toolsMysqldump_triggered()
     if (!db.isValid() || !db.isOpen() || db.driverName() != DRIVER_MYSQL) {
         return;
     }
-    Tools::mysqldump(db, this);
+    QString connectionName = this->connectionName();
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    Tools::mysqldump(data, db, this);
 }
 
 #include <QClipboard>
@@ -1219,20 +1221,6 @@ void MainWindow::on_toolsJoin_triggered()
 
 }
 
-
-
-static bool containsAll(const SNames& ordered, const SNames& related, const SName& name) {
-    for(const SName& item: related.names) {
-        if (item == name) {
-            continue;
-        }
-        if (!ordered.contains(item)) {
-            return false;
-        }
-    }
-    return true;
-}
-
 void MainWindow::on_codeCopyOrder_triggered()
 {
     QString connectionName = this->connectionName();
@@ -1243,44 +1231,8 @@ void MainWindow::on_codeCopyOrder_triggered()
     Schema2Data* data = Schema2Data::instance(connectionName, this);
     auto* tables = data->tables();
     SNames names = tables->tableNames();
-    QHash<SName, SNames> relations;
-    for(const SName& name: names.names) {
-        relations[name] = tables->table(name)->relatedTables();
-    }
-    SNames ordered;
 
-    int i = 0;
-    while(i < names.size()) {
-        auto name = names[i];
-        if (relations[name].isEmpty()) {
-            ordered.append(name);
-            names.removeAt(i);
-            i--;
-        }
-        i++;
-    }
-    while(!names.isEmpty()) {
-        int count1 = names.size();
-        i = 0;
-        while(i < names.size()) {
-            auto name = names[i];
-            auto related = relations[name];
-            if (containsAll(ordered, related, name)) {
-                ordered.append(name);
-                names.removeAt(i);
-                i--;
-            }
-            i++;
-        }
-        int count2 = names.size();
-        if (count1 == count2) {
-            qDebug() << "count1 == count2" << __FILE__ << __LINE__;
-
-
-
-            return;
-        }
-    }
+    auto ordered = data->sortedInInsertOrder(names);
 
     qApp->clipboard()->setText(ordered.join("\n") + "\n");
     QMessageBox::information(this, "", "Copied to clipboard");

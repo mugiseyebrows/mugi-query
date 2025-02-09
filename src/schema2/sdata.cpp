@@ -238,3 +238,22 @@ QDebug operator <<(QDebug &dbg, const SRelation &relation) {
     dbg.nospace() << QString("SRelation(%1 -> %2)").arg(relation.childTable.name).arg(relation.parentTable.name);
     return dbg;
 }
+
+int findTable(const SNames &tables, const QString &table) {
+
+    QString table_ = table.toLower();
+    if (table.contains(".")) {
+        for(int i=0;i<tables.size();i++) {
+            if (tables[i].fullname().toLower() == table_) {
+                return i;
+            }
+        }
+    } else {
+        for(int i=0;i<tables.size();i++) {
+            if (tables[i].name.toLower() == table_) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}

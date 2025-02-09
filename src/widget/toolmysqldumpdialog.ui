@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Mysqldump</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_6">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
@@ -30,14 +30,14 @@
     <widget class="CheckableView" name="tables" native="true"/>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="0">
       <widget class="QGroupBox" name="groupBox_4">
        <property name="title">
         <string>Format</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
-        <item>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
          <widget class="QRadioButton" name="oneFile">
           <property name="text">
            <string>One file</string>
@@ -47,7 +47,14 @@
           </property>
          </widget>
         </item>
-        <item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="oneFileName">
+          <property name="text">
+           <string>dump.sql</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
          <widget class="QRadioButton" name="multipleFiles">
           <property name="text">
            <string>Multiple files</string>
@@ -57,16 +64,16 @@
        </layout>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1">
       <widget class="QGroupBox" name="groupBox_5">
        <property name="title">
         <string>Path</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="QRadioButton" name="formatDatabaseName">
+         <widget class="QRadioButton" name="pathTable">
           <property name="text">
-           <string>Database / Name</string>
+           <string>Table</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -74,32 +81,31 @@
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="formatDatabaseDatetimeName">
+         <widget class="QRadioButton" name="pathDatabaseTable">
           <property name="text">
-           <string>Database / Datetime / Name</string>
+           <string>Database / Table</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="pathDatabaseDatetimeTable">
+          <property name="text">
+           <string>Database / Datetime / Table</string>
           </property>
          </widget>
         </item>
        </layout>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
+     <item row="1" column="0">
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
         <string>Options</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QCheckBox" name="tab">
-          <property name="text">
-           <string>--tab</string>
-          </property>
-         </widget>
-        </item>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
          <widget class="QCheckBox" name="schema">
           <property name="text">
@@ -123,7 +129,7 @@
        </layout>
       </widget>
      </item>
-     <item>
+     <item row="1" column="1">
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
         <string>Connection</string>
@@ -147,10 +153,10 @@
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
      </property>
     </widget>
    </item>

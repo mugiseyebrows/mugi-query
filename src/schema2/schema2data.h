@@ -118,6 +118,8 @@ public:
 
     void tableRenamed(const SName &tableName, const SName &tableNamePrev);
 
+    SNames sortedInInsertOrder(const SNames& tables);
+
 protected:
     Schema2Data(const QString& connectionName, QObject *parent = nullptr);
 

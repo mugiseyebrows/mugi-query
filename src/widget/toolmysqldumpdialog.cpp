@@ -51,19 +51,24 @@ ToolMysqldumpDialog::~ToolMysqldumpDialog()
     delete ui;
 }
 
-
-
 MysqldumpSettings ToolMysqldumpDialog::settings() const
 {
     MysqldumpSettings res;
     res.output = ui->output->text();
     res.tables = ui->tables->checked();
     res.format = ui->oneFile->isChecked() ? MysqldumpSettings::OneFile : MysqldumpSettings::MultipleFiles;
-    res.path = ui->formatDatabaseName->isChecked() ? MysqldumpSettings::DatabaseName : MysqldumpSettings::DatabaseDatetimeName;
+
+    if (ui->pathTable->isChecked()) {
+        res.path = MysqldumpSettings::Table;
+    } else if (ui->pathDatabaseTable->isChecked()) {
+        res.path = MysqldumpSettings::DatabaseTable;
+    } else if (ui->pathDatabaseDatetimeTable->isChecked()) {
+        res.path = MysqldumpSettings::DatabaseDatetimeTable;
+    }
     res.schema = ui->schema->isChecked();
     res.data = ui->data->isChecked();
     res.ssl = ui->ssl->isChecked();
-    res.tab = ui->tab->isChecked();
+    res.oneFileName = ui->oneFileName->text();
     return res;
 }
 
@@ -163,3 +168,14 @@ void ToolMysqldumpDialog::accept()
 #endif
     QDialog::accept();
 }
+
+void ToolMysqldumpDialog::on_multipleFiles_clicked()
+{
+    ui->oneFileName->setEnabled(false);
+}
+
+void ToolMysqldumpDialog::on_oneFile_clicked()
+{
+    ui->oneFileName->setEnabled(true);
+}
+

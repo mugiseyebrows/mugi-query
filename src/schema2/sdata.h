@@ -125,6 +125,7 @@ public:
     QList<SName> names;
 };
 
+int findTable(const SNames& tables, const QString& table);
 
 class STable {
 public:

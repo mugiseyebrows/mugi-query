@@ -1334,6 +1334,73 @@ void Schema2Data::tableRenamed(const SName &tableName, const SName &tableNamePre
     }
 }
 
+static bool containsAll(const SNames& ordered, const SNames& related, const SName& name) {
+    for(const SName& item: related.names) {
+        if (item == name) {
+            continue;
+        }
+        if (!ordered.contains(item)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+static SNames filtered(const SNames& names1, const SNames& names2) {
+    SNames res;
+    for(const SName& name: names1.names) {
+        if (names2.indexOf(name) > -1) {
+            res.append(name);
+        }
+    }
+    return res;
+}
+
+SNames Schema2Data::sortedInInsertOrder(const SNames &names_)
+{
+    QHash<SName, SNames> relations;
+    auto* tables = mTables;
+    SNames names = tables->tableNames();
+
+    for(const SName& name: names.names) {
+        relations[name] = tables->table(name)->relatedTables();
+    }
+    SNames ordered;
+
+    int i = 0;
+    while(i < names.size()) {
+        auto name = names[i];
+        if (relations[name].isEmpty()) {
+            ordered.append(name);
+            names.removeAt(i);
+            i--;
+        }
+        i++;
+    }
+    while(!names.isEmpty()) {
+        int count1 = names.size();
+        i = 0;
+        while(i < names.size()) {
+            auto name = names[i];
+            auto related = relations[name];
+            if (containsAll(ordered, related, name)) {
+                ordered.append(name);
+                names.removeAt(i);
+                i--;
+            }
+            i++;
+        }
+        int count2 = names.size();
+        if (count1 == count2) {
+            qDebug() << "count1 == count2" << __FILE__ << __LINE__;
+            return {};
+        }
+    }
+
+    return filtered(ordered, names_);
+}
+
 #include "highlighter.h"
 #include "tokens.h"
 
