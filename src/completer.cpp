@@ -73,13 +73,10 @@ void Completer::setContext(const CursorContext& context)
     }
     popup()->hide();
 
-    //static QSet<Context> fieldContexts = {Select, On, Where, Having, Set, Column};
-    //static QSet<Context> tableContexts = {From, Join, Update, Table, To};
     mContext = context;
     QStringListModel* model = nullptr;
     QCompleter::ModelSorting sorting = CaseSensitivelySortedModel;
     if (context.isFieldContext()) {
-
         QStringList joinConditions;
         if (context.context == CursorContext::On) {
             if (!context.table.isEmpty()) {

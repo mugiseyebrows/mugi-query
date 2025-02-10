@@ -112,6 +112,7 @@ QList<int> SqlParse::colorQueries(const QString &queries) {
             }
         } else if (state == DelimiterValue) {
             if (c.isSpace()) {
+                state = Delimiter;
                 nextState = Query;
             } else {
                 delimiter.append(c);
@@ -145,6 +146,7 @@ static bool containsQuery(const QString &queries, const QList<int> colors, int p
 
 static int skipDelimiter(const QString &queries, const QList<int>& colors, int p1) {
 
+#if 0
     //qDebug() << QChar(' ').isSpace() << QChar('\n').isSpace() << QChar('\t').isSpace() << QChar('\r').isSpace();
     int p = p1;
     if (colors.size() <= p) {
@@ -167,6 +169,19 @@ static int skipDelimiter(const QString &queries, const QList<int>& colors, int p
         return p1_;
     }
     while (colors[p] == SqlParse::DelimiterKeyword || colors[p] == SqlParse::DelimiterValue) {
+        p++;
+        if (colors.size() <= p) {
+            return p;
+        }
+    }
+    return p;
+#endif
+
+    int p = p1;
+    if (colors.size() <= p) {
+        return p;
+    }
+    while (colors[p] == SqlParse::Delimiter) {
         p++;
         if (colors.size() <= p) {
             return p;
