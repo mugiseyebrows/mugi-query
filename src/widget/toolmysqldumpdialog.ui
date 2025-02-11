@@ -6,18 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>533</width>
-    <height>510</height>
+    <width>596</width>
+    <height>610</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Mysqldump</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>Output</string>
+      <string>Output Base Directory</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -30,8 +30,8 @@
     <widget class="CheckableView" name="tables" native="true"/>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout_3">
-     <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
       <widget class="QGroupBox" name="groupBox_4">
        <property name="title">
         <string>Format</string>
@@ -64,10 +64,10 @@
        </layout>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item>
       <widget class="QGroupBox" name="groupBox_5">
        <property name="title">
-        <string>Path</string>
+        <string>Path Template</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
@@ -100,13 +100,17 @@
        </layout>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QGroupBox" name="groupBox_2">
-       <property name="title">
-        <string>Options</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
-        <item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Options</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
          <widget class="QCheckBox" name="schema">
           <property name="text">
            <string>Schema</string>
@@ -116,7 +120,14 @@
           </property>
          </widget>
         </item>
-        <item>
+        <item row="0" column="1">
+         <widget class="QCheckBox" name="completeInsert">
+          <property name="text">
+           <string>--complete-insert</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
          <widget class="QCheckBox" name="data">
           <property name="text">
            <string>Data</string>
@@ -126,37 +137,79 @@
           </property>
          </widget>
         </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QGroupBox" name="groupBox">
-       <property name="title">
-        <string>Connection</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QCheckBox" name="ssl">
+        <item row="1" column="1">
+         <widget class="QCheckBox" name="insertIgnore">
           <property name="text">
-           <string>ssl</string>
+           <string>--insert-ignore</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="routines">
+          <property name="text">
+           <string>Stored Routines</string>
           </property>
           <property name="checked">
            <bool>true</bool>
           </property>
          </widget>
         </item>
+        <item row="2" column="1">
+         <widget class="QCheckBox" name="extendedInsert">
+          <property name="text">
+           <string>--extended-insert</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QCheckBox" name="hexBlob">
+          <property name="text">
+           <string>--hex-blob</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QCheckBox" name="quoteNames">
+          <property name="text">
+           <string>--quote-names</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QCheckBox" name="ssl">
+          <property name="text">
+           <string>--ssl</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QPushButton" name="help">
+          <property name="text">
+           <string>Help</string>
+          </property>
+         </widget>
+        </item>
        </layout>
-      </widget>
-     </item>
-    </layout>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
+      <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>

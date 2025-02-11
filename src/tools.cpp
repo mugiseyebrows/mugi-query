@@ -83,14 +83,36 @@ static QStringList mysql_args(QSqlDatabase db, bool ssl, bool force = false) {
     return args;
 }
 
-static QStringList mysqldump_args(QSqlDatabase db, bool ssl, bool schema, bool data,
+static QStringList mysqldump_args(QSqlDatabase db, const MysqldumpSettings& settings,
                                   const QStringList& tables, const QString& resultFile) {
-    QStringList args = mysql_args(db, ssl);
-    if (!schema) {
+    QStringList args = mysql_args(db, settings.ssl);
+    if (!settings.schema) {
         args.append("--no-create-info");
     }
-    if (!data) {
+    if (!settings.data) {
         args.append("--no-data");
+    }
+    if (settings.routines) {
+        args.append("--routines");
+    }
+    if (settings.completeInsert) {
+        args.append("--complete-insert");
+    }
+    if (settings.insertIgnore) {
+        args.append("--insert-ignore");
+    }
+    if (settings.extendedInsert) {
+        args.append("--extended-insert");
+    } else {
+        args.append("--skip-extended-insert");
+    }
+    if (settings.hexBlob) {
+        args.append("--hex-blob");
+    }
+    if (settings.quoteNames) {
+        args.append("--quote-names");
+    } else {
+        args.append("--skip-quote-names");
     }
     args.append("--result-file");
     args.append(resultFile);
@@ -299,7 +321,7 @@ void Tools::mysqldump(Schema2Data *data, QSqlDatabase db, QWidget *widget)
         progress.setMaximum(0);
         progress.show();
 
-        QStringList args = mysqldump_args(db, settings.ssl, settings.schema, settings.data, tables, resultFile);
+        QStringList args = mysqldump_args(db, settings, tables, resultFile);
         execute(mysqldump, args, QString(), MYSQLDUMP_TIMEOUT, widget);
 
     } else if (settings.format == MysqldumpSettings::MultipleFiles) {
@@ -314,7 +336,7 @@ void Tools::mysqldump(Schema2Data *data, QSqlDatabase db, QWidget *widget)
         progress.show();
         qApp->processEvents();
         for(int i=0;i<tables.size();i++) {
-            QStringList args = mysqldump_args(db, settings.ssl, settings.schema, settings.data, tables.mid(i, 1), resultFiles[i]);
+            QStringList args = mysqldump_args(db, settings, tables.mid(i, 1), resultFiles[i]);
             execute(mysqldump, args, QString(), MYSQLDUMP_TIMEOUT, widget);
             progress.setValue(i);
             progress.setLabelText(tables[i]);

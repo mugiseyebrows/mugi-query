@@ -9,6 +9,9 @@
 #include "model/checkablemodel.h"
 #include "settings.h"
 #include <QMessageBox>
+#include <QProcess>
+#include <QByteArray>
+#include "codewidgetdialog.h"
 
 // todo selected tables / all tables
 
@@ -69,6 +72,13 @@ MysqldumpSettings ToolMysqldumpDialog::settings() const
     res.data = ui->data->isChecked();
     res.ssl = ui->ssl->isChecked();
     res.oneFileName = ui->oneFileName->text();
+
+    res.completeInsert = ui->completeInsert->isChecked();
+    res.insertIgnore = ui->insertIgnore->isChecked();
+    res.extendedInsert = ui->extendedInsert->isChecked();
+    res.hexBlob = ui->hexBlob->isChecked();
+    res.quoteNames = ui->quoteNames->isChecked();
+
     return res;
 }
 
@@ -177,5 +187,37 @@ void ToolMysqldumpDialog::on_multipleFiles_clicked()
 void ToolMysqldumpDialog::on_oneFile_clicked()
 {
     ui->oneFileName->setEnabled(true);
+}
+
+static QString checkOutput(const QString& program, const QStringList& args, int timeout, QWidget *widget) {
+
+    QProcess process;
+    process.setProgram(program);
+    process.setArguments(args);
+
+    process.start(QIODevice::ReadOnly);
+    if (!process.waitForStarted()) {
+        QMessageBox::critical(widget, QString(), QString("WaitForStarted error %1").arg(process.errorString()));
+        return {};
+    }
+    if (!process.waitForFinished(timeout)) {
+        QMessageBox::critical(widget, QString(), QString("WaitForFinished error %1").arg(process.errorString()));
+    }
+    QByteArray stderrData = process.readAllStandardOutput();
+    return QString::fromUtf8(stderrData);
+}
+
+void ToolMysqldumpDialog::on_help_clicked()
+{
+    QString mysqldump = Settings::instance()->mysqldumpPath();
+    if (mysqldump.isEmpty() || !QFile::exists(mysqldump)) {
+        QMessageBox::critical(0, "Error", "Mysqldump not found");
+        return;
+    }
+    QString output = checkOutput(mysqldump, {"--help"}, 10000, nullptr);
+    CodeWidgetDialog dialog(this);
+    dialog.setWindowTitle("mysqldump --help");
+    dialog.setText(output);
+    dialog.exec();
 }
 

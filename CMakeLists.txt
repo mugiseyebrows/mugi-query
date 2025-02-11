@@ -289,6 +289,7 @@ if (BUILD_APP)
         src/schema2/schemacolor.h src/schema2/schemacolor.cpp
         src/schema2/schema2storedmodel.h src/schema2/schema2storedmodel.cpp
         cursorcontext.h cursorcontext.cpp
+        src/codewidgetdialog.h src/codewidgetdialog.cpp src/codewidgetdialog.ui
     )
     target_include_directories(mugi-query PUBLIC
         src

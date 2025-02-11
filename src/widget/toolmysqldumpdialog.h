@@ -11,6 +11,8 @@ class ToolMysqldumpDialog;
 class QSortFilterProxyModel;
 class CheckableModel;
 
+// --routines
+
 class MysqldumpSettings {
 public:
     enum Path {
@@ -28,9 +30,16 @@ public:
     Path path;
     bool schema;
     bool data;
+    bool routines;
     bool ssl;
     bool tab;
     QString oneFileName;
+
+    bool completeInsert;
+    bool insertIgnore;
+    bool extendedInsert;
+    bool hexBlob;
+    bool quoteNames;
 };
 
 class ToolMysqldumpDialog : public QDialog
@@ -82,6 +91,7 @@ public slots:
 private slots:
     void on_multipleFiles_clicked();
     void on_oneFile_clicked();
+    void on_help_clicked();
 };
 
 #endif // TOOLMYSQLDUMPDIALOG_H
