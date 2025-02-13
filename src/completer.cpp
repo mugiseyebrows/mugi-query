@@ -12,6 +12,8 @@ Completer::Completer(QObject *parent): QCompleter(parent), mData(nullptr) {
     setModelSorting(QCompleter::CaseInsensitivelySortedModel);
     setCaseSensitivity(Qt::CaseInsensitive);
     setCompletionMode(QCompleter::PopupCompletion);
+
+#if 0
     ShowHideFilter* filter = new ShowHideFilter(this);
     popup()->installEventFilter(filter);
     connect(filter, &ShowHideFilter::hidden, [=](){
@@ -23,6 +25,17 @@ Completer::Completer(QObject *parent): QCompleter(parent), mData(nullptr) {
         auto* model = popup()->model();
         popup()->setCurrentIndex(model->index(0, 0));
     });
+#endif
+}
+
+int Completer::completionPrefixMinLength() const {
+    return 3;
+}
+
+bool Completer::needContext(const QString &completionPrefix) {
+    QString prefix = this->completionPrefix();
+    int l = completionPrefixMinLength();
+    return prefix.mid(0, l) != completionPrefix.mid(0, l);
 }
 
 template <typename T>

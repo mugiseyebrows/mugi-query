@@ -40,8 +40,7 @@ TextEdit::TextEdit(QWidget *parent)
 
     mCompleter = new Completer(this);
     mCompleter->setWidget(this);
-    QObject::connect(mCompleter, SIGNAL(activated(QString)),
-                     this, SLOT(insertCompletion(QString)));
+    QObject::connect(mCompleter, SIGNAL(activated(QString)), this, SLOT(insertCompletion(QString)));
 }
 
 TextEdit::~TextEdit()
@@ -184,134 +183,106 @@ void TextEdit::focusInEvent(QFocusEvent *e)
     QPlainTextEdit::focusInEvent(e);
 }
 
-bool TextEdit::keyPressEventCompleter(QKeyEvent *e) {
 
-    QCompleter* c = mCompleter;
+void TextEdit::keyPressEvent(QKeyEvent *e) {
 
+    Completer* c = mCompleter;
+
+    // forwarded from popup
     if (c && c->popup()->isVisible()) {
-        // The following keys are forwarded by the completer to the widget
         switch (e->key()) {
         case Qt::Key_Enter:
         case Qt::Key_Return:
         case Qt::Key_Tab:
-        {
-            QString text = mCompleter->currentIndex().data().toString();
-            qDebug() << mCompleter->currentIndex() << mCompleter->currentIndex().data() << __FILE__ << __LINE__;
-            emit mCompleter->activated(text);
-            mCompleter->setContext({});
-
-            int index = nextEditIndex();
-            if (index > -1) {
-                moveTextCursorToEdit(index);
-            }
-
-            return true;
-        }
         case Qt::Key_Escape:
         case Qt::Key_Backtab:
             e->ignore();
-            return true;
+            return;
         default:
             break;
         }
     }
 
-    bool handled = false;
+    // emmet
+    if (c && !c->popup()->isVisible()) {
+        if (e->key() == Qt::Key_Tab) {
+            bool accept = tryEmmet();
+            if (accept) {
+                e->accept();
+                return;
+            }
+        }
+    }
+
+    // move around edits
+    if (c && !c->popup()->isVisible()) {
+        bool accept = false;
+        if (!m_edits.isEmpty()) {
+            switch (e->key()) {
+            case Qt::Key_Tab:
+                moveTextCursorToEdit(nextEditIndex());
+                accept = true;
+                break;
+            case Qt::Key_Backtab:
+                moveTextCursorToEdit(prevEditIndex());
+                accept = true;
+                break;
+            case Qt::Key_Escape:
+                clearEdits();
+                accept = true;
+                break;
+            }
+        }
+        if (accept) {
+            e->accept();
+            return;
+        }
+    }
+
+    // do not lose focus
+    if (e->key() == Qt::Key_Tab) {
+        e->accept();
+        return;
+    }
 
     const bool isShortcut = (e->modifiers().testFlag(Qt::ControlModifier) && e->key() == Qt::Key_E); // CTRL+E
     if (!c || !isShortcut) {
         QPlainTextEdit::keyPressEvent(e);
-        handled = true;
     }
 
     const bool ctrlOrShift = e->modifiers().testFlag(Qt::ControlModifier) ||
                              e->modifiers().testFlag(Qt::ShiftModifier);
-    if (!c || (ctrlOrShift && e->text().isEmpty()))
-        return handled;
 
-    static QString eow("~!@#$%^&*()+{}|:\"<>?,/;'[]\\-="); // end of word
+    if (!c || (ctrlOrShift && e->text().isEmpty()))
+        return;
+
+    static QString eow("~!@#$%^&*()+{}|:\"<>?,/;'[]\\-=");
     const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctrlOrShift;
     QString completionPrefix = textUnderCursor();
 
-    bool endOfWord = !e->text().isEmpty() && eow.contains(e->text().right(1));
+    int completionPrefixMinLength = c->completionPrefixMinLength();
 
-    if (!isShortcut && (hasModifier || completionPrefix.length() < 2 || endOfWord)) {
-        /*qDebug() << "cond1" << !isShortcut;
-        qDebug() << "hasModifier" << hasModifier << "completionPrefix.length()" << completionPrefix.length()
-                 << "endOfWord" << endOfWord;
-        qDebug() << "e->modifiers()" << e->modifiers();
-        //qDebug() << "e->text()" << e->text();
-        qDebug() << "textUnderCursor" << textUnderCursor();
-        qDebug() << "c->popup()->hide()";*/
+    if (!isShortcut && (hasModifier || e->text().isEmpty()|| completionPrefix.length() < completionPrefixMinLength
+                        || eow.contains(e->text().right(1)))) {
         c->popup()->hide();
-        return handled;
-    }
-    const bool isVisible = c && c->popup()->isVisible();
-    if (!isVisible && e->key() == Qt::Key_Backspace) {
-        return handled;
+        return;
     }
 
     if (completionPrefix != c->completionPrefix()) {
-        //qDebug() << "setCompletionPrefix" << completionPrefix;
+        if (c->needContext(completionPrefix)) {
+            c->setContext(CursorContext::getContext(textCursor()));
+        }
         c->setCompletionPrefix(completionPrefix);
         c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
     }
-
-    mCompleter->setContext(CursorContext::getContext(textCursor()));
 
     QRect cr = cursorRect();
     cr.setWidth(c->popup()->sizeHintForColumn(0)
                 + c->popup()->verticalScrollBar()->sizeHint().width());
     c->complete(cr);
-    return handled;
-}
 
-// #define TRACE() if (trace) qDebug() << "keyPressEvent Qt::Key_Tab" << __LINE__;
-#define TRACE()
-
-void TextEdit::keyPressEvent(QKeyEvent *event)
-{
-    auto* c = mCompleter;
-
-#if 0
-    bool trace = false;
-    if (event->key() == Qt::Key_Tab) {
-        trace = true;
-    }
-#endif
-
-    if (c && c->popup()->isVisible()) {
-        TRACE();
-        if (!keyPressEventCompleter(event)) {
-            TRACE();
-            if (!keyPressEventEdits(event)) {
-                TRACE();
-                QPlainTextEdit::keyPressEvent(event);
-            } else {
-                TRACE();
-            }
-        } else {
-            TRACE();
-        }
-    } else {
-        TRACE();
-        if (!keyPressEventEdits(event)) {
-            TRACE();
-            if (!keyPressEventCompleter(event)) {
-                TRACE();
-                QPlainTextEdit::keyPressEvent(event);
-            } else {
-                TRACE();
-            }
-        } else {
-            TRACE();
-        }
-    }
-    TRACE();
     fixEdits();
 }
-
-
 
 
 int TextEdit::nextEditIndex() const {
@@ -430,7 +401,7 @@ bool TextEdit::tryEmmet() {
     QTextCursor cursor = selectEmmetExpression(textCursor());
     QString text = cursor.selectedText();
     if (text.isEmpty()) {
-        qDebug() << "cursor.selectedText() is empty";
+        //qDebug() << "cursor.selectedText() is empty";
         return false;
     }
     QString error;
@@ -440,7 +411,7 @@ bool TextEdit::tryEmmet() {
         return false;
     }
     if (e.isEmpty()) {
-        qDebug() << "cannot emmet text" << text;
+        //qDebug() << "cannot emmet text" << text;
         return false;
     }
     cursor.insertText(e);
@@ -499,56 +470,7 @@ int TextEdit::editIndex() const {
     return -1;
 }
 
-bool TextEdit::keyPressEventEdits(QKeyEvent *event) {
-    if (event->key() == Qt::Key_Tab) {
-
-        int index = editIndex();
-        if (index > -1) {
-            moveTextCursorToEdit((index + 1) % m_edits.size());
-        } else {
-            if (tryEmmet()) {
-                mCompleter->setContext({});
-            } else {
-                index = nextEditIndex();
-                if (index > -1) {
-                    moveTextCursorToEdit(index);
-                }
-            }
-        }
-        return true;
-    } else if (event->key() == Qt::Key_Backtab) {
-        //fixEdits();
-        int index = editIndex();
-        if (index > -1) {
-            moveTextCursorToEdit((m_edits.size() + index - 1) % m_edits.size());
-        } else {
-            index = prevEditIndex();
-            if (index > -1) {
-                moveTextCursorToEdit(index);
-            }
-        }
-        return true;
-    } else if (event->key() == Qt::Key_Escape) {
-        clearEdits();
-        return true;
-    }
-    /*if (event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete) {
-        fixEdits();
-    }*/
-    return false;
-}
-
-
-
 void TextEdit::updateCompleter() {
-    /*QCompleter* completer = new QCompleter();
-    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
-    completer->setCaseSensitivity(Qt::CaseInsensitive);
-    QStringList items = mTokens.autocompletion(mAliases);
-    //dumpJson("D:\\w\\completer-%1.json", items);
-    QStringListModel* stringListModel = new QStringListModel(items,completer);
-    completer->setModel(stringListModel);
-    setCompleter(completer);*/
     mCompleter->setData(mTokens.completerData(), mTokens.data());
 }
 

@@ -13,9 +13,13 @@ class Completer : public QCompleter
 public:
 
     Completer(QObject* parent = nullptr);
+
+    bool needContext(const QString& completionPrefix);
+
     void setContext(const CursorContext& context);
     CursorContext context() const;
     void setData(const CompleterData& completerData, Schema2Data *schemaData);
+    int completionPrefixMinLength() const;
 protected:
     CursorContext mContext;
     CompleterData mCompleterData;
