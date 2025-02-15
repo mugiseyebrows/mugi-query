@@ -76,7 +76,7 @@ static QHash<QString, QString> loadEmmetDict(QString& error) {
     return dict;
 }
 
-static QString parseCt(const QString& captured) {
+static QString parseCreateTable(const QString& captured) {
     static QHash<QString, QString> types = {
                                             // numeric
                                             {"i","integer"},
@@ -101,10 +101,44 @@ static QString parseCt(const QString& captured) {
                                             // attributes
                                             {"pk", "primary key"},
                                             {"ai", "auto_increment"},
+                                            {"nn", "not null"},
                                             };
 
-    QString tail = captured;
-    tail.replace(",","");
+    //QString tail = captured;
+    //tail.replace(",","");
+    QStringList cols = captured.split(",");
+
+    QStringList columns;
+    for(const QString& col: cols) {
+        QStringList res;
+        QString col_ = col;
+        int n = 1;
+        QRegularExpression rx("([0-9]+)$");
+        auto m = rx.match(col_);
+        if (m.hasMatch()) {
+            n = m.captured(1).toInt();
+            col_ = col_.left(col_.size() - m.captured(1).size());
+        }
+        while(true) {
+            QRegularExpression rx("(nn|pk|ai)$");
+            auto m = rx.match(col_);
+            if (!m.hasMatch()) {
+                break;
+            }
+            res.prepend(types[m.captured(1)]);
+            col_ = col_.left(col_.size() - m.captured(1).size());
+        }
+        if (types.contains(col_)) {
+            res.prepend(types[col_]);
+        } else {
+            res.prepend(col_);
+        }
+        for(int i=0;i<n;i++) {
+            columns.append("# " + res.join(" "));
+        }
+    }
+
+#if 0
     QStringList res;
     while(true) {
         if (tail.isEmpty()) {
@@ -124,6 +158,7 @@ static QString parseCt(const QString& captured) {
         res.append(types[key]);
         tail = tail.right(tail.size() - key.size());
     }
+
     QStringList columns;
     for(const QString& item: res) {
         if (item == "primary key" || item == "auto_increment") {
@@ -132,10 +167,11 @@ static QString parseCt(const QString& captured) {
             columns.append("# " + item);
         }
     }
+#endif
     return "create table # (" + columns.join(", ") + ")";
 }
 
-QString parseCw(const QString& text) {
+static QString parseCaseWhere(const QString& text) {
     QString tail = text;
     QRegularExpression rx("^wt([0-9]*)");
     QStringList res = {"case"};
@@ -164,6 +200,42 @@ QString parseCw(const QString& text) {
     return QString();
 }
 
+static QString parseUpdateSet(const QString& text) {
+    QStringList res;
+    res.append("update #");
+    QString tail = text;
+    while(true) {
+        QRegularExpression rx("^([lri]?)j([0-9]*)(o?)");
+        auto m = rx.match(tail);
+        if (!m.hasMatch()) {
+            break;
+        }
+        auto cap1 = m.captured(1);
+        auto cap2 = m.captured(2);
+        QString join = "join # on #";
+        if (cap1 == "l") {
+            join = "left join # on #";
+        } else if (cap1 == "r") {
+            join = "right join # on #";
+        } else if (cap1 == "i") {
+            join = "inner join # on #";
+        }
+        int n = 1;
+        if (!cap2.isEmpty()) {
+            n = cap2.toInt();
+        }
+        for(int i=0;i<n;i++) {
+            res.append(join);
+        }
+        tail = tail.mid(m.capturedLength());
+    }
+    if (!tail.isEmpty()) {
+        return {};
+    }
+    res.append("set #");
+    return res.join(" ");
+}
+
 QString Emmet::parse(const QString& text, QString& error) {
 
     static QHash<QString, QString> dict = loadEmmetDict(error);
@@ -172,9 +244,10 @@ QString Emmet::parse(const QString& text, QString& error) {
     QString tail = text;
     bool first = true;
 
-    QRegularExpression vn("^v([0-9]+)(a?)(.*)");
-    QRegularExpression ct("^ct\\(([a-z,]+)\\)(.*)");
+    QRegularExpression vn("^v([0-9]+)(a?)");
+    QRegularExpression ct("^ct\\(([a-z0-9,]+)\\)");
     QRegularExpression cw("^c(((wt)([0-9]*))+)(ee)?");
+    QRegularExpression us("^u([ilrjo0-9]*)s");
 
     const int MAX_SIZE = 7;
 
@@ -191,21 +264,30 @@ QString Emmet::parse(const QString& text, QString& error) {
                 repl.append(" as #");
             }
             res.append(repl);
-            tail = m.captured(3);
+            tail = tail.mid(m.capturedLength());
             continue;
         }
         m = ct.match(tail);
         if (m.hasMatch()) {
-            QString repl = parseCt(m.captured(1));
+            QString repl = parseCreateTable(m.captured(1));
             if (!repl.isEmpty()) {
                 res.append(repl);
-                tail = m.captured(2);
+                tail = tail.mid(m.capturedLength());
                 continue;
             }
         }
         m = cw.match(tail);
         if (m.hasMatch()) {
-            QString repl = parseCw(m.captured(1));
+            QString repl = parseCaseWhere(m.captured(1));
+            if (!repl.isEmpty()) {
+                res.append(repl);
+                tail = tail.mid(m.capturedLength());
+                continue;
+            }
+        }
+        m = us.match(tail);
+        if (m.hasMatch()) {
+            QString repl = parseUpdateSet(m.captured(1));
             if (!repl.isEmpty()) {
                 res.append(repl);
                 tail = tail.mid(m.capturedLength());
@@ -226,21 +308,6 @@ QString Emmet::parse(const QString& text, QString& error) {
         } else {
             tail = tail.mid(key.size());
             QString repl = dict[key];
-#if 0
-            if (key == "us") {
-                if (first) {
-                    repl = "update # set #";
-                } else {
-                    repl = "union select # from #";
-                }
-            } else if (key == "u") {
-                if (first) {
-                    repl = "update # set #";
-                } else {
-                    repl = "union";
-                }
-            }
-#endif
             res.append(repl);
         }
         first = false;

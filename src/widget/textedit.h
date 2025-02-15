@@ -13,6 +13,11 @@ class TextEdit : public QPlainTextEdit
     Q_OBJECT
 
 public:
+    enum SelectTextMode {
+        EmmetMode,
+        SqlMode
+    };
+
     TextEdit(QWidget *parent = 0);
     ~TextEdit();
 
@@ -55,12 +60,15 @@ protected:
     int prevEditIndex() const;
     int nextEditIndex() const;
     int editIndex() const;
+    QTextCursor selectText(SelectTextMode mode);
 protected slots:
     void onTextChanged();
     void insertCompletion(const QString &completion);
 
 private:
+#if 0
     QString textUnderCursor() const;
+#endif
 
 private:
     Completer *mCompleter;

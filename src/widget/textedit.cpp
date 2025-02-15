@@ -121,6 +121,9 @@ void TextEdit::insertCompletion(const QString& completion)
 
     if (mCompleter->widget() != this)
         return;
+
+#if 0
+
     QTextCursor tc = textCursor();
 
 #if 0
@@ -132,10 +135,64 @@ void TextEdit::insertCompletion(const QString& completion)
 
     tc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, mCompleter->completionPrefix().length());
     tc.insertText(completion);
+#endif
 
+    auto tc = selectText(SqlMode);
+    tc.insertText(completion);
     setTextCursor(tc);
 }
 
+static QString prevChar(const QTextCursor& tc2) {
+    QTextCursor tc = tc2;
+    tc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor);
+    return tc.selectedText();
+}
+
+static QString nextChar(const QTextCursor& tc2) {
+    QTextCursor tc = tc2;
+    tc.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
+    return tc.selectedText();
+}
+
+
+QTextCursor TextEdit::selectText(SelectTextMode mode) {
+    if (mode == SqlMode) {
+        auto tc = textCursor();
+        tc.movePosition(QTextCursor::EndOfWord);
+        tc.movePosition(QTextCursor::StartOfLine, QTextCursor::KeepAnchor);
+        QString t = tc.selectedText();
+        int i=0;
+        for(;i<t.size();i++) {
+            auto c = t[t.size() - i - 1];
+            if (c.isSpace() || c == '(' || c == ')' || c == ',' || c == '=') {
+                break;
+            }
+        }
+        tc = textCursor();
+        tc.movePosition(QTextCursor::EndOfWord);
+        tc.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor, i);
+        //qDebug() << "selectText SqlMode selected" << tc.selectedText();
+        return tc;
+
+    } else if (mode == EmmetMode) {
+
+        auto tc = textCursor();
+        tc.movePosition(QTextCursor::StartOfLine, QTextCursor::KeepAnchor);
+        int l1 = tc.selectedText().split(" ").last().size();
+        tc = textCursor();
+        tc.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+        int l2 = tc.selectedText().split(" ")[0].size();
+        tc = textCursor();
+        tc.movePosition(QTextCursor::PreviousCharacter, QTextCursor::MoveAnchor, l1);
+        tc.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, l1 + l2);
+
+        //qDebug() << "selectText EmmetMode selected" << tc.selectedText();
+        return tc;
+    }
+    return {};
+}
+
+#if 0
 QString TextEdit::textUnderCursor() const
 {
     QTextCursor tc = textCursor();
@@ -175,6 +232,7 @@ QString TextEdit::textUnderCursor() const
 
     return tc.selectedText();
 }
+#endif
 
 void TextEdit::focusInEvent(QFocusEvent *e)
 {
@@ -205,12 +263,20 @@ void TextEdit::keyPressEvent(QKeyEvent *e) {
 
     // emmet
     if (c && !c->popup()->isVisible()) {
-        if (e->key() == Qt::Key_Tab) {
-            bool accept = tryEmmet();
-            if (accept) {
-                e->accept();
-                return;
+        bool accept = false;
+        int index = editIndex();
+        if (index < 0) {
+            switch (e->key()) {
+            /*case Qt::Key_Enter:
+            case Qt::Key_Return:*/
+            case Qt::Key_Tab:
+                accept = tryEmmet();
+                break;
             }
+        }
+        if (accept) {
+            e->accept();
+            return;
         }
     }
 
@@ -258,7 +324,9 @@ void TextEdit::keyPressEvent(QKeyEvent *e) {
 
     static QString eow("~!@#$%^&*()+{}|:\"<>?,/;'[]\\-=");
     const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctrlOrShift;
-    QString completionPrefix = textUnderCursor();
+
+    QTextCursor tc = selectText(SelectTextMode::SqlMode);
+    QString completionPrefix = tc.selectedText();
 
     int completionPrefixMinLength = c->completionPrefixMinLength();
 
@@ -290,6 +358,10 @@ int TextEdit::nextEditIndex() const {
         return -1;
     }
     QList<int> dist;
+    for(int index = 0; index < m_edits.size(); index++) {
+        const auto& edit = m_edits[index];
+        qDebug() << "index" << index << "pos" << edit.first.position();
+    }
     int position = this->textCursor().position();
     for(int index = 0; index < m_edits.size(); index++) {
         const auto& edit = m_edits[index];
@@ -395,10 +467,11 @@ static QTextCursor selectEmmetExpression(const QTextCursor& cursor) {
 #include <QMessageBox>
 
 bool TextEdit::tryEmmet() {
-    if (!cursorAtEndOfWord()) {
+    /*if (!cursorAtEndOfWord()) {
         return false;
-    }
-    QTextCursor cursor = selectEmmetExpression(textCursor());
+    }*/
+
+    QTextCursor cursor = selectText(EmmetMode);
     QString text = cursor.selectedText();
     if (text.isEmpty()) {
         //qDebug() << "cursor.selectedText() is empty";

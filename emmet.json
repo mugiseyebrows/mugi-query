@@ -76,7 +76,6 @@
     ["u"], "union",
     ["usf"], "union select # from #",
     "-- update",
-    ["usw"], "update # set # where #",
     ["ii"], "insert into #",
     ["v"], "values ( # )",
     ["va"], "values ( # ) as #",
