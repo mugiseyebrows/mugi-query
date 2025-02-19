@@ -16,21 +16,42 @@
 #include "clipboardutil.h"
 #include "hexitemdelegate.h"
 
-namespace {
-
-void resizeColumnsToContents(QTableView* view, int maxWidth) {
+static void resizeColumnsToContents(QTableView* view, int maxWidth) {
     QAbstractItemModel* model = view->model();
-    if (!model) {
-        return;
-    }
     view->resizeColumnsToContents();
     for(int c=0; c<model->columnCount(); c++) {
-        if (view->columnWidth(c) > maxWidth)
-            view->setColumnWidth(c,maxWidth);
+        if (view->columnWidth(c) > maxWidth) {
+            view->setColumnWidth(c, maxWidth);
+        }
     }
 }
 
-QWidget* topWidget(QWidget* w) {
+static void resizeRowsToContents(QTableView* view, int maxHeight) {
+    QAbstractItemModel* model = view->model();
+    view->resizeRowsToContents();
+    for(int r=0; r<model->rowCount(); r++) {
+        if (view->rowHeight(r) > maxHeight) {
+            view->setRowHeight(r, maxHeight);
+        }
+    }
+}
+
+static void setColumnsWidth(QTableView* view, int width) {
+    QAbstractItemModel* model = view->model();
+    for(int c=0; c<model->columnCount(); c++) {
+        view->setColumnWidth(c, width);
+    }
+}
+
+static void setRowsHeight(QTableView* view, int height) {
+    QAbstractItemModel* model = view->model();
+    for(int r=0; r<model->rowCount(); r++) {
+        view->setRowHeight(r, height);
+    }
+}
+
+
+static QWidget* topWidget(QWidget* w) {
     while (true) {
         if (QWidget* p = qobject_cast<QWidget*>(w->parent())) {
             w = p;
@@ -40,8 +61,6 @@ QWidget* topWidget(QWidget* w) {
     }
 }
 
-
-}
 
 QItemSelectionModel* QueryModelView::selectionModel() const {
     return ui->table->selectionModel();
@@ -78,8 +97,6 @@ QueryModelView::~QueryModelView()
     qDebug() << "~QueryModelView";
     delete ui;
 }
-
-
 
 template <typename T>
 static QList<T> toList(const QSet<T>& qlist)
@@ -121,10 +138,70 @@ DistributionPlot* QueryModelView::distributionPlot() const {
     return ui->distribution;
 }
 
+void QueryModelView::setColumnsSize(Size size)
+{
+    mColumnsWidth = size;
+    updateColumnsWidth();
+}
+
+void QueryModelView::setRowsHeight(Size size)
+{
+    mRowsHeight = size;
+    updateRowsHeight();
+}
+
+void QueryModelView::updateRowsHeight() {
+    int height = -1;
+    switch(mRowsHeight) {
+    case SizeFit:
+        break;
+    case SizeS:
+        height = 30;
+        break;
+    case SizeM:
+        height = 60;
+        break;
+    case SizeL:
+        height = 120;
+        break;
+    }
+
+    if (height > 0) {
+        ::setRowsHeight(ui->table, height);
+    } else {
+        resizeRowsToContents(ui->table, this->height() / 2);
+    }
+}
+
+void QueryModelView::updateColumnsWidth() {
+    int width = -1;
+    switch(mColumnsWidth) {
+    case SizeFit:
+        break;
+    case SizeS:
+        width = 50;
+        break;
+    case SizeM:
+        width = 100;
+        break;
+    case SizeL:
+        width = 200;
+        break;
+    }
+    if (width > 0) {
+        ::setColumnsWidth(ui->table, width);
+    } else {
+        resizeColumnsToContents(ui->table, this->width() / 2);
+    }
+}
+
 void QueryModelView::setModel(QAbstractItemModel *model)
 {
     ui->table->setModel(model);
-    resizeColumnsToContents(ui->table,this->width()/2);
+
+    updateColumnsWidth();
+    updateRowsHeight();
+
     ui->xy->setModel(model);
     ui->distribution->setModel(model);
 }

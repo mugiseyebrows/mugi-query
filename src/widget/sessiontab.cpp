@@ -27,6 +27,8 @@
 #include <QSharedPointer>
 #include "error.h"
 #include "copyeventfilter.h"
+#include "cornerbutton.h"
+#include <QMenu>
 
 namespace {
 
@@ -85,6 +87,54 @@ SessionTab::SessionTab(const QString &connectionName, const QString name, QWidge
         Clipboard::copySelected(view->model(), selection, DataFormat::Csv, "\t", true, locale(), error);
         Error::show(this,error);
     });
+
+    CornerButton* button = new CornerButton("size");
+    button->setWidget(ui->resultTabs);
+    connect(button->button(), &QPushButton::clicked, [=](){
+
+        QMenu menu(ui->resultTabs);
+
+        QAction* colsFit = menu.addAction("Fit Columns");
+        QAction* colsS = menu.addAction("S Columns");
+        QAction* colsM = menu.addAction("M Columns");
+        QAction* colsL = menu.addAction("L Columns");
+
+        QAction* rowsFit = menu.addAction("Fit Rows");
+        QAction* rowsS = menu.addAction("S Rows");
+        QAction* rowsM = menu.addAction("M Rows");
+        QAction* rowsL = menu.addAction("L Rows");
+
+        QMap<QAction*, QueryModelView::Size> colsMap = {
+            {colsFit, QueryModelView::SizeFit},
+            {colsS, QueryModelView::SizeS},
+            {colsM, QueryModelView::SizeM},
+            {colsL, QueryModelView::SizeL}
+        };
+
+        QMap<QAction*, QueryModelView::Size> rowsMap = {
+            {rowsFit, QueryModelView::SizeFit},
+            {rowsS, QueryModelView::SizeS},
+            {rowsM, QueryModelView::SizeM},
+            {rowsL, QueryModelView::SizeL}
+        };
+
+        QAction* res = menu.exec(button->button()->mapToGlobal(QPoint(0,0)));
+
+        auto* view = currentView();
+
+        if (colsMap.contains(res)) {
+            auto size = colsMap[res];
+            view->setColumnsSize(size);
+        }
+        if (rowsMap.contains(res)) {
+            auto size = rowsMap[res];
+            view->setRowsHeight(size);
+        }
+
+    });
+
+
+
 }
 
 void SessionTab::on_resultTabs_currentChanged(int index) {

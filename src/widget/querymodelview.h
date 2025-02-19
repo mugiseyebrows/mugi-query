@@ -25,6 +25,12 @@ public:
         TabIndexXY,
         TabIndexDistribution
     };
+    enum Size {
+        SizeFit,
+        SizeS,
+        SizeM,
+        SizeL
+    };
 
     explicit QueryModelView(QWidget *parent = nullptr);
     ~QueryModelView();
@@ -40,6 +46,10 @@ public:
     QItemSelectionModel *selectionModel() const;
     XYPlot *xyPlot() const;
     DistributionPlot *distributionPlot() const;
+
+    void setColumnsSize(Size size);
+    void setRowsHeight(Size size);
+
 public slots:
     void updateSplitter();
     void showDistributionPlot();
@@ -50,6 +60,10 @@ protected slots:
     void on_tabs_currentChanged(int index);
     void onTableCustomContextMenuRequested(const QPoint &pos);
 
+protected:
+    void updateRowsHeight();
+    void updateColumnsWidth();
+
 private slots:
     void onCopy();
 protected:
@@ -58,6 +72,10 @@ protected:
     bool mSplitterUpdated;
     ItemDelegate* mItemDelegate;
     HexItemDelegate* mHexItemDelegate;
+
+    Size mColumnsWidth = SizeFit;
+    Size mRowsHeight = SizeS;
+
     void setItemDelegateForColumns(const QList<int> columns, QAbstractItemDelegate *delegate);
 };
 
