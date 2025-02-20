@@ -67,25 +67,26 @@
 
 using namespace DataUtils;
 
-namespace {
+static void expandOneLevel(QTreeView* view) {
+    QAbstractItemModel* model = view->model();
+    for(int row=0;row<model->rowCount();row++) {
+        view->expand(model->index(row, 0));
+    }
+}
 
-
-
-void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QMetaType::Type>& types) {
+static void recordToNamesTypes(const QSqlRecord& record, QStringList& names, QList<QMetaType::Type>& types) {
     for(int c=0;c<record.count();c++) {
         names << record.fieldName(c);
         types << (QMetaType::Type) record.field(c).metaType().id();
     }
 }
 
-QStringList repeat(const QString& item, int n) {
+static QStringList repeat(const QString& item, int n) {
     QStringList res;
     for(int i=0;i<n;i++) {
         res.append(item);
     }
     return res;
-}
-
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -324,9 +325,10 @@ void MainWindow::updateSchemaTreeModel() {
     }
 
     if (ui->schemaTree->model() != treeProxy) {
-        qDebug() << "ui->schemaTree->model() != tree";
+        //qDebug() << "ui->schemaTree->model() != tree";
         ui->schemaTree->setModel(treeProxy);
         ui->tableName->setText("");
+        expandOneLevel(ui->schemaTree);
     }
 
 }
@@ -1342,6 +1344,9 @@ void MainWindow::on_settingsDirectory_triggered()
     dialog.exec();
 }
 
+
+
+
 void MainWindow::on_tableName_textChanged(const QString &text)
 {
     auto* model = ui->schemaTree->model();
@@ -1357,6 +1362,7 @@ void MainWindow::on_tableName_textChanged(const QString &text)
     if (regExp.isValid()) {
         proxyModel->setFilterRegularExpression(regExp);
     }
+    expandOneLevel(ui->schemaTree);
 }
 
 void MainWindow::on_selectionViewAsHex_triggered()

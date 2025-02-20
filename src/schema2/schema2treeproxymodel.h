@@ -9,6 +9,7 @@ class Schema2TreeProxyModel : public QSortFilterProxyModel
 public:
     explicit Schema2TreeProxyModel(QObject *parent = nullptr);
 
+    bool filterAcceptsRowItself(int sourceRow, const QModelIndex &sourceParent) const;
 signals:
 
     // QSortFilterProxyModel interface
