@@ -290,6 +290,7 @@ if (BUILD_APP)
         src/schema2/schema2storedmodel.h src/schema2/schema2storedmodel.cpp
         src/cursorcontext.h src/cursorcontext.cpp
         src/codewidgetdialog.h src/codewidgetdialog.cpp src/codewidgetdialog.ui
+        src/cornerbutton.h src/cornerbutton.cpp
     )
     target_include_directories(mugi-query PUBLIC
         src
