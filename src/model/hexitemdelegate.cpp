@@ -2,6 +2,8 @@
 #include <QPainter>
 #include <QRectF>
 #include "varianttobytearray.h"
+#include "table.h"
+#include <QDebug>
 
 HexItemDelegate::HexItemDelegate(QObject *parent)
     : QStyledItemDelegate{parent}
@@ -28,7 +30,7 @@ QString HexItemDelegate::displayText(const QVariant &value, const QLocale &local
     return QStyledItemDelegate::displayText(value,locale);
 }
 
-static QString hex(const QByteArray& data, int offset, int len = 16) {
+static QString hex(const QByteArray& data, int offset, int len) {
     QStringList res;
     for (int i=0;i<len;i++) {
         if (offset + i >= data.size()) {
@@ -39,89 +41,116 @@ static QString hex(const QByteArray& data, int offset, int len = 16) {
     return res.join(" ");
 }
 
+static QString header(int blockCount) {
+    int len = blockCount * 8;
+    QByteArray res(len, 'x');
+    for(int i=0;i<len;i++) {
+        res[i] = i;
+    }
+    return hex(res, 0, len);
+}
+
+static int intCeil(int n, int d) {
+    return (n + d - 1) / d;
+}
+
 void HexItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    QByteArray data = variantToByteArray(index.data());
+    if (data.isEmpty()) {
+        return;
+    }
+
     painter->save();
 
-    QFont font("Courier New", 8, QFont::Normal);
+    QFont font("Liberation Mono", 9, QFont::Normal);
 
     QFontMetrics fm(font);
-    //double rw = fm.horizontalAdvance("000");
-    double lineHeight = fm.lineSpacing();
+    int lineHeight = fm.lineSpacing();
+    int charWidth = fm.horizontalAdvance("00000000") / 8;
+    int spacing = charWidth / 2;
 
     painter->setFont(font);
-    QRectF rect = QRectF(option.rect);
+    QRect rect = QRect(option.rect);
     rect.adjust(2,2,-2,-2);
 
     int lineCount = rect.height() / lineHeight;
 
-    QByteArray data = variantToByteArray(index.data());
+    int verHeaderWidth = QString("%1").arg(data.size(), 0, 16).size() * charWidth;
 
     painter->setClipRect(option.rect);
 
-    double dataWidth = fm.horizontalAdvance(hex(QByteArray(16, 'x'), 0)) + 5;
-    double rulerWidth = fm.horizontalAdvance("00") + 5;
-    double spacing = fm.horizontalAdvance("0") / 2;
+    Table table(rect, lineHeight, spacing);
 
-    if (rect.width() < (dataWidth + rulerWidth + spacing) || lineCount < 2) {
+    table.insertColumn(0, verHeaderWidth);
 
-        int chars = rect.width() / fm.horizontalAdvance("0");
-        int octs = (chars - 2) / 3 + 1;
+    int availableWidth = table.availableWidth();
+    int availableChars = availableWidth / charWidth;
 
-        bool elide = octs * lineCount < data.size();
+    int blockCount = availableChars / (3 * 8);
 
-        double y0 = (rect.height() - lineHeight * lineCount) / 2;
-        double x0 = 0;
+    bool small = blockCount < 1 || lineCount < 2;
 
-        QTextOption opt(Qt::AlignVCenter | Qt::AlignLeft);
+    if (blockCount < 1) {
+        blockCount = 1;
+    }
 
-        for(int i=0;i<lineCount;i++) {
-            QString text;
-            if (elide && i == lineCount - 1) {
-                text = hex(data, i * octs, octs - 1) + " …";
-            } else {
-                text = hex(data, i * octs, octs);
+    if (blockCount * 8 > data.size()) {
+        blockCount = intCeil(data.size(), 8);
+    }
+
+    bool elide = true;
+    if (blockCount * 8 * (lineCount - 1) >= data.size()) {
+        elide = false;
+        lineCount = intCeil(data.size(), 8 * blockCount) + 1;
+        table.setRowCount(lineCount);
+    }
+
+    table.insertColumn(1, (blockCount * 3 * 8 - 1) * charWidth);
+
+    if (small) {
+
+        QTextOption opt(Qt::AlignCenter);
+        int availableChars = rect.width() / charWidth;
+        int octCount = availableChars / 3;
+        QString text = hex(data, 0, octCount);
+        if (octCount < data.size()) {
+            if (text.size() + 2 > availableChars) {
+                text = text.mid(0, text.size() - 3);
             }
-            QRectF rect1(rect.topLeft() + QPointF(x0, y0 + i * lineHeight), QSizeF(rect.width(), lineHeight));
-            painter->drawText(rect1, text, opt);
+            text = text + " …";
         }
-
+        painter->setPen(Qt::black);
+        painter->drawText(rect, text, opt);
 
     } else {
 
-        double x0 = (rect.width() - (dataWidth + rulerWidth + spacing)) / 2;
-        double x1 = x0 + rulerWidth + spacing;
-
-        double y0 = (rect.height() - lineHeight * lineCount) / 2;
-
-        double h = lineHeight;
-
-        QByteArray header(16, 'x');
-        for(int i=0;i<16;i++) {
-            header[i] = i;
-        }
-
         QTextOption opt(Qt::AlignVCenter | Qt::AlignLeft);
-        for(int i=0;i<lineCount;i++) {
-            if (i > 0) {
-                QRectF rect1(rect.topLeft() + QPointF(x0, y0 + i * lineHeight), QSizeF(rulerWidth, h));
+        for(int row=0;row<lineCount;row++) {
+            if (row > 0) {
+                // vertical header
+                QString text = QString("%1").arg((row - 1) * 8 * blockCount, 2, 16, QChar('0'));
                 painter->setPen(Qt::gray);
-                painter->drawText(rect1, QString("%1").arg((i - 1) * 16, 2, 16, QChar('0')), opt);
+                painter->drawText(table.cell(row, 0), text, opt);
             }
-            QRectF rect2(rect.topLeft() + QPointF(x1, y0 + i * lineHeight), QSizeF(dataWidth, h));
-            if (i == 0) {
+            if (row == 0) {
+                // horizontal header
                 painter->setPen(Qt::gray);
-                painter->drawText(rect2, hex(header, 0), opt);
+                QString text = header(blockCount);
+                painter->drawText(table.cell(row, 1), text, opt);
             } else {
+                // data row
                 painter->setPen(Qt::black);
-                painter->drawText(rect2, hex(data, (i - 1) * 16), opt);
+                int offset = (row - 1) * 8 * blockCount;
+                int len = 8 * blockCount;
+                QString text = hex(data, offset, len);
+                if (elide && row == (lineCount - 1)) {
+                    text = text.mid(0, text.size() - 2) + "…";
+                }
+                painter->drawText(table.cell(row, 1), text, opt);
             }
         }
     }
 
-
     painter->restore();
-
-    //painter->drawEllipse(option.rect.topLeft() + QPoint(10,10), 4, 4);
-    //qDebug() << "rect" << option.rect;
 }

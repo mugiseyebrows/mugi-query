@@ -30,15 +30,15 @@
     <item>
      <widget class="QSplitter" name="horizontalSplitter">
       <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+       <enum>Qt::Orientation::Horizontal</enum>
       </property>
       <widget class="QSplitter" name="verticalSplitter">
        <property name="orientation">
-        <enum>Qt::Vertical</enum>
+        <enum>Qt::Orientation::Vertical</enum>
        </property>
        <widget class="QTreeView" name="sessionTree">
         <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
+         <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
         </property>
        </widget>
        <widget class="QWidget" name="layoutWidget">
@@ -49,10 +49,10 @@
          <item>
           <widget class="QTreeView" name="schemaTree">
            <property name="contextMenuPolicy">
-            <enum>Qt::CustomContextMenu</enum>
+            <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
            </property>
            <property name="selectionMode">
-            <enum>QAbstractItemView::ExtendedSelection</enum>
+            <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
            </property>
            <attribute name="headerDefaultSectionSize">
             <number>150</number>
@@ -140,9 +140,9 @@
     <addaction name="selectionCopyNames"/>
     <addaction name="copyAsInsert"/>
     <addaction name="separator"/>
+    <addaction name="viewAsBin"/>
     <addaction name="selectionViewAsHex"/>
     <addaction name="selectionViewAsString"/>
-    <addaction name="viewAsBin"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -428,12 +428,12 @@
   </action>
   <action name="selectionViewAsHex">
    <property name="text">
-    <string>View as hex</string>
+    <string>View as Hex</string>
    </property>
   </action>
   <action name="selectionViewAsString">
    <property name="text">
-    <string>View as string</string>
+    <string>View as Normal</string>
    </property>
   </action>
   <action name="codeMysqlConnector">
@@ -458,7 +458,7 @@
   </action>
   <action name="viewAsBin">
    <property name="text">
-    <string>View as bin</string>
+    <string>View as Bin</string>
    </property>
   </action>
  </widget>

@@ -6,7 +6,9 @@
 
 class Table {
 public:
-    Table(const QRect& rect, int lineHeight, int spacing);
+    Table();
+
+    Table(const QRect& rect, int rowHeight, int spacing);
 
     void insertColumn(int index, int width);
 

@@ -77,15 +77,21 @@ static QString bin(const QByteArray& data, int offset, int len = 4, bool rtl = t
 
 void BinItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+
+    QByteArray data = variantToByteArray(index.data());
+    if (data.isEmpty()) {
+        return;
+    }
+
     painter->save();
-
-
+#if 0
     QFont font_ = painter->font();
     qDebug() << font_.family() << font_.pointSize();
+#endif
 
     painter->setClipRect(option.rect);
 
-    QFont font("Liberation Mono", 10, QFont::Normal);
+    QFont font("Liberation Mono", 9, QFont::Normal);
     painter->setFont(font);
 
     QFontMetrics fm(font);
@@ -94,8 +100,6 @@ void BinItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     int lineHeight = fm.lineSpacing();
 
     //qDebug() << fm.horizontalAdvance("00000000");
-
-    QByteArray data = variantToByteArray(index.data());
 
     int verHeaderWidth = charWidth * QString::number(data.size() * 8).size();
 
@@ -110,7 +114,6 @@ void BinItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     table.insertColumn(1, verHeaderWidth);
 
     int availableWidth = table.availableWidth();
-
     int availableChars = availableWidth / charWidth;
     int octCount = availableChars / 9;
 
@@ -134,23 +137,24 @@ void BinItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
 
     table.insertColumn(1, (octCount * 9 - 1) * charWidth);
 
+    bool elide = (lineCount - 1) * octCount < data.size();
+
     bool rtl = true;
 
     if (small) {
 
-        int chars = rect.width() / charWidth - 1;
-        QString text = bin(data, 0, octCount + 1, rtl);
-        bool elide = false;
-        if (text.size() > chars) {
-            text = text.mid(0, chars);
-            elide = true;
+        int availableChars = rect.width() / charWidth;
+        octCount = availableChars / 9;
+
+        QString text = bin(data, 0, octCount, rtl);
+        if (octCount < data.size()) {
+            // elide
+            if (text.size() + 2 > availableChars) {
+                text = text.mid(0, text.size() - 9);
+            }
+            text = text + " …";
         }
-        if (octCount + 1 < data.size()) {
-            elide = true;
-        }
-        if (elide) {
-            text = text + "…";
-        }
+
         QTextOption opt(Qt::AlignCenter);
         painter->drawText(rect, text, opt);
 
@@ -184,7 +188,12 @@ void BinItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
             } else {
                 // data row
                 painter->setPen(Qt::black);
-                painter->drawText(rect1, bin(data, (row - 1) * octCount, octCount, rtl), optLeft);
+                int offset = (row - 1) * octCount;
+                QString text = bin(data, offset, octCount, rtl);
+                if (elide && row == (lineCount - 1)) {
+                    text = text.mid(0, text.size() - 8) + "…";
+                }
+                painter->drawText(rect1, text, optLeft);
             }
         }
     }

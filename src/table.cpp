@@ -2,12 +2,18 @@
 
 #include <algorithm>
 #include <QRect>
+#include <QDebug>
 
 static int intCeil(int n, int d) {
     return (n + d - 1) / d;
 }
 
-Table::Table(const QRect &rect, int lineHeight, int spacing) : mRect(rect), mRowHeight(lineHeight), mSpacing(spacing) {
+Table::Table()
+{
+
+}
+
+Table::Table(const QRect &rect, int rowHeight, int spacing) : mRect(rect), mRowHeight(rowHeight), mSpacing(spacing) {
     mRowCount = rect.height() / mRowHeight;
 }
 
@@ -24,7 +30,16 @@ QRect Table::cell(int row, int column) const {
     }
     int y0 = (mRect.height() - mRowHeight * mRowCount) / 2;
     int y = y0 + mRowHeight * row;
-    return QRect(QPoint(x, y) + mRect.topLeft(), QSize(mColumns[column], mRowHeight));
+
+    QRect rect(QPoint(x, y) + mRect.topLeft(), QSize(mColumns[column], mRowHeight));
+
+#if 0
+    //qDebug() << rect.topLeft() << rect.size();
+    rect.adjust(-2,-2,2,2);
+    //qDebug() << rect.topLeft() << rect.size();
+#endif
+
+    return rect;
 }
 
 int Table::totalWidth() const {
