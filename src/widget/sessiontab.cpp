@@ -293,6 +293,12 @@ void SessionTab::viewAsHex()
     view->viewAsHex();
 }
 
+void SessionTab::viewAsBin()
+{
+    auto* view = currentView();
+    view->viewAsBin();
+}
+
 void SessionTab::viewAsString() {
     auto* view = currentView();
     view->viewAsString();

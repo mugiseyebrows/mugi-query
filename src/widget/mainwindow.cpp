@@ -1371,6 +1371,12 @@ void MainWindow::on_selectionViewAsHex_triggered()
     tab->viewAsHex();
 }
 
+void MainWindow::on_viewAsBin_triggered()
+{
+    SessionTab* tab = currentTab();
+    tab->viewAsBin();
+}
+
 
 void MainWindow::on_selectionViewAsString_triggered()
 {
@@ -1515,8 +1521,9 @@ void MainWindow::on_codePandas_triggered()
         QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
     }
 
-
-
 }
+
+
+
 
 

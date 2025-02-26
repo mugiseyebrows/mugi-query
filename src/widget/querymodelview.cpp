@@ -15,6 +15,7 @@
 #include "clipboard.h"
 #include "clipboardutil.h"
 #include "hexitemdelegate.h"
+#include "binitemdelegate.h"
 
 static void resizeColumnsToContents(QTableView* view, int maxWidth) {
     QAbstractItemModel* model = view->model();
@@ -84,6 +85,8 @@ QueryModelView::QueryModelView(QWidget *parent) :
 
     mHexItemDelegate = new HexItemDelegate(view);
 
+    mBinItemDelegate = new BinItemDelegate(view);
+
     connect(ui->table,SIGNAL(customContextMenuRequested(QPoint)),
             this,SLOT(onTableCustomContextMenuRequested(QPoint)));
 
@@ -123,6 +126,11 @@ void QueryModelView::setItemDelegateForColumns(const QList<int> columns, QAbstra
 void QueryModelView::viewAsHex()
 {
     setItemDelegateForColumns(selectedColumns(selectionModel()), mHexItemDelegate);
+}
+
+void QueryModelView::viewAsBin()
+{
+    setItemDelegateForColumns(selectedColumns(selectionModel()), mBinItemDelegate);
 }
 
 void QueryModelView::viewAsString()

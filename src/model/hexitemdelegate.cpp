@@ -1,6 +1,7 @@
 #include "hexitemdelegate.h"
 #include <QPainter>
 #include <QRectF>
+#include "varianttobytearray.h"
 
 HexItemDelegate::HexItemDelegate(QObject *parent)
     : QStyledItemDelegate{parent}
@@ -54,7 +55,7 @@ void HexItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
 
     int lineCount = rect.height() / lineHeight;
 
-    QByteArray data = index.data().toByteArray();
+    QByteArray data = variantToByteArray(index.data());
 
     painter->setClipRect(option.rect);
 
@@ -101,16 +102,12 @@ void HexItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
         }
 
         QTextOption opt(Qt::AlignVCenter | Qt::AlignLeft);
-
-
         for(int i=0;i<lineCount;i++) {
-
             if (i > 0) {
                 QRectF rect1(rect.topLeft() + QPointF(x0, y0 + i * lineHeight), QSizeF(rulerWidth, h));
                 painter->setPen(Qt::gray);
                 painter->drawText(rect1, QString("%1").arg((i - 1) * 16, 2, 16, QChar('0')), opt);
             }
-
             QRectF rect2(rect.topLeft() + QPointF(x1, y0 + i * lineHeight), QSizeF(dataWidth, h));
             if (i == 0) {
                 painter->setPen(Qt::gray);
@@ -119,11 +116,7 @@ void HexItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
                 painter->setPen(Qt::black);
                 painter->drawText(rect2, hex(data, (i - 1) * 16), opt);
             }
-
-
         }
-
-
     }
 
 

@@ -10,6 +10,7 @@ class XYPlot;
 class HexItemDelegate;
 class ItemDelegate;
 class QAbstractItemDelegate;
+class BinItemDelegate;
 
 namespace Ui {
 class QueryModelView;
@@ -36,6 +37,8 @@ public:
     ~QueryModelView();
 
     void viewAsHex();
+
+    void viewAsBin();
 
     void viewAsString();
 
@@ -72,6 +75,7 @@ protected:
     bool mSplitterUpdated;
     ItemDelegate* mItemDelegate;
     HexItemDelegate* mHexItemDelegate;
+    BinItemDelegate* mBinItemDelegate;
 
     Size mColumnsWidth = SizeFit;
     Size mRowsHeight = SizeS;

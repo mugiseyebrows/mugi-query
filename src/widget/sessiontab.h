@@ -61,7 +61,10 @@ public:
 
     void viewAsHex();
 
+    void viewAsBin();
+
     void viewAsString();
+
 
 signals:
     void query(QString);

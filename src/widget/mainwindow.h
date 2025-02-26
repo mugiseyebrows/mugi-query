@@ -164,6 +164,8 @@ private slots:
 
     void on_copyAsInsert_triggered();
 
+    void on_viewAsBin_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

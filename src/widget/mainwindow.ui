@@ -30,15 +30,15 @@
     <item>
      <widget class="QSplitter" name="horizontalSplitter">
       <property name="orientation">
-       <enum>Qt::Orientation::Horizontal</enum>
+       <enum>Qt::Horizontal</enum>
       </property>
       <widget class="QSplitter" name="verticalSplitter">
        <property name="orientation">
-        <enum>Qt::Orientation::Vertical</enum>
+        <enum>Qt::Vertical</enum>
        </property>
        <widget class="QTreeView" name="sessionTree">
         <property name="contextMenuPolicy">
-         <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+         <enum>Qt::CustomContextMenu</enum>
         </property>
        </widget>
        <widget class="QWidget" name="layoutWidget">
@@ -49,10 +49,10 @@
          <item>
           <widget class="QTreeView" name="schemaTree">
            <property name="contextMenuPolicy">
-            <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+            <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="selectionMode">
-            <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
+            <enum>QAbstractItemView::ExtendedSelection</enum>
            </property>
            <attribute name="headerDefaultSectionSize">
             <number>150</number>
@@ -142,6 +142,7 @@
     <addaction name="separator"/>
     <addaction name="selectionViewAsHex"/>
     <addaction name="selectionViewAsString"/>
+    <addaction name="viewAsBin"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -453,6 +454,11 @@
   <action name="copyAsInsert">
    <property name="text">
     <string>Copy as Insert</string>
+   </property>
+  </action>
+  <action name="viewAsBin">
+   <property name="text">
+    <string>View as bin</string>
    </property>
   </action>
  </widget>

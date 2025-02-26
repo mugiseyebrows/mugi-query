@@ -291,6 +291,9 @@ if (BUILD_APP)
         src/cursorcontext.h src/cursorcontext.cpp
         src/codewidgetdialog.h src/codewidgetdialog.cpp src/codewidgetdialog.ui
         src/cornerbutton.h src/cornerbutton.cpp
+        src/model/binitemdelegate.h src/model/binitemdelegate.cpp
+        src/varianttobytearray.h src/varianttobytearray.cpp
+        src/table.h src/table.cpp
     )
     target_include_directories(mugi-query PUBLIC
         src
