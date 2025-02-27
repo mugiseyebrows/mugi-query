@@ -77,6 +77,7 @@ protected:
     //SchemaModel* mSchemaModel;
 
     void updateSchemaTreeModel();
+    QModelIndex tabIndexToSessionIndex(int tabIndex);
 protected slots:
 
     void on_databaseConnect_triggered();

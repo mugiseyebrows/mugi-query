@@ -133,6 +133,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QTimer::singleShot(0,this,SLOT(onAdjustSplitter()));
 
+    connect(ui->sessionTabs, &QTabWidget::tabCloseRequested, [=](int tabIndex){
+        auto index = tabIndexToSessionIndex(tabIndex);
+        SessionModel* m = model();
+        if (!m->isSession(index)) {
+            qDebug() << "error: not session tab" << tabIndex << index;
+            return;
+        }
+        m->removeSession(index);
+    });
+
     if (qApp->applicationDirPath().toLower().endsWith("debug")) {
         automate(this);
     }
@@ -272,6 +282,11 @@ int MainWindow::tabIndex(QTabWidget* widget, const QString& name) {
     return -1;
 }
 
+QModelIndex MainWindow::tabIndexToSessionIndex(int tabIndex) {
+    QString connectionName = tab(tabIndex)->connectionName();
+    QString name = tab(tabIndex)->name();
+    return model()->indexOf(connectionName,name);
+}
 
 void MainWindow::onTabsCurrentChanged(int tabIndex) {
     //qDebug() << "onTabsCurrentChanged" << index;
@@ -283,11 +298,10 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
     }
 
     QString connectionName = tab(tabIndex)->connectionName();
-    QString name = tab(tabIndex)->name();
-    QModelIndex index = model()->indexOf(connectionName,name);
-    if (ui->sessionTree->currentIndex() != index) {
+    auto index = tabIndexToSessionIndex(tabIndex);
+    //if (ui->sessionTree->currentIndex() != index) {
         ui->sessionTree->setCurrentIndex(index);
-    }
+    //}
 
     QSqlDatabase db = QSqlDatabase::database(connectionName);
     setWindowTitle(DataUtils::windowTitle(QString(),db,QString()));
@@ -302,7 +316,7 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
 
 
     updateSchemaTreeModel();
-
+    
 }
 
 void MainWindow::updateSchemaTreeModel() {
