@@ -194,9 +194,12 @@ void QueryModelView::updateRowsHeight() {
         height = 30;
         break;
     case SizeM:
-        height = 60;
+        height = 45;
         break;
     case SizeL:
+        height = 60;
+        break;
+    case SizeXL:
         height = 120;
         break;
     }
@@ -217,9 +220,12 @@ void QueryModelView::updateColumnsWidth() {
         width = 50;
         break;
     case SizeM:
-        width = 100;
+        width = 75;
         break;
     case SizeL:
+        width = 100;
+        break;
+    case SizeXL:
         width = 200;
         break;
     }

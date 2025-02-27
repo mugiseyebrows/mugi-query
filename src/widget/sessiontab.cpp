@@ -98,24 +98,28 @@ SessionTab::SessionTab(const QString &connectionName, const QString name, QWidge
         QAction* colsS = menu.addAction("S Columns");
         QAction* colsM = menu.addAction("M Columns");
         QAction* colsL = menu.addAction("L Columns");
+        QAction* colsXL = menu.addAction("XL Columns");
 
         QAction* rowsFit = menu.addAction("Fit Rows");
         QAction* rowsS = menu.addAction("S Rows");
         QAction* rowsM = menu.addAction("M Rows");
         QAction* rowsL = menu.addAction("L Rows");
+        QAction* rowsXL = menu.addAction("XL Rows");
 
         QMap<QAction*, QueryModelView::Size> colsMap = {
             {colsFit, QueryModelView::SizeFit},
             {colsS, QueryModelView::SizeS},
             {colsM, QueryModelView::SizeM},
-            {colsL, QueryModelView::SizeL}
+            {colsL, QueryModelView::SizeL},
+            {colsXL, QueryModelView::SizeXL},
         };
 
         QMap<QAction*, QueryModelView::Size> rowsMap = {
             {rowsFit, QueryModelView::SizeFit},
             {rowsS, QueryModelView::SizeS},
             {rowsM, QueryModelView::SizeM},
-            {rowsL, QueryModelView::SizeL}
+            {rowsL, QueryModelView::SizeL},
+            {rowsXL, QueryModelView::SizeXL}
         };
 
         QAction* res = menu.exec(button->button()->mapToGlobal(QPoint(0,0)));

@@ -30,7 +30,8 @@ public:
         SizeFit,
         SizeS,
         SizeM,
-        SizeL
+        SizeL,
+        SizeXL,
     };
 
     explicit QueryModelView(QWidget *parent = nullptr);
