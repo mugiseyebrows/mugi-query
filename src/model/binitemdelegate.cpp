@@ -144,15 +144,19 @@ void BinItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     if (small) {
 
         int availableChars = rect.width() / charWidth;
-        octCount = availableChars / 9;
-
-        QString text = bin(data, 0, octCount, rtl);
-        if (octCount < data.size()) {
-            // elide
-            if (text.size() + 2 > availableChars) {
-                text = text.mid(0, text.size() - 9);
+        QString text;
+        if (data.size() > 1 && availableChars < 10) {
+            text = "…";
+        } else {
+            octCount = availableChars / 9;
+            text = bin(data, 0, octCount, rtl);
+            if (octCount < data.size()) {
+                // elide
+                if (text.size() + 2 > availableChars) {
+                    text = text.mid(0, text.size() - 9);
+                }
+                text = text + " …";
             }
-            text = text + " …";
         }
 
         QTextOption opt(Qt::AlignCenter);
