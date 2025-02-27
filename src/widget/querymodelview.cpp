@@ -17,10 +17,27 @@
 #include "hexitemdelegate.h"
 #include "binitemdelegate.h"
 
-static void resizeColumnsToContents(QTableView* view, int maxWidth) {
-    QAbstractItemModel* model = view->model();
+static void resizeColumnsToContents(QTableView* view, int maxWidth, const QList<int>& skipColumns) {
+    int columnCount = view->horizontalHeader()->count();
+    QMap<int, int> size;
+    for(int c: skipColumns) {
+        size[c] = view->columnWidth(c);
+    }
     view->resizeColumnsToContents();
-    for(int c=0; c<model->columnCount(); c++) {
+    for(int c=0; c<columnCount; c++) {
+        if (view->columnWidth(c) > maxWidth) {
+            view->setColumnWidth(c, maxWidth);
+        }
+    }
+    for(int c: skipColumns) {
+        view->setColumnWidth(c, size[c]);
+    }
+}
+
+static void resizeColumnsToContents(QTableView* view, int maxWidth) {
+    int columnCount = view->model()->columnCount();
+    view->resizeColumnsToContents();
+    for(int c=0; c<columnCount; c++) {
         if (view->columnWidth(c) > maxWidth) {
             view->setColumnWidth(c, maxWidth);
         }
@@ -28,12 +45,22 @@ static void resizeColumnsToContents(QTableView* view, int maxWidth) {
 }
 
 static void resizeRowsToContents(QTableView* view, int maxHeight) {
-    QAbstractItemModel* model = view->model();
+    int rowCount = view->model()->rowCount();
     view->resizeRowsToContents();
-    for(int r=0; r<model->rowCount(); r++) {
+    for(int r=0; r<rowCount; r++) {
         if (view->rowHeight(r) > maxHeight) {
             view->setRowHeight(r, maxHeight);
         }
+    }
+}
+
+static void setColumnsWidth(QTableView* view, int width, const QList<int>& skipColumns) {
+    int columnCount = view->model()->columnCount();
+    for(int c=0; c<columnCount; c++) {
+        if (skipColumns.contains(c)) {
+            continue;
+        }
+        view->setColumnWidth(c, width);
     }
 }
 
@@ -146,7 +173,7 @@ DistributionPlot* QueryModelView::distributionPlot() const {
     return ui->distribution;
 }
 
-void QueryModelView::setColumnsSize(Size size)
+void QueryModelView::setColumnsWidth(Size size)
 {
     mColumnsWidth = size;
     updateColumnsWidth();
@@ -197,9 +224,9 @@ void QueryModelView::updateColumnsWidth() {
         break;
     }
     if (width > 0) {
-        ::setColumnsWidth(ui->table, width);
+        ::setColumnsWidth(ui->table, width, delegatedColumns());
     } else {
-        resizeColumnsToContents(ui->table, this->width() / 2);
+        resizeColumnsToContents(ui->table, this->width() / 2, delegatedColumns());
     }
 }
 
@@ -212,6 +239,34 @@ void QueryModelView::setModel(QAbstractItemModel *model)
 
     ui->xy->setModel(model);
     ui->distribution->setModel(model);
+}
+
+#if 0
+QList<int> QueryModelView::normalColumns() const
+{
+    QList<int> res;
+    int columnCount = ui->table->model()->columnCount();
+    for(int column=0;column<columnCount;column++) {
+        auto* columnDelegate = ui->table->itemDelegateForColumn(column);
+        if (columnDelegate == nullptr || columnDelegate == mItemDelegate) {
+            res.append(column);
+        }
+    }
+    return res;
+}
+#endif
+
+QList<int> QueryModelView::delegatedColumns() const
+{
+    QList<int> res;
+    int columnCount = ui->table->model()->columnCount();
+    for(int column=0;column<columnCount;column++) {
+        auto* columnDelegate = ui->table->itemDelegateForColumn(column);
+        if (!(columnDelegate == nullptr || columnDelegate == mItemDelegate)) {
+            res.append(column);
+        }
+    }
+    return res;
 }
 
 QAbstractItemModel *QueryModelView::model() const

@@ -124,7 +124,7 @@ SessionTab::SessionTab(const QString &connectionName, const QString name, QWidge
 
         if (colsMap.contains(res)) {
             auto size = colsMap[res];
-            view->setColumnsSize(size);
+            view->setColumnsWidth(size);
         }
         if (rowsMap.contains(res)) {
             auto size = rowsMap[res];

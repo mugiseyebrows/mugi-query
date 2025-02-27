@@ -44,13 +44,19 @@ public:
 
     void setModel(QAbstractItemModel* model);
 
+#if 0
+    QList<int> normalColumns() const;
+#endif
+
+    QList<int> delegatedColumns() const;
+
     QAbstractItemModel* model() const;
 
     QItemSelectionModel *selectionModel() const;
     XYPlot *xyPlot() const;
     DistributionPlot *distributionPlot() const;
 
-    void setColumnsSize(Size size);
+    void setColumnsWidth(Size size);
     void setRowsHeight(Size size);
 
 public slots:
