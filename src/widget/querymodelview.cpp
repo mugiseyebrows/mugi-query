@@ -105,7 +105,10 @@ QueryModelView::QueryModelView(QWidget *parent) :
 
     CopyEventFilter* filter = new CopyEventFilter(view);
     filter->setView(view);
-    connect(filter,SIGNAL(copy()),this,SLOT(onCopy()));
+
+    connect(filter, &CopyEventFilter::copy, [=](){
+        emit copySelected();
+    });
 
     mItemDelegate = new ItemDelegate(view);
     view->setItemDelegate(mItemDelegate);
@@ -332,10 +335,4 @@ void QueryModelView::onTableCustomContextMenuRequested(const QPoint &)
 
     QMenu* menu = mainWindow->selectionMenu();
     menu->exec(QCursor::pos());
-}
-
-
-
-void QueryModelView::onCopy() {
-    ClipboardUtil::copyTsv(ui->table);
 }

@@ -7,6 +7,7 @@
 #include "schema2data.h"
 #include "schema2tablesmodel.h"
 #include "schema2relation.h"
+#include "tolist.h"
 
 Completer::Completer(QObject *parent): QCompleter(parent), mData(nullptr) {
     setModelSorting(QCompleter::CaseInsensitivelySortedModel);
@@ -36,18 +37,6 @@ bool Completer::needContext(const QString &completionPrefix) {
     QString prefix = this->completionPrefix();
     int l = completionPrefixMinLength();
     return prefix.mid(0, l) != completionPrefix.mid(0, l);
-}
-
-template <typename T>
-static QSet<T> toSet(const QList<T>& qlist)
-{
-    return QSet<T> (qlist.constBegin(), qlist.constEnd());
-}
-
-template <typename T>
-static QList<T> toList(const QSet<T>& qlist)
-{
-    return QList<T> (qlist.constBegin(), qlist.constEnd());
 }
 
 QStringList sortedUnique(const QStringList& values) {

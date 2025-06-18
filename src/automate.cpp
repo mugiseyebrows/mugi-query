@@ -30,8 +30,8 @@ void automate(QWidget *widget)
 
 #if 0
     Automation* automation = Automation::instance(widget);
-    automation->connectToDatabaseFromHistory("test");
-    automation->query("test", "select * from test");
+    automation->connectToDatabaseFromHistory("foo");
+    automation->query("foo", "select * from foo");
     automation->start();
 #endif
 
@@ -51,6 +51,12 @@ void automate(QWidget *widget)
     automation->schemaEdit();
 
     //automation->showJoinHelper();
+    automation->start();
+#endif
+
+#if 0
+    Automation* automation = Automation::instance(widget);
+    automation->connectToDatabaseFromHistory("test");
     automation->start();
 #endif
 

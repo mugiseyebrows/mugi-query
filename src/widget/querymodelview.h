@@ -60,6 +60,9 @@ public:
     void setColumnsWidth(Size size);
     void setRowsHeight(Size size);
 
+signals:
+    void copySelected();
+
 public slots:
     void updateSplitter();
     void showDistributionPlot();
@@ -74,8 +77,6 @@ protected:
     void updateRowsHeight();
     void updateColumnsWidth();
 
-private slots:
-    void onCopy();
 protected:
     Ui::QueryModelView *ui;
     int mTabHeight;

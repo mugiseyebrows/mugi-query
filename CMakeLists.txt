@@ -294,6 +294,12 @@ if (BUILD_APP)
         src/model/binitemdelegate.h src/model/binitemdelegate.cpp
         src/varianttobytearray.h src/varianttobytearray.cpp
         src/table.h src/table.cpp
+        src/widget/copyformatwidget.h src/widget/copyformatwidget.cpp src/widget/copyformatwidget.ui
+        src/widget/sizeswidget.h src/widget/sizeswidget.cpp src/widget/sizeswidget.ui
+        src/copyformat2.h src/copyformat2.cpp
+        src/copytoclipboard.h src/copytoclipboard.cpp
+        src/widget/dictkeydialog.h src/widget/dictkeydialog.cpp src/widget/dictkeydialog.ui
+        src/tolist.h src/tolist.cpp
     )
     target_include_directories(mugi-query PUBLIC
         src

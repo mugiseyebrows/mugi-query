@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CopyFormatWidget</class>
+ <widget class="QWidget" name="CopyFormatWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>423</width>
+    <height>24</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Copy as</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="format"/>
+   </item>
+   <item>
+    <widget class="QComboBox" name="sep"/>
+   </item>
+   <item>
+    <widget class="QComboBox" name="lang"/>
+   </item>
+   <item>
+    <widget class="QComboBox" name="axis"/>
+   </item>
+   <item>
+    <widget class="QPushButton" name="key">
+     <property name="text">
+      <string>key</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -29,6 +29,11 @@
 #include "copyeventfilter.h"
 #include "cornerbutton.h"
 #include <QMenu>
+#include "copytoclipboard.h"
+#include "checkablestringlistmodel.h"
+#include "dictkeydialog.h"
+#include <QSqlRecord>
+#include "fieldnames.h"
 
 namespace {
 
@@ -64,8 +69,6 @@ QStringList unquote(const QStringList& items) {
 
 }
 
-
-
 SessionTab::SessionTab(const QString &connectionName, const QString name, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SessionTab), mConnectionName(connectionName), mName(name), mFirstQuery(true)
@@ -82,11 +85,24 @@ SessionTab::SessionTab(const QString &connectionName, const QString name, QWidge
     CopyEventFilter* filter = new CopyEventFilter(view);
     filter->setView(view);
     connect(filter, &CopyEventFilter::copy, [=](){
+
+
         QString error;
         const QItemSelection selection = view->selectionModel()->selection();
         Clipboard::copySelected(view->model(), selection, DataFormat::Csv, "\t", true, locale(), error);
         Error::show(this,error);
+#if 0
+        auto* model = view->model();
+        auto selection = view->selectionModel()->selection();
+        auto format = ui->format->format();
+
+        copyToClipboard(model, selection, format);
+#endif
+
     });
+
+
+#if 0
 
     CornerButton* button = new CornerButton("size");
     button->setWidget(ui->resultTabs);
@@ -136,10 +152,24 @@ SessionTab::SessionTab(const QString &connectionName, const QString name, QWidge
         }
 
     });
+#endif
 
+
+    connect(ui->format, &CopyFormatWidget::keyClicked, [=](){
+        QSqlQueryModel* model = currentModel();
+        QStringList names = fieldNames(model->record(0));
+        auto* listModel = new CheckableStringListModel(names);
+        DictKeyDialog dialog{listModel, this};
+        if (dialog.exec() != QDialog::Accepted) {
+            return;
+        }
+        ui->format->setKey(dialog.key());
+    });
 
 
 }
+
+
 
 void SessionTab::on_resultTabs_currentChanged(int index) {
     if (QueryModelView* tab = qobject_cast<QueryModelView*>(ui->resultTabs->widget(index))) {
@@ -176,6 +206,17 @@ QueryModelView* SessionTab::tab(int index, bool* insert) {
             tab = mTabs.takeFirst();
         } else {
             tab = new QueryModelView(ui->resultTabs);
+            connect(tab, &QueryModelView::copySelected, [=](){
+
+                auto* model = currentModel();
+                auto selection = currentView()->selectionModel()->selection();
+                auto format = ui->format->format();
+
+                QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+                QSqlDriver* driver = db.driver();
+
+                copyToClipboard(model, selection, format, driver);
+            });
         }
     }
     return tab;
@@ -474,3 +515,4 @@ QueryModelView *SessionTab::tab(int index)
 {
     return qobject_cast<QueryModelView*>(ui->resultTabs->widget(index));
 }
+
