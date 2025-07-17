@@ -300,6 +300,8 @@ if (BUILD_APP)
         src/copytoclipboard.h src/copytoclipboard.cpp
         src/widget/dictkeydialog.h src/widget/dictkeydialog.cpp src/widget/dictkeydialog.ui
         src/tolist.h src/tolist.cpp
+        src/widget/tableeditwidget.h src/widget/tableeditwidget.cpp src/widget/tableeditwidget.ui
+        src/widget/sortbutton.h src/widget/sortbutton.cpp
     )
     target_include_directories(mugi-query PUBLIC
         src

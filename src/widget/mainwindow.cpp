@@ -61,6 +61,7 @@
 #include "schema2treeproxymodel.h"
 #include "codewidget.h"
 #include "settingsdirectorydialog.h"
+#include "widget/tableeditwidget.h"
 
 #include <sqlparse.h>
 #include "version.h"
@@ -920,7 +921,7 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
 
     QAction* result = menu.exec(QCursor::pos());
 
-    qDebug() << "result" << result;
+    //qDebug() << "result" << result;
 
     QString connectionName = this->connectionName();
     QSqlDatabase db = QSqlDatabase::database(connectionName);
@@ -1121,18 +1122,28 @@ void MainWindow::on_schemaTree_customContextMenuRequested(const QPoint &)
         SNames tables = schemaTreeSelectedTables();
         QSqlDatabase db = QSqlDatabase::database(connectionName);
         for(const SName& table: std::as_const(tables.names)) {
+#if 0
             QTableView* view = new QTableView();
             view->setAttribute(Qt::WA_DeleteOnClose);
             QSqlTableModel* model = new QSqlTableModel(view, db);
             model->setEditStrategy(QSqlTableModel::OnFieldChange);
-            model->setTable(table.name);
+
+            QString tableName = table.fullname();
+
+            model->setTable(tableName);
             model->select();
             view->setModel(model);
+            view->show();
+#endif
+            TableEditWidget* view = new TableEditWidget();
+            view->setAttribute(Qt::WA_DeleteOnClose);
+            view->init(db, table);
             view->show();
         }
     }
 
 }
+
 
 
 Schema2TreeProxyModel* MainWindow::schemaTreeProxyModel() const {

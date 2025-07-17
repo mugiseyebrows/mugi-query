@@ -31,7 +31,7 @@ void automate(QWidget *widget)
 #if 0
     Automation* automation = Automation::instance(widget);
     automation->connectToDatabaseFromHistory("foo");
-    automation->query("foo", "select * from foo");
+    //automation->query("foo", "select * from foo");
     automation->start();
 #endif
 
