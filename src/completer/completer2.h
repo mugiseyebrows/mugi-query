@@ -1,18 +1,19 @@
-#ifndef COMPLETER_H
-#define COMPLETER_H
+#ifndef COMPLETER2_H
+#define COMPLETER2_H
 
 #include <QCompleter>
 #include "completerdata.h"
 #include "cursorcontext.h"
+#include "completer.h"
 
 class Schema2Data;
 
-class Completer : public QCompleter
+class Completer2 : public Completer
 {
     Q_OBJECT
 public:
 
-    Completer(QObject* parent = nullptr);
+    Completer2(QObject* parent = nullptr);
 
     bool needContext(const QString& completionPrefix);
 
@@ -29,4 +30,4 @@ protected:
 
 
 
-#endif // COMPLETER_H
+#endif // COMPLETER2_H

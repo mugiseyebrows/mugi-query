@@ -14,7 +14,7 @@
 #include "highlighter.h"
 #include "queryparser.h"
 #include <QStyle>
-#include "completer.h"
+#include "completer2.h"
 #include <limits.h>
 #include "emmet.h"
 #include <QPainter>
@@ -38,9 +38,9 @@ TextEdit::TextEdit(QWidget *parent)
 
     connect(this,SIGNAL(textChanged()),this,SLOT(onTextChanged()));
 
-    mCompleter = new Completer(this);
+    mCompleter = new Completer2(this);
     mCompleter->setWidget(this);
-    QObject::connect(mCompleter, SIGNAL(activated(QString)), this, SLOT(insertCompletion(QString)));
+    connect(mCompleter, &Completer2::activatedString, this, &TextEdit::insertCompletion);
 }
 
 TextEdit::~TextEdit()
@@ -244,7 +244,7 @@ void TextEdit::focusInEvent(QFocusEvent *e)
 
 void TextEdit::keyPressEvent(QKeyEvent *e) {
 
-    Completer* c = mCompleter;
+    Completer2* c = mCompleter;
 
     // forwarded from popup
     if (c && c->popup()->isVisible()) {

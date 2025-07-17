@@ -5,7 +5,7 @@
 #include "tokens.h"
 #include <QMap>
 
-class Completer;
+class Completer2;
 class Highlighter;
 
 class TextEdit : public QPlainTextEdit
@@ -71,7 +71,7 @@ private:
 #endif
 
 private:
-    Completer *mCompleter;
+    Completer2 *mCompleter;
     Highlighter* mHighlighter;
     Tokens mTokens;
     QMap<QString,QString> mAliases;
