@@ -4,21 +4,21 @@ project(mugi-query VERSION 0.0.1 LANGUAGES CXX)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-option(BUILD_APP "" ON)
-
 execute_process(
     COMMAND git rev-parse HEAD
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE GIT_COMMIT_HASH
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-configure_file(version.h.in "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
+configure_file(version.h.in version.h)
+configure_file(mugi-query.rc.in mugi-query.rc)
 
-# todo rc.in
 # message("PROJECT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR}")
 # message("PROJECT_VERSION_MINOR ${PROJECT_VERSION_MINOR}")
 # message("PROJECT_VERSION_PATCH ${PROJECT_VERSION_PATCH}")
 # message("PROJECT_VERSION_TWEAK ${PROJECT_VERSION_TWEAK}")
+
+# @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@.@PROJECT_VERSION_TWEAK@
 
 if (WIN32)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql Svg Widgets Test AxContainer)
@@ -191,7 +191,7 @@ qt_add_executable(mugi-query WIN32 src/accessuri.cpp src/accessuri.h src/action.
     src/widget/daterangewidget.h src/widget/daterangewidget.cpp src/widget/daterangewidget.ui
     src/widget/relatetoolwidget.h src/widget/relatetoolwidget.cpp src/widget/relatetoolwidget.ui src/sqlparse.cpp
     src/sqlparse.h src/emmet.cpp src/emmet.h src/schema2/dataimportwidget2.cpp src/schema2/dataimportwidget2.h
-    src/schema2/dataimportwidget2.ui mugi-query_resource.rc src/model/hexitemdelegate.h src/model/hexitemdelegate.cpp
+    src/schema2/dataimportwidget2.ui src/model/hexitemdelegate.h src/model/hexitemdelegate.cpp
     src/widget/actionrunstepswidget.h src/widget/actionrunstepswidget.cpp src/widget/actionrunstepswidget.ui
     src/schema2/codewidget.h src/schema2/codewidget.cpp src/schema2/codewidget.ui src/schema2/graphicsview.cpp
     src/schema2/graphicsview.h src/schema2/style.h src/schema2/style.cpp src/schema2/stylewidget.h
@@ -210,7 +210,9 @@ qt_add_executable(mugi-query WIN32 src/accessuri.cpp src/accessuri.h src/action.
     src/widget/tableeditwidget.cpp src/widget/tableeditwidget.ui src/widget/sortbutton.h src/widget/sortbutton.cpp
     src/completer/completer.cpp src/completer/completer.h src/completer/completer2.cpp src/completer/completer2.h
     src/completer/completeritemdelegate.cpp src/completer/completeritemdelegate.h src/completer/completerprivate.cpp
-    src/completer/completerprivate.h src/completer/completionmodel.cpp src/completer/completionmodel.h)
+    src/completer/completerprivate.h src/completer/completionmodel.cpp src/completer/completionmodel.h
+    ${CMAKE_CURRENT_BINARY_DIR}/mugi-query.rc
+)
 
 target_include_directories(mugi-query PUBLIC
     src
