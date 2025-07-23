@@ -212,6 +212,7 @@ qt_add_executable(mugi-query WIN32 src/accessuri.cpp src/accessuri.h src/action.
     src/completer/completeritemdelegate.cpp src/completer/completeritemdelegate.h src/completer/completerprivate.cpp
     src/completer/completerprivate.h src/completer/completionmodel.cpp src/completer/completionmodel.h
     ${CMAKE_CURRENT_BINARY_DIR}/mugi-query.rc
+    src/widget/toolfilesdialog.h src/widget/toolfilesdialog.cpp src/widget/toolfilesdialog.ui
 )
 
 target_include_directories(mugi-query PUBLIC

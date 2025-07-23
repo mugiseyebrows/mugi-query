@@ -161,6 +161,7 @@
     <addaction name="toolsMysql"/>
     <addaction name="toolsMysqldump"/>
     <addaction name="toolsJoin"/>
+    <addaction name="toolsPushCsv"/>
    </widget>
    <widget class="QMenu" name="menuCode">
     <property name="title">
@@ -172,7 +173,6 @@
      </property>
      <addaction name="codeMysqlConnector"/>
      <addaction name="codePandas"/>
-     <addaction name="codeSqlAlchemy"/>
     </widget>
     <addaction name="menu_Python"/>
     <addaction name="codeCopyOrder"/>
@@ -446,7 +446,7 @@
   </action>
   <action name="codePandas">
    <property name="text">
-    <string>pandas</string>
+    <string>pandas (sqlalechemy)</string>
    </property>
   </action>
   <action name="codeSqlAlchemy">
@@ -462,6 +462,11 @@
   <action name="viewAsBin">
    <property name="text">
     <string>View as Bin</string>
+   </property>
+  </action>
+  <action name="toolsPushCsv">
+   <property name="text">
+    <string>Push Csv</string>
    </property>
   </action>
  </widget>

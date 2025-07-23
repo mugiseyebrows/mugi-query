@@ -56,6 +56,9 @@ public:
     void setHomePath(const QString& path);
     QString homePath() const;
 
+    QString pythonPath() const;
+    void setPythonPath(const QString& python);
+
 private:
 
     Settings();

@@ -65,6 +65,7 @@
 
 #include <sqlparse.h>
 #include "version.h"
+#include "toolfilesdialog.h"
 
 using namespace DataUtils;
 
@@ -1469,35 +1470,13 @@ static QString pipInstall(const QStringList& items) {
 
 static QString sqlAlchemyCreateEngine(const QSqlDatabase& db, const QString& engineName) {
 
-    QString code = QString("%5 = create_engine(\"mysql+mysql.connector://%1:%2@%3:3306/%4\", echo=True)\n")
+    QString code = QString("%5 = create_engine(\"mysql+mysqlconnector://%1:%2@%3:3306/%4\", echo=True)\n")
             .arg(db.userName())
             .arg(db.password())
             .arg(db.hostName())
             .arg(db.databaseName())
             .arg(engineName);
     return code;
-}
-
-void MainWindow::on_codeSqlAlchemy_triggered()
-{
-    QSqlDatabase db = database();
-
-    if (db.driverName() == DRIVER_MYSQL) {
-
-        QString engineName = pyvar(connectionName());
-
-        QString code = pipInstall({"mysql-connector-python", "SQLAlchemy"})
-                + "from sqlalchemy import create_engine\n"
-                + sqlAlchemyCreateEngine(database(), engineName);
-
-        CodeWidget* widget = new CodeWidget();
-        widget->setText(code + "\n");
-        widget->show();
-
-    } else {
-        QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
-    }
-
 }
 
 void MainWindow::on_codePandas_triggered()
@@ -1548,7 +1527,32 @@ void MainWindow::on_codePandas_triggered()
 
 }
 
+void MainWindow::on_toolsPushCsv_triggered()
+{
+    ToolFilesDialog dialog(ToolFilesDialog::PushCsv, this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    QStringList files = dialog.files();
+    if (files.isEmpty()) {
+        return;
+    }
+    QStringList names;
+    if (files.size() == 1) {
+        names = {dialog.table()};
+    } else {
+        for(const QString& file: files) {
+            QFileInfo info(file);
+            names.append(info.baseName());
+        }
+    }
+    QSqlDatabase db = database();
+    for(int i=0;i<files.size();i++) {
+        Tools::pushCsv(db, files[i], names[i], dialog.ifExists(), this);
+    }
 
-
-
+    QString connectionName = this->connectionName();
+    Schema2Data* data = Schema2Data::instance(connectionName, this);
+    data->pull();
+}
 

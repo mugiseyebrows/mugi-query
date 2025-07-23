@@ -51,6 +51,7 @@ static QString pathJoin(const QStringList& args) {
 
 #define MYSQL_TIMEOUT 600000
 #define MYSQLDUMP_TIMEOUT 600000
+#define PUSHCSV_TIMEOUT 600000
 
 static QStringList mysql_args(QSqlDatabase db, bool ssl, bool force = false) {
     QString databaseName = db.databaseName();
@@ -347,4 +348,37 @@ void Tools::mysqldump(Schema2Data *data, QSqlDatabase db, QWidget *widget)
         qDebug() << "not implemented" << settings.format << __FILE__ << __LINE__;
     }
 
+}
+
+void Tools::pushCsv(QSqlDatabase db, const QString &path, const QString& name, IfExists ifExists, QWidget *widget)
+{
+    QString python = Settings::instance()->pythonPath();
+    if (python.isEmpty()) {
+        QMessageBox::critical(widget, "Error", "Python not found");
+        return;
+    }
+    QDir dir(qApp->applicationDirPath());
+    if (dir.dirName().toLower().endsWith("debug")) {
+        dir.cdUp();
+        dir.cd("src");
+    }
+    QString script = dir.filePath("push-csv.py");
+    if (!QFile(script).exists()) {
+        QMessageBox::critical(widget, "Error", "push-csv.py not found");
+        return;
+    }
+    QStringList args = {QDir::toNativeSeparators(script),
+                        "--type", "mysql",
+                        "--user", db.userName(),
+                        "--password", db.password(),
+                        "--host", db.hostName(),
+                        "--database", db.databaseName(),
+                        "--name", name};
+    switch (ifExists) {
+    case IfExists::Fail: args.append("--fail"); break;
+    case IfExists::Replace: args.append("--replace"); break;
+    case IfExists::Append: args.append("--append"); break;
+    }
+    args.append(path);
+    execute(python, args, {}, PUSHCSV_TIMEOUT, widget);
 }

@@ -161,11 +161,11 @@ private slots:
 
     void on_codeMysqlConnector_triggered();
 
-    void on_codeSqlAlchemy_triggered();
-
     void on_copyAsInsert_triggered();
 
     void on_viewAsBin_triggered();
+
+    void on_toolsPushCsv_triggered();
 
 private:
     Ui::MainWindow *ui;

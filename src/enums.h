@@ -15,4 +15,10 @@ enum class TableType {
     View,
 };
 
+enum class IfExists {
+    Fail,
+    Replace,
+    Append,
+};
+
 #endif // ENUMS_H

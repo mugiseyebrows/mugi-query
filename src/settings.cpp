@@ -262,3 +262,37 @@ QString Settings::homePath() const
 {
     return mHomePath;
 }
+
+QString Settings::pythonPath() const
+{
+    // C:\Users\%name%\AppData\Local\Programs\Python\Python313\python.exe
+
+#ifdef Q_OS_WIN
+
+    QString localAppData = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    qDebug() << "localAppData" << localAppData;
+    for(int i=20;i>10;i--) {
+        QDir dir(localAppData);
+        dir.cdUp(); // mugi-query
+        bool t1 = dir.cd("Programs");
+        bool t2 = dir.cd("Python");
+        QString n = QString("Python3%1").arg(i);
+        bool t3 = dir.cd(n);
+        qDebug() << i << t1 << t2 << t3 << n << dir.absolutePath();
+        if (t1 && t2 && t3) {
+            QString path = dir.filePath("python.exe");
+            if (QFile(path).exists()) {
+                return path;
+            }
+        }
+    }
+    return {};
+#else
+    return "python3";
+#endif
+}
+
+void Settings::setPythonPath(const QString &python)
+{
+    // todo
+}
