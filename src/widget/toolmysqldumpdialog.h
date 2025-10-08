@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QSqlDatabase>
+#include "mysqldumpsettings.h"
 
 namespace Ui {
 class ToolMysqldumpDialog;
@@ -13,41 +14,12 @@ class CheckableModel;
 
 // --routines
 
-class MysqldumpSettings {
-public:
-    enum Path {
-        Table,
-        DatabaseTable,
-        DatabaseDatetimeTable
-    };
-    enum Format {
-        OneFile,
-        MultipleFiles
-    };
-    QString output;
-    QStringList tables;
-    Format format;
-    Path path;
-    bool schema;
-    bool data;
-    bool routines;
-    bool ssl;
-    bool tab;
-    QString oneFileName;
-
-    bool completeInsert;
-    bool insertIgnore;
-    bool extendedInsert;
-    bool hexBlob;
-    bool quoteNames;
-};
-
 class ToolMysqldumpDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit ToolMysqldumpDialog(QSqlDatabase db, QWidget *parent = nullptr);
+    explicit ToolMysqldumpDialog(QSqlDatabase db, const MysqldumpSettings& settings, QWidget *parent = nullptr);
     ~ToolMysqldumpDialog();
 
     MysqldumpSettings settings() const;

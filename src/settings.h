@@ -10,6 +10,7 @@ bool savePasswords; bool dateTimeOverrideForCsv; bool dateTimeOverrideForCopy; b
 
 #include <QString>
 #include <QDir>
+#include "mysqldumpsettings.h"
 
 class Settings
 {
@@ -59,6 +60,10 @@ public:
     QString pythonPath() const;
     void setPythonPath(const QString& python);
 
+    MysqldumpSettings mysqldumpSettings() const;
+
+    void setMysqldumpSettings(const MysqldumpSettings& settings);
+
 private:
 
     Settings();
@@ -79,6 +84,8 @@ private:
     QString mHomePath;
 
     QDir mDir;
+
+    MysqldumpSettings mMysqldumpSettings;
 
 };
 

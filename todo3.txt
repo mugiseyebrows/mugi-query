@@ -1,0 +1,11 @@
+copy as
+- csv
+- unique
+- date(time) format  %Y-%m-%d %d.%m.%y ISO
+join tool: copy as
+xy plot rework
+dist plot rework
+fix join helper
+pull data: comments
+schema insert: parse csv
+show transposed data

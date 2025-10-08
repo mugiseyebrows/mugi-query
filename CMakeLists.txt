@@ -213,6 +213,7 @@ qt_add_executable(mugi-query WIN32 src/accessuri.cpp src/accessuri.h src/action.
     src/completer/completerprivate.h src/completer/completionmodel.cpp src/completer/completionmodel.h
     ${CMAKE_CURRENT_BINARY_DIR}/mugi-query.rc
     src/widget/toolfilesdialog.h src/widget/toolfilesdialog.cpp src/widget/toolfilesdialog.ui
+    src/mysqldumpsettings.h src/mysqldumpsettings.cpp
 )
 
 target_include_directories(mugi-query PUBLIC

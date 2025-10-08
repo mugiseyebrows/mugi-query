@@ -73,6 +73,8 @@ void Settings::save()
     obj["MysqlPath"] = mMysqlPath;
     obj["MysqldumpPath"] = mMysqldumpPath;
     obj["HomePath"] = mHomePath;
+    obj["MysqldumpSettings"] = mMysqldumpSettings.toJson();
+
     saveJson(settingsPath(),obj);
 }
 
@@ -123,6 +125,11 @@ void Settings::load()
     loadValue(obj,"MysqldumpPath",&mMysqldumpPath);
     loadValue(obj,"HomePath", &mHomePath);
     mHomePath = QDir::toNativeSeparators(mHomePath);
+
+    if (obj.contains("MysqldumpSettings")) {
+        mMysqldumpSettings = MysqldumpSettings::fromJson(obj["MysqldumpSettings"].toObject());
+    }
+
 }
 
 /************************* GETTERS **************************/
@@ -295,4 +302,15 @@ QString Settings::pythonPath() const
 void Settings::setPythonPath(const QString &python)
 {
     // todo
+}
+
+MysqldumpSettings Settings::mysqldumpSettings() const
+{
+    return mMysqldumpSettings;
+}
+
+void Settings::setMysqldumpSettings(const MysqldumpSettings &settings)
+{
+    mMysqldumpSettings = settings;
+    mMysqldumpSettings.tables = {};
 }

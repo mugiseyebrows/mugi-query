@@ -15,7 +15,7 @@
 
 // todo selected tables / all tables
 
-ToolMysqldumpDialog::ToolMysqldumpDialog(QSqlDatabase db, QWidget *parent) :
+ToolMysqldumpDialog::ToolMysqldumpDialog(QSqlDatabase db, const MysqldumpSettings& settings, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ToolMysqldumpDialog)/*,
     mProxyModel(new QSortFilterProxyModel(this)),
@@ -47,6 +47,42 @@ ToolMysqldumpDialog::ToolMysqldumpDialog(QSqlDatabase db, QWidget *parent) :
     ui->output->setText(Settings::instance()->homePath());
     ui->output->setMode(LineSelect::ModeDir);
 
+    if (settings.format == MysqldumpSettings::OneFile) {
+        ui->oneFile->setChecked(true);
+    } else {
+        ui->multipleFiles->setChecked(true);
+    }
+
+    if (settings.path == MysqldumpSettings::Table) {
+        ui->pathTable->setChecked(true);
+    } else if (settings.path == MysqldumpSettings::DatabaseTable) {
+        ui->pathDatabaseTable->setChecked(true);
+    } else if (settings.path == MysqldumpSettings::DatabaseDatetimeTable) {
+        ui->pathDatabaseDatetimeTable->setChecked(true);
+    }
+
+    QString oneFileName = settings.oneFileName;
+    if (oneFileName.isEmpty()) {
+        oneFileName = "dump.sql";
+    }
+
+    ui->oneFileName->setText(oneFileName);
+
+    // res.(.*) = (.*)->isChecked\(\);
+    // $2->setChecked(settings.$1);
+
+    ui->schema->setChecked(settings.schema);
+    ui->data->setChecked(settings.data);
+    ui->routines->setChecked(settings.routines);
+    ui->ssl->setChecked(settings.ssl);
+
+    ui->completeInsert->setChecked(settings.completeInsert);
+    ui->insertIgnore->setChecked(settings.insertIgnore);
+    ui->extendedInsert->setChecked(settings.extendedInsert);
+    ui->hexBlob->setChecked(settings.hexBlob);
+    ui->quoteNames->setChecked(settings.quoteNames);
+
+
 }
 
 ToolMysqldumpDialog::~ToolMysqldumpDialog()
@@ -68,10 +104,13 @@ MysqldumpSettings ToolMysqldumpDialog::settings() const
     } else if (ui->pathDatabaseDatetimeTable->isChecked()) {
         res.path = MysqldumpSettings::DatabaseDatetimeTable;
     }
+
+    res.oneFileName = ui->oneFileName->text();
+
     res.schema = ui->schema->isChecked();
     res.data = ui->data->isChecked();
+    res.routines = ui->routines->isChecked();
     res.ssl = ui->ssl->isChecked();
-    res.oneFileName = ui->oneFileName->text();
 
     res.completeInsert = ui->completeInsert->isChecked();
     res.insertIgnore = ui->insertIgnore->isChecked();

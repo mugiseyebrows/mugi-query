@@ -242,51 +242,60 @@ static QStringList sortedInInsertOrder(Schema2Data *data, const QStringList& tab
     return notFound + sorted.getNames();
 }
 
+static void backupFile(const QString& path) {
+    QFileInfo info(path);
+    if (!info.exists()) {
+        return;
+    }
+    QString baseName = info.completeBaseName();
+    int i = 1;
+    QString newName = path;
+    while (QFile(newName).exists()) {
+        newName = info.absoluteDir().filePath(QString("%1-%2.bak").arg(baseName).arg(i, 3, 10, QChar('0')));
+        i++;
+    }
+    info.absoluteDir().rename(path, newName);
+}
+
 void Tools::mysqldump(Schema2Data *data, QSqlDatabase db, QWidget *widget)
 {
     if (!find_mysql(widget, false)) {
         return;
     }
 
-    ToolMysqldumpDialog dialog(db, widget);
+    Settings* settings = Settings::instance();
+
+    MysqldumpSettings mysqldumpSettings1 = settings->mysqldumpSettings();
+
+    ToolMysqldumpDialog dialog(db, mysqldumpSettings1, widget);
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
 
-    QString mysqldump = Settings::instance()->mysqldumpPath();
+    QString mysqldump = settings->mysqldumpPath();
 
-    MysqldumpSettings settings = dialog.settings();
+    MysqldumpSettings mysqldumpSettings = dialog.settings();
+
+    settings->setMysqldumpSettings(mysqldumpSettings);
+
     QString connectionName = db.connectionName();
-    QStringList tables = settings.tables;
+    QStringList tables = mysqldumpSettings.tables;
     QString dateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd_hhmmss");
 
     QString resultDir;
-    switch(settings.path) {
+    switch(mysqldumpSettings.path) {
     case MysqldumpSettings::Table:
-        resultDir = settings.output;
+        resultDir = mysqldumpSettings.output;
         break;
     case MysqldumpSettings::DatabaseTable:
-        resultDir = pathJoin({settings.output, connectionName});
+        resultDir = pathJoin({mysqldumpSettings.output, connectionName});
         break;
     case MysqldumpSettings::DatabaseDatetimeTable:
-        resultDir = pathJoin({settings.output, connectionName, dateTime});
+        resultDir = pathJoin({mysqldumpSettings.output, connectionName, dateTime});
         break;
     default:
-        qDebug() << "not implemented" << settings.path << __FILE__ << __LINE__;
+        qDebug() << "not implemented" << mysqldumpSettings.path << __FILE__ << __LINE__;
         break;
-    }
-
-    if (settings.format == MysqldumpSettings::MultipleFiles) {
-        QDir dir(resultDir);
-        QString homePath = Settings::instance()->homePath();
-        if (QFileInfo(homePath) != QFileInfo(resultDir)) {
-            if (dir.exists()) {
-                QString path = nextPath(resultDir + "-backup%1");
-                if (!dir.rename(resultDir, path)) {
-                    qDebug() << "cannot rename" << resultDir << "to" << path << __FILE__ << __LINE__;
-                }
-            }
-        }
     }
 
     QDir dir(resultDir);
@@ -294,42 +303,29 @@ void Tools::mysqldump(Schema2Data *data, QSqlDatabase db, QWidget *widget)
         dir.mkpath(resultDir);
     }
 
-    if (settings.format == MysqldumpSettings::OneFile) {
+    if (mysqldumpSettings.format == MysqldumpSettings::OneFile) {
 
-        QString name = settings.oneFileName;
-#if 0
-        if (settings.data && settings.schema) {
-            name = "dump";
-        } else if (settings.data) {
-            name = "data";
-        } else if (settings.schema) {
-            name = "schema";
-        }
-#endif
+        QString name = mysqldumpSettings.oneFileName;
+
         tables = sortedInInsertOrder(data, tables);
 
         QString resultFile = pathJoin({resultDir, name});
 
-        if (QFile(resultFile).exists()) {
-            QString pattern = pathJoin({resultDir, QFileInfo(name).baseName() + "-backup%1" + ".sql"});
-            QString newPath = nextPath(pattern);
-            if (!dir.rename(resultFile, newPath)) {
-                qDebug() << "cannot rename" << resultFile << "to" << newPath << __FILE__ << __LINE__;
-            }
-        }
+        backupFile(resultFile);
 
         QProgressDialog progress;
         progress.setMaximum(0);
         progress.show();
 
-        QStringList args = mysqldump_args(db, settings, tables, resultFile);
+        QStringList args = mysqldump_args(db, mysqldumpSettings, tables, resultFile);
         execute(mysqldump, args, QString(), MYSQLDUMP_TIMEOUT, widget);
 
-    } else if (settings.format == MysqldumpSettings::MultipleFiles) {
+    } else if (mysqldumpSettings.format == MysqldumpSettings::MultipleFiles) {
         QStringList resultFiles;
         for(const QString& table: tables) {
             QString path = pathJoin({resultDir, table + ".sql"});
             resultFiles.append(path);
+            backupFile(path);
         }
 
         QProgressDialog progress;
@@ -337,7 +333,7 @@ void Tools::mysqldump(Schema2Data *data, QSqlDatabase db, QWidget *widget)
         progress.show();
         qApp->processEvents();
         for(int i=0;i<tables.size();i++) {
-            QStringList args = mysqldump_args(db, settings, tables.mid(i, 1), resultFiles[i]);
+            QStringList args = mysqldump_args(db, mysqldumpSettings, tables.mid(i, 1), resultFiles[i]);
             execute(mysqldump, args, QString(), MYSQLDUMP_TIMEOUT, widget);
             progress.setValue(i);
             progress.setLabelText(tables[i]);
@@ -345,7 +341,7 @@ void Tools::mysqldump(Schema2Data *data, QSqlDatabase db, QWidget *widget)
         }
         progress.close();
     } else {
-        qDebug() << "not implemented" << settings.format << __FILE__ << __LINE__;
+        qDebug() << "not implemented" << mysqldumpSettings.format << __FILE__ << __LINE__;
     }
 
 }
