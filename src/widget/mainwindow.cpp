@@ -67,8 +67,6 @@
 #include "version.h"
 #include "toolfilesdialog.h"
 
-using namespace DataUtils;
-
 static void expandOneLevel(QTreeView* view) {
     QAbstractItemModel* model = view->model();
     for(int row=0;row<model->rowCount();row++) {
@@ -306,7 +304,7 @@ void MainWindow::onTabsCurrentChanged(int tabIndex) {
     //}
 
     QSqlDatabase db = QSqlDatabase::database(connectionName);
-    setWindowTitle(DataUtils::windowTitle(QString(),db,QString()));
+    setWindowTitle(::windowTitle(QString(),db,QString()));
 
     tab(tabIndex)->focusQuery();
 

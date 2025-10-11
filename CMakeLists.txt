@@ -216,6 +216,12 @@ qt_add_executable(mugi-query WIN32 src/accessuri.cpp src/accessuri.h src/action.
     src/widget/toolfilesdialog.h src/widget/toolfilesdialog.cpp src/widget/toolfilesdialog.ui
     src/mysqldumpsettings.h src/mysqldumpsettings.cpp
     src/dump.h src/dump.cpp
+    src/xyplot/plotcurve.cpp src/xyplot/plotcurve.h src/xyplot/plotcurvedialog.cpp src/xyplot/plotcurvedialog.h
+    src/xyplot/plotcurvedialog.ui src/colordialog/colorbutton.cpp src/colordialog/colorbutton.h
+    src/colordialog/colordialog.cpp src/colordialog/colordialog.h src/colordialog/colordialog.ui
+    src/colordialog/colortablewidget.cpp src/colordialog/colortablewidget.h src/colordialog/contrasting.cpp
+    src/colordialog/contrasting.h
+    src/xyplot/xyplot2.h src/xyplot/xyplot2.cpp
 )
 
 target_include_directories(mugi-query PUBLIC
@@ -225,6 +231,8 @@ target_include_directories(mugi-query PUBLIC
     src/tablebuttons
     src/completer
     src/widget
+    src/colordialog
+    src/xyplot
 )
 qt6_add_resources(mugi-query "icons"
     PREFIX "/icons"

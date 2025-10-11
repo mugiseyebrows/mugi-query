@@ -1066,7 +1066,7 @@ Schema2View *Schema2Data::view()
         mView = new Schema2View();
         mView->setData(this);
         QSqlDatabase db = QSqlDatabase::database(mConnectionName);
-        mView->setWindowTitle(DataUtils::windowTitle(QString{}, db, QString()));
+        mView->setWindowTitle(::windowTitle(QString{}, db, QString()));
     }
     return mView;
 }

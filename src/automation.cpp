@@ -300,6 +300,7 @@ void Automation::onStart() {
         next();
     } else if (mAction.type() == Action::ActionSetXYPlot) {
 
+#if 0
         int row = mAction.arg(0).toInt();
         QString x = mAction.arg(1).toString();
         QString y = mAction.arg(2).toString();
@@ -308,7 +309,7 @@ void Automation::onStart() {
 
         SessionTab* tab = mainWindow()->currentTab();
         QueryModelView* view = tab->tab(0);
-        XYPlot* plot = view->xyPlot();
+        XYPlot2* plot = view->xyPlot();
         QAbstractItemModel* model = plot->tableModel();
         RowValueNotEmptySetter s(model,row);
 
@@ -316,6 +317,8 @@ void Automation::onStart() {
         s(XYPlotModel::col_y,y);
         s(XYPlotModel::col_line,line);
         s(XYPlotModel::col_marker,marker);
+#endif
+        qDebug() << "Action::ActionSetXYPlot not implemented";
 
         next();
     } else if (mAction.type() == Action::ActionSetDistributionPlot) {

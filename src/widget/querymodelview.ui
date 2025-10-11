@@ -17,11 +17,11 @@
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
-      <enum>Qt::Vertical</enum>
+      <enum>Qt::Orientation::Vertical</enum>
      </property>
      <widget class="QTableView" name="table">
       <property name="contextMenuPolicy">
-       <enum>Qt::CustomContextMenu</enum>
+       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
       </property>
      </widget>
      <widget class="QTabWidget" name="tabs">
@@ -51,7 +51,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="XYPlot" name="xy" native="true"/>
+         <widget class="XYPlot2" name="xy" native="true"/>
         </item>
        </layout>
       </widget>
@@ -84,15 +84,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>XYPlot</class>
-   <extends>QWidget</extends>
-   <header>xyplot.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>DistributionPlot</class>
    <extends>QWidget</extends>
    <header>distributionplot.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>XYPlot2</class>
+   <extends>QWidget</extends>
+   <header>xyplot2.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

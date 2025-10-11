@@ -5,8 +5,16 @@
 #include <QSqlDatabase>
 #include "filterempty.h"
 
-QPolygonF DataUtils::toPolygon(const QList<QPair<QVariant,QVariant> >& data) {
+QPolygonF toPolygon(const QList<QPair<QVariant,QVariant> >& data) {
     QPolygonF result;
+    for(int i=0;i<data.size();i++) {
+        result.append(QPointF(data[i].first.toDouble(),data[i].second.toDouble()));
+    }
+    return result;
+}
+
+QVector<QPointF> toSamples(const QList<QPair<QVariant,QVariant> >& data) {
+    QVector<QPointF> result;
     for(int i=0;i<data.size();i++) {
         result.append(QPointF(data[i].first.toDouble(),data[i].second.toDouble()));
     }
@@ -28,7 +36,7 @@ QList<QPair<QVariant,QVariant> > DataUtils::filterNull(const QList<QPair<QVarian
 
 
 
-QList<QPair<QVariant,QVariant> > DataUtils::filterNumeric(const QList<QPair<QVariant,QVariant> >& data) {
+QList<QPair<QVariant,QVariant> > filterNumeric(const QList<QPair<QVariant,QVariant> >& data) {
     QList<QPair<QVariant,QVariant> > result;
     for(int i=0;i<data.size();i++) {
         const QVariant& v1 = data[i].first;
@@ -41,7 +49,7 @@ QList<QPair<QVariant,QVariant> > DataUtils::filterNumeric(const QList<QPair<QVar
     return result;
 }
 
-QVariantList DataUtils::filterNumeric(const QVariantList& data) {
+QVariantList filterNumeric(const QVariantList& data) {
     QVariantList result;
     foreach (const QVariant& v, data) {
         if (!v.isNull() && qIsNumericType(v.type())) {
@@ -52,7 +60,7 @@ QVariantList DataUtils::filterNumeric(const QVariantList& data) {
 }
 
 
-QVariantList DataUtils::columnData(const QAbstractItemModel* model,int column) {
+QVariantList columnData(const QAbstractItemModel* model,int column) {
     QVariantList result;
     if (column < 0) {
         for(int row = 0; row < model->rowCount(); row++) {
@@ -77,7 +85,7 @@ QStringList DataUtils::toLower(const QStringList& vs) {
 #endif
 
 
-QStringList DataUtils::headerData(const QAbstractItemModel* model, Qt::Orientation orientation) {
+QStringList headerData(const QAbstractItemModel* model, Qt::Orientation orientation) {
     QStringList result;
     int count = orientation == Qt::Horizontal ? model->columnCount() : model->rowCount();
     for(int section=0;section<count;section++) {
@@ -87,7 +95,7 @@ QStringList DataUtils::headerData(const QAbstractItemModel* model, Qt::Orientati
 }
 
 
-QList<double> DataUtils::toDouble(const QVariantList& vs) {
+QList<double> toDouble(const QVariantList& vs) {
     QList<double> res;
     QVariant v;
     foreach(v,vs) {
@@ -96,7 +104,7 @@ QList<double> DataUtils::toDouble(const QVariantList& vs) {
     return res;
 }
 
-QString DataUtils::windowTitle(const QString& prefix, const QSqlDatabase& db, const QString suffix) {
+QString windowTitle(const QString& prefix, const QSqlDatabase& db, const QString suffix) {
     QStringList title;
     title << prefix << db.driverName() << db.hostName() << db.userName() << db.databaseName() << suffix;
     return filterEmpty(title).join(" ");

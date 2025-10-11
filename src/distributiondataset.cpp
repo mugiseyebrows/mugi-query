@@ -5,8 +5,6 @@
 #include <QAbstractItemModel>
 #include "tolower.h"
 
-using namespace DataUtils;
-
 void DistributionDataset::update(const QList<DistributionPlotItem> &items, QAbstractItemModel *model) {
     mValues.clear();
     while(model->canFetchMore(QModelIndex())) {

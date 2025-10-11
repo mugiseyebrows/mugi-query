@@ -4,14 +4,8 @@
 #include <QAbstractItemModel>
 #include "math.h"
 
-using namespace DataUtils;
-
-namespace  {
-
-double round_(double sum, double prec) {
+static double round_(double sum, double prec) {
     return round(sum*pow(10.0,prec))/pow(10.0,prec);
-}
-
 }
 
 Histogram::Histogram(int bins, const DistributionDataset &dataset, double min, double max) {

@@ -8,9 +8,10 @@
 class QAbstractItemModel;
 class QSqlDatabase;
 
-namespace DataUtils {
-
 QPolygonF toPolygon(const QList<QPair<QVariant,QVariant> >& data);
+
+QVector<QPointF> toSamples(const QList<QPair<QVariant,QVariant> >& data);
+
 //QList<QPair<QVariant,QVariant> > filterNull(const QList<QPair<QVariant,QVariant> >& data);
 QVariantList filterNumeric(const QVariantList& data);
 QList<QPair<QVariant,QVariant> > filterNumeric(const QList<QPair<QVariant,QVariant> >& data);
@@ -22,6 +23,5 @@ QStringList headerData(const QAbstractItemModel* model, Qt::Orientation orientat
 QList<double> toDouble(const QVariantList& vs);
 QString windowTitle(const QString& prefix, const QSqlDatabase& db, const QString suffix);
 
-}
 
 #endif // DATAUTILS_H

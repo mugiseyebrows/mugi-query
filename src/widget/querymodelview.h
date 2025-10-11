@@ -6,7 +6,7 @@
 class QAbstractItemModel;
 class QItemSelectionModel;
 class DistributionPlot;
-class XYPlot;
+class XYPlot2;
 class HexItemDelegate;
 class ItemDelegate;
 class QAbstractItemDelegate;
@@ -54,7 +54,7 @@ public:
     QAbstractItemModel* model() const;
 
     QItemSelectionModel *selectionModel() const;
-    XYPlot *xyPlot() const;
+    XYPlot2 *xyPlot() const;
     DistributionPlot *distributionPlot() const;
 
     void setColumnsWidth(Size size);

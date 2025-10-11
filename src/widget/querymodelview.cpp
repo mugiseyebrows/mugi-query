@@ -8,7 +8,7 @@
 #include "itemdelegate.h"
 #include <QDebug>
 #include <QTimer>
-#include "xyplot.h"
+
 #include <QMenu>
 #include "mainwindow.h"
 #include <QMessageBox>
@@ -168,7 +168,7 @@ void QueryModelView::viewAsString()
     setItemDelegateForColumns(selectedColumns(selectionModel()), mItemDelegate);
 }
 
-XYPlot* QueryModelView::xyPlot() const {
+XYPlot2* QueryModelView::xyPlot() const {
     return ui->xy;
 }
 

@@ -24,8 +24,6 @@
 #include "qwt_compat.h"
 #include "tolower.h"
 
-using namespace DataUtils;
-
 DistributionPlot::DistributionPlot(QWidget *parent) :
     QWidget(parent),
     mAppender(new ModelAppender(this)),
