@@ -15,20 +15,6 @@
 #include <QTextStream>
 #include "schema2tablesmodel.h"
 
-void dump(const QString& path, const QStringList& lines) {
-    QFile f(path);
-    if (!f.open(QIODevice::WriteOnly)) {
-        qDebug() << "!open" << path;
-        return;
-    }
-    QTextStream stream(&f);
-    stream.setEncoding(QStringConverter::Utf8);
-    foreach(const QString& line, lines) {
-        stream << line << "\n";
-    }
-    qDebug() << "text writen to" << path;
-}
-
 static QString pathJoin(const QStringList& args) {
     QStringList res;
     for(const QString& arg: args) {
@@ -210,16 +196,6 @@ void Tools::mysql(QSqlDatabase db, QWidget *widget)
     }
 
     progress.close();
-}
-
-QString nextPath(const QString& pattern) {
-    int i = 1;
-    QString path = pattern.arg(i, 3, 10, QChar('0'));
-    while (QFileInfo(path).exists()) {
-        i += 1;
-        path = pattern.arg(i, 3, 10, QChar('0'));
-    }
-    return path;
 }
 
 static QStringList sortedInInsertOrder(Schema2Data *data, const QStringList& tables) {

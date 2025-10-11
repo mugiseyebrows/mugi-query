@@ -17,6 +17,7 @@ configure_file(mugi-query.rc.in mugi-query.rc)
 # message("PROJECT_VERSION_MINOR ${PROJECT_VERSION_MINOR}")
 # message("PROJECT_VERSION_PATCH ${PROJECT_VERSION_PATCH}")
 # message("PROJECT_VERSION_TWEAK ${PROJECT_VERSION_TWEAK}")
+# message("PROJECT_VERSION ${PROJECT_VERSION}")
 
 # @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@.@PROJECT_VERSION_TWEAK@
 
@@ -214,6 +215,7 @@ qt_add_executable(mugi-query WIN32 src/accessuri.cpp src/accessuri.h src/action.
     ${CMAKE_CURRENT_BINARY_DIR}/mugi-query.rc
     src/widget/toolfilesdialog.h src/widget/toolfilesdialog.cpp src/widget/toolfilesdialog.ui
     src/mysqldumpsettings.h src/mysqldumpsettings.cpp
+    src/dump.h src/dump.cpp
 )
 
 target_include_directories(mugi-query PUBLIC
