@@ -167,6 +167,8 @@ private slots:
 
     void on_toolsPushCsv_triggered();
 
+    void on_codePyodbc_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

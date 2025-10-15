@@ -1419,8 +1419,9 @@ void MainWindow::on_codeMysqlConnector_triggered()
 
     QString connectionName = this->connectionName();
 
+    QString code;
     if (db.driverName() == DRIVER_MYSQL) {
-        QString code = QString("# pip install mysql-connector-python\n"
+        code = QString("# pip install mysql-connector-python\n"
                                "\n"
                                "import mysql.connector\n"
                                "%1 = mysql.connector.connect(host=\"%2\",user=\"%3\",password=\"%4\",database=\"%5\")")
@@ -1429,15 +1430,18 @@ void MainWindow::on_codeMysqlConnector_triggered()
                 .arg(userName)
                 .arg(password)
                 .arg(databaseName);
-        qApp->clipboard()->setText(code);
 
+
+    }
+
+    if (code.isEmpty()) {
+        QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
+    } else {
         CodeWidget* widget = new CodeWidget();
         widget->setText(code + "\n");
         widget->show();
-
-    } else {
-        QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
     }
+
 }
 
 static QString replace(const QString& s, const QString& a, const QString& b) {
@@ -1468,7 +1472,7 @@ static QString pipInstall(const QStringList& items) {
 
 static QString sqlAlchemyCreateEngine(const QSqlDatabase& db, const QString& engineName) {
 
-    QString code = QString("%5 = create_engine(\"mysql+mysqlconnector://%1:%2@%3:3306/%4\", echo=True)\n")
+    QString code = QString("%5 = sa.create_engine(\"mysql+mysqlconnector://%1:%2@%3:3306/%4\", echo=False)\n")
             .arg(db.userName())
             .arg(db.password())
             .arg(db.hostName())
@@ -1477,51 +1481,135 @@ static QString sqlAlchemyCreateEngine(const QSqlDatabase& db, const QString& eng
     return code;
 }
 
+static QStringList queriesToFrames(const QStringList& queries, const QString& engineName) {
+    QStringList frames;
+    for(const QString& query: queries) {
+        QString tableName;
+        QString expr;
+        if (SqlParse::isSimpleSelect(query, tableName)) {
+            expr = "'" + tableName + "'";
+        } else {
+            expr = query.trimmed();
+            if (expr.indexOf("\n") > -1) {
+                expr = "\"\"\"" + expr + "\"\"\"\n";
+            } else {
+                expr = "'" + expr + "'";
+            }
+        }
+        QString suf;
+        if (queries.size() > 1) {
+            suf = QString::number(frames.size() + 1);
+        }
+        frames.append(QString("df%1 = pd.read_sql(%2, %3)").arg(suf).arg(expr).arg(engineName));
+    }
+    return frames;
+}
+
+static QStringList queriesToQueries(const QStringList& queries, const QString& engineName) {
+    QStringList res;
+    for(const QString& query: queries) {
+        QString query1 = query;
+        query1.replace("'","\\'");
+        res.append(QString("cur.execute('%1')").arg(query1));
+    }
+    return res;
+}
+
+static QString getDbq(const QString databaseName) {
+    QRegularExpression rx("DBQ=([^\"]+)", QRegularExpression::CaseInsensitiveOption);
+    QString DBQ;
+    auto match = rx.match(databaseName);
+    if (match.hasMatch()) {
+        DBQ = match.captured(1);
+        DBQ.replace("\\", "/");
+    }
+    return DBQ;
+}
+
+void MainWindow::on_codePyodbc_triggered()
+{
+    QString code;
+
+    QSqlDatabase db = database();
+
+    QString engineName = pyvar(connectionName());
+
+    QString DBQ = getDbq(db.databaseName());
+    if (DBQ.isEmpty()) {
+        DBQ = "database.mdb";
+    }
+
+    QStringList queries;
+    auto* tab = currentTab();
+    if (tab) {
+        queries = filterBlank(SqlParse::splitQueries(tab->query()));
+    }
+
+    if (db.driverName() == DRIVER_ODBC) {
+
+        code = QString("import pyodbc\n"
+                "DBQ = '%1'\n"
+                "%2 = pyodbc.connect('DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=' + DBQ\n"
+                "cur = %2.cursor()\n\n").arg(DBQ).arg(engineName) + queriesToQueries(queries, engineName).join("\n\n");
+
+    }
+
+    if (code.isEmpty()) {
+        QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
+    } else {
+        CodeWidget* widget = new CodeWidget();
+        widget->setText(code + "\n");
+        widget->show();
+    }
+}
+
 void MainWindow::on_codePandas_triggered()
 {
     QSqlDatabase db = database();
 
+    QString code;
+
+    QStringList queries;
+    auto* tab = currentTab();
+    if (tab) {
+        queries = filterBlank(SqlParse::splitQueries(tab->query()));
+    }
+
+    QString engineName = pyvar(connectionName());
+
+    QStringList frames = queriesToFrames(queries, engineName);
+
     if (db.driverName() == DRIVER_MYSQL) {
 
-        QStringList queries;
-        auto* tab = currentTab();
-        if (tab) {
-            queries = filterBlank(SqlParse::splitQueries(tab->query()));
-        }
-
-        QString engineName = pyvar(connectionName());
-
-        QStringList frames;
-
-        for(const QString& query: queries) {
-            QString tableName;
-            QString expr;
-            if (SqlParse::isSimpleSelect(query, tableName)) {
-                expr = "'" + tableName + "'";
-            } else {
-                expr = query.trimmed();
-                if (expr.indexOf("\n") > -1) {
-                    expr = "\"\"\"" + expr + "\"\"\"\n";
-                } else {
-                    expr = "'" + expr + "'";
-                }
-            }
-            frames.append(QString("df%1 = pd.read_sql(%2, %3)").arg(frames.size() + 1).arg(expr).arg(engineName));
-        }
-
-        QString code = pipInstall({"mysql-connector-python", "SQLAlchemy", "pandas"})
+        code = pipInstall({"mysql-connector-python", "SQLAlchemy", "pandas"})
                 + "import pandas as pd\n"
-                + "from sqlalchemy import create_engine\n"
+                + "import sqlalchemy as sa"
                 + sqlAlchemyCreateEngine(database(), engineName)
                 + frames.join("\n\n");
 
+    } else if (db.driverName() == DRIVER_ODBC) {
+
+        QString DBQ = getDbq(db.databaseName());
+        if (DBQ.isEmpty()) {
+            DBQ = "database.mdb";
+        }
+        code = QString("import sqlalchemy as sa\n"
+                       "import pandas as pd\n"
+                       "DBQ = '%1'\n"
+                       "%2 = sa.create_engine(sa.engine.URL.create('access+pyodbc',\n"
+                       "    query={'odbc_connect': 'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=' + DBQ}\n"
+                       "))\n").arg(DBQ).arg(engineName) + frames.join("\n\n");
+
+    }
+
+    if (code.isEmpty()) {
+        QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
+    } else {
         CodeWidget* widget = new CodeWidget();
         widget->setText(code + "\n");
         widget->show();
-
-    } else {
-        QMessageBox::critical(this, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
     }
+
 
 }
 
@@ -1553,4 +1641,3 @@ void MainWindow::on_toolsPushCsv_triggered()
     Schema2Data* data = Schema2Data::instance(connectionName, this);
     data->pull();
 }
-

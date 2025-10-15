@@ -172,6 +172,7 @@
       <string>&amp;Python</string>
      </property>
      <addaction name="codeMysqlConnector"/>
+     <addaction name="codePyodbc"/>
      <addaction name="codePandas"/>
     </widget>
     <addaction name="menu_Python"/>
@@ -467,6 +468,11 @@
   <action name="toolsPushCsv">
    <property name="text">
     <string>Push Csv</string>
+   </property>
+  </action>
+  <action name="codePyodbc">
+   <property name="text">
+    <string>pyodbc</string>
    </property>
   </action>
  </widget>
