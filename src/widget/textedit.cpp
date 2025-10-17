@@ -246,8 +246,13 @@ void TextEdit::keyPressEvent(QKeyEvent *e) {
 
     Completer2* c = mCompleter;
 
+    if (!c) {
+        QPlainTextEdit::keyPressEvent(e);
+        return;
+    }
+
     // forwarded from popup
-    if (c && c->popup()->isVisible()) {
+    if (c->popup()->isVisible()) {
         switch (e->key()) {
         case Qt::Key_Enter:
         case Qt::Key_Return:
@@ -262,7 +267,7 @@ void TextEdit::keyPressEvent(QKeyEvent *e) {
     }
 
     // emmet
-    if (c && !c->popup()->isVisible()) {
+    if (!c->popup()->isVisible()) {
         bool accept = false;
         int index = editIndex();
         if (index < 0) {
@@ -281,7 +286,7 @@ void TextEdit::keyPressEvent(QKeyEvent *e) {
     }
 
     // move around edits
-    if (c && !c->popup()->isVisible()) {
+    if (!c->popup()->isVisible()) {
         bool accept = false;
         if (!m_edits.isEmpty()) {
             switch (e->key()) {
@@ -312,15 +317,26 @@ void TextEdit::keyPressEvent(QKeyEvent *e) {
     }
 
     const bool isShortcut = (e->modifiers().testFlag(Qt::ControlModifier) && e->key() == Qt::Key_E); // CTRL+E
-    if (!c || !isShortcut) {
+    if (!isShortcut) {
         QPlainTextEdit::keyPressEvent(e);
     }
+
+    bool isPaste = e->key() == Qt::Key_V && e->modifiers().testFlag(Qt::ControlModifier);
+    bool isCopy = e->key() == Qt::Key_C && e->modifiers().testFlag(Qt::ControlModifier);
+
+    if (e->key() == Qt::Key_Escape || isPaste || isCopy) {
+        c->popup()->hide();
+        return;
+    }
+
+    //qDebug() << "e->key()" << e->key() << "Qt::ControlModifier" << e->modifiers().testFlag(Qt::ControlModifier);
 
     const bool ctrlOrShift = e->modifiers().testFlag(Qt::ControlModifier) ||
                              e->modifiers().testFlag(Qt::ShiftModifier);
 
-    if (!c || (ctrlOrShift && e->text().isEmpty()))
+    if (ctrlOrShift && e->text().isEmpty()) {
         return;
+    }
 
     static QString eow("~!@#$%^&*()+{}|:\"<>?,/;'[]\\-=");
     const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctrlOrShift;

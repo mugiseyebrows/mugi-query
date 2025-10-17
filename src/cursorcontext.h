@@ -23,6 +23,10 @@ public:
         Column,
         Call,
         Start,
+        Insert,
+        Into,
+        Rename,
+        Create,
     };
 
     explicit CursorContext(Context context = Undefined, const QString& table = {}) : context(context), table(table) {

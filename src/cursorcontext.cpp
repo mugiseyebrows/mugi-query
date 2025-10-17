@@ -9,19 +9,23 @@ CursorContext CursorContext::getContext(const QTextCursor& cur) {
     QRegularExpression rxWord("([a-z]+)", QRegularExpression::CaseInsensitiveOption);
 
     static QHash<QString, Context> contexts = {
-                                               {"from",From},
-                                               {"select",Select},
-                                               {"join",Join},
-                                               {"where",Where},
-                                               {"on",On},
-                                               {"update",Update},
-                                               {"set",Set},
-                                               {"table", Table},
-                                               {"to", To},
-                                               {"column",Column},
-                                               {"call", Call},
-                                               {"having", Having},
-                                               };
+        {"from", From},
+        {"select", Select},
+        {"join", Join},
+        {"where", Where},
+        {"on", On},
+        {"update", Update},
+        {"set", Set},
+        {"table", Table},
+        {"to", To},
+        {"column", Column},
+        {"call", Call},
+        {"having", Having},
+        {"insert", Insert},
+        {"into", Into},
+        {"rename", Rename},
+        {"create", Create},
+    };
 
     auto curCopy = cur;
     while (true) {
@@ -66,7 +70,7 @@ QSet<CursorContext::Context> CursorContext::fieldContexts()
 
 QSet<CursorContext::Context> CursorContext::tableContexts()
 {
-    return {From, Join, Update, Table, To};
+    return {From, Join, Update, Table, To, Rename, Create, Insert, Into};
 }
 
 bool CursorContext::isFieldContext() const
