@@ -20,6 +20,7 @@
 #include <QSqlDriver>
 #include <QSqlTableModel>
 #include <QTableView>
+#include <QElapsedTimer>
 
 #include "sessionmodel.h"
 #include "sessiontab.h"

@@ -32,6 +32,7 @@
 #include <QTableView>
 #include "showandraise.h"
 #include <QRegularExpression>
+#include <QElapsedTimer>
 
 #include "schema2changeset.h"
 #include "schema2indexesmodel.h"
