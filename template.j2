@@ -1,0 +1,72 @@
+{% set ver = "6.10.0" %}
+{% set qwt_ver = "6.3.1" %}
+
+{% if mkspec == "win32-g++" %}
+{% set subdir = "mingw_64" %}
+{% set compiler = "mingw13" %}
+{% else %}
+{% set compiler = "msvc2020" %}
+{% set subdir = "msvc2020_64" %}
+{% endif %}
+
+{% macro env() %}
+    add_path(C:\Qt\{{ver}}\{{subdir}}\bin)
+    add_path(C:\Qwt-{{qwt_ver}}-Qt-{{ver}}\lib)
+    {% if mkspec == "win32-g++" %}
+    add_path(C:\mingw1310_64\bin)
+    {% else %}
+    call_vcvars()
+    {% endif %}
+{% endmacro %}
+
+def mingw
+    {% if mkspec == "win32-g++" %}
+    if_exist_return(C:\mingw1310_64\bin\gcc.exe)
+    download(https://github.com/brechtsanders/winlibs_mingw/releases/download/13.1.0-16.0.5-11.0.0-ucrt-r5/winlibs-x86_64-posix-seh-gcc-13.1.0-mingw-w64ucrt-11.0.0-r5.7z, :cache, :v)
+    7z rn winlibs-x86_64-posix-seh-gcc-13.1.0-mingw-w64ucrt-11.0.0-r5.7z mingw64 mingw1310_64
+    unzip(winlibs-x86_64-posix-seh-gcc-13.1.0-mingw-w64ucrt-11.0.0-r5.7z, :t=C:\mingw1310_64\bin\gcc.exe, :o=C:\)
+    {% else %}
+    echo 1
+    {% endif %}
+
+def qt
+    if_exist_return(C:\Qt\{{ver}}\{{subdir}}\bin\qmake.exe)
+    {% if mkspec == "win32-g++" %}
+    download(https://github.com/mugiseyebrows/build-qt/releases/download/{{ver}}/Qt-{{ver}}-mingw13.7z, :cache, :v)
+    unzip(Qt-{{ver}}-mingw13.7z, :o=C:\Qt\{{ver}})
+    {% else %}
+    download(https://github.com/mugiseyebrows/build-qt/releases/download/{{ver}}/Qt-{{ver}}-msvc2020.7z, :cache, :v)
+    unzip(Qt-{{ver}}-msvc2020.7z, :o=C:\Qt\{{ver}})
+    {% endif %}
+
+def qwt
+    if_exist_return(C:\Qwt-{{qwt_ver}}-Qt-{{ver}}\lib\qwt.dll)
+    {% if mkspec == "win32-g++" %}
+    download(https://github.com/mugiseyebrows/build-qwt/releases/download/{{qwt_ver}}/Qwt-{{qwt_ver}}-Qt-{{ver}}-mingw13.7z, :cache, :v)
+    unzip(Qwt-{{qwt_ver}}-Qt-{{ver}}-mingw13.7z, :o=C:\)
+    {% else %}
+    download(https://github.com/mugiseyebrows/build-qwt/releases/download/{{qwt_ver}}/Qwt-{{qwt_ver}}-Qt-{{ver}}-msvc2020.7z, :cache, :v)
+    unzip(Qwt-{{qwt_ver}}-Qt-{{ver}}-msvc2020.7z, :o=C:\)
+    {% endif %}
+
+def build
+    {{ env() }}
+    mkdir(Release)
+    pushd Release
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qwt-{{qwt_ver}}-Qt-{{ver}} ..
+        ninja
+    popd
+    
+def collect
+    {{ env() }}
+    use(conda)
+    install(mugideploy)
+    mugideploy collect --bin Release\mugi-query.exe --data emmet.json --plugins sqldrivers --dst "[name]-[version]-[arch]-{{compiler}}" --zip
+
+def main depends on mingw qt qwt build collect
+    github_checkout()
+    github_upload(mugi-query*.zip, :n=mugi-query)
+    github_release(mugi-query*.zip)
+
+github-workflow 1
+workflow-name build-{{compiler}}

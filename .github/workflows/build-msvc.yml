@@ -1,0 +1,60 @@
+name: build-msvc2020
+on: push
+jobs:
+  main:
+    runs-on: windows-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: mingw
+      shell: cmd
+      run: echo 1
+    - name: qt
+      shell: cmd
+      run: |
+        set PATH=C:\Program Files\7-Zip;%PATH%
+        if exist C:\Qt\6.10.0\msvc2020_64\bin\qmake.exe goto qt_end
+        if not exist Qt-6.10.0-msvc2020.7z (
+            echo downloading Qt-6.10.0-msvc2020.7z
+            curl -L -o Qt-6.10.0-msvc2020.7z https://github.com/mugiseyebrows/build-qt/releases/download/6.10.0/Qt-6.10.0-msvc2020.7z
+        )
+        7z x -y -oC:\Qt\6.10.0 Qt-6.10.0-msvc2020.7z
+        :qt_end
+    - name: qwt
+      shell: cmd
+      run: |
+        set PATH=C:\Program Files\7-Zip;%PATH%
+        if exist C:\Qwt-6.3.1-Qt-6.10.0\lib\qwt.dll goto qwt_end
+        if not exist Qwt-6.3.1-Qt-6.10.0-msvc2020.7z (
+            echo downloading Qwt-6.3.1-Qt-6.10.0-msvc2020.7z
+            curl -L -o Qwt-6.3.1-Qt-6.10.0-msvc2020.7z https://github.com/mugiseyebrows/build-qwt/releases/download/6.3.1/Qwt-6.3.1-Qt-6.10.0-msvc2020.7z
+        )
+        7z x -y -oC:\ Qwt-6.3.1-Qt-6.10.0-msvc2020.7z
+        :qwt_end
+    - name: build
+      shell: cmd
+      run: |
+        set PATH=C:\Qt\6.10.0\msvc2020_64\bin;C:\Qwt-6.3.1-Qt-6.10.0\lib;C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build;%PATH%
+        call vcvars64.bat
+        if not exist Release mkdir Release
+        pushd Release
+            cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qwt-6.3.1-Qt-6.10.0 ..
+            ninja
+        popd
+    - name: collect
+      shell: cmd
+      run: |
+        set PATH=C:\Qt\6.10.0\msvc2020_64\bin;C:\Qwt-6.3.1-Qt-6.10.0\lib;C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build;C:\Miniconda;C:\Miniconda\Scripts;%PATH%
+        call vcvars64.bat
+        where mugideploy > NUL 2>&1 || pip install mugideploy
+        mugideploy collect --bin Release\mugi-query.exe --data emmet.json --plugins sqldrivers --dst "[name]-[version]-[arch]-msvc2020" --zip
+    - name: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: mugi-query
+        path: mugi-query*.zip
+    - name: release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: mugi-query*.zip

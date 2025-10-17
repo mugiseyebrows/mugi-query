@@ -1,0 +1,65 @@
+
+
+
+
+
+
+
+
+
+
+def mingw
+    
+    if_exist_return(C:\mingw1310_64\bin\gcc.exe)
+    download(https://github.com/brechtsanders/winlibs_mingw/releases/download/13.1.0-16.0.5-11.0.0-ucrt-r5/winlibs-x86_64-posix-seh-gcc-13.1.0-mingw-w64ucrt-11.0.0-r5.7z, :cache, :v)
+    7z rn winlibs-x86_64-posix-seh-gcc-13.1.0-mingw-w64ucrt-11.0.0-r5.7z mingw64 mingw1310_64
+    unzip(winlibs-x86_64-posix-seh-gcc-13.1.0-mingw-w64ucrt-11.0.0-r5.7z, :t=C:\mingw1310_64\bin\gcc.exe, :o=C:\)
+    
+
+def qt
+    if_exist_return(C:\Qt\6.10.0\mingw_64\bin\qmake.exe)
+    
+    download(https://github.com/mugiseyebrows/build-qt/releases/download/6.10.0/Qt-6.10.0-mingw13.7z, :cache, :v)
+    unzip(Qt-6.10.0-mingw13.7z, :o=C:\Qt\6.10.0)
+    
+
+def qwt
+    if_exist_return(C:\Qwt-6.3.1-Qt-6.10.0\lib\qwt.dll)
+    
+    download(https://github.com/mugiseyebrows/build-qwt/releases/download/6.3.1/Qwt-6.3.1-Qt-6.10.0-mingw13.7z, :cache, :v)
+    unzip(Qwt-6.3.1-Qt-6.10.0-mingw13.7z, :o=C:\)
+    
+
+def build
+    
+    add_path(C:\Qt\6.10.0\mingw_64\bin)
+    add_path(C:\Qwt-6.3.1-Qt-6.10.0\lib)
+    
+    add_path(C:\mingw1310_64\bin)
+    
+
+    mkdir(Release)
+    pushd Release
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qwt-6.3.1-Qt-6.10.0 ..
+        ninja
+    popd
+    
+def collect
+    
+    add_path(C:\Qt\6.10.0\mingw_64\bin)
+    add_path(C:\Qwt-6.3.1-Qt-6.10.0\lib)
+    
+    add_path(C:\mingw1310_64\bin)
+    
+
+    use(conda)
+    install(mugideploy)
+    mugideploy collect --bin Release\mugi-query.exe --data emmet.json --plugins sqldrivers --dst "[name]-[version]-[arch]-mingw13" --zip
+
+def main depends on mingw qt qwt build collect
+    github_checkout()
+    github_upload(mugi-query*.zip, :n=mugi-query)
+    github_release(mugi-query*.zip)
+
+github-workflow 1
+workflow-name build-mingw13

@@ -26,3 +26,6 @@ CMakeLists.txt.user
 build/
 Release-msys2/
 CMakeLists.txt.*
+*.7z
+mugi-query-0.0.1-win64-mingw13/
+mugideploy.log

@@ -1,0 +1,62 @@
+
+
+
+
+
+
+
+
+
+
+def mingw
+    
+    echo 1
+    
+
+def qt
+    if_exist_return(C:\Qt\6.10.0\msvc2020_64\bin\qmake.exe)
+    
+    download(https://github.com/mugiseyebrows/build-qt/releases/download/6.10.0/Qt-6.10.0-msvc2020.7z, :cache, :v)
+    unzip(Qt-6.10.0-msvc2020.7z, :o=C:\Qt\6.10.0)
+    
+
+def qwt
+    if_exist_return(C:\Qwt-6.3.1-Qt-6.10.0\lib\qwt.dll)
+    
+    download(https://github.com/mugiseyebrows/build-qwt/releases/download/6.3.1/Qwt-6.3.1-Qt-6.10.0-msvc2020.7z, :cache, :v)
+    unzip(Qwt-6.3.1-Qt-6.10.0-msvc2020.7z, :o=C:\)
+    
+
+def build
+    
+    add_path(C:\Qt\6.10.0\msvc2020_64\bin)
+    add_path(C:\Qwt-6.3.1-Qt-6.10.0\lib)
+    
+    call_vcvars()
+    
+
+    mkdir(Release)
+    pushd Release
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qwt-6.3.1-Qt-6.10.0 ..
+        ninja
+    popd
+    
+def collect
+    
+    add_path(C:\Qt\6.10.0\msvc2020_64\bin)
+    add_path(C:\Qwt-6.3.1-Qt-6.10.0\lib)
+    
+    call_vcvars()
+    
+
+    use(conda)
+    install(mugideploy)
+    mugideploy collect --bin Release\mugi-query.exe --data emmet.json --plugins sqldrivers --dst "[name]-[version]-[arch]-msvc2020" --zip
+
+def main depends on mingw qt qwt build collect
+    github_checkout()
+    github_upload(mugi-query*.zip, :n=mugi-query)
+    github_release(mugi-query*.zip)
+
+github-workflow 1
+workflow-name build-msvc2020
