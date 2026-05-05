@@ -169,6 +169,8 @@ private slots:
 
     void on_codePyodbc_triggered();
 
+    void on_toolsMysqlShell_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

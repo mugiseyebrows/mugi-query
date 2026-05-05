@@ -14,6 +14,8 @@
 #include <QFile>
 #include <QTextStream>
 #include "schema2tablesmodel.h"
+#include "toolmysqlshelldialog.h"
+#include "drivernames.h"
 
 static QString pathJoin(const QStringList& args) {
     QStringList res;
@@ -353,4 +355,43 @@ void Tools::pushCsv(QSqlDatabase db, const QString &path, const QString& name, I
     }
     args.append(path);
     execute(python, args, {}, PUSHCSV_TIMEOUT, widget);
+}
+
+
+
+void Tools::mysqlShell(QSqlDatabase db, QWidget *widget)
+{
+
+#ifdef Q_OS_WIN
+
+    Settings* settings = Settings::instance();
+
+    QFileInfo info(settings->mysqlPath());
+    if (!info.exists()) {
+        QMessageBox::critical(widget, "", "Mysql not found");
+        return;
+    }
+
+    if (db.driverName() != DRIVER_MYSQL && db.driverName() != DRIVER_MARIADB) {
+        QMessageBox::critical(widget, "Error", QString("Not implemented for driver %1").arg(db.driverName()));
+    }
+
+    ToolMysqlShellDialog dialog(widget);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    bool ssl = dialog.ssl();
+
+    QStringList args = mysql_args(db, ssl, false);
+
+    QString workingDirectory = info.dir().absolutePath();
+
+    QProcess::startDetached("cmd", QStringList {"/c", "start", "mysql"} + args, workingDirectory);
+
+#else
+
+    QMessageBox::critical(this, "Error", "Not implemented for this platform");
+
+#endif
+
 }

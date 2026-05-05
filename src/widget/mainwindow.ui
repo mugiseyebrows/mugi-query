@@ -160,6 +160,7 @@
     </property>
     <addaction name="toolsMysql"/>
     <addaction name="toolsMysqldump"/>
+    <addaction name="toolsMysqlShell"/>
     <addaction name="toolsJoin"/>
     <addaction name="toolsPushCsv"/>
    </widget>
@@ -473,6 +474,11 @@
   <action name="codePyodbc">
    <property name="text">
     <string>pyodbc</string>
+   </property>
+  </action>
+  <action name="toolsMysqlShell">
+   <property name="text">
+    <string>Mysql &amp;Shell</string>
    </property>
   </action>
  </widget>

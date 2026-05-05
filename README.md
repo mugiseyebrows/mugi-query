@@ -29,7 +29,12 @@ Data import
 
 ### Windows
 
-See build.bat and build-msys2.bat
+```bash
+git clone https://github.com/mugiseyebrows/mugi-query.git
+cd mugi-query
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B Release -DCMAKE_PREFIX_PATH=C:/Qwt-6.3.1-Qt-6.10.0
+cmake --build Release
+```
 
 ### Linux (Ubuntu)
 
@@ -47,14 +52,12 @@ cd ..
 
 # install sql plugins
 sudo apt install libqt6sql6-ibase libqt6sql6-mysql libqt6sql6-odbc libqt6sql6-psql libqt6sql6-sqlite
-
+# build
 git clone https://github.com/mugiseyebrows/mugi-query.git
 cd mugi-query
-mkdir build
-cd build
-cmake -G Ninja ..
-cmake --build .
-sudo cmake --install .
-cd ..
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B Release
+cmake --build Release
+# install
+sudo cmake --install Release
 python3 desktop.py
 ```

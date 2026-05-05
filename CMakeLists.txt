@@ -222,6 +222,7 @@ qt_add_executable(mugi-query WIN32 src/accessuri.cpp src/accessuri.h src/action.
     src/colordialog/colortablewidget.cpp src/colordialog/colortablewidget.h src/colordialog/contrasting.cpp
     src/colordialog/contrasting.h
     src/xyplot/xyplot2.h src/xyplot/xyplot2.cpp
+    src/widget/toolmysqlshelldialog.h src/widget/toolmysqlshelldialog.cpp src/widget/toolmysqlshelldialog.ui
 )
 
 target_include_directories(mugi-query PUBLIC

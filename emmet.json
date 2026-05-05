@@ -25,11 +25,11 @@
     ["l"], "like #",
     ["b"], "between # and #",
     "-- grouping",
-    ["gb", "g"], "group by #",
+    ["gb"], "group by #",
     "-- ordering",
     ["oba"], "order by # asc",
     ["obd"], "order by # desc",
-    ["ob", "o"], "order by #",
+    ["ob"], "order by #",
     "-- create",
     ["ctt"], "create temporary table # ( # )",
     ["ct"], "create table # ( # )",
@@ -83,5 +83,12 @@
     ["odk"], "on duplicate key",
     "-- delete",
     ["df"], "delete from #",
-    ["t"], "truncate #"
+    ["dfw1"], "delete from # where 1",
+    ["t"], "truncate #",
+    "-- indexes",
+    ["sii"], "show indexes in #",
+    "-- processlist",
+    ["sp"], "show processlist",
+    ["sfp"], "show full processlist",
+    ["k"], "kill #"
 ]

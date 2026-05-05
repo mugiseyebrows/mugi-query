@@ -1584,7 +1584,7 @@ void MainWindow::on_codePandas_triggered()
 
         code = pipInstall({"mysql-connector-python", "SQLAlchemy", "pandas"})
                 + "import pandas as pd\n"
-                + "import sqlalchemy as sa"
+                + "import sqlalchemy as sa\n"
                 + sqlAlchemyCreateEngine(database(), engineName)
                 + frames.join("\n\n");
 
@@ -1642,3 +1642,10 @@ void MainWindow::on_toolsPushCsv_triggered()
     Schema2Data* data = Schema2Data::instance(connectionName, this);
     data->pull();
 }
+
+
+void MainWindow::on_toolsMysqlShell_triggered()
+{
+    Tools::mysqlShell(database(), this);
+}
+

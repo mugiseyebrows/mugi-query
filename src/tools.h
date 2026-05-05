@@ -16,6 +16,8 @@ public:
 
     static void pushCsv(QSqlDatabase db, const QString& path, const QString &name, IfExists ifExists, QWidget *widget);
 
+    static void mysqlShell(QSqlDatabase db, QWidget* widget);
+
 };
 
 #endif // TOOLS_H
